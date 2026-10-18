@@ -426,6 +426,21 @@ async function handleRequest(req, res, state) {
     // Introspection for assertions.
     if (method === 'GET' && path === '/__state') return sendJson(res, 200, stateDump(state));
 
+    // Identity endpoints (used by the OAuth callback right after linking).
+    if (method === 'GET' && path === '/youtube/v3/channels') {
+      return sendJson(res, 200, { items: [{ id: 'mock-channel-1', snippet: { title: 'Kênh Mock' } }] });
+    }
+    if (method === 'GET' && path === '/v19.0/me/accounts') {
+      return sendJson(res, 200, { data: [
+        { id: 'page-1', name: 'Page Một', access_token: 'mock-page-token-1' },
+        { id: 'page-2', name: 'Page Hai', access_token: 'mock-page-token-2' },
+      ] });
+    }
+    if (method === 'POST' && path === '/v2/user/info/') {
+      await readBody(req);
+      return sendJson(res, 200, { data: { user: { open_id: 'tt-open-1', username: 'mock.creator', display_name: 'Mock Creator' } }, error: { code: 'ok', message: '' } });
+    }
+
     // YouTube.
     if (method === 'POST' && path === '/upload/youtube/v3/videos') return youtubeInitUpload(req, res, state, baseUrl);
     const ytSession = /^\/upload\/session\/([^/]+)$/.exec(path);

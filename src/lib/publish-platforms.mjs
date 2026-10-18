@@ -86,6 +86,55 @@ export async function oauthExchangeCode(kind, { clientId, clientSecret, code, re
   return { accessToken: parsed.json.access_token, refreshToken: parsed.json.refresh_token || null, expiresAt: parsed.json.expires_in ? new Date(Date.now() + parsed.json.expires_in * 1000).toISOString() : null, scope: parsed.json.scope || null };
 }
 
+/* ------------- OAuth identity + refresh ------------- */
+
+export async function oauthRefreshToken(kind, { clientId, clientSecret, refreshToken, tokenUrl, fetchImpl = fetch }) {
+  const cfg = OAUTH[kind]; if (!cfg) throw err('PUBLISH_KIND', 'Nền tảng không hợp lệ.');
+  const body = new URLSearchParams({ client_id: clientId, client_secret: clientSecret, grant_type: 'refresh_token', refresh_token: refreshToken });
+  const res = await fetchImpl(tokenUrl || cfg.token, { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body });
+  const parsed = await readBody(res);
+  if (!res.ok || !parsed.json?.access_token) throw httpErr(kind, res.status, parsed);
+  return { accessToken: parsed.json.access_token, refreshToken: parsed.json.refresh_token || refreshToken, expiresAt: parsed.json.expires_in ? new Date(Date.now() + parsed.json.expires_in * 1000).toISOString() : null, scope: parsed.json.scope || null };
+}
+
+/** Who is behind this token? Used right after the OAuth callback so the
+ * connection shows the REAL account (channel title, Pages, username)
+ * instead of a generic label. Facebook also returns per-Page tokens,
+ * which posting to a Page requires. */
+export async function fetchPlatformIdentity(kind, { connection, token, fetchImpl = fetch } = {}) {
+  const cfg = OAUTH[kind]; if (!cfg) throw err('PUBLISH_KIND', 'Nền tảng không hợp lệ.');
+  const bundle = token || tokenBundle(connection);
+  if (!bundle?.accessToken) throw err('BLOCKED_PUBLISH_AUTH', `Kết nối ${kind} chưa có token truy cập.`);
+  const base = connection ? platformBase(kind, connection) : DEFAULT_BASE[kind];
+  const auth = { authorization: `Bearer ${bundle.accessToken}` };
+  if (kind === 'youtube') {
+    const res = await fetchImpl(`${base}/youtube/v3/channels?part=snippet&mine=true`, { headers: auth });
+    const body = await readBody(res);
+    if (!res.ok) throw httpErr(kind, res.status, body);
+    const item = body.json?.items?.[0];
+    if (!item) return { accountLabel: 'Kênh YouTube', channelId: null, channelTitle: null };
+    return { accountLabel: String(item.snippet?.title || 'Kênh YouTube'), channelId: item.id ? String(item.id) : null, channelTitle: String(item.snippet?.title || '') };
+  }
+  if (kind === 'facebook') {
+    const res = await fetchImpl(`${base}/v19.0/me/accounts?fields=id,name,access_token&limit=100`, { headers: auth });
+    const body = await readBody(res);
+    if (!res.ok) throw httpErr(kind, res.status, body);
+    const pages = []; const pageTokens = {};
+    for (const pg of body.json?.data || []) {
+      if (!pg?.id) continue;
+      pages.push({ id: String(pg.id), name: String(pg.name || pg.id) });
+      if (pg.access_token) pageTokens[String(pg.id)] = String(pg.access_token);
+    }
+    return { accountLabel: pages.length ? `Facebook · ${pages.length} Page` : 'Tài khoản Facebook (chưa có Page)', pages, pageTokens };
+  }
+  const res = await fetchImpl(`${base}/v2/user/info/`, { method: 'POST', headers: { ...auth, 'content-type': 'application/json' }, body: JSON.stringify({ fields: ['open_id', 'username', 'display_name'] }) });
+  const body = await readBody(res);
+  const code = body.json?.error?.code;
+  if (!res.ok || (code && code !== 'ok')) throw httpErr(kind, res.status, body);
+  const user = body.json?.data?.user || {};
+  return { accountLabel: String(user.display_name || user.username || 'Tài khoản TikTok'), username: String(user.username || '') };
+}
+
 /* ---------------- YouTube ---------------- */
 
 export async function youtubeUpload({ connection, file, title, description = '', tags = [], privacyStatus = 'unlisted', fetchImpl = fetch }) {
@@ -140,7 +189,11 @@ export async function youtubeStats({ connection, videoId, fetchImpl = fetch }) {
 
 export async function facebookUpload({ connection, file, title, description = '', fetchImpl = fetch }) {
   const kind = 'facebook';
-  const token = requireToken(kind, connection);
+  const bundle = requireToken(kind, connection);
+  // Posting to a Page needs the PAGE access token (returned by /me/accounts
+  // at link time and kept in the token bundle), not the user token.
+  const pageToken = bundle.pageTokens?.[String(connection?.meta?.pageId || '')];
+  const token = pageToken ? { ...bundle, accessToken: pageToken } : bundle;
   const pageId = String(connection?.meta?.pageId || '');
   if (!pageId) throw err('BLOCKED_PUBLISH_AUTH', 'Kết nối Facebook chưa có Page ID. Hãy chọn Page khi liên kết tài khoản.');
   const base = platformBase(kind, connection);

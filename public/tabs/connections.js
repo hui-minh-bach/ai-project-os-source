@@ -42,7 +42,7 @@ function renderConnections(){
   const isAccount=['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(c?.kind);const hint=!state.vault?.unlocked?'Mở Vault để xem kết nối.':c?.availability?.status==='verified'?`${c.name} · ${models.length} model ${isAccount?'đã phản hồi thật':'từ API'}`:isAccount?'Tài khoản CLI chưa xác minh model bằng phản hồi thực.':c?'Làm mới để xác minh Models API.':kind==='openai'?'API key hoặc tài khoản ChatGPT.':['gemini','anthropic'].includes(kind)?'API key hoặc đăng nhập qua CLI chính thức.':'API key chính thức của provider.';
   return `<article class="cc-card cc-provider ${kind==='openai_compatible'?'other':''}" data-provider="${kind}"><div class="cc-provider-top"><span class="cc-logo ${kind}">${ccLogo(kind)}</span><div class="cc-provider-title"><h3>${title}</h3>${ccBadge(status)}<p class="cc-model-description" title="${esc(hint)}">${esc(hint)}</p>${accounts.length>1?`<select class="cc-account-select" data-account="${kind}" aria-label="Tài khoản ${esc(title)}">${accounts.map(x=>`<option value="${esc(x.id)}" ${x.id===c.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}</div><div class="cc-actions"><button class="cc-button ${c?'':'connect'}" data-connect="${kind}">${c?'Quản lý':kind==='openai_compatible'?'Thêm API key':'Kết nối'}</button><button class="cc-button cc-menu" data-manage="${kind}" aria-label="Thao tác ${title}">⋮</button></div></div><label for="cc-model-${kind}">Model khả dụng</label><select id="cc-model-${kind}" data-default-model="${esc(c?.id||'')}" ${models.length?'':'disabled'} aria-label="Model ${title}">${ccOptions(models,c?.model,!state.vault?.unlocked?'Vault đang khóa':!c?'Chưa kết nối tài khoản':!models.length?'Chưa có model khả dụng':'Chọn model mặc định')}</select>${c?ccEffortSlider(c,title):''}<label>Dùng cho vai trò</label><div class="cc-role-buttons">${ccRoles.map(([role])=>{const b=ccBinding(role),active=Boolean(c&&b&&b.connectionId===c.id);return `<button class="cc-button ${active?'active-'+role:''}" data-assign-role="${role}" data-kind="${kind}" ${ccVerified(c)&&state.project?'':'disabled'}>${{founder:'Founder',council:'Council',worker:'Worker',reviewer:'Reviewer'}[role]}</button>`}).join('')}</div>${ccQuotaPanel(c)}</article>`;
  }).join('');
- renderConnectionRoles();renderConnectionInfrastructure();ccRenderUsage();
+ renderConnectionRoles();renderConnectionInfrastructure();renderConnectionPlatforms();ccRenderUsage();
  if(state.vault?.unlocked&&$('#page-connections')?.classList.contains('active'))ccFetchVisibleQuotas();
 }
 function renderConnectionRoles(){
@@ -307,3 +307,58 @@ async function renderUpdatePanel(){
   }catch(e){box.innerHTML=`<p class="cc-dialog-note">Không tải được trạng thái cập nhật: ${esc(e.message||e)}</p>`}
 }
 document.addEventListener('page-change',e=>{if(e.detail?.page==='connections')renderUpdatePanel()});
+
+/* ---- Platform linking for auto-posting (YouTube / Facebook / TikTok) ---- */
+const ccPlatforms=[['youtube','YouTube','Đăng video lên kênh YouTube của bạn.','https://console.cloud.google.com/apis/credentials','Google Cloud Console','youtube.upload, youtube.readonly'],['facebook','Facebook Page','Đăng video lên Facebook Page bạn quản lý.','https://developers.facebook.com/apps','Meta for Developers','pages_show_list, pages_manage_posts, pages_read_engagement'],['tiktok','TikTok','Đăng video lên tài khoản TikTok của bạn.','https://developers.tiktok.com','TikTok Developers','user.info.basic, video.upload, video.publish']];
+function ccPlatformConn(kind){return state.connections.find(c=>c.kind===kind)}
+function renderConnectionPlatforms(){
+ const box=$('#platformGrid');if(!box)return;
+ box.innerHTML=ccPlatforms.map(([kind,title,desc])=>{
+  const c=ccPlatformConn(kind);
+  const status=!state.vault?.unlocked?['locked','Vault đang khóa']:c?['connected','Đã liên kết']:['','Chưa liên kết'];
+  let detail=desc;
+  if(c){
+   detail=c.meta?.accountLabel||c.name||'Đã liên kết';
+   if(kind==='facebook')detail+=c.meta?.pageName?` · Page: ${c.meta.pageName}`:' · Chưa chọn Page — bấm Quản lý liên kết để chọn';
+   if(kind==='tiktok'&&c.meta?.tiktokApproved!==true)detail+=' · App chưa được TikTok duyệt: chỉ đăng riêng tư được';
+   if(c.meta?.linkedAt)detail+=` · ${new Date(c.meta.linkedAt).toLocaleDateString('vi-VN')}`;
+  }
+  return `<article class="cc-card cc-service"><div class="cc-service-top"><span class="cc-logo ${kind}">${ccLogo(kind)}</span><div class="cc-service-title"><div class="cc-service-heading"><h3>${title}</h3>${ccBadge(status)}</div><p title="${esc(detail)}">${esc(detail)}</p></div></div><div class="cc-service-actions"><button class="cc-button ${c?'':'connect'}" data-platform-link="${kind}">${c?'Quản lý liên kết':'Liên kết & cấp quyền'}</button></div></article>`;
+ }).join('');
+ $$('#platformGrid [data-platform-link]').forEach(b=>b.onclick=()=>ccPlatformDialog(b.dataset.platformLink));
+}
+function ccPlatformDialog(kind){
+ if(ccNeedVault())return;
+ const def=ccPlatforms.find(p=>p[0]===kind);if(!def)return;
+ const [,title,desc,devUrl,devName,scopes]=def;
+ const c=ccPlatformConn(kind);
+ const redirectUri=`${location.origin}/api/connections/oauth/${kind}/callback`;
+ modal(`<h2>Liên kết ${esc(title)} để tự động đăng bài</h2><p class="cc-dialog-note">${esc(desc)} Việc cấp quyền diễn ra trên trang chính thức của ${esc(title)} — phần mềm không nhận mật khẩu của bạn. Token lưu trong Secret Vault trên máy này.</p><div class="cc-dialog-status">${c?`Đã liên kết: ${esc(c.meta?.accountLabel||c.name)}${c.meta?.linkedAt?` · ${esc(new Date(c.meta.linkedAt).toLocaleString('vi-VN'))}`:''}`:'Chưa liên kết.'}</div><p class="cc-dialog-note"><strong>Bước 1:</strong> Tạo một ứng dụng nhà phát triển của riêng bạn tại <a href="${devUrl}" target="_blank" rel="noopener noreferrer">${esc(devName)} ↗</a>, rồi dán Redirect URI này vào cấu hình OAuth của ứng dụng đó:</p><input readonly value="${esc(redirectUri)}" onclick="this.select()"><p class="cc-dialog-note"><strong>Bước 2:</strong> Dán Client ID và Client Secret của ứng dụng vào đây. Quyền phần mềm sẽ xin: <em>${esc(scopes)}</em>.</p><label>Client ID</label><input id="ccPfClientId" autocomplete="off" placeholder="${c?'Để trống nếu chỉ liên kết lại bằng ứng dụng cũ — khi đó nhập lại cả hai ô':'Client ID của ứng dụng nền tảng'}"><label>Client Secret</label><input id="ccPfClientSecret" type="password" autocomplete="off" placeholder="Client Secret của ứng dụng nền tảng"><p class="cc-dialog-note"><strong>Bước 3:</strong> Bấm nút dưới đây — trang cấp quyền của ${esc(title)} mở ra, bạn đăng nhập và đồng ý, xong quay lại đây; liên kết tự cập nhật.</p><div class="cc-dialog-actions"><button class="primary" id="ccPfAuthorize">Mở trang cấp quyền của ${esc(title)} →</button>${c?'<button class="ghost" id="ccPfUnlink">Ngắt liên kết</button>':''}</div><div id="ccPfExtra"></div><p id="ccPfError" class="cc-dialog-error" role="status"></p>`);
+ const extra=$('#ccPfExtra');
+ if(kind==='facebook'&&c){
+  const pages=c.meta?.pages||[];
+  extra.innerHTML=pages.length?`<label>Page sẽ đăng bài</label><div class="cc-dialog-actions"><select id="ccPfPage">${pages.map(pg=>`<option value="${esc(pg.id)}" ${String(c.meta?.pageId)===String(pg.id)?'selected':''}>${esc(pg.name)}</option>`).join('')}</select><button class="ghost" id="ccPfPickPage">Dùng Page này</button></div><p class="cc-dialog-note">Đăng lên Facebook là đăng lên Page (không phải trang cá nhân). Page token được nền tảng cấp kèm khi liên kết và đã lưu trong Vault.</p>`:'<p class="cc-dialog-note">Tài khoản đã liên kết chưa có Page nào — hãy tạo Page trên Facebook rồi liên kết lại.</p>';
+  const pick=$('#ccPfPickPage');if(pick)pick.onclick=async e=>{e.target.disabled=true;try{const r=await api(`/api/connections/${encodeURIComponent(c.id)}/platform-page`,{method:'POST',body:JSON.stringify({pageId:$('#ccPfPage').value})});await loadConnections();ccPlatformDialog(kind);toast(`Đã chọn Page: ${r.meta?.pageName||''}`)}catch(err){$('#ccPfError').textContent=err.message;e.target.disabled=false}};
+ }
+ if(kind==='tiktok'&&c){
+  extra.innerHTML=`<label class="checkboxLine"><input type="checkbox" id="ccPfTiktokApproved" ${c.meta?.tiktokApproved?'checked':''}> Ứng dụng TikTok của tôi ĐÃ được TikTok duyệt đăng công khai</label><p class="cc-dialog-note">Chưa được duyệt thì TikTok chỉ cho đăng ở chế độ riêng tư (SELF_ONLY) — phần mềm tôn trọng đúng giới hạn đó, không lách.</p>`;
+  $('#ccPfTiktokApproved').onchange=async e=>{try{await api('/api/connections',{method:'POST',body:JSON.stringify({id:c.id,kind:'tiktok',meta:{tiktokApproved:e.target.checked}})});await loadConnections();toast(e.target.checked?'Đã ghi nhận app TikTok đã duyệt':'Đã bỏ ghi nhận duyệt app TikTok')}catch(err){$('#ccPfError').textContent=err.message;e.target.checked=!e.target.checked}};
+ }
+ if(kind==='youtube'&&c){
+  extra.innerHTML='<p class="cc-dialog-note">Mẹo: nếu ứng dụng Google của bạn chưa qua vòng xác minh của Google, màn hình cấp quyền sẽ cảnh báo “ứng dụng chưa được xác minh” — cứ chọn “Nâng cao → Đi tới ứng dụng” là cấp quyền được cho chính kênh của bạn (chế độ kiểm thử cho phép tối đa 100 tài khoản tự thêm).</p>';
+ }
+ $('#ccPfAuthorize').onclick=async e=>{
+  const btn=e.target;btn.disabled=true;
+  try{
+   const clientId=$('#ccPfClientId').value.trim(),clientSecret=$('#ccPfClientSecret').value.trim();
+   if(!clientId||!clientSecret)throw new Error('Nhập Client ID và Client Secret của ứng dụng nền tảng trước (Bước 2).');
+   const r=await api(`/api/connections/oauth/${kind}/start`,{method:'POST',body:JSON.stringify({clientId,clientSecret})});
+   window.open(r.url,'_blank','noopener');
+   $('#ccPfError').textContent='Đã mở trang cấp quyền. Đồng ý trên trang của '+title+' xong quay lại đây — liên kết sẽ tự cập nhật.';
+   const before=c?.meta?.linkedAt||'';
+   let tries=0;const timer=setInterval(async()=>{tries++;await loadConnections();const now=ccPlatformConn(kind);if(now&&(now.meta?.linkedAt||'')!==before){clearInterval(timer);ccPlatformDialog(kind);toast('Đã liên kết '+title)}else if(tries>40){clearInterval(timer);const el=$('#ccPfError');if(el)el.textContent='Chưa thấy liên kết mới. Nếu bạn đã cấp quyền xong, đóng hộp thoại này rồi mở lại để xem trạng thái.';}},3000);
+  }catch(err){$('#ccPfError').textContent=err.message;btn.disabled=false}
+ };
+ const unlink=$('#ccPfUnlink');
+ if(unlink)unlink.onclick=()=>{modal(`<h2>Ngắt liên kết ${esc(title)}</h2><p class="cc-dialog-note">Token sẽ bị xóa khỏi Vault; vòng khép kín sẽ không đăng lên ${esc(title)} được nữa cho đến khi liên kết lại. Muốn thu hồi hẳn quyền, vào trang bảo mật của ${esc(title)} để gỡ ứng dụng.</p><button class="primary" id="ccPfConfirmUnlink">Ngắt liên kết</button><p id="ccDialogError" class="cc-dialog-error" role="status"></p>`);$('#ccPfConfirmUnlink').onclick=async e=>{e.target.disabled=true;try{await api('/api/connections/'+encodeURIComponent(c.id),{method:'DELETE'});await loadConnections();$('#modal').classList.add('hidden');toast('Đã ngắt liên kết '+title)}catch(err){$('#ccDialogError').textContent=err.message;e.target.disabled=false}};};
+}

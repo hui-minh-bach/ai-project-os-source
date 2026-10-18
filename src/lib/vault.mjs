@@ -199,7 +199,7 @@ export function saveConnection(input) {
   const changed = !old || secret !== old.secret || baseUrl !== old.baseUrl || input.kind !== old.kind || (input.kind === 'chatgpt_account' && input.meta?.accountIdentity !== old.meta?.accountIdentity);
   const supplied = input.meta && typeof input.meta === 'object' ? input.meta : old?.meta || {};
   const meta = {};
-  for (const k of ['accountIdentity', 'planType', 'authMode', 'management', 'login', 'userId', 'noreplyEmail', 'team', 'project', 'projects', 'ref', 'keyType', 'verifiedAt', 'reasoningEffort', 'pageId', 'pageName', 'accountLabel', 'channelTitle', 'username', 'tiktokApproved', 'linkedAt']) { if (k in supplied) meta[k] = structuredClone(supplied[k]); }
+  for (const k of ['accountIdentity', 'planType', 'authMode', 'management', 'login', 'userId', 'noreplyEmail', 'team', 'project', 'projects', 'ref', 'keyType', 'verifiedAt', 'reasoningEffort', 'pageId', 'pageName', 'accountLabel', 'channelTitle', 'channelId', 'pages', 'username', 'tiktokApproved', 'linkedAt']) { if (k in supplied) meta[k] = structuredClone(supplied[k]); }
   if (changed && old) delete meta.verifiedAt;
   const item = {
     id,

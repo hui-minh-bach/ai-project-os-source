@@ -19,8 +19,8 @@ import { piperStatus, piperSynthesize, piperVoiceFor } from './local-piper-tts.m
 import { buildVoiceover } from './voiceover.mjs';
 import { writeWordCaptions } from './voice-captions.mjs';
 import { DATA_DIR } from './store.mjs';
-import { findServiceCredential, findConnectionByKind } from './vault.mjs';
-import { youtubeUpload, facebookUpload, tiktokUpload, youtubeStats, facebookStats, tiktokStats, platformConnectionStatus, isSimulatedEndpoint, platformBase, PLATFORM_KINDS } from './publish-platforms.mjs';
+import { findServiceCredential, findConnectionByKind, saveConnection } from './vault.mjs';
+import { youtubeUpload, facebookUpload, tiktokUpload, youtubeStats, facebookStats, tiktokStats, platformConnectionStatus, isSimulatedEndpoint, platformBase, PLATFORM_KINDS, tokenBundle, oauthRefreshToken } from './publish-platforms.mjs';
 import { createPublishRecords } from './publish-records.mjs';
 import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegmentsWithModel, writeRethemeScriptWithModel, splitScriptAcrossWindows, writeTextWithModel, buildDirectorModelCall, parseDirectorPlan, routeDirectorPlan, groupSpeechSegments } from './media-ai.mjs';
 import { EFFECT_IDS, buildEffectsGraph, buildEffectsAss } from './media-effects.mjs';
@@ -655,8 +655,21 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // record states plainly when the endpoint was a simulated one.
       const publishHandler=(platform,upload)=>async({jobId,video,title,description='',tags,privacy})=>{
         const file=checkFile(mediaWorkspace,video);
-        const connection=findConnectionByKind(platform);
+        let connection=findConnectionByKind(platform);
         if(!connection)throw err('BLOCKED_PUBLISH_AUTH',`Chưa liên kết tài khoản ${platform} hoặc Vault đang khóa. Vào tab Kết nối để liên kết.`);
+        if(platform==='youtube'){
+          // Google access tokens live ~1 hour; refresh quietly with the
+          // stored refresh token + app credentials before uploading.
+          const bundle=tokenBundle(connection);
+          if(bundle?.refreshToken&&bundle.clientId&&bundle.clientSecret&&bundle.expiresAt&&Date.now()>new Date(bundle.expiresAt).getTime()-300000){
+            try{
+              const fresh=await oauthRefreshToken('youtube',{clientId:bundle.clientId,clientSecret:bundle.clientSecret,refreshToken:bundle.refreshToken,tokenUrl:connection.baseUrl?String(connection.baseUrl).replace(/\/$/,'')+'/oauth/token':undefined});
+              const merged={...bundle,...fresh};
+              saveConnection({id:connection.id,kind:'youtube',name:connection.name,secret:JSON.stringify(merged),meta:connection.meta});
+              connection={...connection,secret:JSON.stringify(merged)};
+            }catch{ /* keep the old token; the platform error will surface honestly */ }
+          }
+        }
         const ctx=taskContext.get(jobId);
         const res=await upload({connection,file,title,description,tags,privacyStatus:privacy,privacyLevel:privacy});
         const record=publishRecords.append({...res,projectId:ctx?.projectId||null,taskId:jobId,publishedAt:new Date().toISOString(),endpointHost:(()=>{try{return new URL(platformBase(platform,connection)).hostname;}catch{return null;}})(),simulated:isSimulatedEndpoint(platform,connection),metrics:null,metricsUpdatedAt:null});

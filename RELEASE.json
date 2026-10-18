@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.15",
-  "channel": "v0.9.15-concat-studio",
+  "version": "0.9.16",
+  "channel": "v0.9.16-platform-linking",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -120,6 +120,10 @@
     "studio_concat_theme": {
       "status": "built",
       "scope": "Media Studio redesigned Concat-style (0.9.15): dark editor theme scoped to #mediaStudio regardless of app theme; layout restructured — tools/preview/panels row on top, FULL-WIDTH multi-track timeline below; Concat lane colours (video lane blue with a REAL filmstrip drawn client-side from the preview video frames, caption lane pink like Concat text clips, result lane violet), violet playhead, transport bar (back/play-pause/forward 5s + time readout) under the preview. All existing ids, 10 modes and 10 panels preserved (capcut-studio contract test extended). Design verified by rendering the shipped HTML+CSS in a browser (live-app screenshots remain blocked in the sandbox by Chromium local-network policy, as in 0.9.7)."
+    },
+    "social_account_linking": {
+      "status": "built",
+      "scope": "Linking & consent UI for auto-posting (0.9.16, closing the gap the owner pointed at: the OAuth engine existed but the Connections tab had NO surface for it). Connections tab gains a \"Dang bai tu dong\" section with YouTube/Facebook/TikTok cards (status, real account label, page state) and a 3-step dialog: create your own developer app, paste the shown redirect URI into it, paste Client ID/Secret, open the platform consent page; the dialog polls and updates itself when the callback lands. Callback upgraded: stores client id/secret inside the encrypted token bundle (needed for refresh), resolves the REAL identity via fetchPlatformIdentity (YouTube channel title/id, Facebook Pages + per-Page tokens, TikTok username) and sets it as the connection label; a single Facebook Page is auto-selected, several Pages are picked in the dialog (POST /api/connections/:id/platform-page). facebookUpload now posts with the PAGE token. YouTube tokens refresh automatically in the publish path when near expiry (oauthRefreshToken, persisted back to the Vault). TikTok approval flag editable in the dialog; SELF_ONLY honesty kept. Verified against the protocol-faithful mock platforms (identity endpoints added to the fixture): identity for all 3 platforms, refresh semantics, a real Facebook upload whose every call carried the page token (test/oauth-link.test.mjs). NOT yet verified: the consent click-through against real Google/Meta/TikTok developer apps — that needs the owner’s own apps + accounts on Windows (Gate 5)."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

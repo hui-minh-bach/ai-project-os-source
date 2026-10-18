@@ -34,12 +34,12 @@ import { createLocalAccess } from './lib/local-access.mjs';
 import { createIngestStore } from './lib/ingest.mjs';
 import { createOrchestrator, createSimulatedAi, createGatewayAi } from './lib/orchestrator.mjs';
 import { writeTextWithModel, translateSegmentsWithModel } from './lib/media-ai.mjs';
-import { oauthAuthorizeUrl, oauthExchangeCode, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
+import { oauthAuthorizeUrl, oauthExchangeCode, fetchPlatformIdentity, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
 import { createUpdater } from './lib/updater.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.15';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.16';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -114,8 +114,25 @@ const server=http.createServer(async(req,res)=>{try{
     oauthPending.delete(u.searchParams.get('state'));
     const redirectUri=`http://${req.headers.host}/api/connections/oauth/${kind}/callback`;
     const tokens=await oauthExchangeCode(kind,{clientId:pending.clientId,clientSecret:pending.clientSecret,code:u.searchParams.get('code')||'',redirectUri,tokenUrl:pending.baseUrl?pending.baseUrl.replace(/\/$/,'')+'/oauth/token':undefined});
-    saveConnection({kind,secret:JSON.stringify(tokens),baseUrl:pending.baseUrl||undefined,meta:{accountLabel:'Tài khoản '+kind,linkedAt:new Date().toISOString()}});
+    // Keep the app credentials inside the encrypted token bundle: YouTube
+    // access tokens live one hour, refresh needs client id+secret later.
+    const bundle={...tokens,clientId:pending.clientId,clientSecret:pending.clientSecret};
+    let identity=null;try{identity=await fetchPlatformIdentity(kind,{token:tokens,connection:{baseUrl:pending.baseUrl||undefined}});}catch{identity=null;}
+    const meta={accountLabel:identity?.accountLabel||('Tài khoản '+kind),linkedAt:new Date().toISOString()};
+    if(kind==='youtube'&&identity){if(identity.channelTitle)meta.channelTitle=identity.channelTitle;if(identity.channelId)meta.channelId=identity.channelId;}
+    if(kind==='facebook'&&identity){meta.pages=identity.pages||[];if(identity.pageTokens&&Object.keys(identity.pageTokens).length)bundle.pageTokens=identity.pageTokens;if(meta.pages.length===1){meta.pageId=meta.pages[0].id;meta.pageName=meta.pages[0].name;}}
+    if(kind==='tiktok'&&identity?.username)meta.username=identity.username;
+    saveConnection({kind,name:meta.accountLabel,secret:JSON.stringify(bundle),baseUrl:pending.baseUrl||undefined,meta});
     res.writeHead(303,{location:'/#connections'});return res.end();
+  }
+  const pagePickMatch=u.pathname.match(/^\/api\/connections\/([^/]+)\/platform-page$/);
+  if(req.method==='POST'&&pagePickMatch){
+    const b=await readBody(req);const conn=listConnections().find(c=>c.id===decodeURIComponent(pagePickMatch[1]));
+    if(!conn||conn.kind!=='facebook')throw new Error('Kết nối Facebook không tồn tại.');
+    const page=(conn.meta?.pages||[]).find(pg=>String(pg.id)===String(b.pageId||''));
+    if(!page)throw new Error('Page không thuộc tài khoản đã liên kết. Hãy liên kết lại để làm mới danh sách Page.');
+    const saved=saveConnection({id:conn.id,kind:'facebook',name:conn.name,meta:{...(conn.meta||{}),pageId:String(page.id),pageName:String(page.name)}});
+    return send(res,200,saved);
   }
   if(req.method==='GET'&&u.pathname==='/api/integrations/media/planner'){
     const id=u.searchParams.get('projectId')||'';if(id)getProject(id);
@@ -288,7 +305,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='GET'&&u.pathname==='/api/connections')return send(res,200,listConnections().map(c=>({...c,availability:c.kind==='chatgpt_account'?accountAvailability(c.id):AI_KINDS.includes(c.kind)?modelAvailability(c.id):undefined,usage:AI_KINDS.includes(c.kind)||c.kind==='chatgpt_account'?usageSummary(c.id):undefined})));
   if(req.method==='POST'&&u.pathname==='/api/accounts/login')return send(res,200,await startAccountLogin(await readBody(req)));
   if(u.pathname.match(/^\/api\/accounts\/[^/]+\/(status|usage|cancel|logout|verify)$/)){const [, , , id,action]=u.pathname.split('/');const key=decodeURIComponent(id);if(req.method==='POST'&&action==='verify')return send(res,200,await verifyAccountModel(key,(await readBody(req)).model));if(req.method==='GET'&&action==='status')return send(res,200,await refreshAccount(key));if(req.method==='GET'&&action==='usage')return send(res,200,await readAccountUsage(key));if(req.method==='POST'&&action==='cancel')return send(res,200,await cancelAccountLogin(key));if(req.method==='POST'&&action==='logout')return send(res,200,await logoutAccount(key));}
-  if(req.method==='POST'&&u.pathname==='/api/connections'){const input=await readBody(req);if(['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(input.kind))throw new Error('Dùng quy trình đăng nhập tài khoản chính thức.');const old=input.id?listConnections().find(c=>c.id===input.id):null;const rawMeta=(input.meta&&typeof input.meta==='object')?input.meta:{};input.meta={management:input.kind==='supabase'&&input.meta?.management===true,...(old?.meta?.authMode==='cli'&&!input.secret?{authMode:'cli'}:{authMode:'pat'})};if(PLATFORM_KINDS.includes(input.kind)){for(const k of ['pageId','pageName','accountLabel','channelTitle','username','tiktokApproved','linkedAt'])if(rawMeta[k]!==undefined)input.meta[k]=rawMeta[k];}const c=saveConnection(input);if(AI_KINDS.includes(c.kind)){await listModels(c.id);}else await testConnection(c.id);return send(res,200,c);}
+  if(req.method==='POST'&&u.pathname==='/api/connections'){const input=await readBody(req);if(['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(input.kind))throw new Error('Dùng quy trình đăng nhập tài khoản chính thức.');const old=input.id?listConnections().find(c=>c.id===input.id):null;const rawMeta=(input.meta&&typeof input.meta==='object')?input.meta:{};input.meta={management:input.kind==='supabase'&&input.meta?.management===true,...(old?.meta?.authMode==='cli'&&!input.secret?{authMode:'cli'}:{authMode:'pat'})};if(PLATFORM_KINDS.includes(input.kind)){input.meta={...(old?.meta||{})};for(const k of ['pageId','pageName','accountLabel','channelTitle','channelId','pages','username','tiktokApproved','linkedAt'])if(rawMeta[k]!==undefined)input.meta[k]=rawMeta[k];}const c=saveConnection(input);if(AI_KINDS.includes(c.kind)){await listModels(c.id);}else await testConnection(c.id);return send(res,200,c);}
   if(req.method==='POST'&&u.pathname.match(/^\/api\/connections\/cli\/[^/]+$/)){const kind=decodeURIComponent(u.pathname.split('/').pop());const c=await connectCli(kind);await testConnection(c.id);return send(res,200,c);}
   if(req.method==='GET'&&u.pathname.match(/^\/api\/supabase\/[^/]+\/projects$/)){const id=decodeURIComponent(u.pathname.split('/')[3]);return send(res,200,await listSupabaseProjects(id));}
   if(req.method==='POST'&&u.pathname==='/api/supabase/create'){return send(res,200,await createSupabaseProject(await readBody(req)));}
