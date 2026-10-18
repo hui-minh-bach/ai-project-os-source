@@ -26,7 +26,7 @@ import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegment
 import { EFFECT_IDS, buildEffectsGraph, buildEffectsAss } from './media-effects.mjs';
 import { generateImage, IMAGE_PROVIDERS } from './image-gen.mjs';
 import { whisperStatus, transcribeLocal, transcribeWordsLocal } from './local-whisper.mjs';
-import { alignWordsToSegments, buildKaraokeAss } from './karaoke-captions.mjs';
+import { alignKaraokeWords, buildKaraokeAss } from './karaoke-captions.mjs';
 
 const require=createRequire(import.meta.url);
 const PROJECT_ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -433,16 +433,26 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // local Whisper on the FINAL speech track when available, otherwise a
       // deterministic proportional split. The shown text is always the
       // segment script; Whisper contributes timing boundaries only.
-      async function karaokeBurnCaptions({jobId,dir,segments,texts,trackFile,language,real}){
+      async function karaokeBurnCaptions({jobId,dir,segments,texts,trackFile,language,real,segReports}){
         const vs=(real.streams||[]).find(x=>x.codec_type==='video')||{};
         let whisperWords=null;
         if(whisperStatus(env).ready){
           try{const tr=await transcribeWordsLocal({audio:trackFile,outputRoot:path.join(dir,'karaoke-whisper'),language:String(language||'vi').split('-')[0],env});whisperWords=tr.words;}catch{}
         }
+        // Anchor words to each speech GROUP's real span: the group is read
+        // continuously from its first window's start for voiceSeconds/tempo.
+        const byGroup=new Map();
+        (segReports||[]).forEach((r,i)=>{if(!byGroup.has(r.group))byGroup.set(r.group,[]);byGroup.get(r.group).push(i);});
+        const groups=[...byGroup.values()].map(indexes=>{
+          const first=segReports[indexes[0]];
+          const start=segments[indexes[0]].start;
+          const placed=(Number(first.voiceSeconds)||0)/Math.max(0.5,Number(first.tempo)||1);
+          return {start,speechEnd:start+Math.max(0.3,placed),segmentIndexes:indexes};
+        });
         const segs=segments.map((sg,i)=>({...sg,text:texts[i]}));
-        const aligned=alignWordsToSegments(segs,whisperWords);
+        const aligned=alignKaraokeWords({segments:segs,texts,groups,whisperWords});
         const assPath=path.join(dir,'captions-karaoke.ass');
-        fs.writeFileSync(assPath,buildKaraokeAss({segments:segs,perSegment:aligned.perSegment,width:vs.width||1280,height:vs.height||720}));
+        fs.writeFileSync(assPath,buildKaraokeAss({segments:segs,timedWords:aligned.timedWords,width:vs.width||1280,height:vs.height||720}));
         await artifactPort.putFile({jobId,source:assPath,name:'captions-karaoke.ass'});
         return {captionsSource:path.relative(mediaWorkspace,assPath),captionStyle:'karaoke',captionTiming:aligned.method,wordCount:aligned.wordCount};
       }
@@ -490,7 +500,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         const translatedSrt=path.join(dir,'captions-target.srt');
         fs.writeFileSync(translatedSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
         let burnCaptions=path.relative(mediaWorkspace,translatedSrt),captionStyle='segments',captionTiming=null;
-        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:dubWav,language:targetLanguage,real});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
+        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:dubWav,language:targetLanguage,real,segReports:dubAsm.segReports});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
         const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-dubbed-voice.mp4'});
         await artifactPort.putFile({jobId,source:translatedSrt,name:`captions-${targetLanguage}.srt`});
@@ -563,7 +573,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         const newSrt=path.join(dir,'captions-new.srt');
         fs.writeFileSync(newSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
         let burnCaptions=path.relative(mediaWorkspace,newSrt),captionStyle='segments',captionTiming=null;
-        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:voiceWav,language:targetLanguage,real});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
+        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:voiceWav,language:targetLanguage,real,segReports:rtAsm.segReports});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
         const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-new-voice.mp4'});
         await artifactPort.putFile({jobId,source:newSrt,name:`captions-${targetLanguage}.srt`});

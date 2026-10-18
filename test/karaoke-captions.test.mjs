@@ -1,47 +1,52 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { proportionalWords, alignWordsToSegments, buildKaraokeAss } from '../src/lib/karaoke-captions.mjs';
+import { alignKaraokeWords, buildKaraokeAss } from '../src/lib/karaoke-captions.mjs';
 
-const segs = [
-  { start: 0, end: 4, text: 'Xin chào các bạn' },
-  { start: 5, end: 9, text: 'Hôm nay trời đẹp lắm' },
-];
-
-test('proportional split covers the whole window exactly, word by word', () => {
-  const w = proportionalWords(segs[0]);
-  assert.equal(w.length, 4);
-  assert.equal(w[0].start, 0);
-  assert.equal(w[3].end, 4);
-  for (let i = 1; i < w.length; i++) assert.equal(w[i].start, w[i - 1].end, 'no gaps or overlaps');
-});
-
-test('whisper timings realign the script words without changing the shown text', () => {
-  const whisper = [
-    { start: 0.10, end: 0.50, text: 'Xin' }, { start: 0.55, end: 0.95, text: 'chào' },
-    { start: 1.05, end: 1.40, text: 'các' }, { start: 1.50, end: 2.10, text: 'bạn' },
-    { start: 5.10, end: 5.60, text: 'Hôm' }, { start: 5.70, end: 6.10, text: 'nay' },
-    { start: 6.20, end: 6.60, text: 'trời' }, { start: 6.70, end: 7.20, text: 'đẹp' }, { start: 7.30, end: 7.90, text: 'lắm' },
+test('words are anchored to the GROUP speech span, never spread across silent windows (0.9.14 regression)', () => {
+  // The 0.9.13 defect: five short windows spanning 0..29s, but the grouped
+  // voice reads the whole passage in the first ~4.9s, then rests.
+  const segments = [
+    { start: 0, end: 4.92 }, { start: 4.92, end: 7.02 }, { start: 7.02, end: 11 },
+    { start: 11, end: 14.5 }, { start: 14.5, end: 29 },
   ];
-  const aligned = alignWordsToSegments(segs, whisper);
-  assert.equal(aligned.method, 'whisper-words');
-  assert.equal(aligned.wordCount, 9);
-  assert.deepEqual(aligned.perSegment[0].map(w => w.text), ['Xin', 'chào', 'các', 'bạn'], 'shown text is the script, not the transcript');
-  assert.ok(Math.abs(aligned.perSegment[0][0].start - 0.10) < 0.05, 'first word starts at the measured whisper boundary');
-  for (const seg of aligned.perSegment)
-    for (let i = 1; i < seg.length; i++) assert.ok(seg[i].start >= seg[i - 1].end - 0.001, 'monotonic');
+  const texts = ['Văn hóa trà Việt', 'Nam có', 'từ lâu đời.', 'Chén trà mở', 'đầu câu chuyện,'];
+  const groups = [{ start: 0, speechEnd: 4.9, segmentIndexes: [0, 1, 2, 3, 4] }];
+  const aligned = alignKaraokeWords({ segments, texts, groups, whisperWords: null });
+  assert.equal(aligned.method, 'proportional');
+  assert.equal(aligned.wordCount, 15);
+  for (const w of aligned.timedWords) assert.ok(w.end <= 4.9 + 0.001, `word "${w.text}" ends at ${w.end}, inside the 4.9s speech span`);
+  const ass = buildKaraokeAss({ segments: segments.map((s, i) => ({ ...s, text: texts[i] })), timedWords: aligned.timedWords, width: 1280, height: 720 });
+  const dialogues = ass.split('\n').filter(l => l.startsWith('Dialogue:'));
+  assert.equal(dialogues.length, 5, 'one line per script segment');
+  assert.ok(dialogues.every(l => !l.includes('0:00:2')), 'no dialogue window reaches into the silent 20s+ region');
 });
 
-test('karaoke ASS sweeps word by word and the fills sum to the segment window', () => {
-  const aligned = alignWordsToSegments(segs, null);
-  assert.equal(aligned.method, 'proportional');
-  const ass = buildKaraokeAss({ segments: segs, perSegment: aligned.perSegment, width: 1280, height: 720 });
+test('whisper anchors refine word times inside the group span', () => {
+  const segments = [{ start: 10, end: 16, text: 'Xin chào các bạn' }];
+  const groups = [{ start: 10, speechEnd: 13, segmentIndexes: [0] }];
+  const whisper = [
+    { start: 10.05, end: 10.45, text: 'Xin' }, { start: 10.55, end: 10.95, text: 'chào' },
+    { start: 11.10, end: 11.45, text: 'các' }, { start: 11.60, end: 12.20, text: 'bạn' },
+  ];
+  const aligned = alignKaraokeWords({ segments, texts: ['Xin chào các bạn'], groups, whisperWords: whisper });
+  assert.equal(aligned.method, 'whisper-words');
+  assert.deepEqual(aligned.timedWords.map(w => w.text), ['Xin', 'chào', 'các', 'bạn'], 'shown text is the script');
+  assert.ok(Math.abs(aligned.timedWords[0].start - 10.05) < 0.05, 'first word at the measured boundary');
+  assert.ok(aligned.timedWords.every(w => w.start >= 10 && w.end <= 13.001), 'all words inside the speech span');
+});
+
+test('karaoke ASS sweeps word by word and fills sum to the spoken line window', () => {
+  const segments = [{ start: 0, end: 4, text: 'Xin chào các bạn' }];
+  const groups = [{ start: 0, speechEnd: 4, segmentIndexes: [0] }];
+  const aligned = alignKaraokeWords({ segments, texts: ['Xin chào các bạn'], groups, whisperWords: null });
+  const ass = buildKaraokeAss({ segments, timedWords: aligned.timedWords, width: 1280, height: 720 });
   assert.match(ass, /Style: Karaoke/);
   const line = ass.split('\n').find(l => l.includes('Xin'));
-  assert.ok(line, 'dialogue line present');
   const fills = [...line.matchAll(/\\kf(\d+)/g)].map(m => Number(m[1]));
   assert.ok(fills.length >= 4, 'one fill per word');
-  assert.equal(fills.reduce((a, b) => a + b, 0), 400, 'fills sum to the 4s window in centiseconds');
+  const total = fills.reduce((a, b) => a + b, 0);
+  assert.ok(Math.abs(total - 400) <= 12, 'fills sum to the spoken window (4s, allowing the small lead-in)');
 });
 
 test('karaoke is wired into dub, retheme, the director and the Studio UI', () => {
@@ -51,6 +56,8 @@ test('karaoke is wired into dub, retheme, the director and the Studio UI', () =>
   const js = readFileSync(new URL('../public/media-studio.js', import.meta.url), 'utf8');
   const whisper = readFileSync(new URL('../src/lib/local-whisper.mjs', import.meta.url), 'utf8');
   assert.match(host, /karaokeBurnCaptions/);
+  assert.match(host, /segReports:dubAsm\.segReports/);
+  assert.match(host, /segReports:rtAsm\.segReports/);
   assert.match(host, /captionStyle,captionTiming/);
   assert.match(host, /captions-karaoke\.ass/);
   assert.match(whisper, /transcribeWordsLocal/);

@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.13",
-  "channel": "v0.9.13-karaoke-captions",
+  "version": "0.9.14",
+  "channel": "v0.9.14-karaoke-sync-fix",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -111,7 +111,7 @@
     },
     "karaoke_captions": {
       "status": "built-live-verified",
-      "scope": "Word-by-word karaoke captions for media.dub + media.retheme (0.9.13), the users words: \"chu ra toi dau doc toi do\" — text lights up exactly as the voice reaches each word. New src/lib/karaoke-captions.mjs + transcribeWordsLocal in local-whisper.mjs (whisper.cpp -ojf token offsets grouped into words). Timing source order: (1) measured word boundaries from local Whisper over the FINAL assembled speech track, resampled onto the scripts own words by character position (whisper supplies timing only, never the displayed text); (2) deterministic proportional fallback, disclosed in the report as captionTiming whisper-words|proportional alongside captionStyle karaoke|segments. Rendered as ASS \\kf sweeps (unsung white -> sung yellow) burned through the standard subtitles path; buildVoiceover now also accepts an app-generated .ass captions file (SRT behavior unchanged; SRT artifact still exported separately, plus captions-karaoke.ass). UI: Retheme panel checkbox (default on); AI Director routes dub/retheme with karaokeCaptions:true. LIVE VERIFIED through the real API on the JFK tea retheme with Whisper enabled: report path ran with a karaoke-whisper word pass, output 80.04s == source; the 3.0s frame shows \"Van hoa tra\" already yellow while \"Viet\" is still white — mid-sweep, matching the \\kf timings. Not yet applied to story/tts-video outputs."
+      "scope": "Word-by-word karaoke captions for media.dub + media.retheme. CORRECTED in 0.9.14 after an independent re-measurement (prompted by the user asking whether text and voice were really even) exposed a real sync defect in 0.9.13: word times were spread across the ORIGINAL segment windows while the grouped speech track reads each passage continuously at the start of its group — offsets up to seconds, worst in long pauses (voice said a word at 1.19s, its caption lit at 4.96s). Fix: alignKaraokeWords anchors every word to its speech GROUP’s real span [groupStart, groupStart + voiceSeconds/tempo] taken from the assembly segReports; Whisper word timings (transcribeWordsLocal, whisper.cpp -ojf over the final speech track) refine boundaries INSIDE that span only; fallback is a proportional split of the speech span; reports keep captionStyle/captionTiming disclosure. Dialogue windows now follow the voice, not the source windows. RE-MEASURED independently (fresh Whisper pass over the delivered videos own audio, one-to-one word matching): median absolute offset 0.12s, mean 0.33s; frame at 1.05s shows exactly the spoken word yellow and the next word white. Timing text is always the scripts own words. Not yet applied to story/tts-video outputs."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",
