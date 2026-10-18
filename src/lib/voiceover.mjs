@@ -28,7 +28,9 @@ export function hardsubCoverSegments({mode='off',regionPct=13,width=0,height=0}=
   return {applied:true,pct,segments:[`[vbase]split=2[hsA][hsB]`,`[hsB]crop=${width}:${h}:0:${y},boxblur=luma_radius=24:luma_power=3:chroma_radius=12[hsBlur]`,`[hsA][hsBlur]overlay=0:${y}[vcover]`]};
 }
 
-export async function buildVoiceover({workspace,jobDir,videoSource,audioSource,captionsSource=null,musicSource=null,musicVolume=.12,alignment='hold',hardsubCover=null,ffmpegBin='ffmpeg',ffprobeBin='ffprobe'}={}){
+export async function buildVoiceover({workspace,jobDir,videoSource,audioSource,captionsSource=null,musicSource=null,musicVolume=.12,alignment='hold',hardsubCover=null,qualityProfile='high',ffmpegBin='ffmpeg',ffprobeBin='ffprobe'}={}){
+  const QUALITY_PROFILES={'standard':{crf:21,preset:'veryfast'},'high':{crf:18,preset:'medium'},'max':{crf:15,preset:'slow'}};
+  const qp=QUALITY_PROFILES[qualityProfile]||QUALITY_PROFILES.high;
   const video=within(workspace,videoSource),audio=within(workspace,audioSource);
   insist(['.mp4','.mkv','.mov','.webm','.m4v'].includes(path.extname(video).toLowerCase()),'Cần file video hợp lệ.','VOICEOVER_VIDEO');
   insist(['.mp3','.wav','.m4a'].includes(path.extname(audio).toLowerCase()),'Giọng đọc phải là WAV/MP3/M4A.','VOICEOVER_AUDIO');
@@ -75,8 +77,8 @@ export async function buildVoiceover({workspace,jobDir,videoSource,audioSource,c
   if(capFile){graph+=`;[${cur}]subtitles=filename='${escapeFilterPath(capFile)}'[v]`;cur='v';}
   const inputs=['-i',video,'-i',audio];
   if(music)inputs.push('-stream_loop','-1','-i',music);
-  const complex=graph+(music?`;[1:a]aresample=48000,volume=1[voice];[2:a]aresample=48000,volume=${Number(musicVolume).toFixed(3)}[music];[voice][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.97[a]`:'');
-  const args=['-hide_banner','-loglevel','error','-nostdin','-y',...inputs,'-filter_complex',complex,'-map',`[${cur}]`,'-map',music?'[a]':'1:a:0','-c:v','libx264','-preset','veryfast','-threads','2','-crf','22','-pix_fmt','yuv420p','-c:a','aac','-ar','48000','-b:a','160k','-t',String(audioSeconds),'-movflags','+faststart',final];
+  const complex=graph+(music?`;[1:a]aresample=48000,volume=1[voice];[2:a]aresample=48000,volume=${Number(musicVolume).toFixed(3)}[music];[voice][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.97,loudnorm=I=-14:TP=-1.5:LRA=11[a]`:';[1:a]aresample=48000,loudnorm=I=-14:TP=-1.5:LRA=11[a]');
+  const args=['-hide_banner','-loglevel','error','-nostdin','-y',...inputs,'-filter_complex',complex,'-map',`[${cur}]`,'-map','[a]','-c:v','libx264','-preset',qp.preset,'-threads','2','-crf',String(qp.crf),'-pix_fmt','yuv420p','-c:a','aac','-ar','48000','-b:a','192k','-t',String(audioSeconds),'-movflags','+faststart',final];
   await run(ffmpegBin,args,{timeoutMs:Math.max(120000,audioSeconds*17000)});
   const qa=await quality.check({file:final,expectedDuration:audioSeconds,ffmpegBin,ffprobeBin,subtitleSegments:segments});
   insist(qa.passed,'Không nghiệm thu được video: '+qa.problems.join(','),'VOICEOVER_QA');

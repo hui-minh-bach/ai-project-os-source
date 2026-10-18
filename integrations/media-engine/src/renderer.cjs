@@ -1,11 +1,18 @@
 'use strict';
 const {fs,path,run,sha,insist,mkdir,ffprobe,duration,hasAudio,jsonRead,jsonWrite,shaFile}=require('./utils.cjs');
 const escapeFilterPath=file=>file.replace(/\\/g,'/').replace(/:/g,'\\:').replace(/'/g,"'\\\\''").replace(/,/g,'\\,').replace(/\[/g,'\\[').replace(/\]/g,'\\]');
-const videoFilters=(w,h,motion=false,framing='fit')=>motion?
- `scale=${Math.round(w*1.2)}:${Math.round(h*1.2)}:force_original_aspect_ratio=increase,crop=${Math.round(w*1.2)}:${Math.round(h*1.2)},zoompan=z='min(zoom+0.00035,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${w}x${h}:fps=25,format=yuv420p`:
+const KB=[
+ z=>`zoompan=z='min(zoom+0.00045,1.12)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1`,
+ z=>`zoompan=z='if(eq(on,0),1.14,max(zoom-0.00045,1.0))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1`,
+ z=>`zoompan=z='1.12':x='iw/2-(iw/zoom/2)+min(on*0.35,60)':y='ih/2-(ih/zoom/2)':d=1`,
+ z=>`zoompan=z='1.12':x='iw/2-(iw/zoom/2)-min(on*0.35,60)':y='ih/2-(ih/zoom/2)':d=1`];
+const videoFilters=(w,h,motion=false,framing='fit',variant=0)=>motion?
+ `scale=${Math.round(w*1.2)}:${Math.round(h*1.2)}:force_original_aspect_ratio=increase,crop=${Math.round(w*1.2)}:${Math.round(h*1.2)},${KB[Math.abs(variant)%4]()}:s=${w}x${h}:fps=25,format=yuv420p`:
  framing==='crop'?`scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,fps=25,format=yuv420p`:
  `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=25,format=yuv420p`;
-async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',preview=false,subtitle=null,music=null,crf=23,maxThreads=2,signal,onProgress=()=>{}}){
+const QUALITY_PROFILES={'standard':{crf:21,preset:'veryfast'},'high':{crf:18,preset:'medium'},'max':{crf:15,preset:'slow'}};
+async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',preview=false,subtitle=null,music=null,crf=null,quality='high',maxThreads=2,signal,onProgress=()=>{}}){
+ const qp=QUALITY_PROFILES[quality]||QUALITY_PROFILES.high;if(crf===null)crf=qp.crf;const finalPreset=qp.preset;
  insist(['story','edit'].includes(timeline.kind),'Unknown timeline type');
  const w=preview?Math.min(timeline.width,640):timeline.width,h=preview?Math.round(timeline.height*w/timeline.width/2)*2:timeline.height;
  insist(Number.isInteger(w)&&Number.isInteger(h)&&w>0&&h>0,'Invalid resolution','MEDIA_PLAN_RANGE');
@@ -45,7 +52,7 @@ async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',p
   if(valid)reused++;else{
    const temp=outfile+'.'+process.pid+'.part.mp4';const args=['-hide_banner','-loglevel','error','-nostdin','-y'];
    if(timeline.kind==='story'){
-    args.push('-loop','1','-framerate','25','-i',c.image,'-i',c.audio,'-t',String(length),'-vf',videoFilters(w,h,true),'-map','0:v:0','-map','1:a:0');
+    args.push('-loop','1','-framerate','25','-i',c.image,'-i',c.audio,'-t',String(length),'-vf',videoFilters(w,h,true,'fit',i),'-af','loudnorm=I=-14:TP=-1.5:LRA=11','-map','0:v:0','-map','1:a:0');
    }else{
     const src=await ffprobe(c.source,ffprobeBin);args.push('-ss',String(c.start),'-t',String(length),'-i',c.source);
     const tracks=(src.streams||[]).filter(s=>s.codec_type==='audio');
@@ -56,7 +63,7 @@ async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',p
     args.push('-t',String(length),'-vf',videoFilters(w,h,false,timeline.framing));
     args.push('-map','0:v:0','-map',tracks.length?`0:${selected}`:'1:a:0');
    }
-   args.push('-c:v','libx264','-threads',String(Math.max(1,Math.min(4,maxThreads))),'-preset',preview?'ultrafast':'veryfast','-crf',String(preview?29:crf),'-r','25','-pix_fmt','yuv420p','-c:a','aac','-b:a','96k','-ar','48000','-ac','2','-shortest','-movflags','+faststart',temp);
+   args.push('-c:v','libx264','-threads',String(Math.max(1,Math.min(4,maxThreads))),'-preset',preview?'ultrafast':finalPreset,'-crf',String(preview?29:crf),'-r','25','-pix_fmt','yuv420p','-c:a','aac','-b:a','160k','-ar','48000','-ac','2','-shortest','-movflags','+faststart',temp);
    try{await run(ffmpegBin,args,{timeoutMs:Math.max(90000,length*12000),signal});
     fs.renameSync(temp,outfile);}
    finally{if(fs.existsSync(temp))fs.rmSync(temp,{force:true});}
@@ -78,7 +85,7 @@ async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',p
   }
   const args=['-hide_banner','-loglevel','error','-nostdin','-y'];
   for(const file of paths)args.push('-i',file);
-  args.push('-filter_complex',filter.join(';'),'-map',vprev,'-map',aprev,'-c:v','libx264','-threads',String(Math.max(1,Math.min(4,maxThreads))),'-preset','veryfast','-crf',String(preview?29:crf),'-r','25','-pix_fmt','yuv420p','-c:a','aac','-b:a','128k','-ar','48000','-ac','2','-movflags','+faststart',merged);
+  args.push('-filter_complex',filter.join(';'),'-map',vprev,'-map',aprev,'-c:v','libx264','-threads',String(Math.max(1,Math.min(4,maxThreads))),'-preset',preview?'ultrafast':finalPreset,'-crf',String(preview?29:crf),'-r','25','-pix_fmt','yuv420p','-c:a','aac','-b:a','192k','-ar','48000','-ac','2','-movflags','+faststart',merged);
   await run(ffmpegBin,args,{timeoutMs:Math.max(120000,expected*18000),signal});
   expected-=overlap*(paths.length-1);
  }else{
@@ -97,7 +104,7 @@ async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',p
   if(music){
     args.push('-filter_complex','[1:a]volume=0.24[bg];[bg][0:a]sidechaincompress=threshold=0.024:ratio=8:attack=50:release=400[duck];[duck][0:a]amix=inputs=2:duration=first:dropout_transition=0[aout]','-map','0:v:0','-map','[aout]');
   }
-  args.push('-c:v','libx264','-threads',String(Math.max(1,Math.min(4,maxThreads))),'-preset','veryfast','-crf',String(preview?29:crf),'-c:a','aac','-b:a','128k','-shortest','-movflags','+faststart',staged);
+  args.push('-c:v','libx264','-threads',String(Math.max(1,Math.min(4,maxThreads))),'-preset',preview?'ultrafast':finalPreset,'-crf',String(preview?29:crf),'-c:a','aac','-b:a','192k','-shortest','-movflags','+faststart',staged);
   try{await run(ffmpegBin,args,{timeoutMs:Math.max(120000,expected*14000),signal});}
   catch(e){if(fs.existsSync(staged))fs.rmSync(staged,{force:true});throw e;}
  }else fs.copyFileSync(merged,staged);

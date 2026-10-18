@@ -82,7 +82,7 @@ function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeB
   const saved=await save(jobId,{timeline:plan,analysis:analysis?{sceneChanges:analysis.sceneChanges,silences:analysis.silences}:null,origin:plan.origin,qa,preview,final,captions:captionSegments?{origin:'whisper.cpp-local-real-audio',segments:captionSegments.length}:null},[['preview.mp4',preview.file],['final.mp4',final.file],['timeline.json',timelinePath],['captions.srt',captionFile],['captions.vtt',vttFile]]);
   return {timeline:plan,preview,final,qa,saved};
  });
- task('render',async({jobId,source,editPlan,subtitleSegments,music},dir)=>{
+ task('render',async({jobId,source,editPlan,subtitleSegments,music,quality:qualityProfile},dir)=>{
   const media=await importer.importMedia({workspace:root,source,maxBytes:limits.maxBytes,maxSeconds:limits.maxSeconds,ffprobeBin});
   insist(editPlan?.schemaVersion===2&&editPlan.sourceSha256&&editPlan.sourceArtifactId,'Kế hoạch cũ thiếu dấu vân tay video. Chọn Dựng lại từ video gốc.','MEDIA_PLAN_SOURCE');
   const edit=timeline.validate(editPlan,media);const subtitle=subtitleSegments?path.join(dir,'captions.srt'):null;
@@ -90,19 +90,19 @@ function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeB
   const sound=music?within(root,music):null;
   const onProgress=p=>EventBus.publish('media.progress',{jobId,operation:'render',...p});
   const preview=await renderer.render({timeline:edit,jobDir:dir,ffmpegBin,ffprobeBin,preview:true,subtitle,music:sound,onProgress});
-  const final=await renderer.render({timeline:edit,jobDir:dir,ffmpegBin,ffprobeBin,subtitle,music:sound,onProgress});
+  const final=await renderer.render({timeline:edit,jobDir:dir,ffmpegBin,ffprobeBin,subtitle,music:sound,onProgress,quality:qualityProfile||'high'});
   const qa=await quality.check({file:final.file,expectedDuration:edit.expectedDuration,ffmpegBin,ffprobeBin,subtitleSegments});
   insist(qa.passed,'Quality checker failed: '+qa.problems.join(','),'QUALITY_FAILED');
   const timelineFile=path.join(dir,'timeline.json');jsonWrite(timelineFile,edit);
   const saved=await save(jobId,{edit,preview,final,qa},[['preview.mp4',preview.file],['final.mp4',final.file],['timeline.json',timelineFile],['captions.srt',subtitle]]);
   return {preview,final,qa,saved};
  });
- task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition,transitionSeconds},dir)=>{
+ task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition,transitionSeconds,quality:qualityProfile},dir)=>{
   const made=await story.buildStory({workspace:root,text,source,jobDir:dir,gateway:ProviderGateway,voice,mode,allowProviderImages,ffprobeBin,ffmpegBin,python:pythonBin,maxChars,resolution,rights,rate,volume,emotion,transition,transitionSeconds});
   const onProgress=p=>EventBus.publish('media.progress',{jobId,operation:'story',...p});
   const sound=music?within(root,music):null,subtitle=path.join(dir,'captions.srt');
   const preview=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,preview:true,subtitle,music:sound,onProgress});
-  const final=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,subtitle,music:sound,onProgress});
+  const final=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,subtitle,music:sound,onProgress,quality:qualityProfile||'high'});
   const qa=await quality.check({file:final.file,expectedDuration:made.timeline.expectedDuration,ffmpegBin,ffprobeBin,subtitleSegments:made.subtitles});
   insist(qa.passed,'Story quality failed: '+qa.problems.join(','),'QUALITY_FAILED');
   const storyboardFile=path.join(dir,'storyboard.json');

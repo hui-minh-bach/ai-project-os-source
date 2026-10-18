@@ -13,8 +13,8 @@ test('effects catalog is complete and every id is unique', () => {
 test('effects graph composes pads, colour and speed deterministically', () => {
   const g = buildEffectsGraph({ effects: ['pad-vertical', 'vivid', 'vignette'], width: 1280, height: 720, fps: 25, duration: 20 });
   assert.deepEqual(g.applied, ['pad-vertical', 'vivid', 'vignette']);
-  assert.equal(g.outWidth, 406, 'vertical canvas keeps height: 720*9/16 ≈ 406 (even)');
-  assert.equal(g.outHeight, 720);
+  assert.equal(g.outWidth, 1080, 'vertical canvas is the full 1080x1920 social frame');
+  assert.equal(g.outHeight, 1920);
   const graph = g.parts.join(';');
   assert.match(graph, /boxblur/);
   assert.match(graph, /eq=contrast=1\.08:saturation=1\.35/);

@@ -54,14 +54,14 @@ export function buildEffectsGraph({ effects = [], width = 0, height = 0, fps = 2
       `[${l}bg][${l}fg]overlay=(W-w)/2:(H-h)/2[${l}]`);
     cur = l; W = cw; H = ch; applied.push(id);
   };
+  // Full-size social canvases: a landscape source becomes a real 1080x1920
+  // vertical frame (blurred backdrop upscaled), never the source height shrunk.
   if (want.has('pad-vertical')) {
-    const cw = even(H * 9 / 16);
-    if (W > 0 && cw < W) pad('pad-vertical', cw, H);
-    else skipped.push({ id: 'pad-vertical', reason: 'Video đã hẹp bằng hoặc hơn khung 9:16' });
+    if (W > 0 && H > 0 && W / H > 9 / 16 + 0.01) pad('pad-vertical', 1080, 1920);
+    else skipped.push({ id: 'pad-vertical', reason: 'Video đã là khung dọc 9:16 hoặc hẹp hơn' });
   } else if (want.has('pad-horizontal')) {
-    const ch = even(W * 9 / 16);
-    if (H > 0 && ch > H) pad('pad-horizontal', W, ch);
-    else skipped.push({ id: 'pad-horizontal', reason: 'Video đã cao bằng hoặc hơn khung 16:9' });
+    if (W > 0 && H > 0 && H / W > 9 / 16 + 0.01) pad('pad-horizontal', 1920, 1080);
+    else skipped.push({ id: 'pad-horizontal', reason: 'Video đã là khung ngang 16:9 hoặc rộng hơn' });
   }
   // Slow zooms (after pads, on the final frame size).
   const frames = Math.max(1, Math.round(outDuration * fps));

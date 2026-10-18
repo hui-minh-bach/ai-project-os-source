@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.18",
-  "channel": "v0.9.18-video-beauty-templates-voice",
+  "version": "0.9.19",
+  "channel": "v0.9.19-output-quality",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -147,7 +147,12 @@
     },
     "lip_sync": {
       "status": "researched-not-implemented",
-      "scope": "Researched 2026-10-18 for the owner (Wav2Lip, SadTalker, MuseTalk, LatentSync, LivePortrait, EchoMimic, Hallo2): NO open-source lip-sync is commercially shippable in this product today — every candidate fails on code or weight licensing for commercial use (Wav2Lip research-only; SadTalker depends on GFPGAN non-commercial weights; MuseTalk weights exclude commercial use; LatentSync/LivePortrait/EchoMimic research terms). The practical commercial route is a cloud API slot (Sync.so / HeyGen / D-ID), same optional-provider pattern as HeyGen/FPT TTS. Deliberately NOT faked or bundled; revisit if licensing changes or the owner chooses a paid API."
+      "scope": "Researched 2026-10-18 from primary sources (repos, LICENSE files, model cards). CORRECTION of the first-pass summary: MuseTalk IS commercially licensable — code MIT (\"no limitation for both academic and commercial usage\") and its weights carry an explicit statement that they are available for any purpose, even commercially; diligence items: the S3FD dependency license is unstated (replace or clear before shipping) and repo test data must not be bundled. SadTalker code+own checkpoints are Apache 2.0 but it solves image-to-talking-head (not dubbing an existing video) and its GFPGAN enhancer needs review. Wav2Lip is research/non-commercial only; LatentSync weights have no explicit license statement and need 8-18GB VRAM; LivePortrait bundles InsightFace models restricted to non-commercial research; EchoMimic V3 is Apache but needs ~12GB VRAM; Hallo2 weights are an unlicensed mix. MuseTalk was still NOT shipped: on typical customer machines (no strong GPU) it renders about 37 minutes per 1 minute of video on a 4GB laptop GPU, has no official CPU path, and outputs 256x256 faces with jitter — not sellable as a local feature today. Practical routes: a cloud lip-sync API slot (HeyGen Lip Sync API from $0.84/min) under the same optional-provider pattern as FPT/HeyGen TTS, or a self-hosted MuseTalk backend on rented cloud GPUs.",
+      "note": "Researched, NOT built. MuseTalk (MIT code; weights declared usable for any purpose, even commercially) is the legally clean candidate, but it is not viable on typical customer laptops (~37 min render per 1 min of video on a 4GB GPU, no official CPU path, 256x256 faces). No third-party lip-sync API is embedded: their terms forbid reselling the API as a standalone or white-label feature without an enterprise agreement, and the owner rejected casual API embedding on legal-risk grounds. A future route, only if the owner asks, is self-hosted MuseTalk on rented cloud GPUs."
+    },
+    "output_quality": {
+      "status": "implemented",
+      "note": "0.9.19: selectable output quality (standard/high/max = crf 21/18/15 + preset) for story, render, dub, retheme and voiceover; narration loudness normalized to about -14 LUFS in story clips and voiceover finals; effects pads render on full 1080x1920 / 1920x1080 canvases; procedural story illustration v2 (layered scenes, grain, vignette) with optional provider AI illustrations and a safe fallback."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

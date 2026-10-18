@@ -128,6 +128,8 @@
         <label for="mediaStoryProduct">Sản phẩm cần tạo</label><select id="mediaStoryProduct"><option value="outline" selected>Storyboard phân cảnh (chạy local, không cần AI/TTS)</option><option value="video">Video kể chuyện có lời thoại (cần TTS nhà cung cấp thật)</option></select>
         <label for="mediaStoryText">Nội dung truyện của bạn</label><textarea id="mediaStoryText" rows="7" placeholder="Dán truyện do bạn sở hữu hoặc có quyền sử dụng…"></textarea>
         <div class="grid2"><div><label for="mediaStoryMode">Chế độ</label><select id="mediaStoryMode"><option value="verbatim">Giữ nguyên văn</option><option value="adapted">Chuyển thể bằng AI (cần API)</option></select></div><div><label for="mediaStoryRes">Độ phân giải</label><select id="mediaStoryRes"><option value="360p">360p nhẹ</option><option value="720p" selected>720p</option><option value="1080p">1080p</option></select></div></div>
+        <label class="mediaCheck"><input id="mediaStoryAiArt" type="checkbox"> Minh họa bằng AI thật (dùng tài khoản AI đã liên kết; không có thì dùng tranh vẽ sẵn trong máy)</label>
+        <label for="mediaStoryQuality">Chất lượng xuất</label><select id="mediaStoryQuality"><option value="standard">Chuẩn (nhanh)</option><option value="high" selected>Cao (nét, chậm hơn)</option><option value="max">Tối đa (rất chậm)</option></select>
         <label for="mediaStoryTransition">Chuyển cảnh giữa các cảnh</label>
         <select id="mediaStoryTransition"><option value="crossfade" selected>Mờ chéo — mềm, chuẩn kể chuyện</option><option value="slideleft">Trượt sang trái</option><option value="slideright">Trượt sang phải</option><option value="fadeblack">Qua màn đen</option><option value="wipeleft">Gạt sang trái</option><option value="cut">Cắt cứng — không chuyển cảnh</option></select>
         <details class="mediaAdvanced"><summary>Chọn ID giọng HeyGen (chỉ khi sử dụng API nâng cao)</summary>
@@ -164,6 +166,7 @@
         <label for="mediaRethemeHardsubHeight">Độ cao vùng che</label>
         <select id="mediaRethemeHardsubHeight"><option value="12">Thấp — giữ chi tiết tối đa (≈12%)</option><option value="18" selected>Trung bình — kín hẳn 2 dòng chữ (≈18%)</option><option value="26">Cao (≈26%)</option></select>
         <label class="mediaFxItem" style="margin-top:8px"><input type="checkbox" id="mediaRethemeKaraoke" checked> Phụ đề chạy chữ theo lời (karaoke — chữ sáng theo từng từ đang đọc)</label>
+        <label for="mediaRethemeQuality">Chất lượng xuất</label><select id="mediaRethemeQuality"><option value="standard">Chuẩn (nhanh)</option><option value="high" selected>Cao (nét, chậm hơn)</option><option value="max">Tối đa (rất chậm)</option></select>
         <label for="mediaRethemeCaptionPreset">Kiểu chữ chạy</label>
         <select id="mediaRethemeCaptionPreset"><option value="sweep" selected>Quét vàng — chữ sáng dần theo lời (chuẩn)</option><option value="pop">Chữ nảy — từng từ lớn kiểu TikTok</option><option value="box">Hộp nổi — cả dòng trên nền vàng, chữ hát chuyển đen</option></select>
         <label for="mediaRethemeTts">Giọng đọc mới</label>

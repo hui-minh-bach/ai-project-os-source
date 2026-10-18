@@ -309,7 +309,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           if(caps&&!payload.captionsSource)captionsPath=caps.file;
         }
         if(narrationAudio){
-          const mixed=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),
+          const mixed=await buildVoiceover({qualityProfile:typeof quality!=='undefined'?quality:'high',workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),
             videoSource:path.relative(mediaWorkspace,output),audioSource:path.relative(mediaWorkspace,narrationAudio),
             captionsSource:captionsPath?path.relative(mediaWorkspace,captionsPath):null,
             musicSource:payload.musicSource||null,musicVolume:payload.musicVolume??.12,alignment:'hold'});
@@ -344,8 +344,8 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         return {...base,enhancedFinal:output};
       });
       // Offline voice substitution: real audio from an authorized upload, no TTS needed.
-      handlers.set('media.voiceover',async({jobId,source,audioSource,captionsSource,musicSource,musicVolume,alignment,hardsubCover='off',hardsubRegionPct=13})=>{
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(mediaWorkspace,'.voiceover-jobs',jobId),videoSource:source,audioSource,captionsSource,musicSource,musicVolume,alignment,hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
+      handlers.set('media.voiceover',async({jobId,source,audioSource,captionsSource,musicSource,musicVolume,alignment,hardsubCover='off',hardsubRegionPct=13,quality='high'})=>{
+        const rendered=await buildVoiceover({qualityProfile:typeof quality!=='undefined'?quality:'high',workspace:mediaWorkspace,jobDir:path.join(mediaWorkspace,'.voiceover-jobs',jobId),videoSource:source,audioSource,captionsSource,musicSource,musicVolume,alignment,hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-natural-voice.mp4'});
         if(rendered.captionPath)await artifactPort.putFile({jobId,source:rendered.captionPath,name:'captions.srt'});
         await artifactPort.putJson({jobId,name:'voiceover-report.json',data:{qa:rendered.qa,voiceOrigin:rendered.voiceOrigin,subtitleSync:rendered.subtitleSync,alignment:rendered.alignment,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds,musicMixed:rendered.musicMixed,musicVolume:rendered.musicVolume}});
@@ -421,8 +421,8 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         const final=path.join(dir,'effects-final.mp4');
         const args=['-hide_banner','-loglevel','error','-nostdin','-y','-i',srcFile,'-filter_complex',parts.join(';'),'-map','[fxv]'];
         if(hasAud)args.push('-map',g.audioFilter?'[fxa]':'0:a:0');
-        args.push('-c:v','libx264','-preset','veryfast','-threads','2','-crf','22','-pix_fmt','yuv420p');
-        if(hasAud)args.push('-c:a','aac','-ar','48000','-b:a','160k');
+        args.push('-c:v','libx264','-preset','medium','-threads','2','-crf','18','-pix_fmt','yuv420p');
+        if(hasAud)args.push('-c:a','aac','-ar','48000','-b:a','192k');
         args.push('-t',String((g.outDuration+0.5).toFixed(3)),'-movflags','+faststart',final);
         await mediaUtils.run('ffmpeg',args,{timeoutMs:Math.max(120000,real.seconds*17000)});
         const checker=require('../../integrations/media-engine/src/quality.cjs');
@@ -496,7 +496,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         await artifactPort.putFile({jobId,source:assPath,name:'captions-karaoke.ass'});
         return {captionsSource:path.relative(mediaWorkspace,assPath),captionStyle:'karaoke-'+preset,captionTiming:aligned.method,wordCount:aligned.wordCount};
       }
-      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true,captionPreset='sweep'})=>{
+      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true,captionPreset='sweep',quality='high'})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.dub-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -541,7 +541,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         fs.writeFileSync(translatedSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
         let burnCaptions=path.relative(mediaWorkspace,translatedSrt),captionStyle='segments',captionTiming=null;
         if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:dubWav,language:targetLanguage,real,segReports:dubAsm.segReports,captionPreset});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
+        const rendered=await buildVoiceover({qualityProfile:typeof quality!=='undefined'?quality:'high',workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-dubbed-voice.mp4'});
         await artifactPort.putFile({jobId,source:translatedSrt,name:`captions-${targetLanguage}.srt`});
         const report={sourceLanguage,targetLanguage,segmentOrigin,translation:translationMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,speechGroups:dubAsm.groupCount,captionStyle,captionTiming,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
@@ -556,7 +556,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // model against a topic, or supplied with the task (array, or free
       // text split deterministically across the windows). The original
       // audio track is fully replaced and new subtitles are burned.
-      handlers.set('media.retheme',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage='vi',scriptSource='model',topic='',notes='',scriptText='',scriptTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true,captionPreset='sweep'})=>{
+      handlers.set('media.retheme',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage='vi',scriptSource='model',topic='',notes='',scriptText='',scriptTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true,captionPreset='sweep',quality='high'})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.retheme-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -614,7 +614,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         fs.writeFileSync(newSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
         let burnCaptions=path.relative(mediaWorkspace,newSrt),captionStyle='segments',captionTiming=null;
         if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:voiceWav,language:targetLanguage,real,segReports:rtAsm.segReports,captionPreset});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
+        const rendered=await buildVoiceover({qualityProfile:typeof quality!=='undefined'?quality:'high',workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-new-voice.mp4'});
         await artifactPort.putFile({jobId,source:newSrt,name:`captions-${targetLanguage}.srt`});
         const report={topic:String(topic||''),targetLanguage,segmentOrigin,script:scriptMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,speechGroups:rtAsm.groupCount,captionStyle,captionTiming,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
@@ -637,7 +637,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           if(generated){captions=generated.file;captionMethod=generated.method;}
           else captionMethod='not-available-provider-did-not-return-word-timestamps';
         }
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:dir,videoSource:source,audioSource:wav,captionsSource:captions,musicSource,musicVolume,alignment});
+        const rendered=await buildVoiceover({qualityProfile:typeof quality!=='undefined'?quality:'high',workspace:mediaWorkspace,jobDir:dir,videoSource:source,audioSource:wav,captionsSource:captions,musicSource,musicVolume,alignment});
         await artifactPort.putFile({jobId,source:wav,name:'generated-natural-voice.wav'});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-ai-narration.mp4'});
         if(rendered.captionPath)await artifactPort.putFile({jobId,source:rendered.captionPath,name:'captions.srt'});
