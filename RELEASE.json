@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.10",
-  "channel": "v0.9.10-hardsub-cover",
+  "version": "0.9.11",
+  "channel": "v0.9.11-smooth-speech",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -100,6 +100,10 @@
     "hardsub_cover": {
       "status": "built-live-verified",
       "scope": "Cover burned-in (hard) subtitles when re-voicing a video (0.9.10), one of the gaps named in the 0.9.9 summary. src/lib/voiceover.mjs hardsubCoverSegments builds an honest cover over the bottom regionPct% of the frame (default 13%, clamped 10–40; Studio offers Low ~12% / Medium ~18% / High ~26% height choices): mode blur (split/crop/boxblur/overlay) or band (translucent black drawbox), inserted into buildVoiceover BEFORE the new subtitles are burned, so new captions stay crisp. Wired into media.dub, media.retheme and media.voiceover (submit validation, handler pass-through, rendered.hardsubCover recorded in dub/retheme reports); Studio selects in the Retheme (default blur) and Voiceover (default off) panels; the AI Director routes dub/retheme with hardsubCover blur by default. This is a COVER, not inpainting — the UI and guide say so plainly; true subtitle removal/restoration is still not implemented. LIVE VERIFIED in sandbox: retheme task on a video WITH burned-in Vietnamese subtitles (the earlier JFK retheme output) + new tea-culture script + cover blur completed: report hardsubCover {mode:blur, regionPct:22, applied:true}, 0 overflows, output 80.04s == source; frame at 33s shows the old coffee subtitles fully illegible under the blur while the new tea subtitles render crisply on top and the rest of the frame is untouched (deliverables VIDEO-Che-Phu-De-Cung_JFK-Tra-Viet_che-mo.mp4 + HS-TRUOC/HS-SAU frames). Quick-edit (Concat path) does not have the cover yet."
+    },
+    "smooth_speech_assembly": {
+      "status": "built-live-verified",
+      "scope": "Smoother dubbed speech for media.dub + media.retheme (0.9.11), after the user judged the voiceover choppy and not mouth-synced. Shared assembleSpeechTrack in integration-host: (1) groupSpeechSegments (media-ai.mjs, pure/deterministic) merges neighbouring windows (gap <= 0.7s, <= 600 chars, <= 30s span) so TTS reads continuous passages instead of cold-starting every window; subtitles keep the original per-segment windows; (2) tempo cap lowered 1.35 -> 1.25 with the same borrow-the-following-pause room rule; (3) every placed group gets 30ms/60ms in/out fades so joins do not click; (4) a very quiet pink-noise room-tone bed (lowpass 500Hz, volume 0.012) replaces dead digital silence between groups. Reports record speechGroups + per-segment group/tempo. LIVE VERIFIED on the JFK tea retheme (same inputs as the 0.9.10 proof): readings dropped 11 -> 3 groups, dead-silence regions (silencedetect -50dB/0.25s) dropped 11 -> 3, max tempo 1.0; total quiet time unchanged (~65.5s of 80s) because speech still only occupies the original talking windows — stated plainly. NOT addressed: lip-sync — mouths still move with the original language; true lip-sync needs a dedicated model (licensing + hardware) and remains a separate future item, disclosed in the in-app guide."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

@@ -22,7 +22,7 @@ import { DATA_DIR } from './store.mjs';
 import { findServiceCredential, findConnectionByKind } from './vault.mjs';
 import { youtubeUpload, facebookUpload, tiktokUpload, youtubeStats, facebookStats, tiktokStats, platformConnectionStatus, isSimulatedEndpoint, platformBase, PLATFORM_KINDS } from './publish-platforms.mjs';
 import { createPublishRecords } from './publish-records.mjs';
-import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegmentsWithModel, writeRethemeScriptWithModel, splitScriptAcrossWindows, writeTextWithModel, buildDirectorModelCall, parseDirectorPlan, routeDirectorPlan } from './media-ai.mjs';
+import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegmentsWithModel, writeRethemeScriptWithModel, splitScriptAcrossWindows, writeTextWithModel, buildDirectorModelCall, parseDirectorPlan, routeDirectorPlan, groupSpeechSegments } from './media-ai.mjs';
 import { generateImage, IMAGE_PROVIDERS } from './image-gen.mjs';
 import { whisperStatus, transcribeLocal } from './local-whisper.mjs';
 
@@ -357,6 +357,37 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // translated (verified project model, or texts supplied with the task),
       // re-voiced segment by segment against the original timings, and the
       // original audio track is fully replaced. Timings never come from AI.
+      // Shared speech-track assembly for dub + retheme (0.9.11 smoothness):
+      // TTS reads GROUPED neighbouring windows in one pass (continuous
+      // prosody instead of a cold start per window), tempo is capped at
+      // 1.25x, every placed group gets soft in/out fades, and a very quiet
+      // room-tone bed replaces the dead digital silence between groups.
+      async function assembleSpeechTrack({dir,segments,texts,provider,voice,language,totalSeconds,outName}){
+        const groups=groupSpeechSegments(segments.map((sg,i)=>({...sg,text:texts[i]})));
+        const segReports=new Array(segments.length);
+        const groupFiles=[],filters=[];
+        for(let g=0;g<groups.length;g++){
+          const grp=groups[g];
+          const gWav=path.join(dir,`grp-${String(g+1).padStart(3,'0')}.wav`);
+          await provider.synthesize({text:grp.indexes.map(i=>texts[i]).join(' '),voice,rate:1,language,output:gWav});
+          const dur=mediaUtils.duration(await mediaUtils.ffprobe(gWav,'ffprobe'));
+          const nextStart=g+1<groups.length?groups[g+1].start:totalSeconds;
+          const room=Math.max(grp.end-grp.start,nextStart-grp.start);
+          let tempo=1;
+          if(dur>room&&room>0)tempo=Math.min(dur/room,1.25);
+          const placed=dur/tempo;
+          const overflow=placed>room+0.05;
+          groupFiles.push(gWav);
+          const fadeOutStart=Math.max(0,placed-0.06);
+          filters.push(`[${g+1}:a]${tempo!==1?`atempo=${tempo.toFixed(3)},`:''}afade=t=in:st=0:d=0.03,afade=t=out:st=${fadeOutStart.toFixed(3)}:d=0.06,adelay=${Math.round(grp.start*1000)}:all=1[a${g}]`);
+          for(const i of grp.indexes)segReports[i]={index:i+1,start:segments[i].start,end:segments[i].end,sourceText:segments[i].text||'',text:texts[i],group:g+1,groupSize:grp.indexes.length,voiceSeconds:Number(dur.toFixed(3)),tempo:Number(tempo.toFixed(3)),overflow};
+        }
+        const bedIndex=groupFiles.length+1;
+        const mixFilter=filters.join(';')+`;[${bedIndex}:a]lowpass=f=500,volume=0.012[bed];[0:a]`+groupFiles.map((_,g)=>`[a${g}]`).join('')+`[bed]amix=inputs=${groupFiles.length+2}:duration=first:normalize=0[track]`;
+        const out=path.join(dir,outName);
+        await mediaUtils.run('ffmpeg',['-v','error','-y','-f','lavfi','-t',totalSeconds.toFixed(3),'-i','anullsrc=r=44100:cl=stereo',...groupFiles.flatMap(f=>['-i',f]),'-f','lavfi','-t',totalSeconds.toFixed(3),'-i','anoisesrc=color=pink:r=44100:a=0.5','-filter_complex',mixFilter,'-map','[track]','-ac','2','-ar','44100',out],{timeoutMs:600000});
+        return {file:out,segReports,groupCount:groups.length};
+      }
       handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.dub-jobs',jobId);
@@ -395,34 +426,15 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const targetBase=String(targetLanguage).toLowerCase().split('-')[0];
           if(voiceLang&&voiceLang!==targetBase)throw err('BLOCKED_DUB_VOICE',`Giọng Piper đang cài là ${voiceName} (ngôn ngữ ${voiceLang}), không khớp ngôn ngữ đích ${targetLanguage}. Cài model giọng cho ${targetLanguage} hoặc chọn HeyGen.`);
         }
-        const segReports=[],segFiles=[],filters=[];
-        for(let i=0;i<segments.length;i++){
-          const segWav=path.join(dir,`seg-${String(i+1).padStart(3,'0')}.wav`);
-          await provider.synthesize({text:texts[i],voice,rate:1,language:targetLanguage,output:segWav});
-          const info=await mediaUtils.ffprobe(segWav,'ffprobe');
-          const dur=mediaUtils.duration(info);
-          const window=segments[i].end-segments[i].start;
-          const nextStart=i+1<segments.length?segments[i+1].start:real.seconds;
-          const room=Math.max(window,nextStart-segments[i].start);
-          let tempo=1;
-          if(dur>room&&room>0)tempo=Math.min(dur/room,1.35);
-          const overflow=dur/tempo>room+0.05;
-          segFiles.push(segWav);
-          filters.push(`[${i+1}:a]${tempo!==1?`atempo=${tempo.toFixed(3)},`:''}adelay=${Math.round(segments[i].start*1000)}:all=1[a${i}]`);
-          segReports.push({index:i+1,start:segments[i].start,end:segments[i].end,sourceText:segments[i].text,text:texts[i],voiceSeconds:Number(dur.toFixed(3)),tempo:Number(tempo.toFixed(3)),overflow});
-        }
-        // Anchor the mix on a silent base of exactly the video length:
-        // amix duration=first makes the dub track span the whole video, so
-        // caption windows near the end stay inside the audio duration.
-        const mixFilter=filters.join(';')+';[0:a]'+segFiles.map((_,i)=>`[a${i}]`).join('')+`amix=inputs=${segFiles.length+1}:duration=first:normalize=0[dub]`;
-        const dubWav=path.join(dir,'dub-track.wav');
-        await mediaUtils.run('ffmpeg',['-v','error','-y','-f','lavfi','-t',real.seconds.toFixed(3),'-i','anullsrc=r=44100:cl=stereo',...segFiles.flatMap(f=>['-i',f]),'-filter_complex',mixFilter,'-map','[dub]','-ac','2','-ar','44100',dubWav],{timeoutMs:600000});
+        const dubAsm=await assembleSpeechTrack({dir,segments,texts,provider,voice,language:targetLanguage,totalSeconds:real.seconds,outName:'dub-track.wav'});
+        const segReports=dubAsm.segReports;
+        const dubWav=dubAsm.file;
         const translatedSrt=path.join(dir,'captions-target.srt');
         fs.writeFileSync(translatedSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
         const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:path.relative(mediaWorkspace,translatedSrt),musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-dubbed-voice.mp4'});
         await artifactPort.putFile({jobId,source:translatedSrt,name:`captions-${targetLanguage}.srt`});
-        const report={sourceLanguage,targetLanguage,segmentOrigin,translation:translationMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
+        const report={sourceLanguage,targetLanguage,segmentOrigin,translation:translationMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,speechGroups:dubAsm.groupCount,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
         await artifactPort.putJson({jobId,name:'dub-report.json',data:report});
         return report;
       });
@@ -485,31 +497,15 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const targetBase=String(targetLanguage).toLowerCase().split('-')[0];
           if(voiceLang&&voiceLang!==targetBase)throw err('BLOCKED_RETHEME_VOICE',`Giọng Piper đang cài là ${voiceName} (ngôn ngữ ${voiceLang}), không khớp ngôn ngữ giọng mới ${targetLanguage}. Cài model giọng cho ${targetLanguage} hoặc chọn HeyGen.`);
         }
-        const segReports=[],segFiles=[],filters=[];
-        for(let i=0;i<segments.length;i++){
-          const segWav=path.join(dir,`seg-${String(i+1).padStart(3,'0')}.wav`);
-          await provider.synthesize({text:texts[i],voice,rate:1,language:targetLanguage,output:segWav});
-          const info=await mediaUtils.ffprobe(segWav,'ffprobe');
-          const dur=mediaUtils.duration(info);
-          const window=segments[i].end-segments[i].start;
-          const nextStart=i+1<segments.length?segments[i+1].start:real.seconds;
-          const room=Math.max(window,nextStart-segments[i].start);
-          let tempo=1;
-          if(dur>room&&room>0)tempo=Math.min(dur/room,1.35);
-          const overflow=dur/tempo>room+0.05;
-          segFiles.push(segWav);
-          filters.push(`[${i+1}:a]${tempo!==1?`atempo=${tempo.toFixed(3)},`:''}adelay=${Math.round(segments[i].start*1000)}:all=1[a${i}]`);
-          segReports.push({index:i+1,start:segments[i].start,end:segments[i].end,sourceText:segments[i].text||'',text:texts[i],voiceSeconds:Number(dur.toFixed(3)),tempo:Number(tempo.toFixed(3)),overflow});
-        }
-        const mixFilter=filters.join(';')+';[0:a]'+segFiles.map((_,i)=>`[a${i}]`).join('')+`amix=inputs=${segFiles.length+1}:duration=first:normalize=0[newvoice]`;
-        const voiceWav=path.join(dir,'new-voice-track.wav');
-        await mediaUtils.run('ffmpeg',['-v','error','-y','-f','lavfi','-t',real.seconds.toFixed(3),'-i','anullsrc=r=44100:cl=stereo',...segFiles.flatMap(f=>['-i',f]),'-filter_complex',mixFilter,'-map','[newvoice]','-ac','2','-ar','44100',voiceWav],{timeoutMs:600000});
+        const rtAsm=await assembleSpeechTrack({dir,segments,texts,provider,voice,language:targetLanguage,totalSeconds:real.seconds,outName:'new-voice-track.wav'});
+        const segReports=rtAsm.segReports;
+        const voiceWav=rtAsm.file;
         const newSrt=path.join(dir,'captions-new.srt');
         fs.writeFileSync(newSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
         const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:path.relative(mediaWorkspace,newSrt),musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-new-voice.mp4'});
         await artifactPort.putFile({jobId,source:newSrt,name:`captions-${targetLanguage}.srt`});
-        const report={topic:String(topic||''),targetLanguage,segmentOrigin,script:scriptMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
+        const report={topic:String(topic||''),targetLanguage,segmentOrigin,script:scriptMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,speechGroups:rtAsm.groupCount,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
         await artifactPort.putJson({jobId,name:'retheme-report.json',data:report});
         return report;
       });

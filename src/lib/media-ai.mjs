@@ -219,3 +219,24 @@ export function routeDirectorPlan(plan,{source='',sourceLabel='',whisperReady=fa
       return {operation:null,needsInput:'clarify',warnings:['AI chưa hiểu rõ ý. Mô tả thêm một câu bạn muốn làm gì với video/ý tưởng này.']};
   }
 }
+
+/* Group neighbouring speech windows so TTS reads longer, continuous
+ * passages instead of cold-starting every short window (the main cause of
+ * choppy dubbed speech). Pure + deterministic: a group grows while the gap
+ * to the next window stays small, the combined text stays bounded and the
+ * total span stays bounded. Timings still come from the windows, never AI. */
+export function groupSpeechSegments(segments,{maxGap=0.7,maxChars=600,maxSpan=30}={}){
+  const groups=[];
+  for(let i=0;i<segments.length;i++){
+    const s=segments[i];
+    const cur=groups[groups.length-1];
+    if(cur){
+      const gap=s.start-cur.end;
+      const chars=cur.chars+String(s.text||'').length+1;
+      const span=s.end-cur.start;
+      if(gap<=maxGap&&chars<=maxChars&&span<=maxSpan){cur.indexes.push(i);cur.end=s.end;cur.chars=chars;continue;}
+    }
+    groups.push({start:s.start,end:s.end,indexes:[i],chars:String(s.text||'').length});
+  }
+  return groups.map(({start,end,indexes})=>({start,end,indexes}));
+}
