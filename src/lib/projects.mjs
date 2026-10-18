@@ -52,6 +52,7 @@ export function updateProjectModelRoles(id,input={}) {
   for(const role of MODEL_ROLES) { const b=input[role]; if(role==='council'){if(b!==undefined&&!Array.isArray(b))throw new Error('Council cần danh sách thành viên.');if((b||[]).length>8)throw new Error('Council hỗ trợ tối đa 8 thành viên.');roles.council=(b||[]).map(verifiedBinding);}else roles[role]=b?verifiedBinding(b):null; }
   return mutateProject(id,p=>{p.modelRoles=roles;p.activity.push({at:now(),text:'Cập nhật phân vai model'});});
 }
+export function saveProjectGithub(id,github){return mutateProject(id,p=>{p.settings={...p.settings,github:{...(p.settings?.github||{}),...github}};p.activity.push({at:now(),text:'Cập nhật liên kết repo GitHub'});});}
 export function saveProjectDomain(id,domain){return mutateProject(id,p=>{p.settings={...p.settings,domain:{domain:domain.domain,deploymentUrl:domain.deploymentUrl,configuredAt:now()}};});}
 export function projectModelRoles(id){const p=getProject(id);return {projectId:id,roles:p.modelRoles||{founder:null,council:[],worker:null,reviewer:null},descriptors:roleDescriptors(p)};}
 

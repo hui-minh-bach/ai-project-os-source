@@ -301,8 +301,8 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         return {...base,enhancedFinal:output};
       });
       // Offline voice substitution: real audio from an authorized upload, no TTS needed.
-      handlers.set('media.voiceover',async({jobId,source,audioSource,captionsSource,musicSource,musicVolume,alignment})=>{
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(mediaWorkspace,'.voiceover-jobs',jobId),videoSource:source,audioSource,captionsSource,musicSource,musicVolume,alignment});
+      handlers.set('media.voiceover',async({jobId,source,audioSource,captionsSource,musicSource,musicVolume,alignment,hardsubCover='off',hardsubRegionPct=13})=>{
+        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(mediaWorkspace,'.voiceover-jobs',jobId),videoSource:source,audioSource,captionsSource,musicSource,musicVolume,alignment,hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-natural-voice.mp4'});
         if(rendered.captionPath)await artifactPort.putFile({jobId,source:rendered.captionPath,name:'captions.srt'});
         await artifactPort.putJson({jobId,name:'voiceover-report.json',data:{qa:rendered.qa,voiceOrigin:rendered.voiceOrigin,subtitleSync:rendered.subtitleSync,alignment:rendered.alignment,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds,musicMixed:rendered.musicMixed,musicVolume:rendered.musicVolume}});
@@ -357,7 +357,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // translated (verified project model, or texts supplied with the task),
       // re-voiced segment by segment against the original timings, and the
       // original audio track is fully replaced. Timings never come from AI.
-      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume})=>{
+      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.dub-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -419,10 +419,10 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         await mediaUtils.run('ffmpeg',['-v','error','-y','-f','lavfi','-t',real.seconds.toFixed(3),'-i','anullsrc=r=44100:cl=stereo',...segFiles.flatMap(f=>['-i',f]),'-filter_complex',mixFilter,'-map','[dub]','-ac','2','-ar','44100',dubWav],{timeoutMs:600000});
         const translatedSrt=path.join(dir,'captions-target.srt');
         fs.writeFileSync(translatedSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:path.relative(mediaWorkspace,translatedSrt),musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold'});
+        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:path.relative(mediaWorkspace,translatedSrt),musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-dubbed-voice.mp4'});
         await artifactPort.putFile({jobId,source:translatedSrt,name:`captions-${targetLanguage}.srt`});
-        const report={sourceLanguage,targetLanguage,segmentOrigin,translation:translationMeta,voiceProvider:provider.provider,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
+        const report={sourceLanguage,targetLanguage,segmentOrigin,translation:translationMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
         await artifactPort.putJson({jobId,name:'dub-report.json',data:report});
         return report;
       });
@@ -434,7 +434,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // model against a topic, or supplied with the task (array, or free
       // text split deterministically across the windows). The original
       // audio track is fully replaced and new subtitles are burned.
-      handlers.set('media.retheme',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage='vi',scriptSource='model',topic='',notes='',scriptText='',scriptTexts,ttsProvider='local',voice,musicSource,musicVolume})=>{
+      handlers.set('media.retheme',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage='vi',scriptSource='model',topic='',notes='',scriptText='',scriptTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.retheme-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -506,10 +506,10 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         await mediaUtils.run('ffmpeg',['-v','error','-y','-f','lavfi','-t',real.seconds.toFixed(3),'-i','anullsrc=r=44100:cl=stereo',...segFiles.flatMap(f=>['-i',f]),'-filter_complex',mixFilter,'-map','[newvoice]','-ac','2','-ar','44100',voiceWav],{timeoutMs:600000});
         const newSrt=path.join(dir,'captions-new.srt');
         fs.writeFileSync(newSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:path.relative(mediaWorkspace,newSrt),musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold'});
+        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:path.relative(mediaWorkspace,newSrt),musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-new-voice.mp4'});
         await artifactPort.putFile({jobId,source:newSrt,name:`captions-${targetLanguage}.srt`});
-        const report={topic:String(topic||''),targetLanguage,segmentOrigin,script:scriptMeta,voiceProvider:provider.provider,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
+        const report={topic:String(topic||''),targetLanguage,segmentOrigin,script:scriptMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
         await artifactPort.putJson({jobId,name:'retheme-report.json',data:report});
         return report;
       });
@@ -700,6 +700,10 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       if(params.ttsProvider!==undefined&&!['local','heygen'].includes(params.ttsProvider))throw err('MEDIA_INPUT','Nhà cung cấp giọng lồng tiếng không hợp lệ.');
     }
     if(operation==='media.voiceover'&&(!params.source||!params.audioSource))throw err('MEDIA_INPUT','Cần một video nguồn và một file âm thanh WAV/MP3/M4A.');
+    if(['media.dub','media.retheme','media.voiceover'].includes(operation)){
+      if(params.hardsubCover!==undefined&&!['off','blur','band'].includes(params.hardsubCover))throw err('MEDIA_INPUT','Chế độ che phụ đề cứng phải là off, blur hoặc band.');
+      if(params.hardsubRegionPct!==undefined&&(!Number.isInteger(params.hardsubRegionPct)||params.hardsubRegionPct<10||params.hardsubRegionPct>40))throw err('MEDIA_INPUT','Vùng che phụ đề cứng phải là số nguyên 10–40 (% chiều cao).');
+    }
     if(operation==='media.tts-video'){
       ttsChoice(params.ttsProvider||'auto');
       if(!params.source||typeof params.text!=='string'||!params.text.trim()||params.text.length>5000)throw err('MEDIA_INPUT','Cần video nguồn và lời thoại 1-5.000 ký tự.');

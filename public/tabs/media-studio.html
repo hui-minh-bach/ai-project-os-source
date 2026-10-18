@@ -121,6 +121,11 @@
         <textarea id="mediaRethemeScriptText" rows="5" placeholder="Dán nguyên văn kịch bản mới. App tự chia theo các đoạn thời gian của video."></textarea>
         <label for="mediaRethemeLanguage">Ngôn ngữ giọng mới</label>
         <select id="mediaRethemeLanguage"><option value="vi">Tiếng Việt</option><option value="en">English</option></select>
+        <label for="mediaRethemeHardsub">Phụ đề cứng sẵn trong video gốc</label>
+        <select id="mediaRethemeHardsub"><option value="blur" selected>Làm mờ vùng phụ đề cũ ở cuối khung (khuyên dùng)</option><option value="band">Che dải mờ đen lên vùng phụ đề cũ</option><option value="off">Để nguyên phụ đề cũ</option></select>
+        <label for="mediaRethemeHardsubHeight">Độ cao vùng che</label>
+        <select id="mediaRethemeHardsubHeight"><option value="12">Thấp — giữ chi tiết tối đa (≈12%)</option><option value="18" selected>Trung bình — kín hẳn 2 dòng chữ (≈18%)</option><option value="26">Cao (≈26%)</option></select>
+        
         <p class="mediaHint">Cách chia đoạn: nếu đã nạp file SRT ở mục Thay giọng, app dùng SRT đó; chưa có thì app tự nghe tiếng gốc bằng Whisper; video không có tiếng nói thì app chia đều theo thời lượng. Phụ đề cháy cứng trong hình gốc thì app chưa xóa được — chỉ thay được tiếng và phụ đề mềm.</p>
       </div>
       <div class="mediaInputPanel" data-media-panel="tts-video" hidden>
@@ -144,7 +149,7 @@
         <input id="mediaVoiceMusic" type="file" accept=".wav,.mp3,.m4a,audio/*">
         <div class="mediaInline"><button id="mediaUploadVoiceMusic" type="button" class="ghost">Nạp nhạc</button><span id="mediaVoiceMusicLabel" class="mediaHint">Chưa nạp nhạc</span></div>
         <div class="grid2">
-          <div><label for="mediaVoiceAlignment">Khớp thời lượng hình với giọng</label><select id="mediaVoiceAlignment"><option value="hold">Giữ khung cuối nếu thiếu hình</option><option value="stretch">Co giãn tốc độ hình (video ngắn)</option></select></div>
+          <div><label for="mediaVoiceAlignment">Khớp thời lượng hình với giọng</label><select id="mediaVoiceAlignment"><option value="hold">Giữ khung cuối nếu thiếu hình</option><option value="stretch">Co giãn tốc độ hình (video ngắn)</option></select></div><div><label for="mediaVoiceoverHardsub">Phụ đề cứng sẵn trong video gốc</label><select id="mediaVoiceoverHardsub"><option value="off" selected>Để nguyên phụ đề cũ</option><option value="blur">Làm mờ vùng phụ đề cũ ở cuối khung</option><option value="band">Che dải mờ đen lên vùng phụ đề cũ</option></select></div><div><label for="mediaVoiceoverHardsubHeight">Độ cao vùng che</label><select id="mediaVoiceoverHardsubHeight"><option value="12" selected>Thấp (≈12%)</option><option value="18">Trung bình (≈18%)</option><option value="26">Cao (≈26%)</option></select></div>
           <div><label for="mediaVoiceMusicVolume">Âm lượng nhạc nền</label><select id="mediaVoiceMusicVolume"><option value="0.08">8% rất nhẹ</option><option value="0.12" selected>12% dịu</option><option value="0.20">20% vừa</option><option value="0.30">30% rõ</option></select></div>
         </div>
         <p class="mediaHint">Không cắt mất lời. Giọng đọc mới thay tiếng cũ trong video; nhạc nạp riêng được hòa nhỏ phía sau. Nếu SRT được nạp, Worker dùng mốc trong SRT; không suy đoán phụ đề.</p>

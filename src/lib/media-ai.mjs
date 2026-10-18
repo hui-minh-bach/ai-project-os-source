@@ -203,11 +203,11 @@ export function routeDirectorPlan(plan,{source='',sourceLabel='',whisperReady=fa
     case 'doi-chu-de':{
       if(!source)return {operation:null,needsInput:'source',warnings};
       if(!plan.topic)return {operation:null,needsInput:'topic',warnings:['AI chưa rõ chủ đề mới. Gõ rõ chủ đề vào ô mong muốn rồi bấm lại.']};
-      return {operation:'media.retheme',params:withSummary({source,scriptSource:'model',topic:plan.topic,notes:plan.summary,targetLanguage:plan.targetLanguage||'vi'}),warnings};
+      return {operation:'media.retheme',params:withSummary({source,scriptSource:'model',topic:plan.topic,notes:plan.summary,targetLanguage:plan.targetLanguage||'vi',hardsubCover:'blur'}),warnings};
     }
     case 'long-tieng':{
       if(!source)return {operation:null,needsInput:'source',warnings};
-      return {operation:'media.dub',params:withSummary({source,sourceLanguage:plan.sourceLanguage||'vi',targetLanguage:plan.targetLanguage||'vi',translationSource:'model',ttsProvider:'local'}),warnings};
+      return {operation:'media.dub',params:withSummary({source,sourceLanguage:plan.sourceLanguage||'vi',targetLanguage:plan.targetLanguage||'vi',translationSource:'model',ttsProvider:'local',hardsubCover:'blur'}),warnings};
     }
     case 'thay-giong':
       return {operation:null,needsInput:'voice-file',warnings:['Thay giọng cần một file giọng đọc (WAV/MP3) của bạn. Mở chế độ "Thay giọng thật" ở cột trái, nạp file giọng rồi tạo tác vụ.']};

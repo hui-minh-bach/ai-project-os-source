@@ -115,3 +115,47 @@ $('#closedLoopPanel').addEventListener('change',async e=>{
  try{const r=await api('/api/orchestrator/stop',{method:'POST',body:JSON.stringify({stopAll:e.target.checked})});if(clData.config)clData.config.stopAll=r.stopAll??e.target.checked;clRenderControls();toast(e.target.checked?'⛔ ĐÃ DỪNG toàn bộ vòng khép kín':'Đã bỏ dừng toàn bộ — vòng khép kín hoạt động lại')}
  catch(err){toast(err.message);e.target.checked=!e.target.checked}
 });
+
+/* ===== Kho GitHub: existing repos -> project -> issue brief -> PR ===== */
+function ghRenderBinding(){
+  const box=$('#ghBinding');if(!box)return;const b=state.project?.settings?.github;
+  box.textContent=b?.fullName?`Dự án đang gắn với repo: ${b.fullName} (nhánh gốc ${b.defaultBranch||'main'})${b.issueNumber?` · Đang làm issue #${b.issueNumber}`:''}${b.lastPrUrl?` · PR gần nhất: ${b.lastPrUrl}`:''}`:'Dự án đang chọn chưa gắn repo GitHub nào. Nạp danh sách repo ở trên rồi bấm "Nhập thành dự án".';
+}
+$('#ghLoadRepos')?.addEventListener('click',async()=>{
+  const box=$('#ghRepoList');box.textContent='Đang nạp repo từ GitHub…';
+  try{const d=await api('/api/github/repos');
+    if(!d.available){box.textContent=d.reason||'Chưa liên kết GitHub.';return;}
+    if(!d.repos.length){box.textContent='Tài khoản GitHub chưa có repo nào.';return;}
+    box.innerHTML=d.repos.map(r=>`<div class="ghRepoItem"><div><b>${esc(r.fullName)}</b> ${r.private?'🔒':'🌐'} <small>${esc(r.description||'')}</small><br><small>Cập nhật: ${esc(String(r.updatedAt||'').slice(0,10))}</small></div>${r.importedProjectId?'<span>✓ Đã là dự án</span>':`<button type="button" class="ghost small" data-gh-import="${esc(r.fullName)}">Nhập thành dự án</button>`}</div>`).join('');
+  }catch(e){box.textContent='Không nạp được repo: '+e.message;}
+});
+$('#ghRepoList')?.addEventListener('click',async e=>{
+  const btn=e.target.closest?.('[data-gh-import]');if(!btn)return;btn.disabled=true;btn.textContent='Đang clone repo…';
+  try{const x=await api('/api/github/import',{method:'POST',body:JSON.stringify({fullName:btn.dataset.ghImport})});
+    toast('Đã nhập repo thành dự án. Đang tải lại để chọn dự án mới…');setTimeout(()=>location.reload(),900);
+  }catch(err){toast(err.message);btn.disabled=false;btn.textContent='Nhập thành dự án';}
+});
+$('#ghLoadIssues')?.addEventListener('click',async()=>{
+  if(!state.project)return toast('Chọn dự án trước');
+  const box=$('#ghIssues');box.textContent='Đang nạp issue…';
+  try{const d=await api(`/api/projects/${state.project.id}/github/issues`);
+    if(!d.issues.length){box.textContent='Repo chưa có issue đang mở.';return;}
+    box.innerHTML=d.issues.map(i=>`<div class="ghRepoItem"><div><b>#${i.number}</b> ${esc(i.title)}<br><small>${esc(i.url)}</small></div><button type="button" class="ghost small" data-gh-issue="${i.number}">Dùng làm brief giao việc</button></div>`).join('');
+  }catch(e){box.textContent='Không nạp được issue: '+e.message;}
+});
+$('#ghIssues')?.addEventListener('click',async e=>{
+  const btn=e.target.closest?.('[data-gh-issue]');if(!btn||!state.project)return;btn.disabled=true;
+  try{const x=await api(`/api/projects/${state.project.id}/github/issue-brief`,{method:'POST',body:JSON.stringify({number:Number(btn.dataset.ghIssue)})});
+    toast(`Đã lấy issue #${x.issue.number} làm brief. Sang tab Ý tưởng/Hội đồng để đội AI lập kế hoạch và giao việc như thường.`);try{await loadProjects?.();}catch{} ghRenderBinding();
+  }catch(err){toast(err.message);btn.disabled=false;}
+});
+$('#ghCreatePr')?.addEventListener('click',async()=>{
+  if(!state.project)return toast('Chọn dự án trước');
+  if(!confirm('Đẩy toàn bộ thay đổi hiện tại của dự án lên GitHub và mở Pull Request? Bạn vẫn duyệt PR trên GitHub trước khi gộp.'))return;
+  const out=$('#ghPrResult');out.textContent='Đang commit, push và tạo Pull Request…';
+  try{const x=await api(`/api/projects/${state.project.id}/github/pull-request`,{method:'POST',body:JSON.stringify({})});
+    out.textContent=`✓ Đã push nhánh ${x.branch}\nPull Request: ${x.url}`;toast('Đã tạo Pull Request trên GitHub');
+  }catch(e){out.textContent='Chưa đẩy được: '+e.message;}
+});
+const ghOrigRenderPublish=renderPublish;
+renderPublish=async function(){await ghOrigRenderPublish();ghRenderBinding();};
