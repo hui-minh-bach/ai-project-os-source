@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.20",
-  "channel": "v0.9.20-macos-package",
+  "version": "0.9.21",
+  "channel": "v0.9.21-slim-and-simple",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -157,6 +157,14 @@
     "macos_package": {
       "status": "implemented",
       "note": "0.9.20 adds a macOS package: the same verified source plus official Node.js v24.20.0 runtimes for Apple Silicon (darwin-arm64) and Intel (darwin-x64), checksum-verified against nodejs.org SHASUMS256, with an arch-selecting double-click launcher. Windows-only extras are excluded; the Concat source zip and AGPL notices are kept. The bundled macOS Node binaries cannot be executed inside the Linux build sandbox, so the first boot on a real Mac is the recipient-side acceptance step; Gatekeeper may require right-click > Open on first launch because the package is not Apple-notarized."
+    },
+    "slim_windows_package": {
+      "status": "implemented",
+      "note": "0.9.21: the Windows installer no longer embeds the 81 MB Concat setup executable. Concat provisioning already falls back to downloading the official release and verifying it against the pinned SHA-256, and the Studio UI wording covers both cases; the Concat source zip and AGPL notices stay in the package. Installer shrinks from ~137 MB to ~57 MB."
+    },
+    "setup_checklist": {
+      "status": "implemented",
+      "note": "0.9.21: the Home tab opens with a getting-started checklist (connect an AI account, install Git + GitHub CLI, link GitHub, create the first project) computed from live app state, with one-click jumps to the right tab; it collapses to a done state and can be dismissed permanently."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

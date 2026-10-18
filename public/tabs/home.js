@@ -29,7 +29,7 @@ async function loadPrereq(){
   try{state.prereq=await api('/api/system/prerequisites');state.prereqLoaded=true}catch(e){state.prereqLoaded=false;state.prereqError=e.message}
   try{state.prereqVersions=await api('/api/system/prerequisite-versions')}catch{state.prereqVersions={}}
   try{state.sandbox=await api('/api/system/sandbox')}catch{}
-  renderHome();if(typeof renderExecutionControls==='function')renderExecutionControls();
+  renderHome();renderSetupCard();if(typeof renderExecutionControls==='function')renderExecutionControls();
 }
 function homeProjectStage(project){
   const stage=project.stage;
@@ -90,5 +90,32 @@ function homeCreateProject(){
   $('#homeCreateForm').onsubmit=async event=>{event.preventDefault();const button=$('#homeSaveProject'),name=$('#homeProjectName').value.trim(),idea=$('#homeProjectIdea').value.trim();if(!name){$('#homeProjectName').focus();return}button.disabled=true;button.textContent='Đang tạo…';try{const project=await api('/api/projects',{method:'POST',body:JSON.stringify({name,idea})});state.project=project;await loadProjects();await homeOpenProject(project.id);toast('Đã tạo dự án')}catch(e){toast(e.message);button.disabled=false;button.textContent='Tạo dự án →'}};
 }
 $('#homeCreateProject').onclick=homeCreateProject;
+function renderSetupCard(){
+  const card=$('#homeSetupCard');if(!card)return;
+  try{
+    if(localStorage.getItem('aios-setup-dismissed')==='1'){card.hidden=true;return}
+    const conns=Array.isArray(state.connections)?state.connections:[];
+    const aiKinds=['openai','anthropic','gemini','openai_compatible'];
+    const hasAi=conns.some(c=>aiKinds.includes(c.kind)||String(c.kind||'').endsWith('_account'));
+    const hasGithub=conns.some(c=>c.kind==='github');
+    const tools=state.prereqLoaded?Boolean(state.prereq.git&&state.prereq.gh):null;
+    const hasProject=(state.projects||[]).length>0;
+    const steps=[
+      {done:hasAi,label:'Kết nối tài khoản AI',hint:'Đăng nhập ChatGPT / Claude / Gemini bằng tài khoản của bạn',go:'connections',cta:'Kết nối'},
+      {done:tools,label:'Cài Git & GitHub CLI trên máy',hint:'Hai công cụ nền để app làm việc với GitHub',go:'guide',cta:'Xem hướng dẫn'},
+      {done:hasGithub,label:'Liên kết GitHub',hint:'Để đội AI lấy việc và đẩy sản phẩm lên repo của bạn',go:'connections',cta:'Liên kết'},
+      {done:hasProject,label:'Tạo dự án đầu tiên',hint:'Bắt đầu từ một ý tưởng, đội AI sẽ đồng hành tiếp',go:null,cta:'Tạo dự án'},
+    ];
+    const doneCount=steps.filter(x=>x.done===true).length;
+    if(doneCount===steps.length){card.hidden=false;card.innerHTML=`<div class="home-setup-done"><span aria-hidden="true">✓</span><p><strong>Đã thiết lập xong.</strong> Máy và tài khoản đã sẵn sàng — bắt đầu từ một ý tưởng mới thôi.</p><button class="home-setup-dismiss" id="homeSetupDismiss">Ẩn</button></div>`;}
+    else{
+      card.hidden=false;
+      card.innerHTML=`<div class="home-setup-head"><h3>Thiết lập ban đầu</h3><span>${doneCount}/${steps.length} bước</span><button class="home-setup-dismiss" id="homeSetupDismiss" aria-label="Ẩn thẻ thiết lập">×</button></div><ol class="home-setup-list">${steps.map(x=>`<li class="${x.done===true?'done':x.done===false?'todo':'unknown'}"><span class="home-setup-ico" aria-hidden="true">${x.done===true?'✓':x.done===false?'○':'…'}</span><div><b>${x.label}</b><p>${x.hint}</p></div>${x.done===true?'':x.go?`<button class="ghost" data-setup-go="${x.go}">${x.cta}</button>`:`<button class="primary" id="homeSetupCreate">${x.cta}</button>`}</li>`).join('')}</ol>`;
+      $$('#homeSetupCard [data-setup-go]').forEach(b=>b.onclick=()=>page(b.dataset.setupGo));
+      const create=$('#homeSetupCreate');if(create)create.onclick=homeCreateProject;
+    }
+    const dismiss=$('#homeSetupDismiss');if(dismiss)dismiss.onclick=()=>{localStorage.setItem('aios-setup-dismissed','1');card.hidden=true};
+  }catch{card.hidden=true}
+}
 $('#homeAllProjects').onclick=homeShowAllProjects;
-renderHome();
+renderHome();renderSetupCard();

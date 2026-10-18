@@ -17,3 +17,20 @@
 @media(max-width:1200px){.home-hero{height:auto;padding-bottom:20px}.home-hero h2{font-size:27px}.home-hero-description{font-size:14px}.home-pipeline-card{min-width:96px;padding-left:5px;padding-right:5px}.home-pipeline-card p{font-size:11px}.home-pipeline-card h3{font-size:13px}.home-lower-grid{grid-template-columns:1fr}.home-panel{height:auto;min-height:294px}.home-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.home-runtime-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.home-runtime,.home-runtime:nth-child(n+5){grid-column:auto}.home-runtime{grid-template-columns:43px 1fr;padding:13px}.home-runtime .home-icon{width:42px}}
 @media(max-width:900px){.home-hero-actions{transform:none}.home-pipeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.home-pipeline-card{width:100%;min-width:0}.home-pipeline-arrow{display:none}.home-hero h2{font-size:24px;line-height:31px;white-space:normal}.home-hero-description{font-size:13px}.home-hero-actions button{min-width:0!important;width:50%;padding:0 10px}.home-stat-arrow{right:15px}.home-stat-note{white-space:normal}.home-runtime-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.home-project-card h4{padding-right:65px}}
 @media(max-width:520px){.home-hero{padding:20px 12px}.home-pipeline{gap:8px}.home-pipeline-card{height:145px}.home-pipeline-card .home-icon{width:46px;height:46px}.home-pipeline-card h3{font-size:11px}.home-pipeline-card p{font-size:10px;line-height:16px}.home-hero-actions{gap:8px}.home-hero-actions button{font-size:12px}.home-hero-actions button span{margin-right:2px}.home-stats{gap:8px}.home-stat{height:104px;padding:12px 9px;gap:9px}.home-stat-icon{width:44px;height:44px}.home-stat-icon .home-icon{width:32px;height:32px}.home-stat b{font-size:26px}.home-stat-label{font-size:12px}.home-stat-note{font-size:10px;line-height:15px}.home-stat-arrow{display:none}.home-project-grid{grid-template-columns:1fr}.home-panel{padding:13px}.home-panel h3{font-size:18px}.home-empty-projects{min-height:200px}.home-runtime{padding:10px;grid-template-columns:35px 1fr}.home-runtime .home-icon{width:34px}}
+
+/* Getting-started checklist (0.9.21) */
+.home-setup-card{margin:18px 0 6px;padding:16px 18px;border:1px solid var(--line,#2b2b36);border-radius:14px;background:var(--panel,#ffffff)}
+.home-setup-head{display:flex;align-items:center;gap:10px}
+.home-setup-head h3{margin:0;font-size:16px}
+.home-setup-head span{opacity:.65;font-size:13px}
+.home-setup-dismiss{margin-left:auto;border:0;background:transparent;font-size:16px;cursor:pointer;opacity:.6}
+.home-setup-list{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
+.home-setup-list li{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px dashed var(--line,#2b2b36);border-radius:10px}
+.home-setup-list li.done{border-style:solid;opacity:.75}
+.home-setup-list li p{margin:2px 0 0;font-size:13px;opacity:.7}
+.home-setup-ico{font-size:16px;width:22px;text-align:center}
+.home-setup-list li.done .home-setup-ico{color:#1a9e54}
+.home-setup-list button{margin-left:auto;white-space:nowrap}
+.home-setup-done{display:flex;align-items:center;gap:12px}
+.home-setup-done p{margin:0}
+.home-setup-done>span{color:#1a9e54;font-size:20px}
