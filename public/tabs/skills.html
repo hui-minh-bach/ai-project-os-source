@@ -1,0 +1,17 @@
+<section id="page-skills" class="page">
+ <div class="skills-toolbar">
+  <div class="skills-search"><span>⌕</span><input id="skillSearch" type="search" placeholder="Tìm kiếm kỹ năng..." aria-label="Tìm kiếm kỹ năng"></div>
+  <div id="skillCategories" class="skills-categories" aria-label="Danh mục kỹ năng"></div>
+  <label class="skills-enabled-filter"><input id="skillEnabledOnly" type="checkbox" role="switch" checked><span>Chỉ hiện kỹ năng đã bật</span></label>
+  <button id="addSkill" class="primary">＋ Tạo skill mới</button>
+  <button id="importSkill" class="ghost">⬆ Nhập skill / repo</button>
+ </div>
+ <div id="importedRepos" class="imported-repos" hidden></div>
+ <div class="skills-layout">
+  <div class="skills-library">
+   <div class="skills-list-head"><div><h3>Danh sách kỹ năng</h3><p>Các kỹ năng có thể được gán cho AI để xử lý đúng loại nhiệm vụ.</p></div><span id="skillCount"></span><select id="skillSort" aria-label="Sắp xếp kỹ năng"><option value="default">Sắp xếp: Mặc định</option><option value="name">Tên: A → Z</option><option value="enabled">Đã bật trước</option></select><div class="skills-view"><button id="skillGridView" aria-label="Dạng lưới" aria-pressed="true">⊞</button><button id="skillListView" aria-label="Dạng danh sách" aria-pressed="false">☷</button></div></div>
+   <div id="skillGrid" class="skills-grid"></div>
+  </div>
+  <section class="skills-mapping"><h3>Skill mapping</h3><p>Xem cách AI Project OS gán kỹ năng cho các nhiệm vụ.</p><label for="skillSample">Nhiệm vụ mẫu</label><select id="skillSample"><option value="mvp">Xây dựng MVP cho ứng dụng AI note</option></select><h4>Kỹ năng được gán</h4><div id="skillMapping" class="skills-mapping-list"></div><div class="skills-mapping-note"><b>i</b><span id="skillMappingRule">Gán kỹ năng theo role của nhiệm vụ.</span></div></section>
+ </div>
+</section>

@@ -1,0 +1,1086 @@
+From d0adc00fcbc59b07f3f8722c1d70c3ecd107c171 Mon Sep 17 00:00:00 2001
+From: AI Media Module Package <media-module@local.invalid>
+Date: Thu, 15 Oct 2026 03:57:22 +0000
+Subject: [PATCH] feat(media): TaskQueue media engine V07-V09 FFmpeg and gated
+ V10
+
+---
+ .agents/skills/ai-media-engine/SKILL.md    | 14 ++++
+ .gitignore                                 |  3 +
+ README.md                                  | 27 +++++++
+ adapters/demo-tts.cjs                      | 16 ++++
+ adapters/host-core-services-v1.example.cjs | 15 ++++
+ adapters/local-ports.cjs                   | 14 ++++
+ adapters/whisper-cli-gateway.cjs           | 19 +++++
+ docs/ACCEPTANCE.md                         | 21 +++++
+ docs/BAO_CAO_BAN_GIAO.md                   | 27 +++++++
+ docs/CONCAT-REVIEW.md                      |  9 +++
+ docs/DEPENDENCIES.md                       |  9 +++
+ docs/HUONG_DAN_TIENG_VI.md                 | 35 +++++++++
+ docs/INTEGRATION.md                        | 37 +++++++++
+ examples/truyen-mau.txt                    | 11 +++
+ index.cjs                                  | 89 ++++++++++++++++++++++
+ package.json                               | 12 +++
+ scripts/check.cjs                          |  3 +
+ scripts/demo.cjs                           | 36 +++++++++
+ scripts/verify-samples.cjs                 | 16 ++++
+ src/analyzer.cjs                           | 23 ++++++
+ src/concat.cjs                             | 16 ++++
+ src/images.cjs                             | 33 ++++++++
+ src/importer.cjs                           | 26 +++++++
+ src/publisher.cjs                          | 26 +++++++
+ src/quality.cjs                            | 21 +++++
+ src/renderer.cjs                           | 55 +++++++++++++
+ src/story.cjs                              | 76 ++++++++++++++++++
+ src/subtitles.cjs                          | 13 ++++
+ src/timeline.cjs                           | 22 ++++++
+ src/transcript.cjs                         | 17 +++++
+ src/utils.cjs                              | 50 ++++++++++++
+ tests/engine.test.cjs                      | 27 +++++++
+ 32 files changed, 818 insertions(+)
+ create mode 100644 .agents/skills/ai-media-engine/SKILL.md
+ create mode 100644 .gitignore
+ create mode 100644 README.md
+ create mode 100644 adapters/demo-tts.cjs
+ create mode 100644 adapters/host-core-services-v1.example.cjs
+ create mode 100644 adapters/local-ports.cjs
+ create mode 100644 adapters/whisper-cli-gateway.cjs
+ create mode 100644 docs/ACCEPTANCE.md
+ create mode 100644 docs/BAO_CAO_BAN_GIAO.md
+ create mode 100644 docs/CONCAT-REVIEW.md
+ create mode 100644 docs/DEPENDENCIES.md
+ create mode 100644 docs/HUONG_DAN_TIENG_VI.md
+ create mode 100644 docs/INTEGRATION.md
+ create mode 100644 examples/truyen-mau.txt
+ create mode 100644 index.cjs
+ create mode 100644 package.json
+ create mode 100644 scripts/check.cjs
+ create mode 100644 scripts/demo.cjs
+ create mode 100644 scripts/verify-samples.cjs
+ create mode 100644 src/analyzer.cjs
+ create mode 100644 src/concat.cjs
+ create mode 100644 src/images.cjs
+ create mode 100644 src/importer.cjs
+ create mode 100644 src/publisher.cjs
+ create mode 100644 src/quality.cjs
+ create mode 100644 src/renderer.cjs
+ create mode 100644 src/story.cjs
+ create mode 100644 src/subtitles.cjs
+ create mode 100644 src/timeline.cjs
+ create mode 100644 src/transcript.cjs
+ create mode 100644 src/utils.cjs
+ create mode 100644 tests/engine.test.cjs
+
+diff --git a/.agents/skills/ai-media-engine/SKILL.md b/.agents/skills/ai-media-engine/SKILL.md
+new file mode 100644
+index 0000000..201041b
+--- /dev/null
++++ b/.agents/skills/ai-media-engine/SKILL.md
+@@ -0,0 +1,14 @@
++---
++name: ai-media-engine
++summary: Safely integrate Media Engine as CoreServices v1 background worker tasks.
++---
++# AI Media Engine skill
++
++Only register `media.*` tasks through an explicitly supplied `CoreServices` bridge.
++Never write in AI Core, Vault, Router, AI Council, or shared UI files. Do not read secrets from another project's config.
++Run `npm test` and `npm run demo`, inspect `artifacts/validation.json` and FFprobe on the real resulting MP4s.
++For TTS, STT, translation, image model generation, and AI edit plans, call through `ProviderGateway.invoke` ONLY.
++Do not silently claim Vietnamese TTS is natural: the espeak adapter is a robotic test double.
++Do not publish for real. V10 requires authorized OAuth, real platform API tests, approval, and explicit opt-in.
++Concat optional: prefer FFmpeg, JSON-RPC only on loopback, token mandatory, version probe before editing; never expose to the Internet.
++A `.zip` upload is a source snapshot, NOT proof the user's live Windows worker has been updated.
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..3f8f2b5
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,3 @@
++node_modules/
++artifacts/demo-workspace/
++*.log
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..346be55
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,27 @@
++# AI Project OS — Independent Media Engine module (V07–V10)
++
++An **installable module**, not a separate application. Backend video processing runs offline using FFmpeg, with optional AI tasks routed exclusively through host `ProviderGateway`.
++
++## Run the verified demo
++
++```powershell
++node --version
++ffmpeg -version
++ffprobe -version
++npm test
++npm run demo
++```
++
++The demo is an **explicit local mock** of CoreServices. It generates original test patterns and a Vietnamese story with a robotic `espeak` test voice; it is not live Windows host integration or real Whisper STT. Final demo files are in `artifacts/demo-workspace/artifacts/`, acceptance report in `artifacts/validation.json`.
++
++Open `docs/INTEGRATION.md` for task registration, `docs/ACCEPTANCE.md` for PASS/BLOCKED flags, `docs/CONCAT-REVIEW.md` for version and security notes.
++
++Optional: `adapters/whisper-cli-gateway.cjs` is a **host-side** example of using a user-installed Whisper.cpp model through ProviderGateway; do not install models or call paid providers without consent. No credentials, browser cookies, billing integrations or live publishing are included.
++
++## Security
++
++- Dedicated workspace root; rejects paths outside and symlink escapes.
++- Bounded import size/duration, process timeout, per-video scene count, bounded CPU threads.
++- Cached scene-specific render files; restarted jobs reuse valid chunks and render new clips if inputs changed.
++- Concat JSON-RPC limited to loopback with token; publisher `media.publish` is hard locked.
++- **Never replace or delete the provided `không xóa không xóa.zip` worker archive.** No files from it are duplicated into this package.
+diff --git a/adapters/demo-tts.cjs b/adapters/demo-tts.cjs
+new file mode 100644
+index 0000000..e103a18
+--- /dev/null
++++ b/adapters/demo-tts.cjs
+@@ -0,0 +1,16 @@
++'use strict';
++// DEMO ONLY: espeak's Vietnamese voice is intelligible on some systems but robotic.
++// Do not describe this as production-quality natural Vietnamese TTS.
++const {run,insist}=require('../src/utils.cjs');
++function demoGateway({exe='espeak'}={}){
++ return {async invoke({capability,input}){
++  if(capability==='speech.synthesize'){
++   insist(String(input.language).startsWith('vi'),'Demo voice supports Vietnamese only');
++   insist(!input.emotion||input.emotion==='neutral','eSpeak demo has no tested expressive Vietnamese styles','BLOCKED_TTS_STYLE');
++   await run(exe,['-v',String(input.voice||'vi'),'-s',String(Math.round(140*(input.rate||1))),'-a',String(Math.round(100*(input.volume||1))),'-w',input.output,input.text],{timeoutMs:180000});
++   return {audioPath:input.output,voiceQuality:'DEMO_ROBOTIC_NOT_ACCEPTED_AS_NATURAL'};
++  }
++  throw Object.assign(new Error(`Demo gateway does not implement ${capability}`),{code:'BLOCKED_PROVIDER'});
++ }};
++}
++module.exports={demoGateway};
+diff --git a/adapters/host-core-services-v1.example.cjs b/adapters/host-core-services-v1.example.cjs
+new file mode 100644
+index 0000000..cd9deb5
+--- /dev/null
++++ b/adapters/host-core-services-v1.example.cjs
+@@ -0,0 +1,15 @@
++'use strict';
++// Registration recipe. NOT an implementation of the user's missing AI Project OS CoreServices v1.
++const {registerMediaEngine}=require('../index.cjs');
++function installMediaForHost({host,workspace,ffmpegBin,ffprobeBin}){
++ // These functions MUST be wired by the AI Core owner to their actual stable v1 interfaces.
++ // No modifications to AI Core, Vault, TaskQueue, EventBus, or UI are required here.
++ const ports={
++  ProviderGateway:{invoke:req=>host.models.invokeAuthorized(req)},
++  TaskQueue:{registerTask:(name,handler)=>host.tasks.registerHandler(name,handler)},
++  ArtifactStore:{putFile:r=>host.artifacts.putFile(r),putJson:r=>host.artifacts.putJson(r)},
++  EventBus:{publish:(name,payload)=>host.events.publish(name,payload)}
++ };
++ return registerMediaEngine({CoreServices:ports,workspace,ffmpegBin,ffprobeBin});
++}
++module.exports={installMediaForHost};
+diff --git a/adapters/local-ports.cjs b/adapters/local-ports.cjs
+new file mode 100644
+index 0000000..3221a1c
+--- /dev/null
++++ b/adapters/local-ports.cjs
+@@ -0,0 +1,14 @@
++'use strict';
++// ONLY a local integration-test adapter. Production must be supplied with real CoreServices v1 ports.
++const {fs,path,mkdir,sha,insist,jsonWrite}=require('../src/utils.cjs');
++function makeLocalPorts(root,{gateway=null,log=()=>{}}={}){
++ const handlers=new Map(),jobs=[];const artifacts=mkdir(path.join(root,'artifacts'));
++ return {
++  ProviderGateway:gateway||{invoke:async()=>{throw Object.assign(new Error('Model provider not configured'),{code:'BLOCKED_PROVIDER'})}},
++  TaskQueue:{registerTask:(name,handler)=>{insist(!handlers.has(name),'Duplicate media task');handlers.set(name,handler)},async dispatch(name,payload){insist(handlers.has(name),'Unknown task');jobs.push({name,payload});return handlers.get(name)(payload)}},
++  ArtifactStore:{async putFile({jobId,source,name}){const dir=mkdir(path.join(artifacts,String(jobId).replace(/[^a-zA-Z0-9_-]/g,'_')));const target=path.join(dir,path.basename(name||source));if(path.resolve(source)!==path.resolve(target))fs.copyFileSync(source,target);return {uri:target,sha256:sha(fs.readFileSync(target))};},async putJson({jobId,name,data}){const dir=mkdir(path.join(artifacts,String(jobId).replace(/[^a-zA-Z0-9_-]/g,'_')));const dest=path.join(dir,path.basename(name));jsonWrite(dest,data);return {uri:dest,sha256:sha(fs.readFileSync(dest))};}},
++  EventBus:{publish:(event,payload)=>log(event,payload)},
++  _test:{handlers,jobs}
++ };
++}
++module.exports={makeLocalPorts};
+diff --git a/adapters/whisper-cli-gateway.cjs b/adapters/whisper-cli-gateway.cjs
+new file mode 100644
+index 0000000..de52ecb
+--- /dev/null
++++ b/adapters/whisper-cli-gateway.cjs
+@@ -0,0 +1,19 @@
++'use strict';
++// A sample ProviderGateway implementation owned by the HOST, not a direct Media Engine model call.
++// Requires whisper.cpp whisper-cli and a model the user downloaded and approved.
++const {fs,path,run,insist}=require('../src/utils.cjs');
++const subtitles=require('../src/subtitles.cjs');
++function whisperGateway({exe='whisper-cli',model,outputRoot,timeoutMs=180000}={}){
++ insist(model&&fs.existsSync(model),'Configure and install a real Whisper model explicitly','BLOCKED_STT');
++ insist(outputRoot,'Output root required');
++ fs.mkdirSync(outputRoot,{recursive:true});
++ return {async invoke({capability,input}){
++  insist(capability==='speech.transcribe','This gateway supports transcription only','BLOCKED_PROVIDER');
++  insist(fs.existsSync(input.audio),'Audio missing','INVALID');
++  const stem=path.join(outputRoot,`whisper-${require('node:crypto').randomBytes(8).toString('hex')}`);
++  await run(exe,['-m',model,'-f',input.audio,'-l',input.language||'vi','-osrt','-of',stem],{timeoutMs});
++  const srt=stem+'.srt';insist(fs.existsSync(srt),'Whisper produced no SRT','BLOCKED_STT');
++  const parsed=subtitles.parseSrt(fs.readFileSync(srt,'utf8'));return {segments:parsed,model,source:'whisper.cpp actual ASR'};
++ }};
++}
++module.exports={whisperGateway};
+diff --git a/docs/ACCEPTANCE.md b/docs/ACCEPTANCE.md
+new file mode 100644
+index 0000000..bb5766c
+--- /dev/null
++++ b/docs/ACCEPTANCE.md
+@@ -0,0 +1,21 @@
++# Acceptance and limitations
++
++| Requirement | Implementation | Status for this release |
++|---|---|---|
++| Import MP4/MOV/etc, FFprobe, frames/audio, scene/silence analysis | Real FFmpeg | PASS on generated MP4; other containers untested |
++| Whisper real STT with transcript | Gateway support and optional whisper.cpp bridge; model missing in this environment | BLOCKED — no fabricated transcription |
++| Manual subtitle edits/translation/SRT/VTT | Segment operations; translation requires provider | Subtitle editing PASS; translation BLOCKED until provider |
++| Rule- or AI-produced structured plan | Deterministic fallback, AI via Gateway | PASS fallback; model route not live-tested |
++| Actual edit clip render/preview/final MP4 | FFmpeg | PASS with real 6-second video |
++| Movie scene partial cache/retry | Content-aware chunks + atomic clip rename | PASS in functional render; interruption test pending |
++| Narration from original Vietnamese story >=1,000 chars | espeak Vietnamese demo via test gateway | PASS mechanical output; naturalness BLOCKED |
++| Story illustration consistency | Deterministic repeatable generated landscape; optional image gateway | PASS procedural landscape; **character illustration consistency NOT VALIDATED**; AI image provider BLOCKED |
++| Story subtitle synchronization | FFprobe measures each synthesized scene audio duration | PASS 24 measured phrase boundaries; **word accuracy NOT VALIDATED** |
++| Story 720p/1080p formats | 1280x720/1920x1080 output switch | 720p video 1280x720 PASS; 1080p mode implemented, not tested |
++| Black/audio anomaly detection | FFmpeg blackdetect/silencedetect, audio/video probe | PASS on current test samples |
++| OAuth platform posting & scheduling | Draft store, explicit opt-in design, idempotency strategy | BLOCKED V10; no authorized posting tests |
++| CoreServices v1 host registration | 4-port adapter registered in tests | PASS mock; BLOCKED host integration (not in supplied ZIP) |
++| Concat JSON-RPC render | Read-only version probe; FFmpeg primary | BLOCKED external Concat not installed |
++| PR in target AI Project OS repository | Requires accessible correct repository | BLOCKED; local `feat/ai-media` git bundle provided |
++
++**Do not treat all criteria as DONE.** A production DONE requires real Whisper transcriptions, verified Vietnamese natural TTS, host CoreServices integration, and authorized publisher API tests, among other host-level regression testing.
+diff --git a/docs/BAO_CAO_BAN_GIAO.md b/docs/BAO_CAO_BAN_GIAO.md
+new file mode 100644
+index 0000000..95e281c
+--- /dev/null
++++ b/docs/BAO_CAO_BAN_GIAO.md
+@@ -0,0 +1,27 @@
++# BÁO CÁO BÀN GIAO — NHIỆM VỤ 02
++Ngày: 15/10/2026. Nhánh nguồn đóng gói: `feat/ai-media` (local Git bundle). Không ghi đè bất kỳ file nào trong nguồn gốc `không xóa không xóa.zip`.
++
++## Những việc đã làm và có bằng chứng
++- Module độc lập Node CommonJS `@ai-project-os/media-engine`: bảy TaskQueue handlers, ProviderGateway, ArtifactStore, EventBus được kiểm tra qua adapter giả lập, không sửa AI Core hay giao diện.
++- FFprobe kiểm tra luồng âm thanh/video, kích thước, codec, thời lượng, băm file và giới hạn dung lượng/ổ đĩa; FFmpeg trích âm thanh/khung hình, phân tích chuyển cảnh và khoảng lặng.
++- Có edit plan có cấu trúc với tỷ lệ 16:9, 9:16, 1:1; fallback theo quy tắc khi chưa có AI model; giới hạn tài nguyên; render từng đoạn có fingerprint để dùng lại checkpoint.
++- Phụ đề có SRT/VTT, chỉnh từng đoạn, tạo từ transcript nếu STT provider có mốc thời gian, dịch qua model do user chọn.
++- Story Studio đọc TXT, DOCX (Python) và PDF dạng có text (pdftotext), chia chương/cảnh, lưu storyboard, nhận giọng qua ProviderGateway và tạo tranh phong cảnh procedural ngoại tuyến.
++- Đã thực sự render một video nguồn 6,021 giây và một video kể chuyện Việt 2.237 ký tự, 7 cảnh, 128,571 giây ở **1280×720**, AAC/H.264, phụ đề 24 đoạn. Sai lệch từ cuối phụ đề đến cuối MP4 đo được: **0,020 giây**. Đây là so mốc **phụ đề cấp câu với clip tổng thể**, không phải phép đo độ lệch từng từ so với âm vị lời đọc.
++- QA thực tế video mẫu không thấy lỗi BLACK kéo dài, không thiếu audio, kết quả đạt. Bộ unit test **10/10 PASS**, ví dụ Concat JSON-RPC mock token/loopback, chống truy cập vượt workspace, idempotency và chặn Publisher.
++
++## Các giới hạn và trạng thái chưa đạt DONE
++- Chưa có Whisper hoặc model nhận dạng tiếng nói có thể chạy trong môi trường xây dựng này; **không có bằng chứng STT thực tế**. Demo SRT lấy từ text được tổng hợp thành giọng, không mạo nhận đó là transcript được AI nhận dạng.
++- Giọng eSpeak Việt chỉ dùng cho test để tạo WAV thật; giọng máy, **chưa vượt nghiệm thu tự nhiên**. Tùy biến cảm xúc/đa nhân vật cần provider thích hợp.
++- Tranh minh họa mẫu là procedural landscape, **không phải AI tạo nhân vật theo cảnh**. Provider hình ảnh cần kết nối và phép sử dụng hợp pháp.
++- Local Worker KBL V5.7 trong ZIP không chứa hợp đồng CoreServices v1; do đó chỉ test được adapter với fake CoreServices, **chưa kiểm chứng gắn vào Local Worker thật**.
++- Concat được nghiên cứu nhưng không cài lên máy người dùng và chưa kiểm tra thực tế Concat export API. Concat tùy chọn và không ảnh hưởng FFmpeg.
++- V10 Publisher chỉ tạo nháp, gọi đăng nội dung bị khóa cứng; chưa có OAuth/API nền tảng thật nên **BLOCKED đúng yêu cầu**.
++- Không tạo được Pull Request vào AI Project OS vì chưa có URL/permission của đúng repo đó; repo GitHub Concat không có quyền push, còn repo `build-my-home` không liên quan. Bàn giao nhánh local `feat/ai-media` dạng Git bundle và patch, không đẩy mã vào repo khác.
++
++## File chứng minh
++`artifacts/samples/story_720p.mp4`, `story_preview.mp4`, `story_captions.srt`, `storyboard.json`, `editor_final.mp4`, `editor_preview.mp4`, `analysis.json`, `source.mp4`, `story_frame_at_35s.png`, `artifacts/validation.json`.
++
++Lệnh tái kiểm chứng: `npm test`, `node scripts/verify-samples.cjs`. Lệnh tự dựng lại demo cần cài FFmpeg, FFprobe và eSpeak giọng vi: `npm run demo`.
++
++**Trạng thái cuối: BẢN MODULE V07–V09 CHẠY ĐƯỢC CÁC ĐƯỜNG FFmpeg/TTS THỬ; CHƯA ĐỦ ĐIỀU KIỆN 'DONE' TOÀN BỘ NHIỆM VỤ 02.**
+diff --git a/docs/CONCAT-REVIEW.md b/docs/CONCAT-REVIEW.md
+new file mode 100644
+index 0000000..cecf825
+--- /dev/null
++++ b/docs/CONCAT-REVIEW.md
+@@ -0,0 +1,9 @@
++# Optional Concat review (checked 2026-10-15)
++
++Public repository: https://github.com/jub0t/concat
++
++- Concat supports MCP, JSON-RPC and gRPC as advertised. Source is distributed under AGPL-3.0 with exceptions described in its repo; obtain legal review before combining/re-distributing its source.
++- Public repo documentation shows JSON-RPC 2.0 `version`, `project.open`, `edit.apply`, `export.run` and events, plus `concat-cli serve` on 127.0.0.1:7420 with token authorization. Release/API behavior can change between versions.
++- This module includes a **loopback-only, token-authenticated version probe** in `src/concat.cjs` and does not install Concat, bundle Concat or claim successful edits through it. Concat render integration remains `BLOCKED_UNVERIFIED_API`; FFmpeg does all real exports.
++- If connected, configure an external Concat process on 127.0.0.1 and a short-lived token from the host's secret manager; no wide filesystem access or Internet exposure. Do not store tokens in ZIP or logs.
++- GPU acceleration can improve performance, but this package deliberately uses bounded CPU FFmpeg (max 2 threads by default) to work on lower-end Windows hosts.
+diff --git a/docs/DEPENDENCIES.md b/docs/DEPENDENCIES.md
+new file mode 100644
+index 0000000..60f86ef
+--- /dev/null
++++ b/docs/DEPENDENCIES.md
+@@ -0,0 +1,9 @@
++# Dependency and licensing report
++
++- Node.js runtime >= 20. **No npm dependencies** (package.json dependencies are empty).
++- FFmpeg and FFprobe external command-line tools must be installed on the host, with H.264/AAC/libass enabled. This code **does not bundle FFmpeg binaries**; inspect your chosen FFmpeg distribution license.
++- Optional Python 3 for DOCX extraction through standard library `zipfile` + XML. Text PDF input uses `pdftotext` or optional `pypdf`. Scanned PDF OCR is not silently attempted.
++- Optional eSpeak with Vietnamese (`vi`) voice is **only a demo Gateway** and is not recommended for commercial quality.
++- Optional whisper.cpp + user-provided Whisper model, connected as a host ProviderGateway. Not downloaded or installed automatically; no bundled pretrained model.
++- Optional Concat external application via token-protected loopback only. The Concat repository's AGPL-3.0 and exceptions apply to Concat; **no Concat source code, executables, model, or AGPL dependency is distributed with this module**. Its actual render endpoint has not been tested here.
++- No paid API, cloud subscription, service account, or browser profile is needed to run included offline FFmpeg and eSpeak demo. No social network cookie or OAuth tokens included.
+diff --git a/docs/HUONG_DAN_TIENG_VI.md b/docs/HUONG_DAN_TIENG_VI.md
+new file mode 100644
+index 0000000..2ae98d7
+--- /dev/null
++++ b/docs/HUONG_DAN_TIENG_VI.md
+@@ -0,0 +1,35 @@
++# HƯỚNG DẪN CÀI MODULE AI MEDIA ENGINE VÀO LOCAL WORKER
++
++## Cảnh báo bảo toàn dữ liệu
++Không chép đè tệp `kbl-video-worker.js`, `config.json`, `worker.pid`, Vault, AI Core hay các tab hiện hành. Không tắt Worker đang chạy chỉ để xem video mẫu. Gói này là module tách rời, **chưa được ghép vào AI Core vì mã CoreServices v1 chưa có trong ZIP nguồn**.
++
++## 1. Xem thành phẩm có sẵn
++Giải nén ZIP, mở `artifacts/samples/story_720p.mp4` để xem video đọc truyện thử, mở `artifacts/samples/editor_final.mp4` để xem video cắt dựng. File `story_captions.srt` có 24 phụ đề tiếng Việt; `storyboard.json` có timeline 7 cảnh. Mẫu giọng eSpeak là **máy móc**, không phải giọng lồng tiếng tự nhiên chất lượng thương mại.
++
++## 2. Chạy kiểm thử trên Windows
++Cài Node.js 20+, FFmpeg và FFprobe, thêm thư mục thực thi vào PATH. Mở PowerShell trong thư mục module:
++
++```powershell
++node --version
++ffmpeg -version
++ffprobe -version
++node --test tests/*.test.cjs
++```
++
++`npm run demo` cần cài thêm `espeak` có giọng tiếng Việt, hoặc thay demo gateway bằng provider TTS riêng do bạn cho phép. Không có bước nào đòi API trả phí.
++
++## 3. Ghép vào AI Project OS
++Người giữ AI Core phải cung cấp đối tượng CoreServices v1 hoặc các phương thức thật tương ứng với `TaskQueue.registerTask`, `ProviderGateway.invoke`, `ArtifactStore.putFile/putJson`, `EventBus.publish`. Sau đó chỉ đăng ký module qua `registerMediaEngine`, ví dụ trong `docs/INTEGRATION.md`. Không yêu cầu sửa backend/router của GPT số 1.
++
++## 4. Bật thêm chức năng khi đã có provider
++- STT: cài `whisper.cpp` + model hợp pháp, khai báo qua `ProviderGateway`; `adapters/whisper-cli-gateway.cjs` chỉ là ví dụ phía host.
++- TTS tự nhiên: test thực tế giọng Việt nam/nữ, nghe kiểm định rồi mới đổi sang sử dụng. Không báo hỗ trợ nếu engine chưa đọc tốt.
++- Ảnh AI: bật `allowProviderImages` và có nguồn ảnh được quyền dùng. Nếu không sẽ sinh tranh phong cảnh procedural ngoại tuyến.
++- Concat: mặc định **không dùng**. Chỉ thử loopback token và tương thích phiên bản trước khi bật; FFmpeg vẫn là render chính.
++- Publisher: chỉ có tạo nháp. Đăng thật **BLOCKED** cho đến V10, OAuth và kiểm thử API nền tảng thật.
++
++## 5. Quản lý máy yếu
++Dựng 720p trước, không bật nhiều tác vụ render song song; bản demo và module giới hạn CPU 2 luồng FFmpeg, 1 tác vụ nặng đồng thời. Với máy yếu hơn chọn `resolution:'360p'`. Muốn 1080p chọn `resolution:'1080p'` và tăng dung lượng trống; đừng cố ép GPU chạy model sinh video nặng.
++
++## 6. Nhận xét nghiệm thu
++Bảng `docs/ACCEPTANCE.md` ghi chi tiết PASS/BLOCKED, `artifacts/validation.json` lưu số liệu FFprobe và QA kiểm tra video thật, `SHA256SUMS.txt` ghi mã băm tệp gói. Không coi toàn bộ Nhiệm vụ 02 DONE khi chưa kết nối CoreServices/Whisper và kiểm thử Publisher V10.
+diff --git a/docs/INTEGRATION.md b/docs/INTEGRATION.md
+new file mode 100644
+index 0000000..f4f6b4a
+--- /dev/null
++++ b/docs/INTEGRATION.md
+@@ -0,0 +1,37 @@
++# CoreServices v1 adapter contract (host integration pending)
++
++This directory is **not** a separate app; it exports `registerMediaEngine({CoreServices,workspace})`, which **only registers seven TaskQueue handlers**. The app UI and core remain owned by the existing system. The supplied KBL Local Worker V5.7 ZIP has **no definitions** for `CoreServices`, `ProviderGateway`, `TaskQueue`, `ArtifactStore`, or `EventBus`; therefore this code **cannot** assert real integration until the AI Project OS host is supplied.
++
++Mandatory bridge signatures:
++
++```javascript
++CoreServices = {
++  ProviderGateway: { invoke(request): Promise<providerResult> },
++  TaskQueue: { registerTask(name, asyncHandler): void },
++  ArtifactStore: { putFile({jobId,source,name}): Promise<{uri,sha256}>, putJson({jobId,name,data}): Promise<{uri,sha256}> },
++  EventBus: { publish(topic,payload): void }
++}
++registerMediaEngine({CoreServices, workspace:'C:/AI-Project-OS/authorized-workspace'});
++```
++
++`workspace` must be a dedicated writable directory, never your whole drive. Input media files must already be copied to it by the host through its authorized importer. Tasks use `jobId` with alphanumerics, `-` or `_`, and are invoked **only** by the host TaskQueue. See `adapters/host-core-services-v1.example.cjs`. Its hypothetical `host.*` methods are examples to replace with the real owner-provided interface, **not** confirmed core methods.
++
++Registered job payloads:
++
++| Name | Main fields | Result |
++|---|---|---|
++| `media.analyze` | `{jobId,source,transcribe?,language?}` | FFprobe, frame samples, audio extraction, scenes/silence, optional transcript through gateway |
++| `media.subtitle-edit` | `{jobId,segments,changes,translation?}` | SRT/VTT, segmented edits and optional translation |
++| `media.edit-plan` | `{jobId,source,prompt,analysis?}` | Structurally validated timeline, AI provider or deterministic fallback |
++| `media.render` | `{jobId,source,editPlan,subtitleSegments?,music?}` | Preview/final MP4, SRT, QA, timeline |
++| `media.story` | `{jobId,text?,source?,voice?,resolution?,mode?,allowProviderImages?,music?}` | Narrated chapter-scene MP4, editable SRT/VTT, storyboard, images |
++| `media.publish-draft` | `{jobId,channel,title,description?,hashtags?,video,rights?}` | Draft metadata, **not posted** |
++| `media.publish` | `{jobId,id}` | **BLOCKED**: deliberately hard locked |
++
++`mode='verbatim'` preserves all sentences while normalizing whitespace. `mode='adapted'` requires an authorized text provider. Default story `resolution='720p'`, also supports `'1080p'` or low-resource `'360p'`. `voice='vi'` is a provider voice selection, **not** a guaranteed natural voice. Save original story rights as `rights`, e.g. `'original-author-owned'`; do not automatically publish without verified permissions.
++
++All final artifacts must pass through `ArtifactStore`. Internal scene/audio/renders and checkpoint data are confined to `<workspace>/.media-engine/jobs/<id>/` and may be resumed without recomputation. `media.progress` events are emitted through EventBus. The module never calls the UI or accesses Vault.
++
++Windows requirements: Node.js >=20, FFmpeg+FFprobe with libx264/libass and AAC codecs on PATH, suitable free disk space, at least 4 GB RAM for 720p recommended; 8 GB RAM and more space recommended for 1080p. A real Whisper model and voice provider must be explicitly connected via host ProviderGateway for transcription and natural Vietnamese narration. None are downloaded automatically.
++
++No credentials in source, no cookie emulation, no CAPTCHA bypass, no external network listeners, no changes to existing server URL or token. `Publisher` internal implementation is draft-only through the registered module; external publish use must not be wired before V10 review.
+diff --git a/examples/truyen-mau.txt b/examples/truyen-mau.txt
+new file mode 100644
+index 0000000..9d61918
+--- /dev/null
++++ b/examples/truyen-mau.txt
+@@ -0,0 +1,11 @@
++Chương 1: Ngọn đèn bên bến sông
++
++Buổi sáng đầu thu, sương vẫn còn phủ trên những mái nhà nhỏ ven sông. An thức dậy trước tiếng gà gáy, mở cửa gỗ và nghe tiếng nước khẽ chạm bờ. Hôm ấy là ngày đầu tiên cô trở về làng sau nhiều năm học xa nhà. Con đường đất đỏ vẫn nằm giữa hai hàng tre, nhưng cây cầu mới đã thay cho chiếc cầu gỗ ngày xưa. An mang theo một cuốn sổ cũ mà mẹ từng dùng để ghi lại những câu chuyện của người trong xóm. Những trang giấy vàng có mùi nắng và mùi thời gian, khiến cô nhớ đến những buổi tối cả nhà quây quần bên ngọn đèn nhỏ.
++
++Ở đầu bến, ông Lâm đang buộc chiếc thuyền vào cọc. Ông nhận ra An ngay dù mái tóc cô đã dài hơn trước. Ông kể rằng mùa nước năm nay đến muộn, nhưng cá vẫn về theo từng đàn khi trời chuyển gió. An hỏi về khu vườn nơi bà ngoại từng trồng hoa. Ông Lâm chỉ về phía triền đê và bảo rằng khu vườn vẫn ở đó, chỉ có cổng tre đã được thay mới. Cô cảm ơn ông rồi bước chậm trên lối mòn, cố nhớ từng tiếng lá và từng khúc quanh quen thuộc.
++
++Đến trưa, bầu trời trong hơn. An ngồi dưới gốc khế, mở cuốn sổ và đọc dòng chữ đầu tiên: Mọi hành trình dài đều bắt đầu bằng một lời hứa nhỏ. Cô nhận ra lời hứa của mình năm xưa là sẽ trở về ghi lại những ký ức đẹp của làng. Không ai yêu cầu cô làm việc ấy, nhưng mỗi câu chuyện được kể lại sẽ giữ một phần cuộc sống khỏi trôi đi. An lấy bút, viết ngày tháng ở đầu trang mới rồi bắt đầu ghi về ông Lâm, chiếc thuyền và tiếng nước sáng nay.
++
++Khi chiều xuống, một cơn mưa nhẹ ghé qua. An che cuốn sổ dưới mái hiên của ngôi nhà cũ. Mẹ mang đến cho cô một tách trà nóng và ngồi cạnh, không hỏi chuyện đường xa. Hai mẹ con nhìn những giọt mưa đọng trên lá chuối. Sau một lúc, mẹ mỉm cười bảo rằng có những điều không cần nói thật nhiều mới hiểu được. An gật đầu. Cô biết mình đã tìm thấy nơi để bắt đầu lại, không phải bằng một công việc lớn, mà bằng việc lắng nghe những câu chuyện bình dị mỗi ngày.
++
++Tối hôm đó, ánh đèn vàng soi lên cuốn sổ. An viết thêm một dòng cuối: Ngày mai mình sẽ đến thăm khu vườn của bà. Ngoài sân, gió đưa mùi đất ẩm và hương lá tre qua khung cửa. Dòng sông vẫn chảy như ngày cô còn nhỏ, nhưng người trở về đã biết nhìn mọi thứ với đôi mắt khác. Cô khép sổ, tắt đèn, và để lại bên cửa một chiếc bút đã gọt sẵn cho buổi sáng hôm sau.
+diff --git a/index.cjs b/index.cjs
+new file mode 100644
+index 0000000..827963e
+--- /dev/null
++++ b/index.cjs
+@@ -0,0 +1,89 @@
++'use strict';
++const {fs,path,insist,within,mkdir,sha,jsonRead,jsonWrite}=require('./src/utils.cjs');
++const importer=require('./src/importer.cjs'),analyzer=require('./src/analyzer.cjs'),transcript=require('./src/transcript.cjs'),subtitles=require('./src/subtitles.cjs');
++const timeline=require('./src/timeline.cjs'),renderer=require('./src/renderer.cjs'),quality=require('./src/quality.cjs'),story=require('./src/story.cjs');
++const {Publisher}=require('./src/publisher.cjs'),concat=require('./src/concat.cjs');
++// CoreServices v1 boundary: no direct web application, Vault, TaskQueue core, or router modifications.
++// Pass a dedicated adapter when the host uses different method names. All four ports are mandatory.
++function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',pythonBin=process.platform==='win32'?'py':'python3',limits={}}){
++ insist(CoreServices&&workspace,'CoreServices and workspace required');
++ const {TaskQueue,ProviderGateway,ArtifactStore,EventBus}=CoreServices;
++ insist(typeof TaskQueue?.registerTask==='function','TaskQueue.registerTask required');
++ insist(typeof ProviderGateway?.invoke==='function','ProviderGateway.invoke required');
++ insist(typeof ArtifactStore?.putFile==='function'&&typeof ArtifactStore?.putJson==='function','ArtifactStore file and JSON ports required');
++ insist(typeof EventBus?.publish==='function','EventBus.publish required');
++ let activeJobs=0;const maxConcurrent=Math.max(1,Math.min(4,limits.maxConcurrentJobs||1));
++ const root=mkdir(path.resolve(workspace)),publisher=new Publisher(mkdir(path.join(root,'.media-engine')));
++ const jobDir=id=>mkdir(within(root,path.join('.media-engine','jobs',String(id).replace(/[^a-zA-Z0-9_-]/g,'_')),false));
++ async function task(name,handler){TaskQueue.registerTask('media.'+name,async({jobId,...payload})=>{
++   insist(/^[a-zA-Z0-9_-]{1,90}$/.test(String(jobId)),'Invalid jobId');
++   EventBus.publish('media.progress',{jobId,operation:name,status:'STARTED',percent:0});
++   const resourceHeavy=['analyze','render','story'].includes(name);
++   if(resourceHeavy&&activeJobs>=maxConcurrent)throw Object.assign(new Error('Media worker concurrency limit; TaskQueue should retry'),{code:'RESOURCE_BUSY'});
++   if(resourceHeavy)activeJobs++;
++   try{const result=await handler({jobId,...payload},jobDir(jobId));
++    EventBus.publish('media.progress',{jobId,operation:name,status:'DONE',percent:100});return result;
++   }catch(e){EventBus.publish('media.progress',{jobId,operation:name,status:e.code?.startsWith('BLOCKED')?'BLOCKED':'FAILED',error:e.message});throw e;}
++   finally{if(resourceHeavy)activeJobs--;}
++ });}
++ async function save(jobId,data,files=[]){
++  const written=[];
++  for(const [name,source] of files){if(source)written.push({name,...await ArtifactStore.putFile({jobId,source,name})});}
++  const meta=await ArtifactStore.putJson({jobId,name:'manifest.json',data});
++  return {manifest:meta,artifacts:written};
++ }
++ task('analyze',async({jobId,source,transcribe=false,language='vi'},dir)=>{
++  const media=await importer.importMedia({workspace:root,source,maxBytes:limits.maxBytes,maxSeconds:limits.maxSeconds,ffprobeBin});
++  const state=path.join(dir,'analyze-'+media.sha256+'.json');let result=jsonRead(state);
++  if(!result){const files=await importer.extract({source:media.path,dir:path.join(dir,'extract'),frames:3,seconds:media.seconds,ffmpegBin});
++    const analysis=await analyzer.analyze({media,ffmpegBin});result={media,analysis,extracted:files};jsonWrite(state,result);}
++  if(transcribe){insist(result.extracted.audio,'Media has no audio','BLOCKED_STT');
++   result.transcript=await transcript.transcribe({gateway:ProviderGateway,audio:result.extracted.audio,language});
++   fs.writeFileSync(path.join(dir,'captions.srt'),subtitles.srt(result.transcript));
++   fs.writeFileSync(path.join(dir,'captions.vtt'),subtitles.vtt(result.transcript));jsonWrite(state,result);
++  }
++  const files=[['source'+path.extname(media.path),media.path],['audio.wav',result.extracted.audio],...result.extracted.frames.map((x,i)=>[`frame-${i+1}.jpg`,x])];
++  if(result.transcript)files.push(['captions.srt',path.join(dir,'captions.srt')],['captions.vtt',path.join(dir,'captions.vtt')]);
++  return {...result,saved:await save(jobId,{media:result.media,analysis:result.analysis,transcript:result.transcript||null},files)};
++ });
++ task('subtitle-edit',async({jobId,segments,changes,translation=null},dir)=>{
++  const changed=subtitles.edit(segments,changes||[]);const finalSegments=translation?await transcript.translate({gateway:ProviderGateway,segments:changed,targetLanguage:translation}):changed;
++  const srt=path.join(dir,'captions.srt'),vtt=path.join(dir,'captions.vtt');fs.writeFileSync(srt,subtitles.srt(finalSegments));fs.writeFileSync(vtt,subtitles.vtt(finalSegments));
++  return {segments:finalSegments,saved:await save(jobId,{segments:finalSegments},[['captions.srt',srt],['captions.vtt',vtt]])};
++ });
++ task('edit-plan',async({jobId,source,prompt,analysis},dir)=>{
++  const media=await importer.importMedia({workspace:root,source,maxBytes:limits.maxBytes,maxSeconds:limits.maxSeconds,ffprobeBin});
++  const edit=await timeline.plan({gateway:ProviderGateway,prompt,media,analysis});jsonWrite(path.join(dir,'timeline.json'),edit);
++  return {timeline:edit,saved:await save(jobId,{timeline:edit})};
++ });
++ task('render',async({jobId,source,editPlan,subtitleSegments,music},dir)=>{
++  const media=await importer.importMedia({workspace:root,source,maxBytes:limits.maxBytes,maxSeconds:limits.maxSeconds,ffprobeBin});
++  const edit=timeline.validate(editPlan,media);const subtitle=subtitleSegments?path.join(dir,'captions.srt'):null;
++  if(subtitle)fs.writeFileSync(subtitle,subtitles.srt(subtitleSegments));
++  const sound=music?within(root,music):null;
++  const onProgress=p=>EventBus.publish('media.progress',{jobId,operation:'render',...p});
++  const preview=await renderer.render({timeline:edit,jobDir:dir,ffmpegBin,ffprobeBin,preview:true,subtitle,music:sound,onProgress});
++  const final=await renderer.render({timeline:edit,jobDir:dir,ffmpegBin,ffprobeBin,subtitle,music:sound,onProgress});
++  const qa=await quality.check({file:final.file,expectedDuration:edit.expectedDuration,ffmpegBin,ffprobeBin,subtitleSegments});
++  insist(qa.passed,'Quality checker failed: '+qa.problems.join(','),'QUALITY_FAILED');
++  const timelineFile=path.join(dir,'timeline.json');jsonWrite(timelineFile,edit);
++  const saved=await save(jobId,{edit,preview,final,qa},[['preview.mp4',preview.file],['final.mp4',final.file],['timeline.json',timelineFile],['captions.srt',subtitle]]);
++  return {preview,final,qa,saved};
++ });
++ task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral'},dir)=>{
++  const made=await story.buildStory({workspace:root,text,source,jobDir:dir,gateway:ProviderGateway,voice,mode,allowProviderImages,ffprobeBin,ffmpegBin,python:pythonBin,maxChars,resolution,rights,rate,volume,emotion});
++  const onProgress=p=>EventBus.publish('media.progress',{jobId,operation:'story',...p});
++  const sound=music?within(root,music):null,subtitle=path.join(dir,'captions.srt');
++  const preview=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,preview:true,subtitle,music:sound,onProgress});
++  const final=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,subtitle,music:sound,onProgress});
++  const qa=await quality.check({file:final.file,expectedDuration:made.timeline.expectedDuration,ffmpegBin,ffprobeBin,subtitleSegments:made.subtitles});
++  insist(qa.passed,'Story quality failed: '+qa.problems.join(','),'QUALITY_FAILED');
++  const storyboardFile=path.join(dir,'storyboard.json');
++  const saved=await save(jobId,{metadata:made.metadata,timeline:made.timeline,qa,preview,final},[['story-720p-or-source.mp4',final.file],['preview.mp4',preview.file],['captions.srt',subtitle],['captions.vtt',path.join(dir,'captions.vtt')],['storyboard.json',storyboardFile]]);
++  return {metadata:made.metadata,timeline:made.timeline,preview,final,qa,saved};
++ });
++ task('publish-draft',async({jobId,...draft})=>{const video=within(root,draft.video);const d=publisher.createDraft({...draft,video});await save(jobId,{draft:d});return d;});
++ task('publish',async({id})=>publisher.publish(id)); // V10 is intentionally HARD LOCKED; no OAuth adapter exists here.
++ return {name:'media-engine',version:'0.1.0',taskNames:['media.analyze','media.subtitle-edit','media.edit-plan','media.render','media.story','media.publish-draft','media.publish'],status:{v07:'partial-stt-requires-provider',v08:'ffmpeg-render',v09:'tts-requires-real-provider',v10:'BLOCKED'},probeConcat:settings=>concat.probe(settings)};
++}
++module.exports={registerMediaEngine};
+diff --git a/package.json b/package.json
+new file mode 100644
+index 0000000..d4b69b8
+--- /dev/null
++++ b/package.json
+@@ -0,0 +1,12 @@
++{
++  "name": "@ai-project-os/media-engine",
++  "version": "0.1.0",
++  "private": true,
++  "description": "Independent CoreServices v1 media worker module (V07-V10, publishing locked)",
++  "main": "index.cjs",
++  "type": "commonjs",
++  "engines": {"node": ">=20"},
++  "scripts": {"test": "node --test tests/*.test.cjs", "demo": "node scripts/demo.cjs", "check": "node scripts/check.cjs"},
++  "dependencies": {},
++  "license": "UNLICENSED"
++}
+diff --git a/scripts/check.cjs b/scripts/check.cjs
+new file mode 100644
+index 0000000..76f29a5
+--- /dev/null
++++ b/scripts/check.cjs
+@@ -0,0 +1,3 @@
++'use strict';
++const {run}=require('../src/utils.cjs');
++(async()=>{for(const [name,args] of [['node',['--version']],['ffmpeg',['-version']],['ffprobe',['-version']],['espeak',['--version']]]){try{const r=await run(name,args,{timeoutMs:10000});console.log(name,'OK',(r.stdout||r.stderr).split('\n')[0]);}catch(e){console.log(name,'MISSING',e.message.slice(0,160));}}})().catch(e=>{console.error(e);process.exitCode=1});
+diff --git a/scripts/demo.cjs b/scripts/demo.cjs
+new file mode 100644
+index 0000000..3dd7803
+--- /dev/null
++++ b/scripts/demo.cjs
+@@ -0,0 +1,36 @@
++'use strict';
++const {fs,path,mkdir,run,jsonWrite}=require('../src/utils.cjs');
++const {makeLocalPorts}=require('../adapters/local-ports.cjs');
++const {demoGateway}=require('../adapters/demo-tts.cjs');
++const {registerMediaEngine}=require('../index.cjs');
++const {check}=require('../src/quality.cjs');
++async function main(){
++ const root=path.resolve(__dirname,'..'),workspace=mkdir(path.join(root,'artifacts','demo-workspace'));
++ const gateway=demoGateway();const events=[];
++ const ports=makeLocalPorts(workspace,{gateway,log:(name,payload)=>events.push({name,...payload})});
++ const engine=registerMediaEngine({CoreServices:ports,workspace});
++ console.log('REGISTERED',engine.taskNames.join(','));
++ const source=path.join(workspace,'source.mp4');
++ if(!fs.existsSync(source)){
++  await run('ffmpeg',['-hide_banner','-loglevel','error','-y', '-f','lavfi','-i','testsrc2=size=480x270:rate=25:duration=6', '-f','lavfi','-i','sine=frequency=440:duration=6', '-c:v','libx264','-threads','2','-preset','ultrafast','-crf','26','-c:a','aac','-shortest',source],{timeoutMs:120000});
++ }
++ const analyzed=await ports.TaskQueue.dispatch('media.analyze',{jobId:'demo-analysis',source});
++ console.log('ANALYSIS',JSON.stringify({seconds:analyzed.media.seconds,scenes:analyzed.analysis.sceneChanges.length,frames:analyzed.extracted.frames.length}));
++ const planned=await ports.TaskQueue.dispatch('media.edit-plan',{jobId:'demo-plan',source,prompt:'Cắt video ngang, rút ngắn video để thử'});
++ console.log('PLAN',planned.timeline.origin,planned.timeline.segments.length);
++ const output=await ports.TaskQueue.dispatch('media.render',{jobId:'demo-edit',source,editPlan:planned.timeline});
++ console.log('EDIT_RENDER',output.final.file,output.qa.passed);
++ const text=fs.readFileSync(path.join(root,'examples','truyen-mau.txt'),'utf8');
++ console.log('STORY_TEXT_CHARACTERS',text.length);
++ const movie=await ports.TaskQueue.dispatch('media.story',{jobId:'demo-story',text,voice:'vi',maxChars:390,resolution:'720p'});
++ console.log('STORY_RENDER',movie.final.file,movie.qa.passed,'seconds',movie.final.actualSeconds,'scenes',movie.metadata.sceneCount);
++ const draft=await ports.TaskQueue.dispatch('media.publish-draft',{jobId:'demo-draft',channel:'youtube',title:'Demo kể chuyện',video:movie.final.file,rights:'own original demo'});
++ const blocked=await ports.TaskQueue.dispatch('media.publish',{jobId:'demo-publish',id:draft.id});
++ console.log('PUBLISH_STATUS',blocked.status);
++ const report={generatedAt:new Date().toISOString(),engine,analysis:{seconds:analyzed.media.seconds,scenes:analyzed.analysis.sceneChanges.length},edit:{path:output.final.file,qa:output.qa},story:{sourceCharacters:text.length,path:movie.final.file,qa:movie.qa,metadata:movie.metadata},publisher:blocked.status,events:events.length,stt:'BLOCKED: no Whisper model/provider connected, no false transcription',voice:'espeak vi demo (robotic), NOT accepted as natural Vietnamese narration',integration:'CoreServices v1 mock only; host contract unavailable'};
++ delete report.engine.probeConcat;
++ jsonWrite(path.join(root,'artifacts','validation.json'),report);
++ fs.writeFileSync(path.join(root,'artifacts','event-log.json'),JSON.stringify(events,null,2));
++ console.log('REPORT',path.join(root,'artifacts','validation.json'));
++}
++main().catch(e=>{console.error('DEMO_FAILED',e.stack||e);process.exitCode=1});
+diff --git a/scripts/verify-samples.cjs b/scripts/verify-samples.cjs
+new file mode 100644
+index 0000000..9e6dfa1
+--- /dev/null
++++ b/scripts/verify-samples.cjs
+@@ -0,0 +1,16 @@
++'use strict';
++const {fs,path,insist,ffprobe,hasAudio,hasVideo,duration}=require('../src/utils.cjs');
++const {parseSrt}=require('../src/subtitles.cjs');
++async function checkSample(dir){
++ const s=path.join(dir,'story_720p.mp4'),e=path.join(dir,'editor_final.mp4'),captions=path.join(dir,'story_captions.srt');
++ for(const file of [s,e,captions])insist(fs.existsSync(file),'Missing actual verification file: '+file);
++ const sp=await ffprobe(s),ep=await ffprobe(e),segments=parseSrt(fs.readFileSync(captions,'utf8'));
++ insist(hasVideo(sp)&&hasAudio(sp)&&hasVideo(ep)&&hasAudio(ep),'Actual MP4 has missing A/V stream');
++ const dims=sp.streams.find(x=>x.codec_type==='video');insist(dims.width===1280&&dims.height===720,'Story is not 720p');
++ insist(segments.length>=10,'Insufficient timed subtitles');
++ const maxEnd=Math.max(...segments.map(x=>x.end)),delta=Math.abs(maxEnd-duration(sp));
++ insist(delta<.8,`Segment timing differs from MP4 by ${delta.toFixed(3)} seconds`);
++ const report={actualStorySeconds:duration(sp),actualEditorSeconds:duration(ep),captionSegments:segments.length,storyResolution:`${dims.width}x${dims.height}`,lastCaptionToVideoDeltaSeconds:delta,subtitleTimingMethod:'TTS sentences measured with FFprobe; actual words not forced aligned'};
++ console.log('VERIFIED_SAMPLES',JSON.stringify(report,null,2));return report;
++}
++checkSample(path.resolve(__dirname,'..','artifacts','samples')).catch(e=>{console.error(e.stack);process.exitCode=1});
+diff --git a/src/analyzer.cjs b/src/analyzer.cjs
+new file mode 100644
+index 0000000..f32e82f
+--- /dev/null
++++ b/src/analyzer.cjs
+@@ -0,0 +1,23 @@
++'use strict';
++const {run,finite}=require('./utils.cjs');
++async function silence({source,ffmpegBin='ffmpeg',noise='-32dB',minimum=0.45}){
++ const {stderr}=await run(ffmpegBin,['-hide_banner','-nostdin','-i',source,'-af',`silencedetect=noise=${noise}:d=${minimum}`,'-f','null','-'],{timeoutMs:180000});
++ const events=[];let open=null;
++ for(const line of stderr.split('\n')){
++  const start=line.match(/silence_start:\s*([\d.]+)/),end=line.match(/silence_end:\s*([\d.]+)/);
++  if(start)open=finite(start[1]);if(end&&open!==null){events.push({start:open,end:finite(end[1])});open=null;}
++ }
++ return events;
++}
++async function sceneChanges({source,ffmpegBin='ffmpeg',threshold=.35,maxSeconds=300}){
++ const {stderr}=await run(ffmpegBin,['-hide_banner','-nostdin','-t',String(maxSeconds),'-i',source,'-vf',`select='gt(scene,${threshold})',showinfo`,'-vsync','vfr','-an','-f','null','-'],{timeoutMs:180000});
++ const points=[...stderr.matchAll(/pts_time:([0-9.]+)/g)].map(m=>+m[1]);
++ return [...new Set(points)].slice(0,400);
++}
++async function analyze({media,ffmpegBin='ffmpeg'}){
++ const hasAudio=media.streams.some(s=>s.codec_type==='audio'),hasVideo=media.streams.some(s=>s.codec_type==='video');
++ const silences=hasAudio?await silence({source:media.path,ffmpegBin}):[];
++ const scenes=hasVideo?await sceneChanges({source:media.path,ffmpegBin,maxSeconds:Math.min(media.seconds,300)}):[];
++ return {durationSeconds:media.seconds,silences,sceneChanges:scenes,cutCandidates:silences.filter(x=>x.end-x.start>=.8),video:media.streams.filter(s=>s.codec_type==='video'),audio:media.streams.filter(s=>s.codec_type==='audio')};
++}
++module.exports={silence,sceneChanges,analyze};
+diff --git a/src/concat.cjs b/src/concat.cjs
+new file mode 100644
+index 0000000..c5f8e68
+--- /dev/null
++++ b/src/concat.cjs
+@@ -0,0 +1,16 @@
++'use strict';
++const net=require('node:net');
++const {insist}=require('./utils.cjs');
++function call({host='127.0.0.1',port=7420,token,timeoutMs=4000},method,params={}){
++ insist(['127.0.0.1','::1','localhost'].includes(host),'Concat restricted to loopback','FORBIDDEN_NETWORK');
++ insist(typeof token==='string'&&token.length>0,'Concat auth token required','BLOCKED_AUTH');
++ return new Promise((resolve,reject)=>{
++  const socket=net.connect({host,port});let auth=false,finished=false,buffer='';
++  const timer=setTimeout(()=>done(new Error('Concat response timeout')),timeoutMs);
++  function done(err,result){if(finished)return;finished=true;clearTimeout(timer);socket.destroy();if(err)reject(err);else resolve(result);}
++  socket.on('error',done);socket.on('connect',()=>socket.write(JSON.stringify({jsonrpc:'2.0',id:0,method:'auth',params:{token}})+'\n'));
++  socket.on('data',chunk=>{buffer+=chunk.toString('utf8');if(buffer.length>65536)return done(new Error('Concat response overflow'));let i;while((i=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,i);buffer=buffer.slice(i+1);let obj;try{obj=JSON.parse(line)}catch{return done(new Error('Concat invalid JSON'))}if(obj.id===0){if(obj.error)return done(new Error('Concat authentication failed'));auth=true;socket.write(JSON.stringify({jsonrpc:'2.0',id:1,method,params})+'\n');}else if(auth&&obj.id===1)return done(obj.error?new Error(obj.error.message):null,obj.result);}});
++ });
++}
++async function probe(settings){const v=await call(settings,'version');insist(v?.capabilities&&v.capabilities.includes('json-rpc'),'Unsupported Concat API','BLOCKED_CONCAT');return v;}
++module.exports={call,probe};
+diff --git a/src/images.cjs b/src/images.cjs
+new file mode 100644
+index 0000000..abaca54
+--- /dev/null
++++ b/src/images.cjs
+@@ -0,0 +1,33 @@
++'use strict';
++const zlib=require('node:zlib');
++const {fs,sha,mkdir}=require('./utils.cjs');
++// Deterministic procedural art, NOT an AI-generated image. Offline fallback only.
++function crc32(b){let c=0xffffffff;for(const v of b){c^=v;for(let j=0;j<8;j++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;}return (c^0xffffffff)>>>0;}
++function chunk(type,body){const tag=Buffer.from(type),len=Buffer.alloc(4),crc=Buffer.alloc(4);len.writeUInt32BE(body.length);crc.writeUInt32BE(crc32(Buffer.concat([tag,body])));return Buffer.concat([len,tag,body,crc]);}
++function createPng(file,{width=960,height=540,seed='village',scene=0}={}){
++ const colors=[[19,34,62],[29,65,87],[45,73,78],[70,71,89]][scene%4],raw=Buffer.alloc((width*3+1)*height);
++ const rng=parseInt(sha(seed+scene).slice(0,8),16),hill1=height*.67,hill2=height*.77;
++ for(let y=0;y<height;y++){
++  let row=y*(width*3+1);raw[row++]=0;
++  for(let x=0;x<width;x++){
++   const sunX=width*.78,sunY=height*.24,dist=Math.hypot(x-sunX,y-sunY),sun=dist<height*.085;
++   const h1=hill1-32*Math.sin(x/width*Math.PI*2+(rng%17)),h2=hill2-24*Math.cos(x/width*Math.PI*3);
++   const col=sun?[245,194,116]:y>h2?[12,39,39]:y>h1?[22,55,59]:[
++       Math.min(255,colors[0]+y/height*65),
++       Math.min(255,colors[1]+y/height*57),
++       Math.min(255,colors[2]+y/height*42)];
++   raw[row++]=col[0];raw[row++]=col[1];raw[row++]=col[2];
++  }
++ }
++ const head=Buffer.alloc(13);head.writeUInt32BE(width,0);head.writeUInt32BE(height,4);head[8]=8;head[9]=2;
++ mkdir(require('node:path').dirname(file));fs.writeFileSync(file,Buffer.concat([Buffer.from('89504e470d0a1a0a','hex'),chunk('IHDR',head),chunk('IDAT',zlib.deflateSync(raw,{level:6})),chunk('IEND',Buffer.alloc(0))]));return file;
++}
++async function illustration({gateway,description,characterSheet,output,offline=true,scene=0}){
++ if(!offline&&gateway?.invoke){
++   const result=await gateway.invoke({capability:'image.generate',input:{description,characterSheet,output}});
++   if(result?.path&&fs.existsSync(result.path))return {path:result.path,origin:'provider'};
++   throw new Error('Image provider did not return a real file');
++ }
++ return {path:createPng(output,{seed:characterSheet||description,scene}),origin:'procedural-offline-non-ai'};
++}
++module.exports={createPng,illustration};
+diff --git a/src/importer.cjs b/src/importer.cjs
+new file mode 100644
+index 0000000..78e28c9
+--- /dev/null
++++ b/src/importer.cjs
+@@ -0,0 +1,26 @@
++'use strict';
++const {fs,path,shaFile,insist,within,mkdir,ffprobe,duration,hasAudio,hasVideo,run}=require('./utils.cjs');
++const VIDEO=new Set(['.mp4','.mov','.mkv','.webm','.avi','.m4v']);
++const AUDIO=new Set(['.wav','.mp3','.m4a','.aac','.flac','.ogg','.opus']);
++async function importMedia({workspace,source,maxBytes=2*1024**3,maxSeconds=4*3600,ffprobeBin='ffprobe'}){
++ const real=within(workspace,source),stat=fs.statSync(real);
++ insist(stat.isFile()&&stat.size>0&&stat.size<=maxBytes,'Media is empty or exceeds configured limit','LIMIT');
++ let availableBytes=null;try{const x=fs.statfsSync(workspace);availableBytes=x.bavail*x.bsize;}catch{}
++ if(availableBytes!==null)insist(availableBytes>Math.max(128*1024**2,Math.min(stat.size*2,4*1024**3)),'Insufficient free disk for media workspace','LIMIT_DISK');
++ const ext=path.extname(real).toLowerCase();insist(VIDEO.has(ext)||AUDIO.has(ext),'Unsupported media container');
++ const probe=await ffprobe(real,ffprobeBin),secs=duration(probe);
++ insist(secs>0&&secs<=maxSeconds,'Invalid duration or exceeds configured limit','LIMIT');
++ insist(VIDEO.has(ext)?hasVideo(probe):hasAudio(probe),'Container lacks expected media stream');
++ return {path:real,bytes:stat.size,sha256:shaFile(real),seconds:secs,streams:probe.streams.map(({codec_type,codec_name,width,height,sample_rate,channels,r_frame_rate})=>({codec_type,codec_name,width,height,sample_rate,channels,r_frame_rate})),maxMemoryEstimateMB:Math.min(2048,Math.ceil(stat.size/1024**2*1.5))};
++}
++async function extract({ffmpegBin='ffmpeg',source,dir,frames=4,seconds}){
++ mkdir(dir);const wav=path.join(dir,'audio.wav');const thumbs=[];
++ const src=await ffprobe(source);
++ if(hasAudio(src)) await run(ffmpegBin,['-nostdin','-y','-i',source,'-vn','-ac','1','-ar','16000','-c:a','pcm_s16le',wav],{timeoutMs:180000});
++ if(hasVideo(src))for(let i=0;i<frames;i++){
++   const t=Math.max(0.01,Math.min(seconds-0.01,(i+0.5)*seconds/frames));const dst=path.join(dir,`frame-${i+1}.jpg`);
++   await run(ffmpegBin,['-nostdin','-y','-ss',String(t),'-i',source,'-frames:v','1','-vf','scale=640:-2',dst],{timeoutMs:30000});thumbs.push(dst);
++ }
++ return {audio:hasAudio(src)?wav:null,frames:thumbs};
++}
++module.exports={importMedia,extract};
+diff --git a/src/publisher.cjs b/src/publisher.cjs
+new file mode 100644
+index 0000000..c3bee08
+--- /dev/null
++++ b/src/publisher.cjs
+@@ -0,0 +1,26 @@
++'use strict';
++const {sha,insist,jsonRead,jsonWrite,fs,path}=require('./utils.cjs');
++class Publisher{
++ constructor(dir){this.file=path.join(dir,'publish-drafts.json');this.state=jsonRead(this.file,{drafts:[],publishKeys:[]});}
++ createDraft({channel,title,description='',hashtags=[],video,thumbnail=null,timeZone='Asia/Ho_Chi_Minh',scheduledAt=null,rights='unspecified'}){
++  insist(video&&fs.existsSync(video),'Video must exist before draft');insist(typeof channel==='string'&&channel,'Channel required');
++  const id=sha([channel,title,video,scheduledAt].join('|')).slice(0,20);let draft=this.state.drafts.find(x=>x.id===id);
++  if(!draft){draft={id,channel,title,description,hashtags,video,thumbnail,timeZone,scheduledAt,rights,status:'DRAFT',approval:false,createdAt:new Date().toISOString()};this.state.drafts.push(draft);jsonWrite(this.file,this.state);}return draft;
++ }
++ approve(id){const draft=this.state.drafts.find(x=>x.id===id);insist(draft,'Draft not found');draft.approval=true;draft.status='APPROVED';jsonWrite(this.file,this.state);return draft;}
++ async publish(id,{enabled=false,oauth=null,apiAdapter=null,verifiedApi=false}={}){
++  const draft=this.state.drafts.find(x=>x.id===id);insist(draft,'Draft not found');
++  if(!enabled||!draft.approval||!oauth||!apiAdapter||!verifiedApi){draft.status='BLOCKED';draft.reason='OAuth approval, explicit opt-in and verified official API integration are required';jsonWrite(this.file,this.state);return draft;}
++  if(draft.scheduledAt&&Date.now()<Date.parse(draft.scheduledAt)){draft.status='SCHEDULED';jsonWrite(this.file,this.state);return draft;}
++  const key=sha(`${draft.channel}:${draft.id}:${draft.scheduledAt||'manual'}`);
++  if(this.state.publishKeys.includes(key)){draft.status='ALREADY_SUBMITTED';jsonWrite(this.file,this.state);return draft;}
++  insist(typeof apiAdapter.uploadOfficial==='function','Official API adapter required');
++  // Reserve key BEFORE network call to guarantee at-most-once retry; reconciliation is required for unknown outcomes.
++  this.state.publishKeys.push(key);draft.status='SUBMITTING';jsonWrite(this.file,this.state);
++  try{const result=await apiAdapter.uploadOfficial({draft,oauth,idempotencyKey:key});draft.status='PUBLISHED';draft.result=result;}
++  catch(e){draft.status='UNKNOWN_RECONCILIATION_REQUIRED';draft.reason=String(e.message).slice(0,300);}
++  jsonWrite(this.file,this.state);return draft;
++ }
++ due(now=new Date()){return this.state.drafts.filter(x=>x.status==='SCHEDULED'&&Date.parse(x.scheduledAt)<=+now).map(x=>({...x,overdue:true}));}
++}
++module.exports={Publisher};
+diff --git a/src/quality.cjs b/src/quality.cjs
+new file mode 100644
+index 0000000..33af3e0
+--- /dev/null
++++ b/src/quality.cjs
+@@ -0,0 +1,21 @@
++'use strict';
++const {ffprobe,duration,hasAudio,hasVideo,run}=require('./utils.cjs');
++async function check({file,expectedDuration,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',subtitleSegments=null,allowedError=.65}){
++ const p=await ffprobe(file,ffprobeBin),seconds=duration(p),problems=[],warnings=[];
++ if(!hasVideo(p))problems.push('NO_VIDEO');if(!hasAudio(p))problems.push('NO_AUDIO');
++ if(Math.abs(seconds-expectedDuration)>Math.max(.9,expectedDuration*.04))problems.push('DURATION_MISMATCH');
++ let black=[],silent=[];
++ try{
++  const {stderr}=await run(ffmpegBin,['-hide_banner','-nostdin','-i',file,'-vf','blackdetect=d=1.3:pix_th=0.08','-an','-f','null','-'],{timeoutMs:180000});
++  black=[...stderr.matchAll(/black_start:([\d.]+) black_end:([\d.]+)/g)].map(x=>({start:+x[1],end:+x[2]}));
++  if(black.some(x=>x.end-x.start>Math.max(2,seconds*.15)))problems.push('LONG_BLACK_FRAME');
++ }catch(e){warnings.push('BLACKDETECT_UNAVAILABLE: '+e.code)}
++ try{
++  const {stderr}=await run(ffmpegBin,['-hide_banner','-nostdin','-i',file,'-af','silencedetect=noise=-48dB:d=2.0','-vn','-f','null','-'],{timeoutMs:180000});
++  silent=[...stderr.matchAll(/silence_start: ([\d.]+)[\s\S]*?silence_end: ([\d.]+)/g)].map(x=>({start:+x[1],end:+x[2]}));
++  if(silent.some(x=>x.end-x.start>Math.max(4,seconds*.20)))warnings.push('LONG_AUDIO_SILENCE');
++ }catch(e){warnings.push('SILENCEDETECT_UNAVAILABLE: '+e.code)}
++ const sync=[];if(subtitleSegments){for(const s of subtitleSegments){const left=Math.max(0,-s.start),right=Math.max(0,s.end-seconds);sync.push({id:s.id,errorSeconds:Math.max(left,right),method:'clip audio duration boundary; not measured word alignment'});if(left>allowedError||right>allowedError)problems.push('SUBTITLE_OUTSIDE_VIDEO');}}
++ return {passed:problems.length===0,problems,warnings,file,durationSeconds:seconds,videoCodec:p.streams.find(x=>x.codec_type==='video')?.codec_name,audioCodec:p.streams.find(x=>x.codec_type==='audio')?.codec_name,black,silence:silent,subtitleBoundaryChecks:sync,subtitleAccuracyScope:'Segment boundaries inferred from individually probed TTS audio. Phoneme/word alignment NOT measured.'};
++}
++module.exports={check};
+diff --git a/src/renderer.cjs b/src/renderer.cjs
+new file mode 100644
+index 0000000..83a6815
+--- /dev/null
++++ b/src/renderer.cjs
+@@ -0,0 +1,55 @@
++'use strict';
++const {fs,path,run,sha,insist,mkdir,ffprobe,duration,hasAudio,jsonRead,jsonWrite,shaFile}=require('./utils.cjs');
++const escapeFilterPath=file=>file.replace(/\\/g,'/').replace(/:/g,'\\:').replace(/'/g,"'\\\\''").replace(/,/g,'\\,').replace(/\[/g,'\\[').replace(/\]/g,'\\]');
++const videoFilters=(w,h,motion=false)=>motion?
++ `scale=${Math.round(w*1.2)}:${Math.round(h*1.2)}:force_original_aspect_ratio=increase,crop=${Math.round(w*1.2)}:${Math.round(h*1.2)},zoompan=z='min(zoom+0.00035,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${w}x${h}:fps=25,format=yuv420p`:
++ `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=25,format=yuv420p`;
++async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',preview=false,subtitle=null,music=null,crf=23,maxThreads=2,signal,onProgress=()=>{}}){
++ insist(['story','edit'].includes(timeline.kind),'Unknown timeline type');
++ const w=preview?Math.min(timeline.width,640):timeline.width,h=preview?Math.round(timeline.height*w/timeline.width/2)*2:timeline.height;
++ const clips=timeline.kind==='story'?timeline.scenes:timeline.segments;
++ insist(clips.length>0&&clips.length<=120,'Invalid clip count','LIMIT');
++ const chunks=mkdir(path.join(jobDir,'render-cache',preview?'preview':'final'));
++ const paths=[];let expected=0,reused=0;
++ for(let i=0;i<clips.length;i++){
++  const c=clips[i],length=timeline.kind==='story'?c.duration:c.end-c.start;
++  insist(length>0&&length<=900,'Clip duration invalid','LIMIT');expected+=length;
++  let fingerprint=timeline.kind==='story'?`${c.cacheKey}:${shaFile(c.audio)}:${shaFile(c.image)}`:`${c.source}:${fs.statSync(c.source).size}:${fs.statSync(c.source).mtimeMs}:${c.start}:${c.end}`;
++  fingerprint=sha(JSON.stringify([fingerprint,w,h,preview,crf,ffmpegBin])).slice(0,20);
++  const outfile=path.join(chunks,`${String(i).padStart(4,'0')}-${fingerprint}.mp4`);
++  let valid=false;
++  if(fs.existsSync(outfile))try{const p=await ffprobe(outfile,ffprobeBin);valid=duration(p)>.2&&Math.abs(duration(p)-length)<1.0;}catch{}
++  if(valid)reused++;else{
++   const temp=outfile+'.part.mp4';const args=['-hide_banner','-loglevel','error','-nostdin','-y'];
++   if(timeline.kind==='story'){
++    args.push('-loop','1','-framerate','25','-i',c.image,'-i',c.audio,'-t',String(length),'-vf',videoFilters(w,h,true));
++   }else{
++    const src=await ffprobe(c.source,ffprobeBin);args.push('-ss',String(c.start),'-t',String(length),'-i',c.source);
++    if(!hasAudio(src))args.push('-f','lavfi','-t',String(length),'-i','anullsrc=r=48000:cl=stereo');
++    args.push('-t',String(length),'-vf',videoFilters(w,h,false));
++   }
++   args.push('-c:v','libx264','-threads',String(Math.max(1,Math.min(4,maxThreads))),'-preset',preview?'ultrafast':'veryfast','-crf',String(preview?29:crf),'-r','25','-pix_fmt','yuv420p','-c:a','aac','-b:a','96k','-ar','48000','-ac','2','-shortest','-movflags','+faststart',temp);
++   await run(ffmpegBin,args,{timeoutMs:Math.max(90000,length*12000),signal});
++   fs.renameSync(temp,outfile);
++  }
++  paths.push(outfile);onProgress({phase:'clip',completed:i+1,total:clips.length,reused});
++ }
++ const listFile=path.join(chunks,'concat.txt');fs.writeFileSync(listFile,paths.map(p=>`file '${p.replace(/'/g,"'\\''")}'`).join('\n')+'\n');
++ const merged=path.join(jobDir,preview?'preview-merged.mp4':'final-merged.mp4');
++ await run(ffmpegBin,['-hide_banner','-loglevel','error','-nostdin','-y','-f','concat','-safe','0','-i',listFile,'-c','copy','-movflags','+faststart',merged],{timeoutMs:Math.max(120000,expected*6000),signal});
++ const output=path.join(jobDir,preview?'preview.mp4':'final.mp4');
++ if(subtitle||music){
++  const args=['-hide_banner','-loglevel','error','-nostdin','-y','-i',merged];
++  if(music){args.push('-stream_loop','-1','-i',music)}
++  if(subtitle)args.push('-vf',`subtitles=filename='${escapeFilterPath(subtitle)}'`);
++  if(music){
++    args.push('-filter_complex','[1:a]volume=0.24[bg];[bg][0:a]sidechaincompress=threshold=0.024:ratio=8:attack=50:release=400[duck];[duck][0:a]amix=inputs=2:duration=first:dropout_transition=0[aout]','-map','0:v:0','-map','[aout]');
++  }
++  args.push('-c:v','libx264','-threads',String(Math.max(1,Math.min(4,maxThreads))),'-preset','veryfast','-crf',String(preview?29:crf),'-c:a','aac','-b:a','128k','-shortest','-movflags','+faststart',output);
++  await run(ffmpegBin,args,{timeoutMs:Math.max(120000,expected*14000),signal});
++ }else fs.copyFileSync(merged,output);
++ const result=await ffprobe(output,ffprobeBin),actual=duration(result);
++ insist(Math.abs(actual-expected)<Math.max(1,clips.length*.13),'Render duration differs from timeline','RENDER_INVALID');
++ onProgress({phase:'complete',path:output,seconds:actual,reused});return {file:output,expectedSeconds:expected,actualSeconds:actual,reused,clips:clips.length,width:w,height:h};
++}
++module.exports={render,escapeFilterPath};
+diff --git a/src/story.cjs b/src/story.cjs
+new file mode 100644
+index 0000000..6c98d81
+--- /dev/null
++++ b/src/story.cjs
+@@ -0,0 +1,76 @@
++'use strict';
++const {fs,path,run,insist,mkdir,jsonRead,jsonWrite,sha,ffprobe,duration,within}=require('./utils.cjs');
++const {illustration}=require('./images.cjs');
++const subs=require('./subtitles.cjs');
++function chapters(text){const normalized=String(text).replace(/\r\n/g,'\n').trim();insist(normalized.length>0,'Empty story');const parts=normalized.split(/(?=^\s*(?:Chương|CHƯƠNG|Chapter)\s+\d+[^\n]*$)/gmu).filter(x=>x.trim());return parts.length?parts.map((x,i)=>({number:i+1,text:x.trim()})):[{number:1,text:normalized}];}
++function scenes(text,maxChars=420){
++  const lines=text.trim().split(/(?<=[.!?…])\s+/u).filter(Boolean),out=[];let chunk='';
++  for(const s of lines){if(chunk&&chunk.length+s.length+1>maxChars){out.push(chunk);chunk='';}if(s.length>maxChars){if(chunk){out.push(chunk);chunk='';}let x=s;while(x.length>maxChars){let cut=x.lastIndexOf(' ',maxChars);if(cut<maxChars/2)cut=maxChars;out.push(x.slice(0,cut));x=x.slice(cut).trimStart();}chunk=x;}else chunk+=(chunk?' ':'')+s;}
++  if(chunk)out.push(chunk);return out;
++}
++function characters(text){const matches=[...text.matchAll(/(?<!\p{L})(?:Ông|Bà|Anh|Chị|Cô|Cậu|Bé|Bác|Chú|ông|bà|anh|chị|cô|cậu|bé|bác|chú)[ \t]+([\p{Lu}][\p{L}]+)/gu)].map(x=>x[0]);return [...new Set(matches)].slice(0,30);}
++async function loadText({workspace,source,text,python='python3',pdftotext='pdftotext'}){
++ if(typeof text==='string'&&text.trim())return {text:text.trim(),source:'user-text'};
++ const file=within(workspace,source),ext=path.extname(file).toLowerCase();
++ insist(['.txt','.docx','.pdf'].includes(ext),'Story supports TXT/DOCX/PDF text only');
++ if(ext==='.txt')return {text:fs.readFileSync(file,'utf8').replace(/^\uFEFF/,'').trim(),source:file};
++ if(ext==='.pdf'){
++  try{const r=await run(pdftotext,['-layout',file,'-'],{timeoutMs:30000,maxOutput:12e6});insist(r.stdout.trim(),'Scanned PDF is not text-selectable','BLOCKED_OCR');return {text:r.stdout.trim(),source:file};}
++  catch(e){if(e.code==='BLOCKED_OCR')throw e;const r=await run(python,['-c','import sys;from pypdf import PdfReader;print("\\n".join(p.extract_text() or "" for p in PdfReader(sys.argv[1]).pages))',file],{timeoutMs:30000,maxOutput:12e6});insist(r.stdout.trim(),'PDF OCR required','BLOCKED_OCR');return {text:r.stdout.trim(),source:file};}
++ }
++ const py='import zipfile,sys,xml.etree.ElementTree as E\nf=zipfile.ZipFile(sys.argv[1]);t=E.fromstring(f.read("word/document.xml"));ns={"w":"http://schemas.openxmlformats.org/wordprocessingml/2006/main"};print("\\n".join("".join(n.text or "" for n in p.findall(".//w:t",ns)) for p in t.findall(".//w:p",ns)))';
++ const r=await run(python,['-c',py,file],{timeoutMs:30000,maxOutput:12e6});insist(r.stdout.trim(),'Empty DOCX');return {text:r.stdout.trim(),source:file};
++}
++async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxChars=420,mode='verbatim',allowProviderImages=false,ffprobeBin='ffprobe',ffmpegBin='ffmpeg',python='python3',resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral'}){
++ insist(mode==='verbatim'||mode==='adapted','Unknown story mode');
++ insist(Number.isFinite(rate)&&rate>=0.65&&rate<=1.5,'Unsupported narration rate');
++ insist(Number.isFinite(volume)&&volume>=0.1&&volume<=1,'Unsupported narration volume');
++ const loaded=await loadText({workspace,text,source,python});let body=loaded.text;
++ if(mode==='adapted'){
++  insist(gateway?.invoke,'Adaptation requires explicit ProviderGateway','BLOCKED_PROVIDER');const r=await gateway.invoke({capability:'story.adapt',input:{text:body,retainFacts:true}});
++  insist(typeof r?.text==='string'&&r.text.trim(),'Adaptation provider returned no story');body=r.text;
++ }
++ const ch=chapters(body),storyboard=[],subtitles=[];let cursor=0;
++ const style='Vietnamese countryside at sunrise; repeating silhouette character designs; flat cinematic poster style';
++ for(const chapter of ch){
++  const parts=scenes(chapter.text,maxChars);
++  for(let j=0;j<parts.length;j++){
++   const index=storyboard.length,key=sha(`${voice}\n${rate}\n${volume}\n${emotion}\n${mode}\n${parts[j]}`).slice(0,20),dir=mkdir(path.join(jobDir,'scenes',key));
++   const voicePath=path.join(dir,'speech.wav'),imgPath=path.join(dir,'image.png');
++   // Sentence/phrase-level synthesis: each caption duration is measured from its own real audio.
++   // This avoids arbitrary fixed-word timing and makes subtitle edits independently addressable.
++   const phrases=scenes(parts[j],125),units=[];let unitDuration=0;
++   for(let k=0;k<phrases.length;k++){
++    const piece=path.join(dir,`part-${String(k).padStart(3,'0')}.wav`);
++    if(!fs.existsSync(piece)){
++     insist(gateway?.invoke,'TTS must be called through ProviderGateway','BLOCKED_TTS');
++     const r=await gateway.invoke({capability:'speech.synthesize',input:{text:phrases[k],language:'vi',voice,rate,volume,emotion,output:piece},consentRequired:false});
++     insist(r?.audioPath&&fs.existsSync(r.audioPath),'Vietnamese TTS provider returned no audio file','BLOCKED_TTS');
++     if(path.resolve(r.audioPath)!==path.resolve(piece))fs.copyFileSync(r.audioPath,piece);
++    }
++    const seconds=duration(await ffprobe(piece,ffprobeBin));insist(seconds>.1,'Invalid sentence audio','BLOCKED_TTS');
++    units.push({text:phrases[k],file:piece,seconds});unitDuration+=seconds;
++   }
++   const concatList=path.join(dir,'voice-list.txt');fs.writeFileSync(concatList,units.map(x=>`file '${x.file.replace(/'/g,"'\\''")}'`).join('\n')+'\n');
++   // Regenerate on every run if segments changed; concat costs little and is deterministic.
++   await run(ffmpegBin,['-hide_banner','-loglevel','error','-nostdin','-y','-f','concat','-safe','0','-i',concatList,'-c:a','pcm_s16le',voicePath],{timeoutMs:90000});
++   const measured=duration(await ffprobe(voicePath,ffprobeBin));insist(measured>0.2,'TTS audio has invalid duration','BLOCKED_TTS');
++   let t=cursor;
++   for(let k=0;k<units.length;k++){
++    const end=k===units.length-1?cursor+measured:t+units[k].seconds;
++    subtitles.push({id:String(subtitles.length+1),start:t,end,text:units[k].text});t=end;
++   }
++   const pic=fs.existsSync(imgPath)?{path:imgPath,origin:'checkpoint'}:await illustration({gateway,description:parts[j],characterSheet:style,output:imgPath,offline:!allowProviderImages,scene:index});
++   const scene={index,chapter:chapter.number,sourceText:parts[j],title:`Scene ${index+1}`,image:pic.path,imageOrigin:pic.origin,audio:voicePath,duration:measured,voice,characterSheet:style,cacheKey:key,start:cursor,end:cursor+measured};
++   storyboard.push(scene);cursor+=measured;
++  }
++ }
++ const sizes={'360p':[640,360],'720p':[1280,720],'1080p':[1920,1080]};insist(sizes[resolution],'Unsupported story resolution');
++ const timeline={version:1,kind:'story',width:sizes[resolution][0],height:sizes[resolution][1],fps:25,scenes:storyboard,expectedDuration:cursor};
++ const metadata={mode,source:loaded.source,sourceSHA256:sha(body),sourceCharacters:body.length,chapters:ch.length,characters:characters(body),characterSheet:style,voice,rate,volume,emotion,rights,segmentTimings:'Measured via ffprobe for every separately synthesized Vietnamese phrase; not phoneme/word forced alignment',sceneCount:storyboard.length};
++ jsonWrite(path.join(jobDir,'storyboard.json'),{metadata,timeline});
++ fs.writeFileSync(path.join(jobDir,'captions.srt'),subs.srt(subtitles));
++ fs.writeFileSync(path.join(jobDir,'captions.vtt'),subs.vtt(subtitles));
++ return {metadata,timeline,subtitles};
++}
++module.exports={chapters,scenes,characters,loadText,buildStory};
+diff --git a/src/subtitles.cjs b/src/subtitles.cjs
+new file mode 100644
+index 0000000..b8f270a
+--- /dev/null
++++ b/src/subtitles.cjs
+@@ -0,0 +1,13 @@
++'use strict';
++const {insist,finite}=require('./utils.cjs');
++function ts(t,vtt=false){let ms=Math.max(0,Math.round(t*1000)),h=Math.floor(ms/3600000);ms%=3600000;let m=Math.floor(ms/60000);ms%=60000;let s=Math.floor(ms/1000);ms%=1000;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}${vtt?'.':','}${String(ms).padStart(3,'0')}`;}
++function normalize(segments){insist(Array.isArray(segments)&&segments.length,'Subtitle segments required');return segments.map((x,i)=>{
++ const start=finite(x.start,-1),end=finite(x.end,-1),text=String(x.text||'').replace(/\s+/g,' ').trim();
++ insist(start>=0&&end>start&&text.length>0,`Invalid subtitle segment ${i}`);
++ return {id:String(x.id??i+1),start,end,text};
++}).sort((a,b)=>a.start-b.start).map((s,i,a)=>{if(i&&s.start<a[i-1].end-0.03)throw Error('Overlapping subtitles');return s;});}
++function srt(segments){return normalize(segments).map((s,i)=>`${i+1}\n${ts(s.start)} --> ${ts(s.end)}\n${s.text}\n`).join('\n');}
++function vtt(segments){return 'WEBVTT\n\n'+normalize(segments).map((s)=>`${ts(s.start,true)} --> ${ts(s.end,true)}\n${s.text}\n`).join('\n');}
++function parseSrt(text){const blocks=String(text).replace(/\r/g,'').trim().split(/\n\s*\n/);const parse=t=>{const m=t.match(/^(\d+):(\d+):(\d+)[,.](\d+)$/);insist(m,`Invalid time ${t}`);return +m[1]*3600+ +m[2]*60+ +m[3]+ +m[4]/1000};return normalize(blocks.map((b,i)=>{const lines=b.split('\n').filter(Boolean);if(/^\d+$/.test(lines[0]))lines.shift();const times=lines.shift()?.split(/\s+-->\s+/)||[];insist(times.length===2,'Invalid subtitle block '+i);return {start:parse(times[0]),end:parse(times[1]),text:lines.join('\n')};}));}
++function edit(segments,changes){const arr=normalize(segments),byId=new Map(changes.map(x=>[String(x.id),x]));return normalize(arr.map(s=>({...s,...(byId.get(s.id)||{})})));}
++module.exports={ts,srt,vtt,normalize,parseSrt,edit};
+diff --git a/src/timeline.cjs b/src/timeline.cjs
+new file mode 100644
+index 0000000..35fbf31
+--- /dev/null
++++ b/src/timeline.cjs
+@@ -0,0 +1,22 @@
++'use strict';
++const {insist,finite}=require('./utils.cjs');
++function naturalPlan(prompt,media,analysis){
++ const p=String(prompt||'').toLowerCase();const preferShort=/ngắn|short|reel|tiktok|shorts/.test(p);const removeSilence=/im lặng|silence|khoảng lặng/.test(p);
++ let spans=[{start:0,end:media.seconds}];
++ if(removeSilence){const cuts=(analysis?.cutCandidates||[]).filter(x=>x.end-x.start>.65);let cur=0;spans=[];for(const cut of cuts){if(cut.start-cur>.25)spans.push({start:cur,end:Math.max(cur,cut.start+.05)});cur=Math.min(media.seconds,cut.end-.05);}if(media.seconds-cur>.25)spans.push({start:cur,end:media.seconds});}
++ if(preferShort){let remain=55;spans=spans.flatMap(s=>{const d=Math.min(remain,s.end-s.start);remain-=d;return d>.1?[{start:s.start,end:s.start+d}]:[];});}
++ const ratio=p.includes('9:16')||/dọc|vertical/.test(p)?'9:16':p.includes('1:1')?'1:1':'16:9';
++ return {version:1,kind:'edit',origin:'deterministic-rule-not-ai',ratio,segments:spans.map((s,i)=>({id:`clip-${i+1}`,source:media.path,...s})),notes:['Deterministic local fallback; use ProviderGateway for AI-generated plans']};
++}
++async function plan({gateway,prompt,media,analysis}){
++ if(gateway?.invoke){try{const r=await gateway.invoke({capability:'video.edit-plan',input:{prompt,media:{seconds:media.seconds,streams:media.streams},analysis}});
++  if(r?.segments?.length)return validate({...r,origin:'provider-ai'},media);
++ }catch(e){if(e.code!=='BLOCKED_PROVIDER')throw e;}
++ }
++ return validate(naturalPlan(prompt,media,analysis),media);
++}
++function validate(plan,media){insist(plan?.kind==='edit'&&Array.isArray(plan.segments)&&plan.segments.length>0,'Invalid edit plan');const dimensions={'16:9':[1280,720],'9:16':[720,1280],'1:1':[720,720]};insist(dimensions[plan.ratio],'Invalid aspect ratio');insist(plan.segments.length<=100,'Too many clips','LIMIT');let total=0;
++ const segments=plan.segments.map((s,i)=>{const start=finite(s.start,-1),end=finite(s.end,-1);insist(start>=0&&end>start&&end<=media.seconds+0.03,`Invalid clip ${i}`);total+=end-start;insist(total<=3600,'Output duration limit','LIMIT');return {id:s.id||`clip-${i+1}`,start,end,source:media.path};});
++ return {...plan,segments,width:dimensions[plan.ratio][0],height:dimensions[plan.ratio][1],fps:25,expectedDuration:total};
++}
++module.exports={naturalPlan,plan,validate};
+diff --git a/src/transcript.cjs b/src/transcript.cjs
+new file mode 100644
+index 0000000..ce61def
+--- /dev/null
++++ b/src/transcript.cjs
+@@ -0,0 +1,17 @@
++'use strict';
++const {insist}=require('./utils.cjs');
++const subs=require('./subtitles.cjs');
++async function transcribe({gateway,audio,language='vi',model='whisper'}){
++ insist(gateway&&typeof gateway.invoke==='function','ProviderGateway.invoke required','BLOCKED_PROVIDER');
++ const response=await gateway.invoke({capability:'speech.transcribe',model,input:{audio,language},consentRequired:false});
++ insist(response&&Array.isArray(response.segments)&&response.segments.length,'STT returned no word/segment timestamps','BLOCKED_STT');
++ return subs.normalize(response.segments);
++}
++async function translate({gateway,segments,targetLanguage='en'}){
++ insist(gateway&&typeof gateway.invoke==='function','ProviderGateway unavailable','BLOCKED_PROVIDER');
++ const values=[];for(const s of subs.normalize(segments)){
++  const r=await gateway.invoke({capability:'text.translate',input:{text:s.text,targetLanguage}});
++  insist(typeof r?.text==='string'&&r.text.trim(),'Provider returned empty translation');values.push({...s,text:r.text});
++ }return values;
++}
++module.exports={transcribe,translate};
+diff --git a/src/utils.cjs b/src/utils.cjs
+new file mode 100644
+index 0000000..d6bfe07
+--- /dev/null
++++ b/src/utils.cjs
+@@ -0,0 +1,50 @@
++'use strict';
++const fs = require('node:fs');
++const path = require('node:path');
++const crypto = require('node:crypto');
++const {spawn} = require('node:child_process');
++const {promisify} = require('node:util');
++const sleep = promisify(setTimeout);
++const sha = value => crypto.createHash('sha256').update(value).digest('hex');
++function shaFile(file){const hash=crypto.createHash('sha256'),fd=fs.openSync(file,'r'),buf=Buffer.alloc(1<<20);try{let n;while((n=fs.readSync(fd,buf,0,buf.length,null))>0)hash.update(buf.subarray(0,n));}finally{fs.closeSync(fd);}return hash.digest('hex');}
++function insist(ok, message, code='INVALID'){if(!ok){const e=new Error(message);e.code=code;throw e;}}
++function within(base, p, mustExist=true){
++  insist(typeof p==='string' && p.length>0 && !p.includes('\0'), 'File path is required');
++  const root=fs.realpathSync(base);
++  const target=path.resolve(root,p);
++  insist(target===root || target.startsWith(root+path.sep),'Path outside allowed workspace','FORBIDDEN_PATH');
++  if(mustExist){
++    const real=fs.realpathSync(target);
++    insist(real===root || real.startsWith(root+path.sep),'Symlink escapes workspace','FORBIDDEN_PATH');
++    return real;
++  }
++  let parent=path.dirname(target);
++  while(!fs.existsSync(parent))parent=path.dirname(parent);
++  const real=fs.realpathSync(parent);
++  insist(real===root || real.startsWith(root+path.sep),'Parent symlink escapes workspace','FORBIDDEN_PATH');
++  return target;
++}
++function mkdir(p){fs.mkdirSync(p,{recursive:true});return p;}
++function atomic(file,contents){mkdir(path.dirname(file));const tmp=file+'.'+process.pid+'.tmp';fs.writeFileSync(tmp,contents);fs.renameSync(tmp,file);}
++function jsonRead(file, fallback=null){try{return JSON.parse(fs.readFileSync(file,'utf8'));}catch(e){if(e.code==='ENOENT')return fallback;throw e;}}
++function jsonWrite(file,value){atomic(file,JSON.stringify(value,null,2)+'\n');}
++function run(exe,args,{timeoutMs=120000,cwd,signal,maxOutput=2e6}={}){
++  return new Promise((resolve,reject)=>{
++    insist(typeof exe==='string' && exe.length>0,'Executable required');
++    const child=spawn(exe,args,{cwd,stdio:['ignore','pipe','pipe'],windowsHide:true,signal});
++    let out='',err='',aborted=false;
++    const timer=setTimeout(()=>{aborted=true;child.kill('SIGKILL');},timeoutMs);
++    for(const [stream,cb] of [[child.stdout,x=>out+=x],[child.stderr,x=>err+=x]])stream.on('data',b=>{cb(b.toString('utf8'));if(out.length+err.length>maxOutput){aborted=true;child.kill('SIGKILL');}});
++    child.once('error',e=>{clearTimeout(timer);reject(e)});
++    child.once('close',code=>{clearTimeout(timer);if(aborted)return reject(Object.assign(new Error('Process timeout or excessive output: '+exe),{code:'PROCESS_LIMIT'}));if(code!==0)return reject(Object.assign(new Error(`${exe} exited ${code}: ${err.slice(-1400)}`),{code:'COMMAND_FAILED'}));resolve({stdout:out,stderr:err,code});});
++  });
++}
++const ffprobe=async(file,exe='ffprobe')=>{
++  const r=await run(exe,['-v','error','-show_streams','-show_format','-of','json',file],{timeoutMs:30000});
++  return JSON.parse(r.stdout);
++};
++const finite=(n,defaultValue=0)=>Number.isFinite(+n)?+n:defaultValue;
++const duration=probe=>finite(probe.format?.duration);
++const hasAudio=probe=>probe.streams.some(s=>s.codec_type==='audio');
++const hasVideo=probe=>probe.streams.some(s=>s.codec_type==='video');
++module.exports={fs,path,sha,shaFile,insist,within,mkdir,atomic,jsonRead,jsonWrite,run,ffprobe,finite,duration,hasAudio,hasVideo,sleep};
+diff --git a/tests/engine.test.cjs b/tests/engine.test.cjs
+new file mode 100644
+index 0000000..795f18d
+--- /dev/null
++++ b/tests/engine.test.cjs
+@@ -0,0 +1,27 @@
++'use strict';
++const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
++const {within}=require('../src/utils.cjs');const subs=require('../src/subtitles.cjs');
++const timeline=require('../src/timeline.cjs'),story=require('../src/story.cjs'),concat=require('../src/concat.cjs');
++const {Publisher}=require('../src/publisher.cjs');const {registerMediaEngine}=require('../index.cjs');const {makeLocalPorts}=require('../adapters/local-ports.cjs');
++test('subtitle round-trip and word edits',()=>{const input=[{id:'1',start:0,end:1.23,text:'Xin chào'},{id:'2',start:1.24,end:3,text:'Việt Nam'}];assert.match(subs.srt(input),/00:00:01,230/);assert.match(subs.vtt(input),/WEBVTT/);assert.equal(subs.parseSrt(subs.srt(input))[1].text,'Việt Nam');assert.equal(subs.edit(input,[{id:'1',text:'Chào bạn'}])[0].text,'Chào bạn');assert.throws(()=>subs.normalize([{start:2,end:1,text:'x'}]));});
++test('source workspace traversal blocked',()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'media-safe-'));try{assert.throws(()=>within(dir,'../not-in-workspace'),e=>e.code==='FORBIDDEN_PATH');}finally{fs.rmSync(dir,{recursive:true,force:true})}});
++test('edit plan checks bounds, ratios and time',()=>{const media={path:'/tmp/source.mp4',seconds:6};const p=timeline.validate({kind:'edit',ratio:'9:16',segments:[{start:1,end:3}]},media);assert.equal(p.height,1280);assert.throws(()=>timeline.validate({kind:'edit',ratio:'16:9',segments:[{start:3,end:8}]},media));});
++test('original story text is preserved when split',()=>{const input='Một ngày bình yên. Cánh đồng vàng dưới nắng. Mẹ gọi em về.';assert.equal(story.scenes(input,40).join(' '),input);assert.ok(story.characters('Ông Lâm gặp bà Mai.').length>=1);});
++test('publishing blocked without approval or official OAuth',async()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'media-publish-'));try{const video=path.join(dir,'x.mp4');fs.writeFileSync(video,'video');const p=new Publisher(dir),draft=p.createDraft({channel:'youtube',title:'safe',video});const published=await p.publish(draft.id);assert.equal(published.status,'BLOCKED');assert.equal(p.state.publishKeys.length,0);}finally{fs.rmSync(dir,{recursive:true,force:true})}});
++test('Concat public bind rejected',async()=>{await assert.rejects(()=>concat.probe({host:'0.0.0.0',token:'pass'}),e=>e.code==='FORBIDDEN_NETWORK');});
++test('registers only media task names with CoreServices ports',()=>{const root=fs.mkdtempSync(path.join(os.tmpdir(),'media-ports-'));try{const ports=makeLocalPorts(root);const module=registerMediaEngine({CoreServices:ports,workspace:root});assert.equal(module.taskNames.length,7);assert.deepEqual([...ports._test.handlers.keys()],module.taskNames);assert.equal(module.status.v10,'BLOCKED');}finally{fs.rmSync(root,{recursive:true,force:true})}});
++test('Concat loopback authentication + version JSON-RPC parser with local stub',async()=>{
++ const net=require('node:net'),server=net.createServer(sock=>{let buf='';sock.on('data',b=>{buf+=b.toString('utf8');let n;while((n=buf.indexOf('\n'))>=0){const msg=JSON.parse(buf.slice(0,n));buf=buf.slice(n+1);if(msg.method==='auth')sock.write(JSON.stringify({jsonrpc:'2.0',id:0,result:{authenticated:true}})+'\n');if(msg.method==='version')sock.write(JSON.stringify({jsonrpc:'2.0',id:1,result:{version:'test-stub',capabilities:['json-rpc']}})+'\n');}})});
++ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
++ try{const got=await concat.probe({port:server.address().port,host:'127.0.0.1',token:'unit-token'});assert.equal(got.version,'test-stub');}
++ finally{await new Promise(resolve=>server.close(resolve));}
++});
++test('publisher uses one idempotency key for only one authorized upload',async()=>{
++ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'media-publish-id-'));try{const vid=path.join(dir,'x.mp4');fs.writeFileSync(vid,'mock');const p=new Publisher(dir),draft=p.createDraft({channel:'youtube',title:'test',video:vid,rights:'own'});p.approve(draft.id);let calls=0;
++ const opt={enabled:true,oauth:{accessToken:'only-local-test'},verifiedApi:true,apiAdapter:{uploadOfficial:async()=>{calls++;return {id:'mock-test'}}}};
++ assert.equal((await p.publish(draft.id,opt)).status,'PUBLISHED');assert.equal((await p.publish(draft.id,opt)).status,'ALREADY_SUBMITTED');assert.equal(calls,1);
++ }finally{fs.rmSync(dir,{recursive:true,force:true})}
++});
++test('SRT flattens internal paragraph breaks into one timestamped caption',()=>{
++ const text=subs.srt([{start:0,end:2,text:'Chương mở đầu\n\nĐây là câu văn.'}]);assert.match(text,/Chương mở đầu Đây là câu văn/);assert.equal(subs.parseSrt(text).length,1);
++});
+-- 
+2.47.3
+

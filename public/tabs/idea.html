@@ -1,0 +1,36 @@
+<section id="page-idea" class="page" aria-label="Idea Studio">
+  <div class="idea-layout">
+    <section class="idea-setup idea-panel" aria-labelledby="ideaSetupTitle">
+      <div class="idea-heading"><span class="idea-badge" data-idea-icon="edit" aria-hidden="true"></span><div><h2 id="ideaSetupTitle">Thiết lập ý tưởng dự án</h2><p>Cung cấp thông tin cơ bản để AI phân tích và đề xuất cấu trúc dự án phù hợp.</p></div></div>
+      <form id="ideaBriefForm">
+        <div class="idea-field"><label for="projectName">Tên dự án <span>*</span></label><input id="projectName" name="name" maxlength="100" required placeholder="Tên dự án của bạn"><small>Tên ngắn gọn, dễ nhớ cho dự án của bạn.</small></div>
+        <div class="idea-field"><label for="ideaProductType">Loại sản phẩm <span>*</span></label><select id="ideaProductType" name="productType" required><option value="">Chọn loại sản phẩm</option><option value="web-saas">Web Application (SaaS)</option><option value="website">Website</option><option value="mobile-app">Mobile Application</option><option value="desktop-app">Desktop Application</option><option value="api">API / Backend Service</option><option value="automation">Automation / AI Agent</option><option value="other">Sản phẩm khác</option></select><small>Chọn loại sản phẩm phù hợp nhất.</small></div>
+        <div class="idea-field"><label for="ideaAudience">Đối tượng người dùng <span>*</span></label><textarea id="ideaAudience" name="audience" maxlength="3000" required placeholder="Ai sẽ sử dụng sản phẩm của bạn?"></textarea><small>Mô tả đối tượng người dùng chính.</small></div>
+        <div class="idea-field"><label for="ideaGoals">Mục tiêu <span>*</span></label><textarea id="ideaGoals" name="goals" maxlength="6000" required placeholder="Bạn muốn sản phẩm giải quyết vấn đề gì?"></textarea><small>Mô tả mục tiêu và kỳ vọng của dự án.</small></div>
+        <fieldset class="idea-features"><legend>Nhu cầu tính năng chính</legend><small>Chọn các tính năng bạn dự định phát triển (có thể chọn nhiều)</small><div id="ideaFeatureChoices"></div></fieldset>
+        <section class="idea-analyzer" aria-labelledby="ideaAnalyzerTitle"><div class="idea-analyzer-heading"><span data-idea-icon="gear" aria-hidden="true"></span><div><h3 id="ideaAnalyzerTitle">AI Stack Analyzer</h3><p>Phân tích tự động để đề xuất các thành phần cần thiết cho dự án của bạn.</p></div></div><div id="ideaStackGrid"></div><div id="ideaStackDetails"></div></section>
+        <div class="idea-save-row"><span id="ideaSaveStatus" role="status">Chưa có dự án</span><button id="ideaNewProject" type="button">+ Dự án mới</button><button id="createProject" class="idea-save" type="submit">Lưu ý tưởng</button></div>
+        <section id="ideaBriefResult" class="idea-panel" hidden></section>
+      </form>
+    </section>
+    <section class="idea-founder idea-panel" aria-labelledby="ideaFounderTitle">
+      <div class="idea-heading"><span class="idea-badge" data-idea-icon="crown" aria-hidden="true"></span><div><h2 id="ideaFounderTitle">Founder Chat</h2><p>Trao đổi với AI Founder để làm rõ ý tưởng, phân tích và hoàn thiện dự án.</p></div><button id="ideaClearChat" type="button"><span data-idea-icon="trash" aria-hidden="true"></span>Xóa cuộc trò chuyện</button></div>
+      <div id="chat" class="idea-chat" role="log" aria-live="polite"></div>
+      <div class="idea-composer"><button id="ideaAttach" type="button" aria-label="Đính kèm nội dung tài liệu" title="Đính kèm tài liệu văn bản (tối đa 64 KB)"><span data-idea-icon="clip" aria-hidden="true"></span></button><input id="ideaAttachment" type="file" accept=".txt,.md,.json,.csv" hidden><textarea id="chatInput" rows="1" maxlength="16000" placeholder="Nhập tin nhắn của bạn... (Shift + Enter để xuống dòng)" aria-label="Tin nhắn cho Founder"></textarea><button id="sendChat" type="button" aria-label="Gửi tin nhắn"><span data-idea-icon="send" aria-hidden="true"></span></button></div>
+      <div class="idea-actions"><span id="ideaFounderStatus"></span><button id="ideaAnalyze" type="button"><span data-idea-icon="spark" aria-hidden="true"></span>Phân tích ý tưởng</button><button id="ideaSendCouncil" type="button"><span data-idea-icon="team" aria-hidden="true"></span>Gửi sang AI Council</button></div>
+      <div id="ideaError" role="alert" hidden></div>
+    </section>
+  </div>
+  <section class="idea-panel" id="newsPanel" aria-labelledby="newsTitle" style="margin-top:16px;padding:18px">
+    <div class="idea-heading"><div><h2 id="newsTitle">Nguồn tin tự động</h2><p>Khai báo nguồn RSS/Atom — hệ thống tự quét theo lịch, khử trùng lặp và biến tin mới thành thẻ đầu vào cho vòng khép kín ở tab Publish.</p></div></div>
+    <form id="newsSourceForm">
+      <div class="idea-field"><label for="newsName">Tên nguồn</label><input id="newsName" maxlength="120" placeholder="Ví dụ: VnExpress – Thời sự"><small>Tên gợi nhớ cho nguồn tin; để trống sẽ dùng địa chỉ nguồn.</small></div>
+      <div class="idea-field"><label for="newsUrl">Địa chỉ RSS/Atom <span>*</span></label><input id="newsUrl" type="url" maxlength="1000" required placeholder="https://example.com/rss.xml"><small>Đường dẫn feed RSS 2.0 hoặc Atom của trang tin.</small></div>
+      <div class="idea-field"><label for="newsKeywords">Từ khóa lọc (cách nhau bằng dấu phẩy)</label><input id="newsKeywords" maxlength="500" placeholder="bóng đá, kinh tế, công nghệ"><small>Để trống để lấy mọi tin từ nguồn này.</small></div>
+      <div class="idea-save-row"><span id="newsStatus" role="status">Chưa tải nguồn tin</span><button id="newsScanAll" class="ghost" type="button">Quét tất cả</button><button class="idea-save" type="submit">+ Thêm nguồn</button></div>
+    </form>
+    <div id="newsSources"><div class="idea-empty"><p>Đang tải nguồn tin…</p></div></div>
+    <div class="idea-heading" style="margin-top:18px"><div><h3>Thẻ tin mới nhất</h3><p>20 thẻ tin gần nhất. Thẻ chưa dùng sẽ được bộ điều phối lấy làm đầu vào cho quy trình “Tin tức → Video ngắn”.</p></div></div>
+    <div id="newsCards"><div class="idea-empty"><p>Đang tải thẻ tin…</p></div></div>
+  </section>
+</section>

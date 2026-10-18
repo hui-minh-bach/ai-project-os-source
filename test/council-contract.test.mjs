@@ -1,0 +1,66 @@
+// Synthetic local HTTP provider contracts. These do not claim live credentials.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import { DATA_DIR, readJson, writeJson } from '../src/lib/store.mjs';
+import { lockVault, unlockVault, saveConnection, getConnection } from '../src/lib/vault.mjs';
+import { recordModels } from '../src/lib/model-bindings.mjs';
+import { createProject, getProject, updateProjectBrief, updateProjectModelRoles, runCouncil, confirmCouncilSpecification, buildPlan, recoverInterruptedCouncils, councilHistory } from '../src/lib/projects.mjs';
+import { approvedSpecification, normalizeCouncilMember, normalizeCouncilChair, parseCouncilJson } from '../src/lib/council-spec.mjs';
+import { memberResponse, chairResponse, prepareCouncilHandoff } from './helpers/council-fixtures.mjs';
+
+function reset(){lockVault();for(const n of ['vault.enc.json','vault.enc.json.bak','projects.json','projects.json.bak','model-registry.json','model-registry.json.bak'])fs.rmSync(path.join(DATA_DIR,n),{force:true});unlockVault('council-fixture-vault-2026');}
+async function fixture(callback){
+  reset();const seen=[];let intercept=()=>{},started,release;const waiting=new Promise(r=>started=r);
+  const server=http.createServer(async(req,res)=>{let body='';for await(const c of req)body+=c;const j=JSON.parse(body),system=j.messages[0].content;seen.push(j);let response;
+    if(system.includes('COUNCIL_MEMBER_V1'))response=memberResponse('Independent '+j.model,j.model==='council-b'?'consider':'agree');
+    else if(system.includes('COUNCIL_CHAIR_V1'))response=chairResponse();
+    else if(system.includes('AI Project Manager'))response={tasks:[{title:'Build actual fixture page',role:'frontend',description:'Write a static page',dependsOn:[],doneWhen:'Page opens'},{title:'Review page',role:'qa',description:'Verify page',dependsOn:['T1'],doneWhen:'Review passes'}]};
+    const overridden=await intercept({j,system,response,pause:async()=>{started();await new Promise(r=>release=r)}});if(overridden!==undefined)response=overridden;
+    res.setHeader('content-type','application/json');res.end(JSON.stringify({choices:[{message:{content:typeof response==='string'?response:JSON.stringify(response)}}]}));
+  });await new Promise(r=>server.listen(0,'127.0.0.1',r));
+  try{const c=saveConnection({kind:'openai_compatible',name:'Synthetic Council account',model:'default',secret:'council-not-a-live-credential',baseUrl:`http://127.0.0.1:${server.address().port}/v1`});recordModels(c,['default','founder','council-a','council-b','changed']);const p=createProject({name:'Council contract',productType:'website',audience:'Test users',goals:'Build a local static MVP',mainFeatures:['mobile']});const b=model=>({connectionId:c.id,model});const roles={founder:b('founder'),council:[b('council-a'),b('council-b')],worker:null,reviewer:null};updateProjectModelRoles(p.id,roles);prepareCouncilHandoff(p.id);await callback({p,c,b,roles,seen,waiting,release:()=>release(),intercept:fn=>intercept=fn});}
+  finally{server.closeAllConnections();await new Promise(r=>server.close(r));lockVault();}
+}
+test('independent reviews receive identical frozen structured brief; Chair resolves conflicts; approval alone enables configured Founder planning',async()=>{
+ await fixture(async({p,seen})=>{
+   const r=await runCouncil(p.id);assert.deepEqual(seen.map(x=>x.model),['council-a','council-b','council-a']);assert.equal(seen[0].messages[1].content,seen[1].messages[1].content);assert.equal(JSON.parse(seen[0].messages[1].content).project.name,p.name);assert.doesNotMatch(seen[1].messages[1].content,/Independent council-a/);
+   const chairInput=JSON.parse(seen[2].messages[1].content);assert.equal(chairInput.reviews.length,2);assert.equal(chairInput.reviews[1].review.vote,'consider');assert.deepEqual(chairInput.brief,JSON.parse(seen[0].messages[1].content));assert.match(seen[2].messages[0].content,/thay vì chỉ majority vote/);
+   assert.deepEqual(r.consensus,{agree:1,consider:1,oppose:0,total:2,reviewed:2,percent:50});assert.equal(getProject(p.id).stage,'pending-spec');assert.equal(r.specification.status,'pending');assert.ok(r.specification.chair.conflictDecisions.length);await assert.rejects(()=>buildPlan(p.id),/chốt specification/);assert.throws(()=>confirmCouncilSpecification(p.id,'wrong'),/không còn/);
+   confirmCouncilSpecification(p.id,r.specification.id);assert.equal(approvedSpecification(getProject(p.id)).id,r.specification.id);const tasks=await buildPlan(p.id);assert.equal(tasks.length,2);assert.equal(seen.at(-1).model,'founder');assert.match(seen.at(-1).messages[1].content,/Tiêu chí nghiệm thu/);assert.equal(getProject(p.id).planSpecificationId,r.specification.id);assert.equal(councilHistory(p.id).specifications[0].status,'approved');assert.doesNotMatch(JSON.stringify(councilHistory(p.id)),/council-not-a-live-credential/);
+ });
+});
+test('changing role assignments mid-run cannot change frozen member or Chair dispatch and metadata',async()=>{
+ await fixture(async({p,b,roles,seen,intercept})=>{let changed=false;intercept(({system})=>{if(system.includes('COUNCIL_MEMBER_V1')&&!changed){changed=true;updateProjectModelRoles(p.id,{...roles,council:[b('changed'),b('changed')]});}});const r=await runCouncil(p.id);assert.deepEqual(seen.map(x=>x.model),['council-a','council-b','council-a']);assert.deepEqual(r.results.map(x=>x.binding.model),['council-a','council-b']);assert.equal(councilHistory(p.id).runs[0].chair.descriptor.model,'council-a');assert.equal(getProject(p.id).modelRoles.council[0].model,'changed');});
+});
+test('missing current handoff and stale brief cannot call providers, confirm or plan a legacy plaintext specification',async()=>{
+ await fixture(async({p,seen})=>{updateProjectBrief(p.id,{goals:'A new goal'});await assert.rejects(()=>runCouncil(p.id),/brief hiện tại/);assert.equal(seen.length,0);const projects=readJson('projects.json',[]),x=projects.find(x=>x.id===p.id);x.finalSpec='Legacy spec';x.stage='approved-spec';writeJson('projects.json',projects);await assert.rejects(()=>buildPlan(p.id),/chốt specification/);assert.equal(seen.length,0);});
+});
+test('malformed member and Chair JSON preserve failed and partial history without creating a specification',async()=>{
+ await fixture(async({p,intercept})=>{intercept(({j,system})=>system.includes('COUNCIL_MEMBER_V1')&&j.model==='council-b'?'{"version":1,"vote":"agree"}':undefined);await assert.rejects(()=>runCouncil(p.id),/thiếu hoặc thừa/);let run=councilHistory(p.id).runs[0];assert.equal(run.status,'failed');assert.equal(run.members[0].status,'completed');assert.equal(run.members[1].status,'failed');assert.match(run.members[1].text,/vote/);assert.equal(run.chair.status,'not-run');assert.deepEqual(getProject(p.id).specifications,[]);
+   intercept(({system})=>system.includes('COUNCIL_CHAIR_V1')?'```json\n{}\n```':undefined);await assert.rejects(()=>runCouncil(p.id),/JSON thuần/);run=councilHistory(p.id).runs[1];assert.equal(run.members.every(m=>m.status==='completed'),true);assert.equal(run.chair.status,'failed');assert.equal(getProject(p.id).currentSpecificationId,null);assert.equal(councilHistory(p.id).runs.length,2);
+ });
+});
+test('editing the brief during member or Chair requests stores stale runs and never publishes stale specification',async()=>{
+ for(const point of ['COUNCIL_MEMBER_V1','COUNCIL_CHAIR_V1'])await fixture(async({p,waiting,release,intercept})=>{let paused=false;intercept(async({system,pause})=>{if(system.includes(point)&&!paused){paused=true;await pause();}});const request=runCouncil(p.id);await waiting;updateProjectBrief(p.id,{goals:'Edited while Council ran'});release();await assert.rejects(()=>request,/thay đổi|brief hiện tại/);const run=councilHistory(p.id).runs[0];assert.equal(run.status,'stale');assert.ok(run.members.some(m=>m.status==='completed'));assert.equal(getProject(p.id).currentSpecificationId,null);assert.deepEqual(getProject(p.id).specifications,[]);});
+});
+test('rerun invalidates prior approval while pending, rejects simultaneous runs, and preserves version history',async()=>{
+ await fixture(async({p,waiting,release,intercept})=>{const first=await runCouncil(p.id);confirmCouncilSpecification(p.id,first.specification.id);let paused=false;intercept(async({system,pause})=>{if(system.includes('COUNCIL_MEMBER_V1')&&!paused){paused=true;await pause();}});const next=runCouncil(p.id);await waiting;assert.equal(getProject(p.id).approvedSpecificationId,null);await assert.rejects(()=>buildPlan(p.id),/chốt specification/);assert.throws(()=>confirmCouncilSpecification(p.id,first.specification.id),/không còn/);await assert.rejects(()=>runCouncil(p.id),/đang phản biện/);release();const second=await next;assert.equal(second.specification.version,2);assert.equal(second.specification.status,'pending');assert.equal(councilHistory(p.id).specifications[0].status,'approved');await assert.rejects(()=>buildPlan(p.id),/chốt specification/);});
+});
+test('credential replacement mid-run fails honestly before remaining models use a changed provider account',async()=>{
+ await fixture(async({p,c,seen,intercept})=>{intercept(({system})=>{if(system.includes('COUNCIL_MEMBER_V1')){saveConnection({id:c.id,kind:c.kind,secret:'replacement-synthetic-credential'});recordModels(getConnection(c.id),['default','founder','council-a','council-b','changed']);}});await assert.rejects(()=>runCouncil(p.id),/Credential hoặc provider/);const run=councilHistory(p.id).runs[0];assert.equal(seen.length,1);assert.equal(run.status,'failed');assert.equal(run.members[0].status,'completed');assert.equal(run.members[1].status,'not-run');assert.equal(run.chair.status,'not-run');});
+});
+test('boot recovery marks running Council interrupted and preserves completed reviews and older runs',async()=>{
+ await fixture(async({p})=>{const completed=await runCouncil(p.id);const projects=readJson('projects.json',[]),x=projects.find(x=>x.id===p.id),run=structuredClone(x.councilRuns[0]);run.id='interrupted-run';run.status='running';run.members[1].status='running';delete run.members[1].review;run.chair.status='pending';x.councilRuns.push(run);x.currentCouncilRunId=run.id;x.currentSpecificationId=null;writeJson('projects.json',projects);assert.equal(recoverInterruptedCouncils(),1);const history=councilHistory(p.id);assert.equal(history.runs[0].id,completed.runId);assert.equal(history.runs[0].status,'completed');assert.equal(history.runs[1].status,'interrupted');assert.equal(history.runs[1].members[0].review.viewpoint,'Independent council-a');assert.equal(history.runs[1].members[1].status,'interrupted');assert.ok(history.runs[1].completedAt);assert.equal(recoverInterruptedCouncils(),0);await assert.rejects(()=>buildPlan(p.id),/chốt specification/);});
+});
+test('strict schema rejects invented votes, string booleans, unknown fields, missing spec sections and unresolved split votes',()=>{
+ assert.throws(()=>normalizeCouncilMember({...memberResponse(),vote:'true'}),/vote/);assert.throws(()=>normalizeCouncilMember({...memberResponse(),strengths:'Strong'}),/danh sách/);assert.throws(()=>normalizeCouncilMember({...memberResponse(),approved:true}),/thừa/);assert.throws(()=>parseCouncilJson('prose {"version":1}'),/JSON thuần/);const chair=chairResponse(),members=[{review:memberResponse('A','agree')},{review:memberResponse('B','oppose')}];assert.throws(()=>normalizeCouncilChair({...chair,conflictDecisions:[]},members),/giải quyết/);const spec={...chair.specification};delete spec.acceptanceCriteria;assert.throws(()=>normalizeCouncilChair({...chair,specification:spec},members),/thiếu/);assert.throws(()=>normalizeCouncilChair({...chair,conflictDecisions:[{...chair.conflictDecisions[0],members:[3]}]},members),/tham chiếu/);
+});
+test('a changed specification during Project Manager generation cannot overwrite task state',async()=>{
+ await fixture(async({p,waiting,release,intercept})=>{const r=await runCouncil(p.id);confirmCouncilSpecification(p.id,r.specification.id);intercept(async({system,pause})=>{if(system.includes('AI Project Manager'))await pause();});const planning=buildPlan(p.id);await waiting;updateProjectBrief(p.id,{goals:'Different scope while PM runs'});release();await assert.rejects(()=>planning,/chốt specification|thay đổi/);assert.deepEqual(getProject(p.id).tasks,[]);});
+});
+test('a task started during a deferred Project Manager response cannot be overwritten by a new plan',async()=>{
+ await fixture(async({p,waiting,release,intercept})=>{const r=await runCouncil(p.id);confirmCouncilSpecification(p.id,r.specification.id);intercept(async({system,pause})=>{if(system.includes('AI Project Manager'))await pause();});const planning=buildPlan(p.id);await waiting;const projects=readJson('projects.json',[]),x=projects.find(x=>x.id===p.id),activeTask={id:'T9',title:'Existing active task',status:'running',dependsOn:[],branch:'task/active',startedAt:new Date().toISOString()};x.tasks=[activeTask];writeJson('projects.json',projects);release();await assert.rejects(()=>planning,/Task đã bắt đầu/);assert.deepEqual(getProject(p.id).tasks,[activeTask]);assert.equal(getProject(p.id).planSpecificationId,undefined);});
+});

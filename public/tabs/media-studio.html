@@ -1,0 +1,165 @@
+<section id="mediaStudio" class="panel mediaStudio" aria-label="Video và Story Studio">
+  <div class="mediaHeader"><div><h3>Video & Story Studio <span class="tag">V07–V10</span></h3><p>Tạo timeline nhiều lớp trong Concat từ cảnh thật, nhạc, giọng, phụ đề; FFmpeg dự phòng. Piper có thể tự đọc kịch bản offline khi cài model. HeyGen chỉ là tùy chọn trả phí.</p></div><div id="mediaStatusBar" class="mediaStatusBar" aria-live="polite"><span>Đang kiểm tra…</span></div></div>
+  <div class="mediaWarning" id="mediaLimitations">Không cần HeyGen API: dùng giọng TTS/Whisper trong Concat hoặc nạp âm thanh thật; tự động sinh giọng bằng Piper local khi đã cài model. Đăng bài chưa mở.</div>
+  <div class="mediaCapcut">
+    <aside class="mediaRail">
+<div class="mediaModeBar" role="group" aria-label="Công việc Video Studio">
+    <button data-media-mode="analyze" class="active" type="button">◉ Phân tích video</button>
+    <button data-media-mode="edit-plan" type="button">✦ Kế hoạch dựng</button>
+    <button data-media-mode="render" type="button">▶ Dựng video</button>
+    <button data-media-mode="tts-video" type="button">AI Tạo giọng từ kịch bản</button>
+    <button data-media-mode="voiceover" type="button">🎙 Thay giọng thật</button>
+    <button data-media-mode="retheme" type="button">🔁 Đổi chủ đề &amp; giọng</button>
+    <button data-media-mode="subtitle-edit" type="button">▤ Phụ đề</button>
+    <button data-media-mode="story" type="button">▣ Story Studio</button>
+    <button data-media-mode="publish-draft" type="button">↗ Nháp đăng bài</button>
+  </div>
+      <div class="mediaPoolBox"><h4>Kho media của dự án</h4><div id="mediaPool" class="mediaPool"><p class="mediaHint">Nạp video hoặc chờ tác vụ hoàn thành — các tệp thật của dự án sẽ hiện ở đây. Bấm một video để xem trước và xem dòng thời gian của nó.</p></div></div>
+    </aside>
+    <div class="mediaStageCol">
+      <div class="mediaDirector">
+        <h4>✨ AI đạo diễn — một ô cho mọi việc</h4>
+        <p class="mediaHint">Cách nhanh nhất: nạp video (mục Phân tích ở cột phải) hoặc gõ ý tưởng vào ô dưới. AI xem video, nghe nội dung, hiểu bạn muốn chỉnh sửa, làm phụ đề, đổi chủ đề hay lồng tiếng — rồi trình MỘT kế hoạch dễ hiểu để bạn duyệt một lần. Các chế độ chi tiết ở cột trái là phần nâng cao, khi nào cần mới dùng.</p>
+        <p class="mediaHint" id="mediaDirectorSource">Chưa có video — AI sẽ hiểu ô dưới là ý tưởng làm video mới.</p>
+        <label for="mediaDirectorWish">Bạn muốn gì?</label>
+        <textarea id="mediaDirectorWish" rows="3" maxlength="2000" placeholder="Có video: ví dụ “làm bản dọc, thêm phụ đề, nhạc nhẹ” — hoặc để trống để AI tự đề xuất. Chưa có video: gõ ý tưởng, ví dụ “video giải thích vì sao nên uống cà phê buổi sáng, giọng thân thiện”"></textarea>
+        <div class="mediaInline"><button id="mediaDirectorGo" type="button" class="primary">✨ Để AI hiểu &amp; lên kế hoạch</button></div>
+        <div id="mediaDirectorPlan" class="mediaDirectorPlan" hidden></div>
+      </div>
+      <div class="mediaStage"><video id="mediaMainPlayer" controls preload="metadata" aria-label="Khung xem trước video"></video><div id="mediaStageEmpty" class="mediaStageEmpty">Chưa chọn video. Bấm “▶ Xem trước” ở một tác vụ đã hoàn thành hoặc chọn video trong Kho media.</div><p id="mediaStageLabel">Khung xem trước kiểu CapCut: chọn kết quả ở cột phải hoặc kho bên trái.</p></div>
+      <div class="mediaTimelineWrap"><div class="mediaTimelineHead"><span>⏱ Dòng thời gian</span><span id="mediaTimelineNote" class="mediaHint">Chưa có dữ liệu đoạn.</span></div><div id="mediaTimeline" class="mediaTimeline"><p class="mediaHint">Dòng thời gian hiện các lớp thật của tác vụ được chọn: hình ảnh, đoạn lời/phụ đề theo đúng mốc giây trong báo cáo của tác vụ. Bấm vào dòng thời gian để nhảy tới vị trí đó trong khung xem trước.</p></div></div>
+    </div>
+    <div class="mediaSideCol">
+
+    <div class="mediaFieldset">
+      <div class="mediaInputPanel" data-media-panel="analyze">
+        <h4>1. Nạp video nguồn</h4><p class="mediaHint">File MP4/MOV/WEBM… tải lên máy đang chạy Local Worker. Giới hạn 150 MB cho một lần nhập.</p>
+        <label for="mediaFile">Chọn video trên máy</label><input id="mediaFile" type="file" accept=".mp4,.mov,.mkv,.webm,.m4v,.mp3,.wav,.m4a,.txt">
+        <div class="mediaInline"><button id="mediaUpload" class="ghost" type="button">Tải video vào workspace</button><button id="mediaDemo" class="ghost" type="button">Dùng clip mẫu thật</button></div>
+        <p class="mediaHint" id="mediaSourceLabel">Chưa có video được nhập.</p>
+        <label class="checkboxLine"><input type="checkbox" id="mediaTranscribe"> Yêu cầu nhận diện giọng nói (cần STT provider thật)</label>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="edit-plan" hidden>
+        <h4>2. Mô tả video ông muốn</h4><p class="mediaHint">Nhập yêu cầu và bấm “Dựng MP4 theo mô tả” để chạy một tác vụ có đủ lựa chọn. “Chỉ lưu kế hoạch” chỉ tạo JSON, không dựng video và không dùng Whisper/Concat. Ví dụ: "Chuyển video dọc 9:16, cắt xuống 30 giây, thêm hiệu ứng mờ dần". Có thể dựng ngay mà không cần biết timeline JSON. Không tự sinh thêm cảnh hoặc lời nói.</p><p class="mediaHint" id="mediaPlannerState" role="status">Đang xác định AI lập kế hoạch…</p>
+        <label for="mediaPrompt">Yêu cầu bằng tiếng Việt</label><textarea id="mediaPrompt" rows="4" maxlength="4000" placeholder="Ví dụ: Phân cảnh tự động, chuyển cảnh mượt, dựng dọc 9:16, thêm phụ đề"></textarea>
+        <label for="mediaAudioStreamQuick">Track tiếng gốc (nếu video có nhiều track, chọn số stream theo FFprobe; để trống cho 1 track)</label><input id="mediaAudioStreamQuick" type="number" min="0" max="32" step="1" placeholder="Tự động khi chỉ có 1 track">
+        <div class="mediaOptionGrid">
+          <label class="checkboxLine"><input id="mediaAutoCaptions" type="checkbox"> Tự tạo phụ đề bằng Whisper local (phải có model thật)</label>
+          <label class="checkboxLine"><input id="mediaConcatProject" type="checkbox"> Tạo timeline Concat nhiều track thật (cảnh riêng · tiếng riêng · phụ đề · chuyển cảnh); cần Concat đang chạy Remote</label>
+        </div>
+        <p id="mediaCapabilityPreflight" class="mediaHint" role="status">Đang kiểm tra Concat và Whisper. Những tính năng chưa sẵn sàng sẽ được khóa để tránh tạo kết quả giả.</p>
+        <label for="mediaNarrationText">Lời đọc cuốn hút (tùy chọn, mặc định Piper offline, không gọi API trả phí)</label>
+        <textarea id="mediaNarrationText" rows="3" maxlength="5000" placeholder="Để trống để giữ âm thanh gốc; nhập lời thoại khi đã cài giọng Piper local…"></textarea><details class="mediaAdvanced"><summary>Đổi engine giọng (nâng cao; mặc định chạy local)</summary><label for="mediaNarrationProvider">Nguồn giọng tự động</label><select id="mediaNarrationProvider"><option value="local" selected>Piper offline (miễn phí; cần cài model)</option><option value="heygen">HeyGen API (tùy chọn trả phí, cần tự chọn)</option></select></details>
+        <label for="mediaConcatTitle">Tiêu đề xuất hiện trên video (tùy chọn)</label>
+        <input id="mediaConcatTitle" type="text" maxlength="95" placeholder="Ví dụ: 3 mẹo chụp ảnh sản phẩm đẹp hơn">
+        <details class="mediaAdvanced"><summary>Thêm giọng thu, nhạc nền và SRT vào các track Concat</summary>
+          <p class="mediaHint">Các tệp được lưu trong workspace local. Ông có thể dùng giọng tự thu hoặc xuất từ Concat. Không yêu cầu HeyGen.</p>
+          <label for="mediaQuickAudio">Giọng thu / WAV / MP3 / M4A</label>
+          <input id="mediaQuickAudio" type="file" accept=".wav,.mp3,.m4a,audio/*"><button id="mediaQuickAddAudio" class="ghost" type="button">Nạp giọng</button>
+          <label class="checkboxLine"><input id="mediaQuickUseAudio" type="checkbox"> Dùng giọng đã nạp trên track riêng (thay cho lời AI bên trên)</label>
+          <label for="mediaQuickMusic">Nhạc nền có bản quyền sử dụng</label>
+          <input id="mediaQuickMusic" type="file" accept=".wav,.mp3,.m4a,audio/*"><button id="mediaQuickAddMusic" class="ghost" type="button">Nạp nhạc</button>
+          <label class="checkboxLine"><input id="mediaQuickUseMusic" type="checkbox"> Thêm nhạc nền vào track riêng trong Concat</label>
+          <label for="mediaQuickSubs">Phụ đề SRT có thời gian chính xác</label>
+          <input id="mediaQuickSubs" type="file" accept=".srt"><button id="mediaQuickAddSubs" class="ghost" type="button">Nạp SRT</button>
+          <label class="checkboxLine"><input id="mediaQuickUseSubs" type="checkbox"> Thêm từng câu phụ đề thành clip chữ Concat</label>
+        </details>
+        <details class="mediaAdvanced mediaConcatSetup"><summary>Kết nối trình biên tập Concat (một lần)</summary>
+          <p class="mediaHint">Concat là trình dựng video mã nguồn mở độc lập (AGPL-3.0-or-later). Bấm một lần để AI Project OS cài bản Windows chính thức và kết nối qua localhost; mã kết nối được lưu trong Vault. Nếu bộ cài Concat đã được đóng kèm ZIP thì không cần Internet, nếu chưa có thì chương trình tải bản đã khóa SHA-256 từ GitHub. Concat hiện chưa ký số trên Windows.</p>
+          <div class="mediaInline"><button id="mediaConcatManagedInstall" class="primary" type="button">Cài + kết nối Concat tự động</button><span id="mediaConcatManagedStatus" class="mediaHint" role="status">Đang kiểm tra Concat…</span></div>
+          <details class="mediaAdvanced"><summary>Kết nối thủ công (chỉ khi tự động không dùng được)</summary><p class="mediaHint">Mở Concat đã cài → Settings → Remote, bật điều khiển ở 127.0.0.1:7420; nhập token vào dưới đây.</p>
+          <label for="mediaConcatToken">Concat Remote token (chỉ lưu trong Vault, không đọc ngược)</label>
+          <input id="mediaConcatToken" type="password" autocomplete="off" placeholder="Dán token từ Concat → Settings → Remote">
+          <div class="mediaInline"><button id="mediaConcatSave" class="ghost" type="button">Lưu token</button><button id="mediaConcatTest" class="ghost" type="button">Kiểm tra kết nối thật</button><span id="mediaConcatFeedback" class="mediaHint" aria-live="polite">Chưa kiểm tra</span></div>
+          </details>
+          <p class="mediaHint">Sau khi kết nối, Concat có Whisper, TTS và các hiệu ứng trong giao diện Concat. AI Project OS dựng nhiều track qua JSON-RPC; API Concat 0.2 chưa có lệnh TTS/Whisper trực tiếp. <a href="https://github.com/jub0t/Concat" target="_blank" rel="noopener noreferrer">Mã nguồn và giấy phép Concat</a>.</p>
+        </details><div class="mediaInline"><button id="mediaQuickRender" type="button" class="primary">⚡ Dựng MP4 theo mô tả</button><span class="mediaHint">Tạo một tác vụ, duyệt một lần trước khi AI/FFmpeg chạy.</span></div>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="render" hidden>
+        <h4>3. Xem và dựng từ kế hoạch</h4><p class="mediaHint">CHỈ xuất MP4 cơ bản từ một timeline đã có. Bước này KHÔNG chạy Whisper, Concat, giọng hay nhạc đã chọn ở Bước 2. Muốn dùng các tùy chọn đó, quay lại Kế hoạch dựng → “Dựng MP4 theo mô tả”.</p><div class="mediaInline"><button id="mediaUseLatestTimeline" type="button" class="ghost">↻ Lấy kế hoạch đã hoàn thành</button><span id="mediaRenderReady" class="mediaHint" role="status">Chưa nạp kế hoạch dựng.</span></div>
+        <details class="mediaAdvanced"><summary>Chỉnh timeline và phụ đề thủ công (nâng cao)</summary>
+          <label for="mediaAudioStreamRender">Audio stream index (nếu có nhiều track; lấy từ MediaPlan sourceProbe.streams)</label><input id="mediaAudioStreamRender" type="number" min="0" max="32" step="1" placeholder="Theo kế hoạch gốc">
+          <label for="mediaTimeline">Timeline JSON</label><textarea id="mediaTimeline" rows="8" placeholder="Kế hoạch sẽ tự điền khi bấm Lấy kế hoạch đã hoàn thành"></textarea>
+          <label for="mediaRenderSubs">Phụ đề JSON (không bắt buộc)</label><textarea id="mediaRenderSubs" rows="2" placeholder='[{"start":0,"end":2,"text":"Xin chào"}]'></textarea>
+        </details>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="subtitle-edit" hidden>
+        <h4>Biên tập phụ đề</h4><label for="mediaSegments">Đoạn phụ đề dạng JSON</label><textarea id="mediaSegments" rows="6" placeholder='[{"id":"1","start":0,"end":2.1,"text":"Xin chào"}]'></textarea>
+        <label for="mediaChanges">Lệnh chỉnh sửa JSON (để [] nếu không sửa)</label><textarea id="mediaChanges" rows="3" placeholder='[{"id":"1","text":"Xin chào mọi người"}]'></textarea>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="story" hidden>
+        <h4>Chuyển truyện thành video</h4><p class="mediaHint">Đọc nguyên văn hoặc chuyển thể theo lựa chọn. Bản có lời kể cần giọng TTS đã được cấp quyền thực; không giả giọng hay đánh dấu thành công khi chưa có.</p>
+        <label for="mediaStoryProduct">Sản phẩm cần tạo</label><select id="mediaStoryProduct"><option value="outline" selected>Storyboard phân cảnh (chạy local, không cần AI/TTS)</option><option value="video">Video kể chuyện có lời thoại (cần TTS nhà cung cấp thật)</option></select>
+        <label for="mediaStoryText">Nội dung truyện của bạn</label><textarea id="mediaStoryText" rows="7" placeholder="Dán truyện do bạn sở hữu hoặc có quyền sử dụng…"></textarea>
+        <div class="grid2"><div><label for="mediaStoryMode">Chế độ</label><select id="mediaStoryMode"><option value="verbatim">Giữ nguyên văn</option><option value="adapted">Chuyển thể bằng AI (cần API)</option></select></div><div><label for="mediaStoryRes">Độ phân giải</label><select id="mediaStoryRes"><option value="360p">360p nhẹ</option><option value="720p" selected>720p</option><option value="1080p">1080p</option></select></div></div>
+        <details class="mediaAdvanced"><summary>Chọn ID giọng HeyGen (chỉ khi sử dụng API nâng cao)</summary>
+        <label for="mediaTtsVoice">Giọng local hoặc ID dịch vụ tùy chọn (chỉ nhập khi đã chọn engine tương ứng)</label>
+        <div class="mediaInline"><input id="mediaTtsVoice" placeholder="Để trống để dùng HEYGEN_TTS_VOICE_ID trên máy" autocomplete="off"><button id="mediaLoadHeygenVoices" type="button" class="ghost">Lấy danh sách giọng</button></div>
+        <select id="mediaVoiceOptions"><option value="">Giọng mặc định từ máy / nhập ID thủ công</option></select>
+        <p class="mediaHint">Piper dùng model đã cài. Muốn dùng giọng Concat: tạo trong Concat và nạp WAV/MP3 ở Thay giọng thật. HeyGen chỉ là một dịch vụ trả phí tùy chọn.</p>
+        </details>
+        <label for="mediaStoryRights">Nguồn bản quyền</label><select id="mediaStoryRights"><option value="unspecified">Chưa xác minh quyền</option><option value="original-author-owned">Tôi là tác giả / chủ sở hữu</option><option value="licensed">Được cấp quyền sử dụng</option></select>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="voiceover" hidden>
+        <h4>Thay tiếng máy bằng giọng tự nhiên</h4>
+        <p class="mediaHint">Bước 1: dùng tab Phân tích để nạp video nguồn. Bước 2: nạp file giọng đọc WAV, MP3 hoặc M4A. Có thể nạp giọng HeyGen đã tạo, file đã thu âm, hoặc dịch vụ khác mà bạn có quyền sử dụng. Không cần khóa API.</p>
+        <label for="mediaVoiceAudio">Giọng đọc mới</label>
+        <input id="mediaVoiceAudio" type="file" accept=".wav,.mp3,.m4a,audio/*">
+        <div class="mediaInline"><button id="mediaUploadVoiceAudio" type="button" class="ghost">↑ Nạp giọng đọc</button><span id="mediaVoiceAudioLabel" class="mediaHint">Chưa nạp giọng đọc</span></div>
+        <p class="mediaHint">Dùng tệp giọng đọc đã cấp quyền. Worker không tự nhận diện lời nói trong file WAV nếu không có STT.</p>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="retheme" hidden>
+        <h4>Giữ nguyên hình — thay chủ đề và giọng đọc</h4>
+        <p class="mediaHint">Video đã có sẵn hình ảnh. App giữ nguyên phần hình, xóa toàn bộ tiếng gốc, thay bằng kịch bản theo chủ đề mới + giọng đọc mới + phụ đề mới. Bước 1: nạp video ở tab Phân tích. Bước 2: điền form này rồi bấm nút tạo tác vụ ở cột dưới và phê duyệt.</p>
+        <label for="mediaRethemeScriptSource">Kịch bản mới từ đâu?</label>
+        <select id="mediaRethemeScriptSource"><option value="model">AI của dự án viết theo chủ đề</option><option value="supplied">Tôi tự dán kịch bản</option></select>
+        <label for="mediaRethemeTopic">Chủ đề mới của video</label>
+        <input id="mediaRethemeTopic" maxlength="300" placeholder="Ví dụ: giới thiệu quán cà phê mới mở tại Dĩ An" autocomplete="off">
+        <label for="mediaRethemeNotes">Ghi chú thêm cho AI (tùy chọn)</label>
+        <textarea id="mediaRethemeNotes" maxlength="800" rows="2" placeholder="Văn phong thân thiện, nhắc tên quán 2 lần..."></textarea>
+        <label for="mediaRethemeScriptText">Kịch bản tự dán (chỉ khi chọn “Tôi tự dán kịch bản”)</label>
+        <textarea id="mediaRethemeScriptText" rows="5" placeholder="Dán nguyên văn kịch bản mới. App tự chia theo các đoạn thời gian của video."></textarea>
+        <label for="mediaRethemeLanguage">Ngôn ngữ giọng mới</label>
+        <select id="mediaRethemeLanguage"><option value="vi">Tiếng Việt</option><option value="en">English</option></select>
+        <p class="mediaHint">Cách chia đoạn: nếu đã nạp file SRT ở mục Thay giọng, app dùng SRT đó; chưa có thì app tự nghe tiếng gốc bằng Whisper; video không có tiếng nói thì app chia đều theo thời lượng. Phụ đề cháy cứng trong hình gốc thì app chưa xóa được — chỉ thay được tiếng và phụ đề mềm.</p>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="tts-video" hidden>
+        <h4>Kịch bản → giọng đọc AI → MP4</h4>
+        <p class="mediaHint">Tạo giọng offline bằng Piper khi máy có model; không cần API. Concat cũng có giọng TTS local qua giao diện riêng: xuất âm thanh từ Concat rồi nạp ở Thay giọng thật. HeyGen chỉ dùng khi ông tự chọn và phê duyệt.</p>
+        <details class="mediaAdvanced"><summary>Cấu hình dịch vụ giọng (tùy chọn)</summary><label for="mediaTtsProvider">Engine tạo giọng</label><select id="mediaTtsProvider"><option value="local" selected>Piper offline – không API (cần model)</option><option value="heygen">HeyGen trả phí – chỉ khi tự chọn</option></select></details><label for="mediaTtsVideoText">Lời thoại tiếng Việt (1–5.000 ký tự)</label>
+        <textarea id="mediaTtsVideoText" maxlength="5000" rows="7" placeholder="Dán kịch bản cần giọng đọc tự nhiên ..."></textarea>
+        <details class="mediaAdvanced"><summary>Chọn Voice ID từ nhà cung cấp nâng cao</summary>
+        <label for="mediaTtsVideoVoice">Tên model Piper (để trống dùng mặc định), hoặc HeyGen Voice ID khi chọn API</label>
+        <div class="mediaInline"><input id="mediaTtsVideoVoice" placeholder="Để trống dùng giọng local đã cài" autocomplete="off"><button id="mediaLoadHeygenVoices2" type="button" class="ghost">Danh sách giọng</button></div>
+        <select id="mediaTtsVideoVoiceOptions"><option value="">Chọn giọng từ danh sách API</option></select>
+        </details>
+        <p class="mediaHint">Piper không trả mốc từng từ. Để có phụ đề chính xác, nạp SRT hoặc cài Whisper local để nhận dạng lại âm thanh đã tạo; hệ thống không giả mốc từ.</p>
+      </div>
+      <div class="mediaInputPanel" id="mediaVoiceMixOptions" hidden>
+        <h4>Âm thanh, nhạc và phụ đề (tùy chọn)</h4>
+        <label for="mediaVoiceSubtitles">Phụ đề SRT đúng thời gian</label>
+        <input id="mediaVoiceSubtitles" type="file" accept=".srt,text/plain">
+        <div class="mediaInline"><button id="mediaUploadVoiceSubtitles" type="button" class="ghost">Nạp phụ đề</button><span id="mediaVoiceSubtitlesLabel" class="mediaHint">Chưa nạp SRT</span></div>
+        <label for="mediaVoiceMusic">Nhạc nền hợp pháp (WAV / MP3 / M4A)</label>
+        <input id="mediaVoiceMusic" type="file" accept=".wav,.mp3,.m4a,audio/*">
+        <div class="mediaInline"><button id="mediaUploadVoiceMusic" type="button" class="ghost">Nạp nhạc</button><span id="mediaVoiceMusicLabel" class="mediaHint">Chưa nạp nhạc</span></div>
+        <div class="grid2">
+          <div><label for="mediaVoiceAlignment">Khớp thời lượng hình với giọng</label><select id="mediaVoiceAlignment"><option value="hold">Giữ khung cuối nếu thiếu hình</option><option value="stretch">Co giãn tốc độ hình (video ngắn)</option></select></div>
+          <div><label for="mediaVoiceMusicVolume">Âm lượng nhạc nền</label><select id="mediaVoiceMusicVolume"><option value="0.08">8% rất nhẹ</option><option value="0.12" selected>12% dịu</option><option value="0.20">20% vừa</option><option value="0.30">30% rõ</option></select></div>
+        </div>
+        <p class="mediaHint">Không cắt mất lời. Giọng đọc mới thay tiếng cũ trong video; nhạc nạp riêng được hòa nhỏ phía sau. Nếu SRT được nạp, Worker dùng mốc trong SRT; không suy đoán phụ đề.</p>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="publish-draft" hidden>
+        <h4>Tạo bản nháp, chưa phát hành</h4><p class="mediaHint">Không có nút đăng tự động vì OAuth và API chính thức V10 chưa được nghiệm thu. Chức năng này chỉ lưu nháp metadata trong máy local.</p>
+        <label for="mediaDraftChannel">Nền tảng</label><select id="mediaDraftChannel"><option value="youtube">YouTube</option><option value="tiktok">TikTok</option><option value="facebook">Facebook</option></select>
+        <label for="mediaDraftTitle">Tiêu đề</label><input id="mediaDraftTitle" maxlength="160" placeholder="Tiêu đề bản nháp">
+        <label for="mediaDraftRights">Xác nhận quyền sử dụng</label><select id="mediaDraftRights"><option value="unspecified">Chưa xác minh</option><option value="original-author-owned">Tôi sở hữu nội dung</option><option value="licensed">Tôi có giấy phép</option></select>
+        <p class="mediaHint">Video nháp dùng clip đã tải ở bước 1, chỉ lưu metadata.</p>
+      </div>
+      <div class="mediaInline"><button id="mediaQueueTask" type="button" class="primary">＋ Tạo tác vụ chờ duyệt</button><button id="mediaRefreshJobs" type="button" class="ghost">⟳ Làm mới</button></div>
+      <div id="mediaFeedback" class="mediaHint" aria-live="polite">Chọn công việc, nhập dữ liệu rồi tạo tác vụ; AI sẽ không tự chạy khi chưa phê duyệt.</div>
+    </div>
+    <div class="mediaFieldset"><h4>Hàng đợi & kết quả thật</h4><p class="mediaHint">Mặc định chỉ xem tác vụ của video đang chọn để không nhầm clip mẫu cũ thành video mới. “Hoàn thành” chỉ xác nhận kỹ thuật.</p><label class="checkboxLine"><input id="mediaShowAllHistory" type="checkbox"> Hiện cả tác vụ của video khác / clip mẫu cũ</label><div id="mediaJobs" class="mediaQueue" aria-live="polite"><p class="mediaHint">Chưa có dữ liệu.</p></div></div>
+    </div>
+  </div>
+</section>

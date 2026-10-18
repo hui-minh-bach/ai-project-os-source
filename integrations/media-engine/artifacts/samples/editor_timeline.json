@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "kind": "edit",
+  "origin": "deterministic-rule-not-ai",
+  "ratio": "16:9",
+  "segments": [
+    {
+      "id": "clip-1",
+      "start": 0,
+      "end": 6,
+      "source": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/source.mp4"
+    }
+  ],
+  "notes": [
+    "Deterministic local fallback; use ProviderGateway for AI-generated plans"
+  ],
+  "width": 1280,
+  "height": 720,
+  "fps": 25,
+  "expectedDuration": 6
+}

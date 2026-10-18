@@ -1,0 +1,50 @@
+{
+  "media": {
+    "path": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/source.mp4",
+    "bytes": 817069,
+    "sha256": "74423505b82f18c24ba34c27e944257ad7f24045a6cd3ce4fc6bbb57dbd6b704",
+    "seconds": 6,
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 480,
+        "height": 270,
+        "r_frame_rate": "25/1"
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "aac",
+        "sample_rate": "44100",
+        "channels": 1,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "maxMemoryEstimateMB": 2
+  },
+  "analysis": {
+    "durationSeconds": 6,
+    "silences": [],
+    "sceneChanges": [],
+    "cutCandidates": [],
+    "video": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 480,
+        "height": 270,
+        "r_frame_rate": "25/1"
+      }
+    ],
+    "audio": [
+      {
+        "codec_type": "audio",
+        "codec_name": "aac",
+        "sample_rate": "44100",
+        "channels": 1,
+        "r_frame_rate": "0/0"
+      }
+    ]
+  },
+  "transcript": null
+}

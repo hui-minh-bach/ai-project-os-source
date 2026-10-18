@@ -1,0 +1,266 @@
+[
+  {
+    "name": "media.progress",
+    "jobId": "demo-analysis",
+    "operation": "analyze",
+    "status": "STARTED",
+    "percent": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-analysis",
+    "operation": "analyze",
+    "status": "DONE",
+    "percent": 100
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-plan",
+    "operation": "edit-plan",
+    "status": "STARTED",
+    "percent": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-plan",
+    "operation": "edit-plan",
+    "status": "DONE",
+    "percent": 100
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-edit",
+    "operation": "render",
+    "status": "STARTED",
+    "percent": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-edit",
+    "operation": "render",
+    "phase": "clip",
+    "completed": 1,
+    "total": 1,
+    "reused": 1
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-edit",
+    "operation": "render",
+    "phase": "complete",
+    "path": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/.media-engine/jobs/demo-edit/preview.mp4",
+    "seconds": 6.021333,
+    "reused": 1
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-edit",
+    "operation": "render",
+    "phase": "clip",
+    "completed": 1,
+    "total": 1,
+    "reused": 1
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-edit",
+    "operation": "render",
+    "phase": "complete",
+    "path": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/.media-engine/jobs/demo-edit/final.mp4",
+    "seconds": 6.021333,
+    "reused": 1
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-edit",
+    "operation": "render",
+    "status": "DONE",
+    "percent": 100
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "status": "STARTED",
+    "percent": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 1,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 2,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 3,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 4,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 5,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 6,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 7,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "complete",
+    "path": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/.media-engine/jobs/demo-story/preview.mp4",
+    "seconds": 128.6,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 1,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 2,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 3,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 4,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 5,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 6,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "clip",
+    "completed": 7,
+    "total": 7,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "phase": "complete",
+    "path": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/.media-engine/jobs/demo-story/final.mp4",
+    "seconds": 128.571,
+    "reused": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-story",
+    "operation": "story",
+    "status": "DONE",
+    "percent": 100
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-draft",
+    "operation": "publish-draft",
+    "status": "STARTED",
+    "percent": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-draft",
+    "operation": "publish-draft",
+    "status": "DONE",
+    "percent": 100
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-publish",
+    "operation": "publish",
+    "status": "STARTED",
+    "percent": 0
+  },
+  {
+    "name": "media.progress",
+    "jobId": "demo-publish",
+    "operation": "publish",
+    "status": "DONE",
+    "percent": 100
+  }
+]

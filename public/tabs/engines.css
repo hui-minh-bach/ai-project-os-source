@@ -1,0 +1,57 @@
+#page-engines .panel{padding:12px;margin:6px 0 0;border-radius:11px;background:linear-gradient(120deg,#031d2b99,#031b2b66)}
+#page-engines h3{font-size:18px;line-height:25px;margin:0;font-weight:730}
+#page-engines .engineCatalogPanel>p{font-size:14px;line-height:21px;margin:3px 0 12px;color:#bfdcf2}
+#page-engines .engineGrid{grid-template-columns:1.06fr repeat(3,minmax(0,1fr));gap:14px 13px;margin:0}
+#page-engines .engine{height:282px;border-radius:10px;padding:16px 15px 15px;background:linear-gradient(120deg,#082b3e65,#041a2988);border:1px solid #0b425e;display:flex;flex-direction:column;position:relative;min-width:0}
+#page-engines .engine.blocked{opacity:1;background:linear-gradient(110deg,#2518279c,#16172a9c);border-color:#33243b;color:#c7c8dc}
+#page-engines .engineTop{display:flex;justify-content:flex-start;gap:19px;min-height:65px;align-items:flex-start}
+#page-engines .engineIcon{width:55px;height:55px;flex:0 0 55px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(150deg,#007aff,#005bf1);box-shadow:inset 0 1px 1px #ffffff25;color:#fff}
+#page-engines .engineIcon svg{width:38px;height:38px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#page-engines .engineIcon.mini{background:linear-gradient(150deg,#7929dd,#4b1cab)}
+#page-engines .engineIcon.openhands{background:linear-gradient(135deg,#ffab70,#ed965b);color:#00314c;font-size:34px}
+#page-engines .engineIcon.crewai{background:linear-gradient(135deg,#c60054,#920442)}
+#page-engines .engineIcon.microsoft{background:linear-gradient(150deg,#086951,#00332d)}
+#page-engines .engineIcon.metagpt{background:linear-gradient(150deg,#003e8b,#002759);color:#00a4ff;font-size:59px;font-family:Arial;line-height:1}
+#page-engines .engineIcon.custom{background:linear-gradient(140deg,#185c90,#0c2d4c)}
+#page-engines .engineIcon.blocked{background:linear-gradient(145deg,#612a33,#3c1726);color:#ff3548}
+#page-engines .engineTitle{min-width:0;flex:1;padding-top:2px}
+#page-engines .engineTitle h3{font-size:16px;line-height:23px;white-space:nowrap;letter-spacing:-.3px}
+#page-engines .engineBadges{display:flex;gap:6px;white-space:nowrap;margin-top:6px;align-items:center}
+#page-engines .engineBadge{font-size:12px;border:1px solid #125276;border-radius:10px;background:#0b2b42;padding:4px 8px;line-height:18px;color:#bedaf1}
+#page-engines .engineBadge.safe{background:#004839;color:#21f1d4;border-color:#00634d;font-weight:650}
+#page-engines .engineBadge.advanced,#page-engines .engineBadge.unsafe{background:#48300f;color:#ffca57;border-color:#88501a;font-weight:650}
+#page-engines .engineBadge.blocked{background:#3b1b2b;color:#ff5767;border-color:#642538;font-weight:650}
+#page-engines .engineBadge.runtime{font-size:11px;padding:4px 7px}
+#page-engines .engineDefault{position:absolute;right:19px;top:17px;background:#22dfcc;color:#002b36;padding:4px 9px;border-radius:9px;font-size:12px;font-weight:700;line-height:18px}
+#page-engines .engine[data-id="native"] .engineTitle h3{padding-right:60px}
+#page-engines .engineDescription{font-size:14px;line-height:20px;margin:10px 0 0;color:#d2e7f6;min-height:53px;padding-bottom:12px;border-bottom:1px solid #0d4866}
+#page-engines .engineUseCases{font-size:14px;line-height:20px;color:#c7e1f5;margin:11px 0 0;flex:1}
+#page-engines .engineActions{display:grid;grid-template-columns:1fr 1.05fr 34px;gap:10px;margin-top:8px}
+#page-engines .engineActions button,#page-engines .engineActions a{height:41px;display:flex;justify-content:center;align-items:center;gap:9px;text-decoration:none;white-space:nowrap;padding:7px 6px;font-size:12px;font-weight:650;border-radius:8px}
+#page-engines .engineActions .primary{background:linear-gradient(150deg,#0077ff,#0061fa);border:1px solid #007eff;color:#fff}
+#page-engines .engineActions .ghost{background:linear-gradient(110deg,#062840,#08263b);border-color:#105780;color:#e4edff}
+#page-engines .engineActions button:disabled{cursor:not-allowed;background:#232b41;border-color:#30364b;color:#aeb4ca}
+#page-engines .engineActions .engineInstalled:disabled{background:linear-gradient(150deg,#0077ff,#0061fa);border-color:#007eff;color:#fff;cursor:default}
+#page-engines .engineActions .engineMore{font-size:23px;font-weight:400}
+#page-engines .engineActions .downloadIcon{font-size:20px;line-height:1}
+#page-engines .engine[data-id="microsoft-agent-framework"] .engineTop{gap:19px}
+#page-engines .engine[data-id="gpt-pilot-blocked"] .engineBadge.runtime{font-size:10px;padding:4px 7px}
+#page-engines .engineDiagnosticsPanel{margin-top:6px;padding-top:9px}
+#page-engines .engineDiagnosticHeading{display:flex;gap:14px;align-items:center;margin:0 1px 7px}
+#page-engines .engineDiagnosticHeading p{font-size:13px;color:#bddbef;margin:0}
+#page-engines .engineDiagnosticGrid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1.13fr;gap:13px}
+#page-engines .diagnosticCard{border:1px solid #0b4564;border-radius:9px;background:linear-gradient(125deg,#08273b88,#031e31);padding:10px 13px;display:flex;gap:16px;min-height:130px;min-width:0}
+#page-engines .diagnosticIcon{color:#00b5fa;min-width:50px;font-size:37px;line-height:52px;text-align:center;font-weight:650}
+#page-engines .diagnosticIcon.node{color:#65d900;font-size:24px}.diagnosticIcon.python{color:#ffcc30!important}.diagnosticIcon.git{color:#ff5834!important}.diagnosticIcon.executables{color:#f5f6ff!important;font-size:29px!important;background:#00111c;height:48px;margin-top:3px;border-radius:8px}
+#page-engines .diagnosticContent{flex:1;min-width:0}.diagnosticTop{display:flex;justify-content:space-between;gap:4px;align-items:center}
+#page-engines .diagnosticTop b{font-size:13px;white-space:nowrap}#page-engines .diagnosticStatus{border-radius:15px;padding:5px 7px;background:#422d18;color:#ffd078;font-size:11px;white-space:nowrap;font-weight:650}
+#page-engines .diagnosticStatus.ready{background:#004b38;color:#06f0ad}
+#page-engines .diagnosticContent p{font-size:12px;color:#b2d2e9;line-height:19px;margin:6px 0}
+#page-engines .diagnosticContent button{width:100%;height:35px;font-size:12px;padding:6px;border-radius:7px}
+#page-engines .engineTruth{font-size:12px;margin:9px 0 0;color:#92b7d2}
+.engineDetailRows{display:grid;grid-template-columns:155px 1fr;gap:8px;font-size:13px}.engineDetailRows>*{margin:0;overflow-wrap:anywhere}.engineEvidence{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;background:#001521;border:1px solid #124d6c;border-radius:8px;font-size:12px;max-height:240px;overflow:auto}.engineDetailActions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}.engineDetailActions a{color:#27e7d2}.engineCustomRow{border:1px solid #105273;border-radius:8px;padding:12px;margin:10px 0}.engineCustomRow p{overflow-wrap:anywhere}.engineModalNote{color:#adcde4;line-height:1.6}.engineFormError{color:#ff9ca4;margin-top:12px}.engineCustomForm input{margin-bottom:2px}
+@media(max-width:1450px) and (min-width:1081px){#page-engines .engineTitle h3{font-size:14px}#page-engines .engineTop{gap:10px}#page-engines .engineBadge{font-size:11px;padding:3px 7px}#page-engines .engineBadge.runtime{font-size:10px;padding:3px 6px}#page-engines .engineBadges{gap:5px}#page-engines .engineDefault{right:12px;font-size:10px;padding:3px 5px}#page-engines .engineIcon{width:45px;height:45px;flex-basis:45px}#page-engines .diagnosticCard{gap:7px;padding:10px 7px}#page-engines .diagnosticIcon{min-width:32px;font-size:28px}#page-engines .diagnosticTop{flex-wrap:wrap}}
+@media(max-width:1080px){#page-engines .engineGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#page-engines .engineDiagnosticGrid{grid-template-columns:repeat(2,minmax(0,1fr))}#page-engines .engineDiagnosticHeading{align-items:flex-start;flex-direction:column;gap:2px}}
+@media(max-width:600px){#page-engines .engineGrid,#page-engines .engineDiagnosticGrid{grid-template-columns:1fr}#page-engines .engine{height:auto;min-height:282px}.engineDetailRows{grid-template-columns:1fr}}
+
+#page-engines .diagnosticIcon svg{width:47px;height:49px;display:block;margin-top:4px}#page-engines .engineActions .downloadIcon svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}

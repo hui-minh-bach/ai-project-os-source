@@ -1,0 +1,209 @@
+{
+  "generatedAt": "2026-10-15T03:56:22.701Z",
+  "engine": {
+    "name": "media-engine",
+    "version": "0.1.0",
+    "taskNames": [
+      "media.analyze",
+      "media.subtitle-edit",
+      "media.edit-plan",
+      "media.render",
+      "media.story",
+      "media.publish-draft",
+      "media.publish"
+    ],
+    "status": {
+      "v07": "partial-stt-requires-provider",
+      "v08": "ffmpeg-render",
+      "v09": "tts-requires-real-provider",
+      "v10": "BLOCKED"
+    }
+  },
+  "analysis": {
+    "seconds": 6,
+    "scenes": 0
+  },
+  "edit": {
+    "path": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/.media-engine/jobs/demo-edit/final.mp4",
+    "qa": {
+      "passed": true,
+      "problems": [],
+      "warnings": [],
+      "file": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/.media-engine/jobs/demo-edit/final.mp4",
+      "durationSeconds": 6.021333,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "black": [],
+      "silence": [],
+      "subtitleBoundaryChecks": [],
+      "subtitleAccuracyScope": "Segment boundaries inferred from individually probed TTS audio. Phoneme/word alignment NOT measured."
+    }
+  },
+  "story": {
+    "sourceCharacters": 2238,
+    "path": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/.media-engine/jobs/demo-story/final.mp4",
+    "qa": {
+      "passed": true,
+      "problems": [],
+      "warnings": [],
+      "file": "/mnt/data/AI-Media-Engine-V07-V10/artifacts/demo-workspace/.media-engine/jobs/demo-story/final.mp4",
+      "durationSeconds": 128.571,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "black": [],
+      "silence": [],
+      "subtitleBoundaryChecks": [
+        {
+          "id": "1",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "2",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "3",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "4",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "5",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "6",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "7",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "8",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "9",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "10",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "11",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "12",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "13",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "14",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "15",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "16",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "17",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "18",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "19",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "20",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "21",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "22",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "23",
+          "errorSeconds": 0,
+          "method": "clip audio duration boundary; not measured word alignment"
+        },
+        {
+          "id": "24",
+          "errorSeconds": 0.019522999999992408,
+          "method": "clip audio duration boundary; not measured word alignment"
+        }
+      ],
+      "subtitleAccuracyScope": "Segment boundaries inferred from individually probed TTS audio. Phoneme/word alignment NOT measured."
+    },
+    "metadata": {
+      "mode": "verbatim",
+      "source": "user-text",
+      "sourceSHA256": "31308767152b01e42f91f0e18faec316f73848f42da4b63df535b22ab52de079",
+      "sourceCharacters": 2237,
+      "chapters": 1,
+      "characters": [
+        "ông Lâm",
+        "Ông Lâm"
+      ],
+      "characterSheet": "Vietnamese countryside at sunrise; repeating silhouette character designs; flat cinematic poster style",
+      "voice": "vi",
+      "rate": 1,
+      "volume": 1,
+      "emotion": "neutral",
+      "rights": "unspecified",
+      "segmentTimings": "Measured via ffprobe for every separately synthesized Vietnamese phrase; not phoneme/word forced alignment",
+      "sceneCount": 7
+    }
+  },
+  "publisher": "BLOCKED",
+  "events": 32,
+  "stt": "BLOCKED: no Whisper model/provider connected, no false transcription",
+  "voice": "espeak vi demo (robotic), NOT accepted as natural Vietnamese narration",
+  "integration": "CoreServices v1 mock only; host contract unavailable",
+  "portableSamples": {
+    "story": "artifacts/samples/story_720p.mp4",
+    "editor": "artifacts/samples/editor_final.mp4",
+    "subtitles": "artifacts/samples/story_captions.srt"
+  }
+}

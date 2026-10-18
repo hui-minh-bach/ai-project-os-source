@@ -1,0 +1,19 @@
+<section id="page-connections" class="page" aria-label="Connection Center">
+  <section class="cc-panel" aria-labelledby="providersTitle">
+    <div class="cc-section-head"><div><h2 id="providersTitle">AI Providers</h2><p>Kết nối các nhà cung cấp AI để sử dụng trong dự án. API key lưu trong Secret Vault; tài khoản ChatGPT, Gemini và Claude có thể đăng nhập qua CLI chính thức, xác minh phản hồi rồi mới dùng.</p></div><button id="addConnection" class="primary">+ Thêm kết nối</button></div>
+    <div id="connectionGrid" class="cc-grid"></div>
+  </section>
+  <section class="cc-panel cc-roles" aria-labelledby="modelRolesTitle">
+    <div class="cc-section-head"><div><h2 id="modelRolesTitle">Phân vai model cho dự án</h2><p id="connectionRoleHint">Thiết lập AI provider và model cho từng vai trò. Các lựa chọn được lưu riêng cho dự án đang chọn.</p></div></div>
+    <div id="connectionRoleGrid" class="cc-grid"></div>
+  </section>
+  <section id="connectionUsage" class="cc-panel cc-usage" aria-label="Mức sử dụng tài khoản"></section>
+  <section class="cc-panel cc-infrastructure" aria-labelledby="infrastructureTitle">
+    <div class="cc-section-head"><div><h2 id="infrastructureTitle">Dịch vụ hạ tầng</h2><p>Bấm “Mở trang…” để tới trang chủ của từng dịch vụ và đăng nhập bằng tài khoản của bạn; quay lại đây dùng CLI hoặc token để ứng dụng xác minh kết nối.</p></div></div>
+    <div id="infrastructureGrid" class="cc-grid"></div>
+  </section>
+  <section class="cc-panel" aria-labelledby="updateTitle">
+    <div class="cc-section-head"><div><h2 id="updateTitle">Cập nhật phần mềm</h2><p>Kênh cập nhật có chữ ký số của nhà phát hành: ứng dụng chỉ nhận bản mới khi chữ ký và mã SHA-256 khớp, bản cũ được sao lưu và tự khôi phục nếu cập nhật lỗi. Phần mềm không dùng license — cứ cài và dùng.</p></div></div>
+    <div id="updatePanel"><p class="cc-dialog-note">Đang tải trạng thái cập nhật…</p></div>
+  </section>
+</section>

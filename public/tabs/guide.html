@@ -1,0 +1,122 @@
+<section id="page-guide" class="page" aria-label="Hướng dẫn và dữ liệu">
+  <div class="panel az-guide">
+    <h3>Hướng dẫn sử dụng từ A đến Z</h3>
+    <p>Phần mềm chạy riêng trên máy bạn, không cần biết lập trình. Cứ đi lần lượt từng phần: kết nối tài khoản AI của bạn → giao việc cho đội AI → duyệt kết quả → xuất bản. Bấm vào từng mục để xem chi tiết.</p>
+
+    <details open>
+      <summary><strong>A. Cài đặt và mở phần mềm</strong></summary>
+      <ol>
+        <li>Chạy file cài đặt <code>AI-Project-OS-Setup.exe</code>. Nếu Windows hiện cảnh báo SmartScreen (vì bản này chưa có chữ ký số), bấm <strong>More info → Run anyway</strong>.</li>
+        <li>Cài xong, mở phần mềm bằng biểu tượng <strong>AI Project OS</strong> trên Desktop (hoặc file <code>AI-Project-OS.exe</code> trong thư mục cài). Đừng mở thẳng địa chỉ 127.0.0.1:4321 trên trình duyệt — phần mềm cấp quyền qua nút mở này.</li>
+        <li>Lần đầu mở, bấm biểu tượng <strong>Vault</strong> ở góc trên, đặt mật khẩu và mở khóa. Mọi khóa kết nối của bạn được mã hóa trong Vault trên chính máy này.</li>
+      </ol>
+    </details>
+
+    <details>
+      <summary><strong>B. Kết nối tài khoản AI (bắt buộc để đội AI làm việc)</strong></summary>
+      <ol>
+        <li>Vào tab <strong>Kết nối</strong>. Với từng hãng bạn có tài khoản, bấm <strong>Kết nối</strong> và chọn cách đăng nhập qua CLI chính thức (ChatGPT bằng Codex CLI, Claude bằng Claude Code, Google bằng Antigravity) hoặc dán API key. Phần mềm không bao giờ hỏi mật khẩu trang web của bạn.</li>
+        <li>Sau khi đăng nhập, bấm <strong>Xác minh</strong> để phần mềm gọi thử model thật. Chỉ tài khoản "Đã kết nối" mới phân vai được.</li>
+        <li>Thẻ tài khoản ChatGPT và Claude có thêm <strong>thanh trượt Mức suy luận (tốc độ / token)</strong> với đúng thang của hãng đó — ChatGPT: Mặc định · Tối thiểu · Thấp · Vừa · Cao · Rất cao · Tối đa (Max); Claude: Mặc định · Thấp · Vừa · Cao · Rất cao · Tối đa (Max). Nấc càng cao, model nghĩ càng sâu nhưng càng chậm và tốn token/hạn mức. Mức này áp dụng cho mọi vai trò đang dùng tài khoản đó — chỉnh một chỗ là đồng bộ hết. Để "Mặc định của hãng" nếu chưa cần chỉnh.</li>
+        <li>Ở mục <strong>Phân vai model cho dự án</strong>: chọn tài khoản + model cho Founder (lên ý tưởng), Council (phản biện), Worker (thực thi) và Reviewer (kiểm tra). Một tài khoản dùng cho nhiều vai cũng được.</li>
+        <li>Dịch vụ hạ tầng (GitHub, Vercel, Supabase): bấm <strong>Liên kết tài khoản…</strong> và làm 3 bước trong hộp thoại — 1 · Cài CLI (phần mềm tự tải CLI chính thức của hãng), 2 · Mở đăng nhập chính thức (một cửa sổ riêng mở ra, bạn đăng nhập ngay trên trang của hãng; Supabase sẽ cấp một mã để bạn dán vào cửa sổ đó), 3 · Kiểm tra &amp; tạo kết nối (phần mềm hỏi CLI xem ai đang đăng nhập rồi mới lưu kết nối). Phần mềm không bao giờ thấy mật khẩu của bạn. Chưa có tài khoản thì bấm link "Tạo tại…" trong hộp thoại để đăng ký miễn phí trước. Domain thì bấm Thiết lập như hướng dẫn riêng.</li>
+      </ol>
+    </details>
+
+    <details>
+      <summary><strong>C. Làm dự án đầu tiên với đội AI</strong></summary>
+      <ol>
+        <li>Tab <strong>Tổng quan</strong> → <strong>Tạo dự án</strong>, viết ý tưởng bằng lời thường, ví dụ: "web bán hàng cho tiệm vàng, có trang sản phẩm và giỏ hàng".</li>
+        <li>Tab <strong>Ý tưởng</strong>: trò chuyện với Founder để làm rõ người dùng, tính năng chính, ngân sách. Khi rõ rồi, gửi qua <strong>AI Council</strong> để nhiều AI phản biện và chốt phương án.</li>
+        <li>Tab <strong>Bản đồ</strong>: xem kế hoạch được chia thành từng nhiệm vụ cụ thể. Sửa/xóa nhiệm vụ nếu chưa đúng ý.</li>
+        <li>Tab <strong>Đội AI (Team)</strong>: giao từng nhiệm vụ cho Worker. Việc quan trọng sẽ dừng ở <strong>cổng duyệt</strong> chờ bạn bấm Duyệt mới chạy tiếp — bạn luôn là người quyết cuối.</li>
+        <li>Reviewer kiểm tra kết quả theo tiêu chí; đạt thì sản phẩm nằm trong dự án, chưa đạt thì trả lại kèm lý do để Worker làm lại.</li>
+      </ol>
+    </details>
+
+    <details>
+      <summary><strong>D. Hoàn thiện một website từ A đến Z (ví dụ đầy đủ)</strong></summary>
+      <ol>
+        <li><strong>Chốt ý tưởng:</strong> làm phần C đến khi Council chốt được MVP — làm tính năng nào trước, bỏ tính năng nào.</li>
+        <li><strong>Chuẩn bị tài khoản dịch vụ</strong> (tab Kết nối): GitHub để lưu mã nguồn, Vercel để đưa web lên mạng, Supabase nếu web cần tài khoản người dùng/dữ liệu. Chưa có tài khoản thì trong hộp thoại "Liên kết tài khoản…" có sẵn link đăng ký miễn phí tại trang của họ.</li>
+        <li><strong>Cho Worker xây web:</strong> ở tab Team, giao các nhiệm vụ giao diện (Frontend) rồi nghiệp vụ (Backend). Xem trước kết quả ngay trong dự án sau mỗi nhiệm vụ; không ưng thì mô tả lại chỗ cần sửa, đừng tự ý sửa code nếu bạn không rành.</li>
+        <li><strong>Nối dữ liệu:</strong> nếu web cần đăng nhập/lưu dữ liệu, mở supabase.com tạo project, lấy Project URL và API key, dán vào thẻ Supabase ở tab Kết nối rồi bấm xác minh.</li>
+        <li><strong>Lưu mã nguồn:</strong> mở github.com tạo repo trống; trong tab Kết nối bấm "Liên kết tài khoản…" ở thẻ GitHub và làm đủ 3 bước để liên kết, sau đó giao nhiệm vụ "đẩy code lên GitHub" cho Worker ở tab Team.</li>
+        <li><strong>Đưa web lên mạng:</strong> mở vercel.com, chọn Import repo GitHub vừa đẩy, bấm Deploy. Vercel cho bạn một địa chỉ dạng <code>ten-web.vercel.app</code> — mở thử trên điện thoại để kiểm tra.</li>
+        <li><strong>Gắn tên miền riêng (nếu có):</strong> tab Kết nối → thẻ Domain → Thiết lập, nhập tên miền và địa chỉ Vercel, rồi cấu hình DNS theo hướng dẫn Vercel chỉ.</li>
+        <li><strong>Nghiệm thu như khách thật:</strong> tự đăng ký tài khoản, đặt một đơn thử, xem trên cả máy tính và điện thoại. Lỗi ở bước nào thì xem mục "Khi gặp lỗi" ngay dưới đây.</li>
+        <li><strong>Sao lưu:</strong> xuống cuối tab Hướng dẫn này, tạo bản sao lưu có mật khẩu và cất file ra ổ khác/USB. Xong một website là sao lưu một lần.</li>
+      </ol>
+    </details>
+
+    <details>
+      <summary><strong>E. Làm video và đăng nền tảng</strong></summary>
+      <ol>
+        <li>Tab <strong>Media Studio</strong>: tạo video từ kịch bản, lồng tiếng (giọng máy tính Piper hoặc HeyGen), dịch phụ đề và lồng tiếng sang ngôn ngữ khác cho video có sẵn, thêm hiệu ứng bằng Concat.</li>
+        <li><strong>Đổi chủ đề &amp; giọng</strong> (mục 🔁 trong Media Studio): nạp một video có sẵn — app giữ nguyên phần hình, xóa toàn bộ tiếng gốc, thay bằng kịch bản theo chủ đề mới (AI của dự án viết, hoặc bạn tự dán kịch bản) + giọng đọc mới + phụ đề mới. Hợp nhất khi bạn có video mẫu hay và muốn làm lại nội dung cho thị trường/chủ đề khác.</li>
+        <li><strong>Bố cục Media Studio kiểu CapCut</strong>: cột trái là các chế độ làm việc + Kho media của dự án (bấm một video để xem trước), giữa là khung xem trước lớn và <strong>Dòng thời gian</strong> hiện các đoạn lời/phụ đề theo đúng mốc giây (bấm vào dòng thời gian để nhảy tới đoạn đó), cột phải là biểu mẫu của chế độ đang chọn + hàng đợi tác vụ — bấm “▶ Xem trước” ở một tác vụ đã hoàn thành để đưa kết quả lên khung giữa.</li>
+        <li><strong>AI đạo diễn (cách dùng nhanh nhất)</strong>: ở đầu Media Studio có ô "✨ AI đạo diễn" — nạp video hoặc gõ ý tưởng, bấm một nút, AI xem/nghe nội dung rồi trình một kế hoạch dễ hiểu; bấm "Đúng ý" là tác vụ chạy. AI đạo diễn dùng model Worker đã xác minh của dự án; chưa có model thì app nói rõ và đưa 3 nút chọn cách làm thủ công, không giả vờ hiểu.</li>
+        <li>Tab <strong>Ý tưởng</strong> → mục Nguồn tin tự động: thêm nguồn RSS để phần mềm tự lấy tin mới mỗi ngày.</li>
+        <li>Tab <strong>Xuất bản</strong>: bật vòng khép kín, chọn pipeline (tin tức → video, lồng tiếng video, ý tưởng → phim). Mọi lượt đăng đều qua cổng duyệt của bạn nếu bạn bật; số liệu lượt xem được kéo về gắn với từng bài.</li>
+        <li>Đăng thật lên YouTube/Facebook/TikTok cần tài khoản thật của bạn và ứng dụng phía nền tảng đã được duyệt — phần mềm sẽ báo rõ khi thiếu điều kiện, không đăng giả.</li>
+      </ol>
+    </details>
+
+    <details>
+      <summary><strong>F. Dùng skill và repo có sẵn / sưu tầm trên mạng</strong></summary>
+      <ol>
+        <li>Tab <strong>Kỹ năng</strong> → <strong>Nhập skill / repo</strong>: chọn file <code>SKILL.md</code> bạn có, hoặc file .zip chứa nhiều SKILL.md — skill sẽ xuất hiện trong danh sách như skill tùy chỉnh, bật/tắt và gán role như bình thường.</li>
+        <li>Nhập cả repo: tải file .zip của repo hoặc dán link Git công khai (ví dụ link GitHub). Repo được lưu trên máy bạn; phần mềm tự quét và nhập mọi SKILL.md trong repo. Repo không có SKILL.md vẫn được lưu và liệt kê ở mục "Repo đã nhập" để bạn biết nó đang ở đâu.</li>
+        <li>Chỉ nhập skill/repo từ nguồn bạn tin cậy và đọc lướt nội dung hướng dẫn của skill trước khi bật — skill là chỉ dẫn cho AI làm theo.</li>
+      </ol>
+    </details>
+  </div>
+  <div class="panel az-help">
+    <h3>Khi gặp lỗi — tự xử lý trong 3 bước</h3>
+    <ol>
+      <li><strong>Chụp màn hình lỗi:</strong> nhấn <code>Windows + Shift + S</code>, kéo chọn vùng có thông báo lỗi rồi thả — ảnh đã nằm trong bộ nhớ, dán (Ctrl+V) được ngay.</li>
+      <li><strong>Chạy kiểm tra sẵn có:</strong> ngay dưới mục này có nút "Chạy kiểm tra thật" (Kiểm tra toàn diện) — bấm chạy, rồi bấm "Xuất chẩn đoán an toàn" để lấy file tóm tắt kỹ thuật (không chứa khóa hay dữ liệu dự án).</li>
+      <li><strong>Hỏi một AI giỏi, kèm ảnh chụp:</strong> mở một trong các trang dưới đây, dán mẫu câu có sẵn, đính kèm ảnh chụp màn hình và file chẩn đoán. AI sẽ giải thích lỗi và hướng dẫn bạn từng bước để hoàn thành dự án.</li>
+    </ol>
+    <div class="guidegrid az-ai-links">
+      <div class="guide"><div class="icon">🤖</div><h3>ChatGPT</h3><p>Hỏi lỗi, hướng dẫn thao tác, giải thích từng bước.</p><a target="_blank" rel="noopener noreferrer" href="https://chatgpt.com">Mở ChatGPT ↗</a></div>
+      <div class="guide"><div class="icon">◐</div><h3>Claude</h3><p>Mạnh về đọc ảnh chụp lỗi và tài liệu dài.</p><a target="_blank" rel="noopener noreferrer" href="https://claude.ai">Mở Claude ↗</a></div>
+      <div class="guide"><div class="icon">✦</div><h3>Gemini</h3><p>AI của Google, trả lời tiếng Việt tốt.</p><a target="_blank" rel="noopener noreferrer" href="https://gemini.google.com">Mở Gemini ↗</a></div>
+    </div>
+    <label for="errorPromptTemplate">Mẫu câu hỏi (bấm Sao chép rồi dán vào AI kèm ảnh chụp)</label>
+    <pre id="errorPromptTemplate">Tôi đang dùng phần mềm AI Project OS trên Windows để hoàn thiện dự án của mình. Tôi gặp lỗi ở bước: [ghi bước bạn đang làm, ví dụ: kết nối GitHub / cho Worker chạy nhiệm vụ ...]. Nội dung lỗi trên màn hình: [dán nguyên văn thông báo lỗi]. Tôi có đính kèm ảnh chụp màn hình và file chẩn đoán của phần mềm. Hãy giải thích lỗi bằng tiếng Việt dễ hiểu, cho biết nguyên nhân, và hướng dẫn tôi từng bước cụ thể để sửa lỗi và hoàn thành tiếp dự án.</pre>
+    <div class="inline"><button type="button" class="ghost" id="copyErrorPrompt">Sao chép mẫu câu</button><span class="muted" id="copyErrorPromptStatus" role="status"></span></div>
+  </div>
+  <div class="panel customer-health">
+    <div class="customer-head"><h3>Kiểm tra khả năng trên máy này</h3><button type="button" class="ghost" id="customerCheck">Kiểm tra lại</button></div>
+    <div id="customerHealth" role="status" aria-live="polite">Đang kiểm tra...</div>
+    <p class="muted">Chế độ local không đòi kết nối Internet. Tạo video bằng FFmpeg cần hai công cụ ffmpeg/ffprobe; tạo giọng AI từ kịch bản cần API HeyGen thật và có thể tính phí. Không tự xuất bản lên mạng xã hội.</p>
+  </div>
+  <div class="panel customer-doctor">
+    <div class="customer-head"><div><h3>Kiểm tra toàn diện trước khi sử dụng</h3><p>Tự kiểm tra lưu dữ liệu, bộ chạy AI Core, sao lưu, Git và khả năng xuất MP4 H.264 trên máy đang dùng. Không gọi API trả phí.</p></div><div class="inline"><button type="button" class="primary" id="customerDoctorRun">Chạy kiểm tra thật</button><button type="button" class="ghost" id="customerDoctorExport" disabled title="Chỉ xuất tóm tắt kỹ thuật, không xuất Vault, khóa hoặc dự án">Xuất chẩn đoán an toàn</button></div></div>
+    <div id="customerDoctorOutput" role="status" aria-live="polite"><p class="muted">Bấm “Chạy kiểm tra thật” để nhận kết quả và hướng sửa ngay trong ứng dụng.</p></div>
+  </div>
+  <div class="panel customer-tts">
+    <h3>Kết nối giọng đọc HeyGen cho Video Studio</h3>
+    <p>Mở Vault ở góc trên → nhập API key và Voice ID HeyGen. Chìa khóa được mã hóa trong Vault trên máy, không đưa vào mã nguồn hay cho trình duyệt đọc lại. Không cần dùng CMD. Tác vụ sinh giọng có thể phát sinh phí và chỉ chạy sau phê duyệt.</p>
+    <label for="customerTtsApiKey">HeyGen API Key (chỉ nhập khi thêm hoặc thay mới)</label>
+    <input id="customerTtsApiKey" type="password" autocomplete="off" placeholder="Dán API key hợp lệ của tài khoản HeyGen">
+    <label for="customerTtsVoice">Voice ID (tùy chọn, có thể chọn khi dựng video)</label>
+    <input id="customerTtsVoice" autocomplete="off" placeholder="Ví dụ: mã voice_id do HeyGen cung cấp">
+    <div class="inline"><button type="button" id="customerTtsSave" class="primary">Lưu trong Vault</button><button type="button" id="customerTtsDelete" class="ghost">Xóa cấu hình</button></div>
+    <p class="muted" id="customerTtsStatus" role="status" aria-live="polite">Chưa kiểm tra cấu hình.</p>
+  </div>
+  <div class="panel customer-backup">
+    <h3>Sao lưu dữ liệu có mật khẩu</h3>
+    <p>File <code>.aiosbackup</code> dùng mã hóa AES-256-GCM. Bản sao lưu gồm dự án, công việc, kết quả Media, cài đặt và kho thông tin kết nối; không chia sẻ file/mật khẩu cho người khác. Nếu mất mật khẩu, không thể phục hồi.</p>
+    <label for="customerBackupPassword">Mật khẩu mới cho bản sao lưu (từ 12 ký tự)</label>
+    <input id="customerBackupPassword" type="password" minlength="12" autocomplete="new-password" placeholder="Ít nhất 12 ký tự">
+    <label for="customerBackupConfirm">Xác nhận mật khẩu</label>
+    <input id="customerBackupConfirm" type="password" minlength="12" autocomplete="new-password" placeholder="Nhập lại mật khẩu">
+    <div class="inline"><button type="button" id="customerBackupCreate" class="primary">Tạo bản sao lưu</button><button type="button" id="customerBackupRefresh" class="ghost">Tải danh sách</button></div>
+    <p id="customerBackupFeedback" role="status" aria-live="polite"></p>
+    <div id="customerBackupList"></div>
+    <p class="muted">Để khôi phục: đóng chương trình, kéo file <code>.aiosbackup</code> vào <code>RESTORE-WINDOWS.cmd</code>, nhập mật khẩu. Dữ liệu cũ được giữ trong thư mục rollback, không ghi đè trực tiếp.</p>
+  </div>
+  <div class="panel"><h3>Kết nối các dịch vụ</h3><p>Chọn nhà cung cấp cần dùng. Không nhập mật khẩu tài khoản mạng xã hội vào ô API key.</p><div class="guidegrid" id="guides"></div></div>
+</section>

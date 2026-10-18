@@ -1,0 +1,76 @@
+{
+  "id": "AI-PROJECT-OS-INTEGRATION-ABC-V080-RC",
+  "version": "0.8.0",
+  "status": "INTERNAL_RC_NOT_COMMERCIAL",
+  "date": "2026-10-16",
+  "source": {
+    "baseline": {
+      "filename": "AI_PROJECT_OS_V077_FULL_WINDOWS_RENDER_CLIP_FIX_2026-10-16.zip",
+      "sha256": "bdf3b08a52d19366c3970a5e4b1cff88c9e2e454c832e1a5852ec5c495219b97"
+    },
+    "workerA": {
+      "filename": "AI_PROJECT_OS_WORKER_A_CORE_V08_COMPLETED_2026-10-16.zip",
+      "sha256": "1cb0ef1b865724d38df5c29c3fc973049edcfde90a69c1e9ed0b8d3fd57fb6d7"
+    },
+    "workerB": {
+      "filename": "AI_PROJECT_OS_V077_WORKER_B_PATCHED_SOURCE_NOT_RELEASE (1).zip",
+      "sha256": "f8fa661618aa59578e10ece2469e125917f445331ceb4d6d3057a76e524f3345"
+    },
+    "workerC": {
+      "filename": "AI_PROJECT_OS_V077_WORKER_C_PATCHED_SOURCE_2026-10-16.zip",
+      "sha256": "3b4c5bb6462aa03b0569fde5a0f9717a9f4f0efb2f6647d99e6d329213d330ca"
+    }
+  },
+  "merge_order": [
+    "A",
+    "B",
+    "C",
+    "integrator"
+  ],
+  "tests": {
+    "npm_check": "PASS",
+    "npm_test": {
+      "pass": 238,
+      "fail": 0,
+      "skip": 1,
+      "total": 239
+    },
+    "ai_core": {
+      "pass": 59,
+      "fail": 0
+    },
+    "media_scripts": {
+      "source_binding": "PASS",
+      "media_e2e": "PASS",
+      "quick_media": "PASS",
+      "media_user_flow": "PASS",
+      "large_media": "PASS"
+    },
+    "ui_fixture": {
+      "screenshots": 100,
+      "navigations": 100,
+      "errors": 0,
+      "backend": "mock",
+      "platform": "Linux Chromium"
+    },
+    "clip_regressions": "4 previously failing scenarios now pass",
+    "commercial_enforced_gate": "RED (exit 2 by design)"
+  },
+  "windows_launcher": {
+    "cross_compiled_on": "Linux Go 1.23",
+    "output": "PE32+ AMD64",
+    "sha256": "25e88474824117741b26e365111be43f1d2e76df0b6b85d8e1f54e2046f51ad8",
+    "hardware_executed": false,
+    "signed": false
+  },
+  "commercial_blockers": [
+    "No Windows 10/11 clean-hardware proof",
+    "No signed customer installer or secure updater",
+    "No live provider/usage or reviewer/Preview evidence",
+    "Core strict cost approval not connected to user UI",
+    "No external pilot or commercial license",
+    "Concat multi-track/Whisper/HeyGen live not verified"
+  ],
+  "no_production_changes": true,
+  "full_release_allowed": false
+}

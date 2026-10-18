@@ -1,0 +1,3 @@
+Local branch: feat/ai-media
+Commit: d0adc00fcbc59b07f3f8722c1d70c3ecd107c171
+External PR: BLOCKED until actual AI Project OS GitHub target repo is supplied.

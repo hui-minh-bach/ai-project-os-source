@@ -1,0 +1,11 @@
+'use strict';
+const {fs,path,crypto,uid,fail,safeName,contained,privateDir,atomic,load}=require('./common.cjs');
+class ArtifactStore{
+ constructor(root){this.root=privateDir(root);this.meta=path.join(this.root,'index.json');this.index=load(this.meta,{version:1,items:[]});}
+ put({projectId,taskId,name,content,kind='task-output',mimeType='application/octet-stream',provenance={source:'local-worker'}}){safeName(projectId);if(!/^[a-f0-9-]{36}$/.test(taskId))throw fail('BAD_TASK','Invalid task id');if(typeof name!=='string'||!name||name.length>120||name.includes('/')||name.includes('\\')||name.startsWith('.'))throw fail('BAD_FILENAME','Invalid artifact name');if(!/^[a-zA-Z0-9_.-]{1,80}$/.test(kind)||typeof mimeType!=='string'||mimeType.length>100||!/^[-a-zA-Z0-9+./]+$/.test(mimeType)||!provenance||typeof provenance!=='object')throw fail('ARTIFACT_META','Invalid metadata');const bytes=Buffer.isBuffer(content)?content:Buffer.from(content);if(bytes.length>15*1024*1024)throw fail('TOO_LARGE','Artifact is too large');const id=uid(),dir=privateDir(path.join(this.root,projectId,taskId)),file=contained(dir,id);fs.writeFileSync(file,bytes,{flag:'wx',mode:0o600});const a={id,projectId,sourceTaskId:taskId,taskId,kind,mimeType,name,relativePath:`${projectId}/${taskId}/${id}`,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),sizeBytes:bytes.length,size:bytes.length,createdAt:new Date().toISOString(),verifiedAt:null,provenance:structuredClone(provenance)};this.index.items.push(a);atomic(this.meta,this.index);return structuredClone(a);}
+ verify(id){const a=this.get(id);this.read(id);const original=this.index.items.find(x=>x.id===id);if(!original.verifiedAt){original.verifiedAt=new Date().toISOString();atomic(this.meta,this.index);}return {...original};}
+ get(id){const a=this.index.items.find(x=>x.id===id);if(!a)throw fail('NOT_FOUND','Artifact not found');return structuredClone(a);}
+ read(id){const a=this.get(id),p=contained(path.join(this.root,a.projectId,a.taskId),a.id),b=fs.readFileSync(p);if(crypto.createHash('sha256').update(b).digest('hex')!==a.sha256)throw fail('INTEGRITY','Artifact hash mismatch');return b;}
+ list(projectId){return this.index.items.filter(a=>!projectId||a.projectId===projectId).map(a=>({...a}));}
+}
+module.exports={ArtifactStore};

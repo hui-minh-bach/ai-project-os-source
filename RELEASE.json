@@ -1,0 +1,113 @@
+{
+  "product": "AI Project OS Local Worker",
+  "version": "0.9.8",
+  "channel": "v0.9.8-ai-director",
+  "windows": {
+    "architecture": "x64",
+    "minimum": "Windows 10 64-bit",
+    "portable_launcher": "AI-Project-OS.exe",
+    "signed": false,
+    "windows_hardware_verified": false
+  },
+  "features": {
+    "local_project_management": "implemented",
+    "local_media_render": "requires_ffmpeg",
+    "encrypted_backup": "implemented",
+    "localhost_session_gate": "implemented",
+    "doctor_h264": "implemented",
+    "heygen_tts": "optional_external_paid_api_only_when_selected",
+    "cinematic_ai_video": "not_available",
+    "license": "removed_by_owner_decision_2026-10-17_no_licensing_no_trial_no_activation_free_distribution_via_github",
+    "auto_update": "implemented_signed_manifest_ed25519_plus_sha256_staged_download_applied_by_launcher_on_next_start_with_per_file_backup_and_automatic_rollback_tools/update-publish.mjs_signs_manifests_owner_key_frozen_now_used_for_update_signing_only",
+    "official_cli_login": "codex_chatgpt_claude_code_and_google_antigravity",
+    "official_cli_installer": "Windows managed npm Codex/Claude, WinGet Antigravity",
+    "cli_login_live_verified": "not_tested_without_real_customer_accounts",
+    "safe_upgrade_data_dir": "preserved_external_per_user",
+    "gui_browser_e2e": "offline_chromium_fixture_100_pass_not_real_windows",
+    "gemini_cli_consumer_login": "deprecated_by_google",
+    "antigravity_cli": "local_only_official_account_requires_live_windows_verification",
+    "commercial_ready": false,
+    "skill_repo_import": "implemented_skills_tab_imports_SKILL.md_files_and_zip_packs_plus_whole_repos_via_zip_upload_or_public_git_clone_scans_SKILL.md_into_custom_skills_and_registers_repos_under_data_dir_imported-repos",
+    "infra_account_linking": {
+      "status": "implemented",
+      "scope": "Connections tab infrastructure cards (GitHub/Vercel/Supabase) now link real accounts the same way AI accounts do: the app installs the vendor official CLI into the per-user tools folder (GitHub CLI 2.102.0 and Supabase CLI 2.121.0 pinned with SHA-256 from the official release checksums; Vercel CLI via official npm package), opens the vendor official login in a visible window (gh auth login --web / vercel login / supabase login), then verifies through the CLI itself (gh api user / vercel whoami / supabase projects list) before storing a Vault connection. The app never receives the user password; token/API-key remains a secondary path. Live login on real Windows pending owner acceptance. HOTFIX 0.9.3: every consumer of these CLIs (connection verification in providers, GitHub publish, Vercel deploy + domain alias, Supabase project ops, git identity probe) now resolves the CLI through infra-tools (app-installed copy first) instead of bare PATH names — v0.9.2 verified connections via a bare \"gh\" spawn and failed with \"spawn gh ENOENT\" on machines where the app itself had installed the CLI (found live on the owner Windows machine 2026-10-17; the GitHub device login itself had succeeded)."
+    },
+    "guide_a_to_z": "implemented_guide_tab_full_vietnamese_a_to_z_workflow_including_complete_website_walkthrough_and_error_help_panel_linking_chatgpt_claude_gemini_with_copyable_prompt_template",
+    "arctic_light_theme": "scoped_accessible_color_contrast_static_qa",
+    "local_launch_ticket": "one_use_rotating",
+    "media_quick_edit": "one-approved-task-natural-language-timeline-ffmpeg-preview-final",
+    "media_connection_routing": "verified-project-worker-or-verified-connection-with-explicit-local-fallback",
+    "media_ai_video_generation": "not_implemented_text_planner_and_ffmpeg_only",
+    "media_image_generation": "implemented_media.image_task_and_image.generate_capability_routes_chatgpt_account_codex_hosted_image_tool_protocol_verified_against_pinned_codex_0.162.1_plus_gemini_and_openai_api_image_routes_blocks_honestly_without_provider_live_account_verification_pending_on_customer_windows",
+    "media_concat_effects": "implemented_media.concat_effects_task_reviewer_role_plan_or_manual_plan_rendered_by_concat_multitrack_live_verified_headless_linux_2026-10-17_full_120s_film_title_crossfade_music_export_qa_passed_reviewer_plan_path_requires_verified_reviewer_model",
+    "media_dubbing": "implemented_media.dub_task_segments_from_supplied_srt_or_local_whisper_translation_by_verified_worker_model_or_supplied_texts_per_segment_tts_placed_on_original_timings_with_tempo_cap_1.35_and_overflow_reporting_original_audio_fully_replaced_new_language_subtitles_burned_both_segment_paths_live_verified_headless_linux_2026-10-17_vi_to_en_piper_voice_language_guard_blocks_mismatched_local_voice_whisper_status_probe_maxbuffer_fix_included",
+    "media_real_scene_detection": "ffmpeg_image-change-and-silence-heuristic_no-semantic_vision",
+    "media_smooth_transitions": "ffmpeg_xfade_acrossfade_verified_on_synthetic_video",
+    "concat_local_rpc": "user-approved_one-click_official_pinned_installer_or_offline_build_bundle_remote_autoconfig_not_windows_live_tested",
+    "concat_license": "AGPL-3.0-or-later independent program bundled only in offline Windows build with upstream source and notices; legal review pending",
+    "concat_export": "editable_multitrack_project_from_original_source_scenes_API_0.2_live_verified_headless_linux_2026-10-16_real_concat_0.2.7_server_multitrack_export_mp4_qa_passed_windows_gui_still_not_live",
+    "speech_subtitles": "whisper_cpp_local_binary_and_model_required",
+    "narration": "heygen_api_with_paid_credentials_optional_no_live_voice_test",
+    "media_multimodal_semantic_understanding": "not_implemented",
+    "media_timeline_source_binding": "verified_sha256_duration_ffprobe_and_approval_recheck",
+    "media_social_publish": "opt_in_approval_gated_platform_publishing_via_official_apis_see_closed_loop_features",
+    "doctor_ffmpeg_scene": "real_select_showinfo_smoke_test_passed_on_linux",
+    "ffmpeg_scene_compatibility": "no_deprecated_vsync_input",
+    "account_quota_inline": "rate_limits_read_from_codex_after_vault_unlock_no_fabricated_provider_quota",
+    "account_quota_scope": "per_provider_bucket_or_shared_plan_not_guaranteed_per_model",
+    "ai_core_strict_cost_gate": "implemented_opt_in_host_ui_not_yet_wired",
+    "windows_signed_installer": "missing",
+    "window_theme_browser_qa": "100_offline_fixture_screenshots_not_windows_hardware",
+    "concat_multi_clip_real": "real_FFmpeg_source_clips_and_real_Concat_0.2.7_RPC_live_verified_headless_linux_2026-10-16_windows_Concat_GUI_not_live_verified",
+    "commercial_provider_e2e": "not_verified",
+    "chatgpt_unaudited_quota": "account_rateLimits_read_independent_of_inference_verification",
+    "codex_turn_failure": "safe_error_classification_rate_limit_auth_model_network_and_terminal_status",
+    "codex_account_profiles": "isolated_per_account_correct_selection_and_quota_cache",
+    "local_piper_tts": "user_installed_model_required_not_live_windows_verified",
+    "concat_speech_api": "Concat_GUI_only_no_public_JSON_RPC_TTS_STT_methods_0.2",
+    "concat_multitrack_caption_guard": "safe_hard_cuts_for_3plus_scene_captions_Concat_beta_overlay_bug",
+    "concat_managed_install": "SHA256 pinned one-click install, Vault-managed token, Windows live unverified",
+    "concat_vendored_bundle": "official_0.2.7_installer_source_license_notices_staged_in_vendor/concat_and_hash_verified_2026-10-16",
+    "media_ui_workflow": "guarded_no_silent_discard_of_whisper_concat_voice_music_on_legacy_plan_render",
+    "media_task_provenance": "current_source_only_by_default_with_explicit_cross_video_history_and_original_filename",
+    "media_qa_claim": "technical_mp4_validity_only_not_editorial_or_commercial",
+    "closed_loop_ingest": "implemented_rss_atom_sources_with_content_hash_dedupe_and_input_cards",
+    "closed_loop_orchestrator": "implemented_news_video_dub_video_idea_film_pipelines_scheduler_tick_daily_caps_active_hours_global_stop_per_pipeline_approval_gate_interrupted_run_recovery",
+    "closed_loop_publish_connectors": "implemented_youtube_resumable_upload_with_synthetic_media_disclosure_facebook_page_phased_upload_tiktok_file_upload_with_unapproved_app_self_only_rule_oauth_tokens_in_vault_publish_records_marked_simulated_when_endpoint_is_not_the_real_platform_host",
+    "closed_loop_metrics": "implemented_per_platform_view_like_comment_refresh_attached_to_publish_records_and_projects",
+    "closed_loop_verification": "full_loop_live_verified_headless_linux_2026-10-17_against_protocol_faithful_simulated_platform_endpoints_news_and_dub_pipelines_end_to_end_real_platform_accounts_and_real_windows_pending",
+    "windows_installer": "nsis_per_user_installer_with_bundled_node_24.9.0_runtime_sha256_verified_against_nodejs.org_uninstaller_preserves_external_data_dir_UNSIGNED_no_code_signing_certificate_yet",
+    "account_reasoning_effort": {
+      "status": "implemented",
+      "scope": "Per-account reasoning-effort SLIDER (Connections tab) mirroring each vendor’s own picker and ladder: ChatGPT/Codex stops Mặc định/minimal/low/medium/high/xhigh/max via thread/start config model_reasoning_effort; Claude stops Mặc định/low/medium/high/xhigh/max via the official --effort flag (ultracode excluded — it is an orchestration mode, not an effort rung). Server validates per kind; the stored value is the vendor’s own token and the UI shows it next to the Vietnamese label. Gemini accounts have no vendor-documented effort mechanism and intentionally get no slider. Live effect on a real account pending owner acceptance."
+    },
+    "media_retheme": {
+      "status": "live-verified-supplied-script",
+      "scope": "New Media Studio mode \"Đổi chủ đề & giọng\" (task media.retheme): keep an uploaded video’s footage, replace its whole audio with a NEW topic script + new voice + burned new subtitles. Timing windows: supplied SRT, local Whisper on the original speech, or an even deterministic split when no speech is detected. Script: project Worker model writes per-window lines against deterministic character budgets (writeRethemeScriptWithModel), or the user supplies lines / free text split deterministically across windows (splitScriptAcrossWindows). Piper voice-language guard, atempo cap 1.35, overflow reported, artifacts video-with-new-voice.mp4 + captions-<lang>.srt + retheme-report.json. LIVE VERIFIED 2026-10-17 in sandbox on the real JFK clip: Whisper windows (11), supplied VI coffee-culture script, VI Piper voice, 0 overflows, output 80.04s == source length, frame-verified burned VI subtitles on untouched footage. Model-written script path needs a verified model on the user’s machine (same gate as dub translation). Hardsub removal still NOT implemented."
+    },
+    "media_studio_capcut_shell": {
+      "status": "built-contract-verified",
+      "scope": "Media Studio rebuilt CapCut-style (0.9.7): left rail with the 9 work modes + a project media pool (real artifacts, click to preview), center stage with one main preview player, a real timeline under it (ruler, footage track, segment/subtitle track built from the selected job’s retheme/dub report segments or its captions SRT, output track, red playhead synced to the player, click-to-seek), right column keeps every existing input panel and the job queue (inline per-job players replaced by a Xem trước button that loads the job into the stage). No functionality removed; engine unchanged. Verified: contract tests (shell ids, all 9 modes/panels preserved, SRT parsing, timeline rendering) + existing media DOM-harness tests pass; served page contains the new shell. Pixel-level visual QA could not run in the sandbox (its Chromium blocks all local-network navigation) — visual acceptance is on the user’s Windows checklist."
+    },
+    "media_director": {
+      "status": "built-model-path-pending-user-account",
+      "scope": "AI Director front door for Media Studio (0.9.8): ONE box — upload a video and/or type a wish, or type an idea. POST /api/integrations/media/director/plan probes the real video (readRealMediaInfo), transcribes its speech locally with Whisper when ready, and asks the project’s verified Worker model to return a strict JSON plan (buildDirectorModelCall/parseDirectorPlan in media-ai.mjs). Deterministic routing (routeDirectorPlan) maps the plan onto existing operations — quick-edit (edit or auto-captions), retheme, dub, story-from-idea — or an honest needs-input (voice file, Whisper missing, unclear). The Studio renders ONE plan card; \"Đúng ý\" submits the routed task AND approves it in the same gesture (the task still passes the queue machinery and carries planSummary). No verified model -> available:false with a manual 3-choice fallback, never a fake plan. Verified: unit tests for parsing/routing/contracts (test/director.test.mjs), live sandbox call returned the honest fallback (no model in sandbox); the model path runs on the user’s machine with his verified ChatGPT Worker. Explainer-style idea scripts are requested in the model instructions (hook, clear points, recap); voice quality still depends on the connected TTS engine (local Piper is synthetic)."
+    }
+  },
+  "online_provider_apis": "separate user credentials and provider charges",
+  "build": "Integration-ABC-v0.8.5-Recorded-Workflow-Fix-Internal-RC-2026-10-16",
+  "integration": {
+    "baseline_zip_sha256": "bdf3b08a52d19366c3970a5e4b1cff88c9e2e454c832e1a5852ec5c495219b97",
+    "workstreams": [
+      "A_core",
+      "B_media",
+      "C_windows_ui"
+    ],
+    "release_candidate_only": true,
+    "verified_windows_physical": false,
+    "authorized_provider_e2e": false,
+    "signed_installer": false,
+    "support_and_license_ready": false,
+    "no_production_push": true
+  }
+}

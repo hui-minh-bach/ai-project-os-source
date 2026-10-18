@@ -1,0 +1,25 @@
+/* Local machine acceptance cards: accessible, compact, no spreadsheets. */
+.customer-doctor .customer-head{align-items:flex-start}
+.customer-doctor .customer-head>div{flex:1;min-width:240px}
+.customer-doctor .customer-head h3{margin:0 0 8px}
+.customer-doctor .customer-head p{line-height:1.55;max-width:860px}
+.customer-doctor button:disabled{opacity:.5;cursor:wait}
+.doctor-summary{border-top:1px solid var(--line);padding:14px 0;margin-top:12px}
+.doctor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.doctor-check{border-radius:14px;padding:15px;border:1px solid var(--line);background:var(--panel2);display:flex;align-items:flex-start;flex-direction:column;gap:7px}
+.doctor-check>strong{font-size:.98rem}
+.doctor-check p{line-height:1.5;font-size:.87rem;margin:0}
+.doctor-check small{color:var(--muted);line-height:1.5}
+.doctor-state{border-radius:99px;padding:4px 9px;font-size:.73rem;font-weight:700;border:1px solid var(--line)}
+.doctor-pass{color:var(--accent);border-color:var(--accent)}
+.doctor-warning{color:var(--warn)}
+.doctor-fail{color:var(--danger)}
+.doctor-info{color:var(--muted)}
+.az-guide details{border:1px solid #235b7a;border-radius:8px;padding:8px 12px;margin:8px 0;background:rgba(10,38,58,.35)}
+.az-guide summary{cursor:pointer;font-size:14px;padding:2px 0}
+.az-guide ol{margin:8px 0 8px 18px;padding:0}
+.az-guide li{margin:5px 0;line-height:1.5}
+.az-help ol{margin:8px 0 8px 18px;padding:0}
+.az-help li{margin:5px 0;line-height:1.5}
+.az-help pre{white-space:pre-wrap;border:1px solid #235b7a;border-radius:8px;padding:10px;font-size:12px;line-height:1.55;background:rgba(10,38,58,.35)}
+.az-ai-links{margin:10px 0}

@@ -1,0 +1,14 @@
+<section id="page-council" class="page" aria-label="AI Council">
+  <div class="council-top">
+    <article class="council-panel council-project"><h2><span class="council-heading-icon" id="councilBriefIcon" aria-hidden="true"></span>Tóm tắt dự án cần phản biện</h2><div id="councilProjectSummary" class="council-project-body"></div></article>
+    <article class="council-panel council-consensus"><h2><span class="council-heading-icon purple" id="councilConsensusIcon" aria-hidden="true"></span>Đồng thuận hiện tại</h2><div id="councilConsensus" class="council-consensus-body" aria-live="polite"></div></article>
+  </div>
+  <div id="councilNotice" class="council-notice" role="status" hidden></div>
+  <div id="councilResults" class="council-model-grid" aria-live="polite"></div>
+  <article class="council-panel council-chair">
+    <div class="council-chair-header"><span class="council-chair-crown" id="councilChairIcon" aria-hidden="true"></span><div class="council-chair-title"><div class="council-chair-title-line"><h2>Chair Summary</h2><span id="councilChairProvider" aria-hidden="true"></span><label class="council-sr-only" for="chairSelect">Model Chair cho phiên tiếp theo</label><select id="chairSelect" aria-label="Model Chair cho phiên tiếp theo"></select></div><p id="councilChairSubtitle">Tổng hợp các phản biện độc lập và đưa ra quyết định cuối cùng.</p></div><span id="councilChairTime" class="council-time"></span></div>
+    <div class="council-chair-body"><div id="councilSpecification" class="council-specification"></div><div class="council-chair-decision"><div id="councilChairSummary"></div><div class="council-actions"><button id="confirmCouncil" class="council-confirm" disabled></button><button id="runCouncil" class="council-rerun"></button><button id="councilBuildPlan" class="council-plan" disabled></button></div></div></div>
+  </article>
+  <details class="council-history"><summary id="councilHistoryLabel">Lịch sử phản biện</summary><div id="councilHistory"></div></details>
+  <div id="councilMembers" hidden></div>
+</section>
