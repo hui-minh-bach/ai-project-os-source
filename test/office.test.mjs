@@ -20,6 +20,15 @@ test('AI office: cast carries Vietnamese names with the owner as boss', () => {
   assert.match(teamCss, /transition:left 1\.15s ease,top 1\.15s ease/, 'agents glide between stations');
 });
 
+test('AI office: staff are walking figures, animated only while moving', () => {
+  assert.match(teamJs, /function officeFigure\(a\)/);
+  assert.match(teamJs, /fig-leg-l/);
+  assert.match(teamJs, /office-walking/);
+  assert.match(teamJs, /office-face-left/);
+  assert.match(teamCss, /@keyframes officeStep/);
+  assert.match(teamCss, /@keyframes officeBob/);
+});
+
 test('AI office: movement is driven by real app state, never a canned loop', () => {
   // data sources are the app's real endpoints
   assert.match(teamJs, /api\('\/api\/orchestrator'\)/);

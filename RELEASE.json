@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.23",
-  "channel": "v0.9.23-ai-office",
+  "version": "0.9.24",
+  "channel": "v0.9.24-walking-office",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -172,7 +172,7 @@
     },
     "ai_office_view": {
       "status": "implemented",
-      "note": "0.9.23: an 'AI Office' panel at the top of the Team tab visualizes the owner's AI team as named Vietnamese staff (boss 'Sếp Lâm' who approves publishing, PM Tuấn who receives and splits work, Na on news, Hằng on scripts, Tí on images, Minh on production, Tâm on review, Phát on publishing). Agent positions, badges, the parcel and the activity feed are derived ONLY from real app state — orchestrator runs and their recorded steps, unused ingest cards, project task statuses — polled every 4s; with no work the team honestly idles. Waiting runs surface an approve bar at the boss's desk that calls the real orchestrator approve route. Agent names are renamable (click an agent) and persist in localStorage. Deliberately NOT a simulation: unlike the competitor demo the owner saw (labeled 'no live inference'), nothing here moves without real work behind it."
+      "note": "0.9.24: office staff are now drawn people (SVG figures with per-role shirt colors, hair, faces and their role tool in hand) standing at desks. When an agent's station changes — driven by the same real work state — the figure walks: legs step, arms swing, the body bobs, and it faces its direction of travel (office-walking / office-face-left); at rest it idles with a gentle bob. 0.9.23: an 'AI Office' panel at the top of the Team tab visualizes the owner's AI team as named Vietnamese staff (boss 'Sếp Lâm' who approves publishing, PM Tuấn who receives and splits work, Na on news, Hằng on scripts, Tí on images, Minh on production, Tâm on review, Phát on publishing). Agent positions, badges, the parcel and the activity feed are derived ONLY from real app state — orchestrator runs and their recorded steps, unused ingest cards, project task statuses — polled every 4s; with no work the team honestly idles. Waiting runs surface an approve bar at the boss's desk that calls the real orchestrator approve route. Agent names are renamable (click an agent) and persist in localStorage. Deliberately NOT a simulation: unlike the competitor demo the owner saw (labeled 'no live inference'), nothing here moves without real work behind it."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

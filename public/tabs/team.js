@@ -174,15 +174,31 @@ setInterval(async()=>{
  * tin ingest, task của dự án đang chọn). Không có chuyển động giả: không
  * có việc thì nhân viên đứng ở bàn của mình với trạng thái "Đang chờ việc". */
 const OFFICE_CAST=[
- {id:'boss',name:'Sếp Lâm',role:'Tổng giám đốc · duyệt đăng',icon:'👔',station:'boss'},
- {id:'pm',name:'Tuấn',role:'Trưởng phòng · nhận & chia việc',icon:'🎯',station:'pm'},
- {id:'news',name:'Na',role:'Tin tức · tìm tin theo lĩnh vực',icon:'📰',station:'news'},
- {id:'script',name:'Hằng',role:'Biên tập · viết lời dẫn',icon:'✍️',station:'script'},
- {id:'image',name:'Tí',role:'Hình ảnh · tạo minh họa',icon:'🎨',station:'image'},
- {id:'media',name:'Minh',role:'Sản xuất · dựng video',icon:'🎬',station:'media'},
- {id:'review',name:'Tâm',role:'Kiểm duyệt · soi chất lượng',icon:'🔍',station:'review'},
- {id:'publish',name:'Phát',role:'Phát hành · đăng bài',icon:'🚀',station:'publish'},
+ {id:'boss',name:'Sếp Lâm',role:'Tổng giám đốc · duyệt đăng',icon:'👔',station:'boss',color:'#f59e0b'},
+ {id:'pm',name:'Tuấn',role:'Trưởng phòng · nhận & chia việc',icon:'🎯',station:'pm',color:'#8b5cf6'},
+ {id:'news',name:'Na',role:'Tin tức · tìm tin theo lĩnh vực',icon:'📰',station:'news',color:'#38bdf8'},
+ {id:'script',name:'Hằng',role:'Biên tập · viết lời dẫn',icon:'✍️',station:'script',color:'#34d399'},
+ {id:'image',name:'Tí',role:'Hình ảnh · tạo minh họa',icon:'🎨',station:'image',color:'#f472b6'},
+ {id:'media',name:'Minh',role:'Sản xuất · dựng video',icon:'🎬',station:'media',color:'#818cf8'},
+ {id:'review',name:'Tâm',role:'Kiểm duyệt · soi chất lượng',icon:'🔍',station:'review',color:'#facc15'},
+ {id:'publish',name:'Phát',role:'Phát hành · đăng bài',icon:'🚀',station:'publish',color:'#fb7185'},
 ];
+/* Hình nhân viên: người chibi vẽ bằng SVG — chân tay chuyển động khi đi. */
+function officeFigure(a){
+ return `<svg class="office-figure" viewBox="0 0 48 66" aria-hidden="true">
+  <g class="fig-bob">
+   <g class="fig-leg fig-leg-l"><rect x="18.5" y="42" width="5" height="17" rx="2.4" fill="#3b3b4d"/><rect x="17.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
+   <g class="fig-leg fig-leg-r"><rect x="24.5" y="42" width="5" height="17" rx="2.4" fill="#33333f"/><rect x="23.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
+   <g class="fig-arm fig-arm-l"><rect x="9.5" y="25" width="5" height="15" rx="2.5" fill="${a.color}"/></g>
+   <g class="fig-arm fig-arm-r"><rect x="33.5" y="25" width="5" height="15" rx="2.5" fill="${a.color}"/></g>
+   <rect x="13" y="22" width="22" height="22" rx="7" fill="${a.color}"/>
+   <circle cx="24" cy="13" r="9.5" fill="#ffd9b3"/>
+   <path d="M14.5 13a9.5 9.5 0 0 1 19 0z" fill="#4a3428"/>
+   <circle cx="20.6" cy="13.5" r="1.15" fill="#26222a"/><circle cx="27.4" cy="13.5" r="1.15" fill="#26222a"/>
+   <path d="M21 17.6q3 2.2 6 0" stroke="#b4713f" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+   <text x="40" y="34" font-size="11" text-anchor="middle">${a.icon}</text>
+  </g></svg>`;
+}
 const OFFICE_STATIONS={
  boss:{x:50,y:9,label:'👔 Bàn Sếp Lâm'},
  pm:{x:50,y:38,label:'🎯 Trưởng phòng'},
@@ -196,6 +212,7 @@ const OFFICE_STATIONS={
 };
 let officeNames={}; try{officeNames=JSON.parse(localStorage.getItem('aios-office-names')||'{}')}catch{officeNames={}}
 let officeState={runs:[],cards:[],tasks:[],loaded:false,lastFeed:[]};
+const officePrevPos={},officeWalkTimers={};
 function officeAgentName(a){return officeNames[a.id]||a.name}
 function officeStationOf(agentId,ctx){
  const a=OFFICE_CAST.find(x=>x.id===agentId); if(!a)return 'lounge';
@@ -234,7 +251,7 @@ function officeRender(){
  if(!room.dataset.built){
   room.dataset.built='1';
   room.innerHTML=Object.entries(OFFICE_STATIONS).map(([id,st])=>`<div class="office-station" style="left:${st.x}%;top:${st.y}%">${st.label}</div>`).join('')
-   +OFFICE_CAST.map(a=>`<button type="button" class="office-agent" id="officeAgent-${a.id}" data-office-agent="${a.id}" style="left:50%;top:50%" title="${esc(a.role)} — bấm để đổi tên"><span class="office-agent-icon">${a.icon}</span><span class="office-agent-name">${esc(officeAgentName(a))}</span><span class="office-agent-badge" hidden></span></button>`).join('')
+   +OFFICE_CAST.map(a=>`<button type="button" class="office-agent" id="officeAgent-${a.id}" data-office-agent="${a.id}" style="left:50%;top:50%" title="${esc(a.role)} — bấm để đổi tên"><span class="office-agent-shadow"></span>${officeFigure(a)}<span class="office-agent-name">${esc(officeAgentName(a))}</span><span class="office-agent-badge" hidden></span></button>`).join('')
    +`<div class="office-package" id="officePackage" hidden>📦</div>`
    +(awaiting?'':'' );
   room.querySelectorAll('[data-office-agent]').forEach(el=>el.onclick=()=>{
@@ -250,7 +267,16 @@ function officeRender(){
   const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
   const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
   const dx=slot===0?0:slot===1?9:-9;
-  el.style.left=(st.x+dx)+'%'; el.style.top=`calc(${st.y}% + 32px)`;
+  const targetX=st.x+dx;
+  const prev=officePrevPos[a.id];
+  if(prev&&prev.station!==stId+':'+slot){
+   el.classList.add('office-walking');
+   el.classList.toggle('office-face-left',targetX<prev.x);
+   clearTimeout(officeWalkTimers[a.id]);
+   officeWalkTimers[a.id]=setTimeout(()=>el.classList.remove('office-walking'),1300);
+  }
+  officePrevPos[a.id]={station:stId+':'+slot,x:targetX};
+  el.style.left=targetX+'%'; el.style.top=`calc(${st.y}% + 32px)`;
   el.querySelector('.office-agent-name').textContent=officeAgentName(a);
   const badge=el.querySelector('.office-agent-badge');
   let badgeText='';

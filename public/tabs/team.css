@@ -220,3 +220,21 @@
 .office-feed{margin-top:12px;display:grid;gap:4px;color:#c9c9da;font-size:13px}
 .office-feed p{margin:0}
 @media (max-width:760px){.office-room{height:520px}.office-station{font-size:10.5px}}
+
+/* ===== Nhân viên SVG + hoạt họa đi bộ (0.9.24) ===== */
+.office-station::after{content:'';position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);width:76px;height:12px;border-radius:6px;background:linear-gradient(180deg,#4b3a28,#33261a);box-shadow:0 4px 8px rgba(0,0,0,.4);opacity:.85}
+.office-agent-shadow{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:40px;height:9px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(2px)}
+.office-figure{width:46px;height:63px;display:block;overflow:visible}
+.office-agent .fig-bob{animation:officeIdle 2.6s ease-in-out infinite}
+.office-agent.office-face-left .office-figure{transform:scaleX(-1)}
+.office-agent.office-walking .fig-bob{animation:officeBob .3s ease-in-out infinite alternate}
+.office-agent.office-walking .fig-leg-l{animation:officeStep .3s ease-in-out infinite alternate}
+.office-agent.office-walking .fig-leg-r{animation:officeStep .3s ease-in-out infinite alternate-reverse}
+.office-agent.office-walking .fig-arm-l{animation:officeSwing .3s ease-in-out infinite alternate-reverse}
+.office-agent.office-walking .fig-arm-r{animation:officeSwing .3s ease-in-out infinite alternate}
+.office-agent.office-busy .office-figure{filter:drop-shadow(0 0 6px rgba(139,92,246,.55))}
+.fig-leg,.fig-arm{transform-box:fill-box;transform-origin:50% 8%}
+@keyframes officeStep{from{transform:rotate(17deg)}to{transform:rotate(-17deg)}}
+@keyframes officeSwing{from{transform:rotate(13deg)}to{transform:rotate(-13deg)}}
+@keyframes officeBob{from{transform:translateY(0)}to{transform:translateY(-2.4px)}}
+@keyframes officeIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.1px)}}
