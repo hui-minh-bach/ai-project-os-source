@@ -165,3 +165,12 @@ html[data-theme="arctic"] .notice{background:#fff7df;color:#7a540c;border-color:
 #mediaStudio .mediaTlBlock.fx{background:linear-gradient(180deg,#8b5cf6,#6d3fd4)}
 #mediaStudio .mediaTlPlayhead{background:#c4b5fd;width:2px;box-shadow:0 0 8px rgba(167,139,250,.8)}
 #mediaStudio .mediaFxItem{background:#23232d;border:1px solid #31313e;border-radius:9px}
+
+/* Video templates gallery (0.9.18) */
+#mediaStudio .mediaTemplates{margin-bottom:14px}
+#mediaStudio .mediaTemplateGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}
+#mediaStudio .mediaTemplateCard{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid #2b2b36;background:linear-gradient(160deg,#23232e,#1a1a22);color:#e8e8f0;cursor:pointer;transition:border-color .15s,transform .15s}
+#mediaStudio .mediaTemplateCard:hover{border-color:#8b5cf6;transform:translateY(-1px)}
+#mediaStudio .mediaTemplateCard .mediaTemplateIcon{font-size:20px}
+#mediaStudio .mediaTemplateCard b{font-size:13px}
+#mediaStudio .mediaTemplateCard small{font-size:11px;line-height:1.45;color:#a7a7ba}

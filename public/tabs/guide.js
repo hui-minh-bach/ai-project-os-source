@@ -53,6 +53,29 @@ $('#customerTtsDelete').onclick=async()=>{
 };
 document.addEventListener('page-change',e=>{if(e.detail?.page==='guide')customerTtsStatus();});
 
+async function customerFptStatus(){
+ const label=$('#customerFptStatus');if(!label)return;
+ try{const c=await api('/api/system/tts/fpt/config');
+   label.textContent=c.configured?'Đã lưu khóa FPT.AI trong Vault (chưa xác minh hạn mức).':c.envConfigured?'Máy có biến FPT_AI_API_KEY (chưa xác minh hạn mức).':'Chưa cấu hình FPT.AI trong Vault.';
+   label.textContent+=c.vault?' Vault đang mở.':' Mở Vault để thêm hoặc chỉnh sửa.';
+   if(c.voiceId)$('#customerFptVoice').value=c.voiceId;
+ }catch(e){label.textContent='Không kiểm tra được cấu hình FPT.AI: '+e.message;}
+}
+$('#customerFptSave').onclick=async()=>{
+ const label=$('#customerFptStatus');const keyField=$('#customerFptApiKey');const apiKey=String(keyField.value||'').trim();const voiceId=$('#customerFptVoice').value.trim();
+ try{const result=await api('/api/system/tts/fpt/config',{method:'POST',body:JSON.stringify({apiKey,voiceId})});
+   keyField.value='';label.textContent='Đã lưu FPT.AI trong Vault. Vào Media Studio chọn giọng FPT.AI khi lồng tiếng/đổi chủ đề để nghe giọng thật.';
+   await customerLoadHealth();
+ }catch(e){label.textContent='Lưu FPT.AI thất bại: '+e.message;}
+};
+$('#customerFptDelete').onclick=async()=>{
+ if(!confirm('Xóa API key FPT.AI đã lưu trong Vault trên máy này?'))return;
+ try{await api('/api/system/tts/fpt/config',{method:'DELETE',body:'{}'});$('#customerFptApiKey').value='';await customerFptStatus();await customerLoadHealth();}
+ catch(e){$('#customerFptStatus').textContent='Không thể xóa: '+e.message;}
+};
+document.addEventListener('page-change',e=>{if(e.detail?.page==='guide')customerFptStatus();});
+
+
 
 // The doctor deliberately runs only after the user clicks: real local H.264
 // encoding can be CPU-heavy; it never calls paid AI APIs.

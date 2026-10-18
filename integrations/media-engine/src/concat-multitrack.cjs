@@ -44,7 +44,7 @@ function validateTimeline(timeline){
   insist(Number.isFinite(sum)&&sum>0&&sum<=300,'Concat multitrack beta supports clips up to five minutes','MEDIA_CONCAT_LIMIT');
   for(const c of timeline.segments)insist(Number.isFinite(c.start)&&Number.isFinite(c.end)&&c.start>=0&&c.end-c.start>=.15,
     'Invalid source scene','MEDIA_PLAN_RANGE');
-  const overlap=timeline.transition==='crossfade'&&timeline.segments.length>1 ? Number(timeline.transitionSeconds||0) : 0;
+  const overlap=['crossfade','fadeblack','slideleft','slideright','wipeleft'].includes(timeline.transition)&&timeline.segments.length>1 ? Number(timeline.transitionSeconds||0) : 0;
   insist(Number.isFinite(overlap)&&overlap>=0&&overlap<=.75,'Invalid transition duration','MEDIA_TRANSITION');
   return {overlap,seconds:sum-overlap*(timeline.segments.length-1)};
 }

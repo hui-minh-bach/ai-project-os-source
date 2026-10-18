@@ -123,9 +123,9 @@ function mediaPayload(){const source=mediaUI.source,mode=mediaUI.mode;let params
   else if(mode==='voiceover'){if(!mediaUI.audioSource)throw new Error('Nạp file giọng đọc WAV/MP3/M4A trước.');params={source,audioSource:mediaUI.audioSource,captionsSource:mediaUI.captionsSource||undefined,musicSource:mediaUI.musicSource||undefined,musicVolume:Number($('#mediaVoiceMusicVolume').value),alignment:$('#mediaVoiceAlignment').value,hardsubCover:$('#mediaVoiceoverHardsub')?.value||'off',hardsubRegionPct:Number($('#mediaVoiceoverHardsubHeight')?.value||12)};}
   else if(mode==='tts-video'){if($('#mediaTtsProvider').value==='local'&&!experience.status?.media?.localTts?.ready)throw new Error('Chưa cài Piper TTS local. Hãy tạo giọng trong Concat rồi nạp WAV/MP3 ở Thay giọng thật, hoặc cài Piper + model offline. Không cần HeyGen.');const text=$('#mediaTtsVideoText').value.trim();if(!text||text.length>5000)throw new Error('Lời thoại phải từ 1 đến 5000 ký tự.');params={source,text,ttsProvider:$('#mediaTtsProvider').value,voice:$('#mediaTtsVideoVoice').value.trim()||undefined,captionsSource:mediaUI.captionsSource||undefined,musicSource:mediaUI.musicSource||undefined,musicVolume:Number($('#mediaVoiceMusicVolume').value),alignment:$('#mediaVoiceAlignment').value};}
   else if(mode==='effects'){const fx=$$('#mediaFxPanel input[type=checkbox]:checked').map(c=>c.value);if(!fx.length)throw new Error('Tick chọn ít nhất một hiệu ứng.');if(fx.includes('title')&&!$('#mediaFxTitle').value.trim())throw new Error('Nhập chữ vào ô Tiêu đề cho hiệu ứng Tiêu đề mở đầu.');if(fx.includes('lower-third')&&!$('#mediaFxName').value.trim())throw new Error('Nhập chữ vào ô Thẻ tên cho hiệu ứng Thẻ tên.');params={source,effects:fx,title:$('#mediaFxTitle').value.trim()||undefined,name:$('#mediaFxName').value.trim()||undefined};}
-  else if(mode==='retheme'){const scriptSource=$('#mediaRethemeScriptSource').value;const topic=$('#mediaRethemeTopic').value.trim();const scriptText=$('#mediaRethemeScriptText').value.trim();if(scriptSource==='model'&&!topic)throw new Error('Nhập chủ đề mới để AI viết kịch bản, hoặc chọn “Tôi tự dán kịch bản”.');if(scriptSource==='supplied'&&!scriptText)throw new Error('Dán kịch bản của bạn vào ô kịch bản.');params={source,scriptSource,topic:topic||undefined,notes:$('#mediaRethemeNotes').value.trim()||undefined,scriptText:scriptText||undefined,targetLanguage:$('#mediaRethemeLanguage').value,hardsubCover:$('#mediaRethemeHardsub')?.value||'blur',hardsubRegionPct:Number($('#mediaRethemeHardsubHeight')?.value||12),karaokeCaptions:$('#mediaRethemeKaraoke')?$('#mediaRethemeKaraoke').checked:true,captionsSource:mediaUI.captionsSource||undefined};}
+  else if(mode==='retheme'){const scriptSource=$('#mediaRethemeScriptSource').value;const topic=$('#mediaRethemeTopic').value.trim();const scriptText=$('#mediaRethemeScriptText').value.trim();if(scriptSource==='model'&&!topic)throw new Error('Nhập chủ đề mới để AI viết kịch bản, hoặc chọn “Tôi tự dán kịch bản”.');if(scriptSource==='supplied'&&!scriptText)throw new Error('Dán kịch bản của bạn vào ô kịch bản.');params={source,scriptSource,topic:topic||undefined,notes:$('#mediaRethemeNotes').value.trim()||undefined,scriptText:scriptText||undefined,targetLanguage:$('#mediaRethemeLanguage').value,hardsubCover:$('#mediaRethemeHardsub')?.value||'blur',hardsubRegionPct:Number($('#mediaRethemeHardsubHeight')?.value||12),karaokeCaptions:$('#mediaRethemeKaraoke')?$('#mediaRethemeKaraoke').checked:true,captionPreset:$('#mediaRethemeCaptionPreset')?.value||'sweep',ttsProvider:$('#mediaRethemeTts')?.value||'local',voice:$('#mediaRethemeTts')?.value==='fpt'?($('#mediaRethemeFptVoice')?.value||undefined):undefined,captionsSource:mediaUI.captionsSource||undefined};}
   else if(mode==='subtitle-edit'){const segments=mediaJson('mediaSegments',null);if(!Array.isArray(segments)||!segments.length)throw new Error('Cần JSON mảng các đoạn phụ đề.');params={segments,changes:mediaJson('mediaChanges',[])};}
-  else if(mode==='story'){const text=$('#mediaStoryText').value.trim();if(!text)throw new Error('Cần nội dung truyện.');params={text,mode:$('#mediaStoryMode').value,resolution:$('#mediaStoryRes').value,voice:$('#mediaTtsVoice').value.trim()||undefined,rights:$('#mediaStoryRights').value};}
+  else if(mode==='story'){const text=$('#mediaStoryText').value.trim();if(!text)throw new Error('Cần nội dung truyện.');params={text,mode:$('#mediaStoryMode').value,resolution:$('#mediaStoryRes').value,voice:$('#mediaTtsVoice').value.trim()||undefined,rights:$('#mediaStoryRights').value,transition:$('#mediaStoryTransition')?.value||'crossfade',transitionSeconds:0.4};}
   else if(mode==='publish-draft'){const title=$('#mediaDraftTitle').value.trim();if(!title)throw new Error('Nhập tiêu đề bản nháp.');params={video:source,title,channel:$('#mediaDraftChannel').value,rights:$('#mediaDraftRights').value};}
   if(source&&params.source===source&&mediaUI.sourceLabel)params.sourceLabel=mediaUI.sourceLabel.slice(0,160);
   return {operation:mode==='story'&&$('#mediaStoryProduct').value==='outline'?'media.story-outline':'media.'+mode,params};
@@ -396,12 +396,46 @@ $('#mediaDirectorGo')?.addEventListener('click',async()=>{
   const host=$('#mediaDirectorPlan');if(host){host.hidden=false;host.innerHTML='<p class="mediaHint">AI đang xem video và nghe nội dung để hiểu ý bạn… (video dài có thể mất tới một phút)</p>';}
   try{
     const wish=$('#mediaDirectorWish').value.trim();
-    const data=await api('/api/integrations/media/director/plan',{method:'POST',body:JSON.stringify({projectId:state.project.id,source:mediaUI.source||'',wish})});
+    const data=await api('/api/integrations/media/director/plan',{method:'POST',body:JSON.stringify({projectId:state.project.id,source:mediaUI.source||'',wish,voiceProvider:$('#mediaDirectorVoice')?.value||'local'})});
     if(!data.available){mediaDirectorRenderFallback(data.reason);return;}
     mediaDirectorRenderPlan(data);
   }catch(e){mediaDirectorRenderFallback('Không gọi được AI đạo diễn: '+e.message);}
   finally{button.disabled=false;}
 });
+/* ===== Video templates: pick one, content in, run ===== */
+async function mediaTemplatesLoad(){
+  const grid=$('#mediaTemplateGrid');if(!grid)return;
+  try{
+    const data=await api('/api/integrations/media/templates');
+    grid.innerHTML=(data.templates||[]).map(t=>`<button type="button" class="mediaTemplateCard" data-template="${esc(t.id)}"><span class="mediaTemplateIcon">${esc(t.icon||'🎬')}</span><b>${esc(t.name)}</b><small>${esc(t.desc)}</small></button>`).join('')||'<p class="mediaHint">Chưa có mẫu nào.</p>';
+  }catch(e){grid.innerHTML='<p class="mediaHint">Không tải được danh sách mẫu: '+esc(e.message)+'</p>';}
+}
+$('#mediaTemplateGrid')?.addEventListener('click',async e=>{
+  const card=e.target.closest?.('[data-template]');if(!card)return;
+  const id=card.dataset.template;
+  let tpl=null;try{const data=await api('/api/integrations/media/templates');tpl=(data.templates||[]).find(t=>t.id===id);}catch{}
+  if(!tpl){mediaFeedback('Không đọc được mẫu đã chọn.','Error');return;}
+  if(tpl.operation==='media.effects'){
+    mediaSwitchMode('effects');
+    $$('#mediaFxPanel input[type=checkbox]').forEach(c=>{c.checked=(tpl.effects||[]).includes(c.value);});
+    mediaFeedback('Đã áp mẫu “'+tpl.name+'”: '+tpl.hint);return;
+  }
+  if(tpl.operation==='media.story'){
+    mediaSwitchMode('story');
+    const sel=$('#mediaStoryTransition');if(sel&&tpl.params?.transition)sel.value=tpl.params.transition;
+    mediaFeedback('Đã áp mẫu “'+tpl.name+'”: '+tpl.hint);return;
+  }
+  if(!mediaUI.source){mediaFeedback('Mẫu “'+tpl.name+'” cần video: '+tpl.hint,'Error');return;}
+  if(!state.project?.id){mediaFeedback('Tạo hoặc chọn dự án trước.','Error');return;}
+  const host=$('#mediaDirectorPlan');if(host){host.hidden=false;host.innerHTML='<p class="mediaHint">Đang áp mẫu “'+esc(tpl.name)+'”…</p>';}
+  try{
+    const data=await api('/api/integrations/media/director/plan',{method:'POST',body:JSON.stringify({projectId:state.project.id,source:mediaUI.source||'',templateId:id})});
+    mediaDirectorRenderPlan(data);
+    mediaFeedback('Mẫu “'+tpl.name+'”: '+tpl.hint);
+  }catch(err){mediaFeedback('Không áp được mẫu: '+err.message,'Error');}
+});
+mediaTemplatesLoad();
+
 $('#mediaDirectorPlan')?.addEventListener('click',e=>{
   const btn=e.target.closest?.('[data-director-route]');if(!btn)return;
   mediaSwitchMode(btn.dataset.directorRoute);

@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.17",
-  "channel": "v0.9.17-linux-package",
+  "version": "0.9.18",
+  "channel": "v0.9.18-video-beauty-templates-voice",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -128,6 +128,26 @@
     "linux_package": {
       "status": "built",
       "scope": "Official Linux package (0.9.17, owner-approved): AI_PROJECT_OS_v0.9.17_Linux.tar.gz with the identical app tree, an official Node.js v24.20.0 linux-x64 runtime bundled as runtime-linux-x64, AI-Project-OS.sh launcher (bundled node first, system node fallback), install.sh (copies to ~/ai-project-os, creates a desktop entry + Desktop shortcut) and a Vietnamese Linux guide. The launcher already opens the browser via xdg-open; DATA_DIR on Linux is <install>/.data; managed-cli npm resolution is platform-aware. Windows-only honestly: Concat automatic setup stays Windows x64 (Linux users install Concat themselves; the RPC path works wherever Concat runs), one-click AI CLI installers that pin Windows builds keep their Windows scope. Verified on a real Linux machine (this build host): clean install into a fresh HOME, server boots with the BUNDLED node, release manifest ok, full test suite run from the packaged tree."
+    },
+    "video_templates": {
+      "status": "built-live-verified",
+      "scope": "Five deterministic video templates (0.9.18): a template gallery at the top of Media Studio; each template is a preset bundle over an existing operation (news-vertical -> retheme 9:16+pop captions, review-sale -> effects pack, story-telling -> story with slide transition, dub-film -> dub with sweep karaoke, karaoke-clip -> retheme with box captions). Server source of truth src/lib/media-templates.mjs + GET /api/integrations/media/templates; the AI Director accepts templateId and returns the template plan deterministically WITHOUT a model call (viaTemplate), reusing the same plan card + approve flow. Effects/story templates prefill their panels instead of submitting blind. Live verified in sandbox: templates endpoint returned all five; director template plan routed news-vertical to media.retheme with captionPreset pop."
+    },
+    "karaoke_caption_presets": {
+      "status": "built-live-verified",
+      "scope": "Three karaoke caption styles for media.dub + media.retheme (0.9.18), chosen in the Retheme panel, by templates, or per task (captionPreset): sweep (classic yellow \\kf fill), pop (one large word at a time with a scale-in, TikTok style), box (whole line on a solid yellow strip, sung words turn black). Same aligned word timings from 0.9.14; only the ASS rendering differs (buildKaraokeAss preset). Live verified on the JFK clip: pop render produced 64 per-word Dialogue events with scale transforms and captionStyle karaoke-pop in the report; box frame shows the yellow strip with dark text; both 80.04s, 0 overflows."
+    },
+    "fpt_tts_provider": {
+      "status": "built-stub-verified",
+      "scope": "Optional FPT.AI cloud TTS (0.9.18) beside local Piper and HeyGen: src/lib/fpt-tts.mjs implements the FPT.AI TTS v5 API (POST /hmi/tts/v5 with api-key header, async render URL polled then downloaded, host allowlist *.fpt.ai, mp3 -> WAV via ffmpeg) with seven Vietnamese voices (banmai, lannhi, leminh, giahuy, myan, thuminh, linhsan). Key stored only in the Vault (POST /api/system/tts/fpt/config, Guide tab block); selectable in the Director box, the Retheme panel, and the script-to-voice panel; never auto-selected (billable only on explicit choice); non-Vietnamese targets block honestly (BLOCKED_DUB_VOICE). Verified against a protocol-faithful stub server end to end (unit tests + a full live retheme task whose report records voiceProvider fpt). The REAL FPT.AI service with the owner key is pending his acceptance test."
+    },
+    "story_transitions": {
+      "status": "built-live-verified",
+      "scope": "Soft scene transitions for media.story and edit plans (0.9.18): transition kinds cut/crossfade/fadeblack/slideleft/slideright/wipeleft across the whole chain (model plan prompts + validators in media-ai.mjs, timeline.cjs validate, renderer.cjs xfade mapping, Concat multitrack overlap set, deterministic natural-plan prompt words). Story timelines carry output-true positions: scene/subtitle times are shifted by index*overlap and expectedDuration shrinks by (scenes-1)*overlap; subtitle ends clamp to the next line start across crossfades. Two real bugs were caught by live QA and fixed (duration mismatch + subtitle-outside-video, then overlapping subtitles). Live verified: 5-scene story with slideleft 0.4s completed QA, expected 20.78s vs actual 20.80s, mid-transition frame shows the next scene sliding in."
+    },
+    "lip_sync": {
+      "status": "researched-not-implemented",
+      "scope": "Researched 2026-10-18 for the owner (Wav2Lip, SadTalker, MuseTalk, LatentSync, LivePortrait, EchoMimic, Hallo2): NO open-source lip-sync is commercially shippable in this product today — every candidate fails on code or weight licensing for commercial use (Wav2Lip research-only; SadTalker depends on GFPGAN non-commercial weights; MuseTalk weights exclude commercial use; LatentSync/LivePortrait/EchoMimic research terms). The practical commercial route is a cloud API slot (Sync.so / HeyGen / D-ID), same optional-provider pattern as HeyGen/FPT TTS. Deliberately NOT faked or bundled; revisit if licensing changes or the owner chooses a paid API."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

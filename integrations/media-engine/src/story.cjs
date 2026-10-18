@@ -21,7 +21,7 @@ async function loadText({workspace,source,text,python='python3',pdftotext='pdfto
  const py='import zipfile,sys,xml.etree.ElementTree as E\nf=zipfile.ZipFile(sys.argv[1]);t=E.fromstring(f.read("word/document.xml"));ns={"w":"http://schemas.openxmlformats.org/wordprocessingml/2006/main"};print("\\n".join("".join(n.text or "" for n in p.findall(".//w:t",ns)) for p in t.findall(".//w:p",ns)))';
  const r=await run(python,['-c',py,file],{timeoutMs:30000,maxOutput:12e6});insist(r.stdout.trim(),'Empty DOCX');return {text:r.stdout.trim(),source:file};
 }
-async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxChars=420,mode='verbatim',allowProviderImages=false,ffprobeBin='ffprobe',ffmpegBin='ffmpeg',python='python3',resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral'}){
+async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxChars=420,mode='verbatim',allowProviderImages=false,ffprobeBin='ffprobe',ffmpegBin='ffmpeg',python='python3',resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition='cut',transitionSeconds=0.4}){
  insist(mode==='verbatim'||mode==='adapted','Unknown story mode');
  insist(Number.isFinite(rate)&&rate>=0.65&&rate<=1.5,'Unsupported narration rate');
  insist(Number.isFinite(volume)&&volume>=0.1&&volume<=1,'Unsupported narration volume');
@@ -58,7 +58,7 @@ async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxCh
    let t=cursor;
    for(let k=0;k<units.length;k++){
     const end=k===units.length-1?cursor+measured:t+units[k].seconds;
-    subtitles.push({id:String(subtitles.length+1),start:t,end,text:units[k].text});t=end;
+    subtitles.push({id:String(subtitles.length+1),start:t,end,text:units[k].text,sceneIndex:index});t=end;
    }
    const pic=fs.existsSync(imgPath)?{path:imgPath,origin:'checkpoint'}:await illustration({gateway,description:parts[j],characterSheet:style,output:imgPath,offline:!allowProviderImages,scene:index});
    const scene={index,chapter:chapter.number,sourceText:parts[j],title:`Scene ${index+1}`,image:pic.path,imageOrigin:pic.origin,audio:voicePath,duration:measured,voice,characterSheet:style,cacheKey:key,start:cursor,end:cursor+measured};
@@ -66,7 +66,23 @@ async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxCh
   }
  }
  const sizes={'360p':[640,360],'720p':[1280,720],'1080p':[1920,1080]};insist(sizes[resolution],'Unsupported story resolution');
- const timeline={version:1,kind:'story',width:sizes[resolution][0],height:sizes[resolution][1],fps:25,scenes:storyboard,expectedDuration:cursor};
+ const XF_OK=['crossfade','fadeblack','slideleft','slideright','wipeleft'];
+ const effTransition=XF_OK.includes(transition)?transition:'cut';
+ const effSeconds=Math.max(0.1,Math.min(0.75,Number(transitionSeconds)||0.4));
+ let expectedDuration=cursor;
+ if(effTransition!=='cut'&&storyboard.length>1){
+  // xfade output positions: scene i is shifted i*overlap earlier; subtitles
+  // and scene spans follow the same shift; the output total shrinks.
+  for(const scene of storyboard){const shift=scene.index*effSeconds;scene.start=Math.max(0,scene.start-shift);scene.end=Math.max(scene.start+0.1,scene.end-shift);}
+  for(const sub of subtitles){const shift=(sub.sceneIndex||0)*effSeconds;sub.start=Math.max(0,sub.start-shift);sub.end=Math.max(sub.start+0.1,sub.end-shift);}
+  expectedDuration=cursor-(storyboard.length-1)*effSeconds;
+  // During each crossfade the outgoing line's tail blends under the next
+  // line's head; captions stay sequential by ending a line where the next
+  // begins (the same convention subtitle editors apply).
+  for(let i=0;i<subtitles.length-1;i++){const next=subtitles[i+1];if(subtitles[i].end>next.start)subtitles[i].end=Math.max(subtitles[i].start+0.1,next.start);}
+ }
+ for(const sub of subtitles)delete sub.sceneIndex;
+ const timeline={version:1,kind:'story',width:sizes[resolution][0],height:sizes[resolution][1],fps:25,scenes:storyboard,expectedDuration,transition:effTransition,transitionSeconds:effSeconds};
  const metadata={mode,source:loaded.source,sourceSHA256:sha(body),sourceCharacters:body.length,chapters:ch.length,characters:characters(body),characterSheet:style,voice,rate,volume,emotion,rights,segmentTimings:'Measured via ffprobe for every separately synthesized Vietnamese phrase; not phoneme/word forced alignment',sceneCount:storyboard.length};
  jsonWrite(path.join(jobDir,'storyboard.json'),{metadata,timeline});
  fs.writeFileSync(path.join(jobDir,'captions.srt'),subs.srt(subtitles));

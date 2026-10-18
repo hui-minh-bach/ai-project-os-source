@@ -39,7 +39,7 @@ import { createUpdater } from './lib/updater.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.17';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.18';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -138,9 +138,12 @@ const server=http.createServer(async(req,res)=>{try{
     const id=u.searchParams.get('projectId')||'';if(id)getProject(id);
     const {target,...status}=integrations.plannerStatus(id);return send(res,200,status);
   }
+  if(req.method==='GET'&&u.pathname==='/api/integrations/media/templates'){
+    return send(res,200,{templates:integrations.mediaTemplates()});
+  }
   if(req.method==='POST'&&u.pathname==='/api/integrations/media/director/plan'){
     const b=await readBody(req);if(b.projectId)getProject(b.projectId);
-    return send(res,200,await integrations.directorPlan(b.projectId,{source:typeof b.source==='string'?b.source:'',wish:typeof b.wish==='string'?b.wish:''}));
+    return send(res,200,await integrations.directorPlan(b.projectId,{source:typeof b.source==='string'?b.source:'',wish:typeof b.wish==='string'?b.wish:'',templateId:typeof b.templateId==='string'?b.templateId:'',voiceProvider:typeof b.voiceProvider==='string'?b.voiceProvider:'local'}));
   }
   if(req.method==='GET'&&u.pathname==='/api/integrations/media/concat/managed/status')
     return send(res,200,{...concatInstallStatus({root:ROOT}),connected:false,requiresVault:!vaultStatus().unlocked});
@@ -231,6 +234,24 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='DELETE'&&u.pathname==='/api/system/tts/config'){
     if(!vaultStatus().unlocked)return send(res,423,{error:'Hãy mở kho Vault để xóa cấu hình HeyGen.'});
     deleteConnection('aios-heygen-tts');return send(res,200,{ok:true});
+  }
+  if(req.method==='GET'&&u.pathname==='/api/system/tts/fpt/config'){
+    const c=findServiceCredential('fpt_tts');
+    return send(res,200,{vault:vaultStatus().unlocked,configured:!!c?.secret,voiceId:c?.voiceId||'',envConfigured:!!process.env.FPT_AI_API_KEY,voices:[{id:'banmai',name:'Ban Mai — nữ, miền Bắc'},{id:'lannhi',name:'Lan Nhi — nữ, miền Nam'},{id:'leminh',name:'Lê Minh — nam, miền Bắc'},{id:'giahuy',name:'Gia Huy — nam, miền Nam'},{id:'myan',name:'Mỹ An — nữ, miền Trung'},{id:'thuminh',name:'Thu Minh — nữ, miền Bắc'},{id:'linhsan',name:'Linh San — nữ, miền Nam'}]});
+  }
+  if(req.method==='POST'&&u.pathname==='/api/system/tts/fpt/config'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Hãy mở kho Vault trước khi lưu khóa FPT.AI.'});
+    const body=await readBody(req);const voiceId=String(body.voiceId||'').trim().toLowerCase();
+    if(voiceId&&!['banmai','lannhi','leminh','giahuy','myan','thuminh','linhsan'].includes(voiceId))return send(res,400,{error:'Giọng FPT.AI không hợp lệ.'});
+    const apiKey=String(body.apiKey||'').trim();
+    if(apiKey&&(apiKey.length<12||apiKey.length>2000))return send(res,400,{error:'API key có độ dài không hợp lệ.'});
+    if(!apiKey&&!findServiceCredential('fpt_tts')?.secret)return send(res,400,{error:'Cần nhập API key FPT.AI cho lần đầu.'});
+    const saved=saveConnection({id:'aios-fpt-tts',kind:'other',name:'FPT.AI TTS (Media Studio)',secret:apiKey,model:voiceId,meta:{keyType:'fpt_tts'}});
+    return send(res,200,{saved:true,configured:saved.hasSecret,voiceId:saved.model});
+  }
+  if(req.method==='DELETE'&&u.pathname==='/api/system/tts/fpt/config'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Hãy mở kho Vault để xóa cấu hình FPT.AI.'});
+    deleteConnection('aios-fpt-tts');return send(res,200,{ok:true});
   }
   if(req.method==='GET'&&u.pathname==='/api/system/readiness'){
     const status=integrations.status();

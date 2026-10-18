@@ -15,6 +15,8 @@ import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createHeygenTts } from './heygen-tts.mjs';
+import { createFptTts } from './fpt-tts.mjs';
+import { templateById, directorPlanForTemplate, MEDIA_TEMPLATES } from './media-templates.mjs';
 import { piperStatus, piperSynthesize, piperVoiceFor } from './local-piper-tts.mjs';
 import { buildVoiceover } from './voiceover.mjs';
 import { writeWordCaptions } from './voice-captions.mjs';
@@ -26,7 +28,7 @@ import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegment
 import { EFFECT_IDS, buildEffectsGraph, buildEffectsAss } from './media-effects.mjs';
 import { generateImage, IMAGE_PROVIDERS } from './image-gen.mjs';
 import { whisperStatus, transcribeLocal, transcribeWordsLocal } from './local-whisper.mjs';
-import { alignKaraokeWords, buildKaraokeAss } from './karaoke-captions.mjs';
+import { alignKaraokeWords, buildKaraokeAss, KARAOKE_PRESETS } from './karaoke-captions.mjs';
 
 const require=createRequire(import.meta.url);
 const PROJECT_ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -105,10 +107,15 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
   const handlers=new Map();
   let core=null,media=null,timer=null,problem=null,probeCache=null,probeAt=0,mode=null;
   const tts=createHeygenTts({apiKey:()=>findServiceCredential('heygen_tts')?.secret||env.HEYGEN_API_KEY||'',defaultVoice:()=>findServiceCredential('heygen_tts')?.voiceId||env.HEYGEN_TTS_VOICE_ID||'',fetchImpl:ttsFetch});
+  const fptTts=createFptTts({apiKey:()=>findServiceCredential('fpt_tts')?.secret||env.FPT_AI_API_KEY||'',defaultVoice:()=>findServiceCredential('fpt_tts')?.voiceId||env.FPT_TTS_VOICE||'',fetchImpl:ttsFetch});
   function ttsChoice(requested='auto'){
     // Never select a billable provider without an explicit user choice.
     // Legacy 'auto' jobs use local only; if local is absent they block.
-    if(!['auto','local','heygen'].includes(requested))throw err('BLOCKED_TTS','Nhà cung cấp giọng không hợp lệ.');
+    if(!['auto','local','heygen','fpt'].includes(requested))throw err('BLOCKED_TTS','Nhà cung cấp giọng không hợp lệ.');
+    if(requested==='fpt'){
+      if(!fptTts.configured())throw err('BLOCKED_TTS','FPT.AI chưa được cấu hình API key; nhập key FPT.AI trong Media Studio hoặc chọn Piper local.');
+      return {...fptTts,provider:'fpt'};
+    }
     if(requested==='heygen'){
       if(!tts.configured())throw err('BLOCKED_TTS','HeyGen chưa được cấu hình; chọn Piper local hoặc nạp âm thanh từ Concat.');
       return {...tts,provider:'heygen'};
@@ -465,7 +472,8 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // local Whisper on the FINAL speech track when available, otherwise a
       // deterministic proportional split. The shown text is always the
       // segment script; Whisper contributes timing boundaries only.
-      async function karaokeBurnCaptions({jobId,dir,segments,texts,trackFile,language,real,segReports}){
+      async function karaokeBurnCaptions({jobId,dir,segments,texts,trackFile,language,real,segReports,captionPreset='sweep'}){
+        const preset=KARAOKE_PRESETS.includes(captionPreset)?captionPreset:'sweep';
         const vs=(real.streams||[]).find(x=>x.codec_type==='video')||{};
         let whisperWords=null;
         if(whisperStatus(env).ready){
@@ -484,11 +492,11 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         const segs=segments.map((sg,i)=>({...sg,text:texts[i]}));
         const aligned=alignKaraokeWords({segments:segs,texts,groups,whisperWords});
         const assPath=path.join(dir,'captions-karaoke.ass');
-        fs.writeFileSync(assPath,buildKaraokeAss({segments:segs,timedWords:aligned.timedWords,width:vs.width||1280,height:vs.height||720}));
+        fs.writeFileSync(assPath,buildKaraokeAss({segments:segs,timedWords:aligned.timedWords,width:vs.width||1280,height:vs.height||720,preset}));
         await artifactPort.putFile({jobId,source:assPath,name:'captions-karaoke.ass'});
-        return {captionsSource:path.relative(mediaWorkspace,assPath),captionStyle:'karaoke',captionTiming:aligned.method,wordCount:aligned.wordCount};
+        return {captionsSource:path.relative(mediaWorkspace,assPath),captionStyle:'karaoke-'+preset,captionTiming:aligned.method,wordCount:aligned.wordCount};
       }
-      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true})=>{
+      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true,captionPreset='sweep'})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.dub-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -519,7 +527,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const tr=await translateSegmentsWithModel(ctx.projectId,segments,targetLanguage);
           texts=tr.texts;translationMeta={origin:'project-worker-model',provider:tr.provider,model:tr.model};
         }
-        const provider=ttsChoice(ttsProvider==='heygen'?'heygen':'local');
+        const provider=ttsChoice(['heygen','fpt'].includes(ttsProvider)?ttsProvider:'local');
         if(provider.provider==='piper-local'){
           const voiceName=piperStatus(env).voice||'';
           const voiceLang=(voiceName.split(/[_-]/)[0]||'').toLowerCase();
@@ -532,7 +540,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         const translatedSrt=path.join(dir,'captions-target.srt');
         fs.writeFileSync(translatedSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
         let burnCaptions=path.relative(mediaWorkspace,translatedSrt),captionStyle='segments',captionTiming=null;
-        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:dubWav,language:targetLanguage,real,segReports:dubAsm.segReports});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
+        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:dubWav,language:targetLanguage,real,segReports:dubAsm.segReports,captionPreset});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
         const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-dubbed-voice.mp4'});
         await artifactPort.putFile({jobId,source:translatedSrt,name:`captions-${targetLanguage}.srt`});
@@ -548,7 +556,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // model against a topic, or supplied with the task (array, or free
       // text split deterministically across the windows). The original
       // audio track is fully replaced and new subtitles are burned.
-      handlers.set('media.retheme',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage='vi',scriptSource='model',topic='',notes='',scriptText='',scriptTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true})=>{
+      handlers.set('media.retheme',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage='vi',scriptSource='model',topic='',notes='',scriptText='',scriptTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true,captionPreset='sweep'})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.retheme-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -592,7 +600,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const wr=await writeRethemeScriptWithModel(ctx.projectId,segments,{topic,notes,language:targetLanguage});
           texts=wr.texts;scriptMeta={origin:'project-worker-model',provider:wr.provider,model:wr.model};
         }
-        const provider=ttsChoice(ttsProvider==='heygen'?'heygen':'local');
+        const provider=ttsChoice(['heygen','fpt'].includes(ttsProvider)?ttsProvider:'local');
         if(provider.provider==='piper-local'){
           const voiceName=piperStatus(env).voice||'';
           const voiceLang=(voiceName.split(/[_-]/)[0]||'').toLowerCase();
@@ -605,7 +613,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         const newSrt=path.join(dir,'captions-new.srt');
         fs.writeFileSync(newSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
         let burnCaptions=path.relative(mediaWorkspace,newSrt),captionStyle='segments',captionTiming=null;
-        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:voiceWav,language:targetLanguage,real,segReports:rtAsm.segReports});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
+        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:voiceWav,language:targetLanguage,real,segReports:rtAsm.segReports,captionPreset});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
         const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-new-voice.mp4'});
         await artifactPort.putFile({jobId,source:newSrt,name:`captions-${targetLanguage}.srt`});
@@ -875,8 +883,14 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
   function artifact(id){requireCore();if(!/^[a-f0-9-]{36}$/.test(id))throw err('ARTIFACT_ID','Mã artifact không hợp lệ.');
     if(externalArtifacts.items.some(x=>x.id===id))return verifiedExternal(id);
     const metadata=core.artifacts.get(id);mediaTask(metadata.taskId);return {metadata,bytes:core.artifacts.read(id)};}
-  async function directorPlan(projectId,{source='',wish=''}={}){
+  async function directorPlan(projectId,{source='',wish='',templateId='',voiceProvider='local'}={}){
     requireCore();if(!safeId(projectId))throw err('PROJECT_ID','Mã dự án không hợp lệ.');
+    const tpl=templateById(templateId);
+    if(tpl){
+      // A template is a deterministic preset: no model call, no guessing.
+      const routed=directorPlanForTemplate(tpl,{source:source||null});
+      return {available:true,viaTemplate:tpl.id,plan:{summary:routed.summary,intent:routed.intent},routed:{operation:routed.operation,params:routed.params,needsInput:routed.needsInput},warnings:[],template:{id:tpl.id,name:tpl.name,hint:tpl.hint}};
+    }
     const selection=mediaPlannerStatus(projectId);
     if(!selection.available)return {available:false,fallback:true,reason:'Chưa có AI đã xác minh cho dự án này nên AI đạo diễn chưa thể hiểu ý. Hãy liên kết và xác minh một model (tab Kết nối), hoặc tự chọn cách làm bằng các nút bên dưới.'};
     const cleanWish=String(wish||'').trim().slice(0,2000);
@@ -905,6 +919,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     catch(e){return {available:false,fallback:true,reason:'AI chưa trả lời được ('+(e.code||'lỗi')+'). Thử lại sau, hoặc tự chọn cách làm bằng các nút bên dưới.'};}
     let plan;try{plan=parseDirectorPlan(reply.text);}catch(e){return {available:false,fallback:true,reason:e.message+' Hãy thử mô tả rõ hơn, hoặc tự chọn cách làm bằng các nút bên dưới.'};}
     const routed=routeDirectorPlan(plan,{source,sourceLabel:'',whisperReady});
+    if(routed.params&&['media.dub','media.retheme'].includes(routed.operation)&&['fpt','heygen'].includes(voiceProvider))routed.params.ttsProvider=voiceProvider;
     return {available:true,plan,routed:{operation:routed.operation,params:routed.params||null,needsInput:routed.needsInput||null},warnings:routed.warnings||[],model:{provider:selection.target?.provider||selection.provider||'model',name:selection.target?.model||selection.model||''},probe:probe?{seconds:Math.round(probe.seconds),hasAudio:!!hasAudioFlag,transcriptHeard:!!transcript}:null};
   }
   function demoSample(){requireCore();const source=path.resolve(root,'integrations/media-engine/artifacts/samples/source.mp4');
@@ -923,5 +938,5 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     fs.closeSync(fd);return {source:rel,name,size,sha256:digest.digest('hex')};
   }
   function stop(){if(timer){clearInterval(timer);timer=null;}if(core){core.close();core=null;}}
-  return {status,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
+  return {status,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,mediaTemplates:()=>MEDIA_TEMPLATES,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
 }

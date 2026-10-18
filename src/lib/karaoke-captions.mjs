@@ -94,16 +94,41 @@ const assTime = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 /
  * follow the WORDS (the voice), not the original segment windows: a line
  * starts when its first word is spoken and ends when its last word ends.
  */
-export function buildKaraokeAss({ segments = [], timedWords = [], width = 1280, height = 720 } = {}) {
-  const size = Math.max(20, Math.round(height * 0.05));
+export const KARAOKE_PRESETS = ['sweep', 'pop', 'box'];
+
+export function buildKaraokeAss({ segments = [], timedWords = [], width = 1280, height = 720, preset = 'sweep' } = {}) {
+  const style = KARAOKE_PRESETS.includes(preset) ? preset : 'sweep';
+  const size = Math.max(20, Math.round(height * (style === 'pop' ? 0.075 : 0.05)));
+  // sweep: classic \kf fill (yellow sung / white unsung).
+  // box:   the whole line sits on a solid highlight strip; words turn black
+  //        as they are sung (BorderStyle 3 = opaque box in OutlineColour).
+  // pop:   one word at a time, large, scaling in — the TikTok word style;
+  //        rendered below from the same timed words, no \kf events.
+  const styleLine = style === 'box'
+    ? `Style: Karaoke, Arial, ${size}, &H00000000, &H00FFFFFF, &H0000FFFF, &H00000000, -1, 0, 0, 0, 100, 100, 0, 0, 3, 10, 0, 2, 30, 30, ${Math.round(height * 0.045)}, 1`
+    : `Style: Karaoke, Arial, ${size}, &H0000FFFF, &H00FFFFFF, &H78000000, &H00000000, -1, 0, 0, 0, 100, 100, 0, 0, 1, 3, 0, 2, 30, 30, ${Math.round(height * 0.045)}, 1`;
   const lines = [
     '[Script Info]', 'ScriptType: v4.00+', `PlayResX: ${width}`, `PlayResY: ${height}`, '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-    `Style: Karaoke, Arial, ${size}, &H0000FFFF, &H00FFFFFF, &H78000000, &H00000000, -1, 0, 0, 0, 100, 100, 0, 0, 1, 3, 0, 2, 30, 30, ${Math.round(height * 0.045)}, 1`,
+    styleLine,
     '', '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
   ];
+  if (style === 'pop') {
+    let prevEnd = 0;
+    segments.forEach((seg, si) => {
+      const words = timedWords.filter(w => w.segment === si);
+      words.forEach((w) => {
+        const start = Math.max(prevEnd, w.start);
+        const end = Math.max(start + 0.08, w.end);
+        const big = Math.round(size * 1.35);
+        lines.push(`Dialogue: 0, ${assTime(start)}, ${assTime(end)}, Karaoke, , 0, 0, 0, , {\\fs${big}\\t(0,110,\\fs${size})\\fad(35,45)}${assEscape(w.text)}`);
+        prevEnd = end;
+      });
+    });
+    return lines.join('\n') + '\n';
+  }
   let prevEnd = 0;
   segments.forEach((seg, si) => {
     const words = timedWords.filter(w => w.segment === si);

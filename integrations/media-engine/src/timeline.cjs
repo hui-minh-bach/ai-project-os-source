@@ -65,8 +65,9 @@ function naturalPlan(prompt,media,analysis){
  const ratio=p.includes('9:16')||/dọc|vertical/.test(p)?'9:16':p.includes('1:1')?'1:1':'16:9';
  const effects=/hiệu ứng|hieu ung|fade|mờ dần|mo dan|effect/.test(p)?['fade-in-out']:[];
  const enableCrossfade=smartScenes&&spans.length>1;
+ const transitionKind=/trượt sang phải|slide right/.test(p)?'slideright':/trượt|slide/.test(p)?'slideleft':/qua đen|fadeblack|màn đen/.test(p)?'fadeblack':/gạt|wipe/.test(p)?'wipeleft':'crossfade';
  return {version:1,kind:'edit',origin:'deterministic-rule-not-ai',ratio,framing:ratio==='9:16'?'crop':'fit',effects,
-  transition:enableCrossfade?'crossfade':'cut',transitionSeconds:.35,
+  transition:enableCrossfade?transitionKind:'cut',transitionSeconds:.35,
   segments:spans.map((s,i)=>({id:`clip-${i+1}`,source:media.path,...s})),notes:['Kế hoạch quy tắc local; chưa phân tích hình ảnh bằng AI',...(effects.length?['Hiệu ứng mờ dần đầu/cuối hình; không tự tạo cảnh mới.']:[]),
   ...(smartScenes?['Điểm chuyển cảnh do FFmpeg dò thay đổi hình ảnh, có ưu tiên khoảng lặng gần điểm cắt; đây KHÔNG phải AI xem hiểu nội dung cảnh.']:[]) ]};
 }
@@ -86,11 +87,11 @@ function validate(plan,media){insist(plan?.kind==='edit'&&Array.isArray(plan.seg
  if(audioStreams.length>1&&audioStreamIndex===null)insist(false,'Nguồn có nhiều track tiếng; hãy chọn audioStreamIndex trước khi dựng.','MEDIA_AUDIO_SELECTION');
  const effects=Array.isArray(plan.effects)?[...new Set(plan.effects)]:[];insist(effects.every(x=>x==='fade-in-out'),'Unknown edit effect','MEDIA_EFFECT');
  const framing=plan.framing||'fit';insist(['fit','crop'].includes(framing),'Unknown video framing','MEDIA_FRAMING');
- const transition=plan.transition||'cut';insist(['cut','crossfade'].includes(transition),'Unsupported transition','MEDIA_TRANSITION');
+ const transition=plan.transition||'cut';insist(['cut','crossfade','fadeblack','slideleft','slideright','wipeleft'].includes(transition),'Unsupported transition','MEDIA_TRANSITION');
  const requested=Number(plan.transitionSeconds??0.35);
  insist(transition==='cut'||(Number.isFinite(requested)&&requested>=.1&&requested<=.75),'Invalid transition length','MEDIA_TRANSITION');
  const shortest=Math.min(...segments.map(s=>s.end-s.start));
- const transitionSeconds=transition==='crossfade'&&segments.length>1&&shortest>=.5?Math.min(requested,shortest/3):0;
+ const transitionSeconds=transition!=='cut'&&segments.length>1&&shortest>=.5?Math.min(requested,shortest/3):0;
  const effectiveTransition=transitionSeconds>=.1?transition:'cut';
  insist(total-(segments.length-1)*transitionSeconds>.2,'Transition overlap too long','MEDIA_TRANSITION');
  return {...plan,version:2,schemaVersion:media.sha256?2:(plan.schemaVersion||1),sourceArtifactId:media.artifactId||(media.sha256?'sha256:'+media.sha256:plan.sourceArtifactId||null),sourceSha256:media.sha256||plan.sourceSha256||null,sourceSeconds:media.seconds,sourceDurationSeconds:media.seconds,sourceProbe:{streams:media.streams||plan.sourceProbe?.streams||[]},analysisProvenance:plan.analysisProvenance||plan.origin||'unknown',effects,framing,segments,transition:effectiveTransition,transitionSeconds:effectiveTransition==='cut'?0:transitionSeconds,audioStreamIndex,width:dimensions[plan.ratio][0],height:dimensions[plan.ratio][1],fps:25,expectedDuration:total-(segments.length-1)*(effectiveTransition==='cut'?0:transitionSeconds)};

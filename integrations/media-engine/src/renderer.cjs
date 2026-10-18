@@ -64,14 +64,15 @@ async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',p
   paths.push(outfile);onProgress({phase:'clip',completed:i+1,total:clips.length,reused});
  }
  const merged=path.join(jobDir,preview?'preview-merged.mp4':'final-merged.mp4');
- const overlap=timeline.transition==='crossfade'&&paths.length>1 ? Number(timeline.transitionSeconds||0) : 0;
+ const XF={'crossfade':'fade','fadeblack':'fadeblack','slideleft':'slideleft','slideright':'slideright','wipeleft':'wipeleft'};
+ const overlap=XF[timeline.transition]&&paths.length>1 ? Number(timeline.transitionSeconds||0) : 0;
  if(overlap>0){
   const lengths=clips.map(c=>timeline.kind==='story'?c.duration:c.end-c.start);
   const filter=[];let at=0,vprev='[0:v]',aprev='[0:a]';
   for(let i=1;i<paths.length;i++){
    at+=lengths[i-1];const offset=at-i*overlap;
    const vnext=`[v${i}]`,anext=`[a${i}]`;
-   filter.push(`${vprev}[${i}:v]xfade=transition=fade:duration=${overlap.toFixed(4)}:offset=${offset.toFixed(4)}${vnext}`);
+   filter.push(`${vprev}[${i}:v]xfade=transition=${XF[timeline.transition]}:duration=${overlap.toFixed(4)}:offset=${offset.toFixed(4)}${vnext}`);
    filter.push(`${aprev}[${i}:a]acrossfade=d=${overlap.toFixed(4)}:c1=tri:c2=tri${anext}`);
    vprev=vnext;aprev=anext;
   }
