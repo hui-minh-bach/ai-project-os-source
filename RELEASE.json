@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.11",
-  "channel": "v0.9.11-smooth-speech",
+  "version": "0.9.12",
+  "channel": "v0.9.12-studio-effects",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -104,6 +104,10 @@
     "smooth_speech_assembly": {
       "status": "built-live-verified",
       "scope": "Smoother dubbed speech for media.dub + media.retheme (0.9.11), after the user judged the voiceover choppy and not mouth-synced. Shared assembleSpeechTrack in integration-host: (1) groupSpeechSegments (media-ai.mjs, pure/deterministic) merges neighbouring windows (gap <= 0.7s, <= 600 chars, <= 30s span) so TTS reads continuous passages instead of cold-starting every window; subtitles keep the original per-segment windows; (2) tempo cap lowered 1.35 -> 1.25 with the same borrow-the-following-pause room rule; (3) every placed group gets 30ms/60ms in/out fades so joins do not click; (4) a very quiet pink-noise room-tone bed (lowpass 500Hz, volume 0.012) replaces dead digital silence between groups. Reports record speechGroups + per-segment group/tempo. LIVE VERIFIED on the JFK tea retheme (same inputs as the 0.9.10 proof): readings dropped 11 -> 3 groups, dead-silence regions (silencedetect -50dB/0.25s) dropped 11 -> 3, max tempo 1.0; total quiet time unchanged (~65.5s of 80s) because speech still only occupies the original talking windows — stated plainly. NOT addressed: lip-sync — mouths still move with the original language; true lip-sync needs a dedicated model (licensing + hardware) and remains a separate future item, disclosed in the in-app guide."
+    },
+    "studio_effects": {
+      "status": "built-live-verified",
+      "scope": "CapCut-style EFFECTS mode added to Media Studio (0.9.12) after the user pointed out the Studio had no effects section. New operation media.effects + src/lib/media-effects.mjs: a curated catalog of 17 deterministic presets in 4 groups (frame: blurred-background 9:16 vertical / 16:9 horizontal pads; colour: vivid, bright, warm, cool, black-and-white, vintage, vignette, sharpen; motion: slow zoom in/out via zoompan, 1.25x speed-up, 0.8x slow-down with matched atempo, fade in/out on picture and sound; text: opening title + lower-third name card rendered from a generated ASS file through the same subtitles burn path as dubbing). One ffmpeg graph in a fixed order (speed -> pad -> zoom -> colour chain -> text burn); max 8 per task; inapplicable effects are reported in effects-report.json, never silently dropped; QA gate via the shared quality checker; the handler returns its report (the engine reads result.qa — a first live run caught a missing return and it was fixed). LIVE VERIFIED through the real API on the 1280x720 JFK clip: pad-vertical + vivid + vignette + title + lower-third completed, output 406x720, 80.04s == source, QA passed; the 2s frame shows the blurred bands, the big title and the boxed name card. Studio now has 10 modes; the earlier CapCut shell test was updated to expect 10 modes/panels."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

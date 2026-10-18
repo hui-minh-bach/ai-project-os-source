@@ -11,8 +11,8 @@ test('Media Studio uses a CapCut-style shell without losing any existing panel o
   assert.match(html, /class="mediaCapcut"/);
   for (const id of ['mediaMainPlayer', 'mediaStageEmpty', 'mediaStageLabel', 'mediaTimeline', 'mediaTimelineNote', 'mediaPool', 'mediaJobs', 'mediaQueueTask'])
     assert.ok(html.includes(`id="${id}"`), id);
-  assert.equal((html.match(/data-media-mode=/g) || []).length, 9, 'all 9 work modes stay');
-  assert.equal((html.match(/data-media-panel=/g) || []).length, 9, 'all 9 input panels stay');
+  assert.equal((html.match(/data-media-mode=/g) || []).length, 10, 'all 9 original work modes stay, plus the effects mode added in 0.9.12');
+  assert.equal((html.match(/data-media-panel=/g) || []).length, 10, 'all 9 original input panels stay, plus the effects panel');
   for (const id of ['mediaRethemeTopic', 'mediaRethemeScriptSource', 'mediaTimeline', 'mediaPrompt', 'mediaStoryText', 'mediaDraftTitle'])
     assert.ok(html.includes(`id="${id}"`), id);
   assert.match(css, /\.mediaCapcut\{/);

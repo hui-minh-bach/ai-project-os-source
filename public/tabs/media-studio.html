@@ -7,6 +7,7 @@
     <button data-media-mode="analyze" class="active" type="button">◉ Phân tích video</button>
     <button data-media-mode="edit-plan" type="button">✦ Kế hoạch dựng</button>
     <button data-media-mode="render" type="button">▶ Dựng video</button>
+    <button data-media-mode="effects" type="button">✨ Hiệu ứng</button>
     <button data-media-mode="tts-video" type="button">AI Tạo giọng từ kịch bản</button>
     <button data-media-mode="voiceover" type="button">🎙 Thay giọng thật</button>
     <button data-media-mode="retheme" type="button">🔁 Đổi chủ đề &amp; giọng</button>
@@ -82,6 +83,33 @@
           <label for="mediaTimeline">Timeline JSON</label><textarea id="mediaTimeline" rows="8" placeholder="Kế hoạch sẽ tự điền khi bấm Lấy kế hoạch đã hoàn thành"></textarea>
           <label for="mediaRenderSubs">Phụ đề JSON (không bắt buộc)</label><textarea id="mediaRenderSubs" rows="2" placeholder='[{"start":0,"end":2,"text":"Xin chào"}]'></textarea>
         </details>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="effects" hidden>
+        <h4>✨ Hiệu ứng có sẵn — tick để áp vào video</h4>
+        <p class="mediaHint">Chọn 1–8 hiệu ứng cho video nguồn đã nạp ở cột giữa. App tự xếp thứ tự áp dụng (khung → zoom → màu → chữ). Hiệu ứng không hợp với video (ví dụ video đã dọc mà chọn Dọc 9:16) sẽ được báo rõ trong báo cáo kết quả.</p>
+        <div class="mediaFxGrid" id="mediaFxPanel">
+          <label class="mediaFxItem"><input type="checkbox" value="pad-vertical"> Dọc 9:16 nền mờ — cho TikTok/Reels</label>
+          <label class="mediaFxItem"><input type="checkbox" value="pad-horizontal"> Ngang 16:9 nền mờ — cho YouTube</label>
+          <label class="mediaFxItem"><input type="checkbox" value="vivid"> Màu rực rỡ</label>
+          <label class="mediaFxItem"><input type="checkbox" value="bright"> Sáng hơn</label>
+          <label class="mediaFxItem"><input type="checkbox" value="warm"> Tông ấm</label>
+          <label class="mediaFxItem"><input type="checkbox" value="cool"> Tông lạnh</label>
+          <label class="mediaFxItem"><input type="checkbox" value="bw"> Trắng đen</label>
+          <label class="mediaFxItem"><input type="checkbox" value="vintage"> Cổ điển (vintage)</label>
+          <label class="mediaFxItem"><input type="checkbox" value="vignette"> Tối bốn góc</label>
+          <label class="mediaFxItem"><input type="checkbox" value="sharpen"> Làm nét</label>
+          <label class="mediaFxItem"><input type="checkbox" value="zoom-in"> Zoom chậm vào giữa</label>
+          <label class="mediaFxItem"><input type="checkbox" value="zoom-out"> Zoom chậm ra</label>
+          <label class="mediaFxItem"><input type="checkbox" value="speed-up"> Nhanh hơn 1.25x</label>
+          <label class="mediaFxItem"><input type="checkbox" value="slow-down"> Chậm lại 0.8x</label>
+          <label class="mediaFxItem"><input type="checkbox" value="fade"> Mờ mở đầu + kết thúc</label>
+          <label class="mediaFxItem"><input type="checkbox" value="title"> Tiêu đề mở đầu</label>
+          <label class="mediaFxItem"><input type="checkbox" value="lower-third"> Thẻ tên góc trái dưới</label>
+        </div>
+        <label for="mediaFxTitle">Chữ cho hiệu ứng "Tiêu đề mở đầu"</label>
+        <input id="mediaFxTitle" maxlength="120" placeholder="Ví dụ: Du lịch Đà Lạt 3 ngày 2 đêm" autocomplete="off">
+        <label for="mediaFxName">Chữ cho hiệu ứng "Thẻ tên góc trái dưới"</label>
+        <input id="mediaFxName" maxlength="120" placeholder="Ví dụ: Nguyễn Văn A — Hướng dẫn viên" autocomplete="off">
       </div>
       <div class="mediaInputPanel" data-media-panel="subtitle-edit" hidden>
         <h4>Biên tập phụ đề</h4><label for="mediaSegments">Đoạn phụ đề dạng JSON</label><textarea id="mediaSegments" rows="6" placeholder='[{"id":"1","start":0,"end":2.1,"text":"Xin chào"}]'></textarea>

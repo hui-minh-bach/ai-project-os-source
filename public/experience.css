@@ -113,3 +113,7 @@ html[data-theme="arctic"] .notice{background:#fff7df;color:#7a540c;border-color:
 .mediaDirector h4{margin:0 0 6px}
 .mediaDirectorPlan{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:12px;margin-top:12px}
 .mediaDirectorSteps{margin:8px 0 8px 18px;padding:0;line-height:1.6;font-size:12px}
+
+.mediaFxGrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin:8px 0}
+.mediaFxItem{display:flex;gap:7px;align-items:flex-start;font-size:.92em;padding:7px 9px;border:1px solid var(--line,#d8dce6);border-radius:9px;cursor:pointer;background:var(--panel,#fff)}
+.mediaFxItem input{margin-top:2px}

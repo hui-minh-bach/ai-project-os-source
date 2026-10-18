@@ -23,6 +23,7 @@ import { findServiceCredential, findConnectionByKind } from './vault.mjs';
 import { youtubeUpload, facebookUpload, tiktokUpload, youtubeStats, facebookStats, tiktokStats, platformConnectionStatus, isSimulatedEndpoint, platformBase, PLATFORM_KINDS } from './publish-platforms.mjs';
 import { createPublishRecords } from './publish-records.mjs';
 import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegmentsWithModel, writeRethemeScriptWithModel, splitScriptAcrossWindows, writeTextWithModel, buildDirectorModelCall, parseDirectorPlan, routeDirectorPlan, groupSpeechSegments } from './media-ai.mjs';
+import { EFFECT_IDS, buildEffectsGraph, buildEffectsAss } from './media-effects.mjs';
 import { generateImage, IMAGE_PROVIDERS } from './image-gen.mjs';
 import { whisperStatus, transcribeLocal } from './local-whisper.mjs';
 
@@ -37,6 +38,7 @@ const concatMultitrack=require('../../integrations/media-engine/src/concat-multi
 const mediaTimeline=require('../../integrations/media-engine/src/timeline.cjs');
 const mediaSubtitles=require('../../integrations/media-engine/src/subtitles.cjs');
 const mediaUtils=require('../../integrations/media-engine/src/utils.cjs');
+const {escapeFilterPath}=require('../../integrations/media-engine/src/renderer.cjs');
 const ALLOWED_OPERATIONS=Object.freeze({
   'media.analyze':'video_edit',
   'media.subtitle-edit':'video_edit',
@@ -49,6 +51,7 @@ const ALLOWED_OPERATIONS=Object.freeze({
   'media.concat-effects':'video_edit',
   'media.dub':'video_edit',
   'media.retheme':'video_edit',
+  'media.effects':'video_edit',
   'media.story':'story',
   'media.story-outline':'story',
   'media.publish-youtube':'publish',
@@ -353,6 +356,43 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         await artifactPort.putFile({jobId,source:created.exported,name:'concat-export.mp4'});
         return report;
       });
+      handlers.set('media.effects',async({jobId,source,effects=[],title='',name=''})=>{
+        const dir=path.join(mediaWorkspace,'.effects-jobs',jobId);
+        fs.mkdirSync(dir,{recursive:true});
+        const srcFile=checkFile(mediaWorkspace,source);
+        const real=readRealMediaInfo(srcFile);
+        const vs=real.streams.find(s=>s.codec_type==='video')||{};
+        const hasAud=real.streams.some(s=>s.codec_type==='audio');
+        const fpsParts=String(vs.avg_frame_rate||vs.r_frame_rate||'25').split('/').map(Number);
+        let fps=fpsParts.length===2&&fpsParts[1]?fpsParts[0]/fpsParts[1]:Number(fpsParts[0]);
+        if(!Number.isFinite(fps)||fps<1||fps>60)fps=25;
+        const g=buildEffectsGraph({effects,width:vs.width||0,height:vs.height||0,fps:Math.round(fps),duration:real.seconds});
+        const realApplied=g.applied.filter(id=>id!=='title'&&id!=='lower-third');
+        const wantTitle=effects.includes('title')&&!!String(title).trim();
+        const wantName=effects.includes('lower-third')&&!!String(name).trim();
+        if(!realApplied.length&&!wantTitle&&!wantName)throw err('MEDIA_INPUT','Không hiệu ứng nào áp dụng được cho video này. '+g.skipped.map(x=>x.reason).join(' '));
+        const parts=[...g.parts];
+        if(wantTitle||wantName){
+          const assPath=path.join(dir,'effects-text.ass');
+          fs.writeFileSync(assPath,buildEffectsAss({title:wantTitle?String(title).trim():'',name:wantName?String(name).trim():'',width:g.outWidth,height:g.outHeight}));
+          parts.push(`[${g.finalLabel}]subtitles=filename='${escapeFilterPath(assPath)}'[fxv]`);
+        }else parts.push(`[${g.finalLabel}]null[fxv]`);
+        if(hasAud&&g.audioFilter)parts.push(`[0:a]${g.audioFilter}[fxa]`);
+        const final=path.join(dir,'effects-final.mp4');
+        const args=['-hide_banner','-loglevel','error','-nostdin','-y','-i',srcFile,'-filter_complex',parts.join(';'),'-map','[fxv]'];
+        if(hasAud)args.push('-map',g.audioFilter?'[fxa]':'0:a:0');
+        args.push('-c:v','libx264','-preset','veryfast','-threads','2','-crf','22','-pix_fmt','yuv420p');
+        if(hasAud)args.push('-c:a','aac','-ar','48000','-b:a','160k');
+        args.push('-t',String((g.outDuration+0.5).toFixed(3)),'-movflags','+faststart',final);
+        await mediaUtils.run('ffmpeg',args,{timeoutMs:Math.max(120000,real.seconds*17000)});
+        const checker=require('../../integrations/media-engine/src/quality.cjs');
+        const qa=await checker.check({file:final,expectedDuration:g.outDuration});
+        if(!qa.passed)throw err('MEDIA_QA','Không nghiệm thu được video hiệu ứng: '+qa.problems.join(','));
+        const report={applied:[...realApplied,...(wantTitle?['title']:[]),...(wantName?['lower-third']:[])],skipped:g.skipped,requested:effects,outWidth:g.outWidth,outHeight:g.outHeight,outDuration:Number(g.outDuration.toFixed(3)),qa};
+        await artifactPort.putFile({jobId,source:final,name:'video-with-effects.mp4'});
+        await artifactPort.putJson({jobId,name:'effects-report.json',data:report});
+        return report;
+      });
       // Full re-dubbing: source segments (supplied SRT or local Whisper) are
       // translated (verified project model, or texts supplied with the task),
       // re-voiced segment by segment against the original timings, and the
@@ -562,7 +602,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       handlers.set('media.publish-youtube',publishHandler('youtube',({connection,file,title,description,tags,privacyStatus})=>youtubeUpload({connection,file,title,description,tags,privacyStatus:privacyStatus||'unlisted'})));
       handlers.set('media.publish-facebook',publishHandler('facebook',({connection,file,title,description})=>facebookUpload({connection,file,title,description})));
       handlers.set('media.publish-tiktok',publishHandler('tiktok',({connection,file,title,privacyLevel})=>tiktokUpload({connection,file,title,privacyLevel:privacyLevel||'PUBLIC_TO_EVERYONE'})));
-      for(const [kind,allowed] of Object.entries({video_edit:['media.analyze','media.subtitle-edit','media.edit-plan','media.quick-edit','media.render','media.voiceover','media.tts-video','media.image','media.concat-effects','media.dub','media.retheme'],story:['media.story','media.story-outline'],publish:['media.publish-draft','media.publish-youtube','media.publish-facebook','media.publish-tiktok']})){
+      for(const [kind,allowed] of Object.entries({video_edit:['media.analyze','media.subtitle-edit','media.edit-plan','media.quick-edit','media.render','media.voiceover','media.tts-video','media.image','media.concat-effects','media.dub','media.retheme','media.effects'],story:['media.story','media.story-outline'],publish:['media.publish-draft','media.publish-youtube','media.publish-facebook','media.publish-tiktok']})){
         core.queue.registerModule(kind,async({task,workspace})=>{
           const op=task.input?.operation;
           if(!allowed.includes(op))throw err('MEDIA_OPERATION','Loại tác vụ và công việc media không khớp hoặc chưa được phê duyệt.');
@@ -696,6 +736,15 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       if(params.ttsProvider!==undefined&&!['local','heygen'].includes(params.ttsProvider))throw err('MEDIA_INPUT','Nhà cung cấp giọng lồng tiếng không hợp lệ.');
     }
     if(operation==='media.voiceover'&&(!params.source||!params.audioSource))throw err('MEDIA_INPUT','Cần một video nguồn và một file âm thanh WAV/MP3/M4A.');
+    if(operation==='media.effects'){
+      if(!params.source)throw err('MEDIA_INPUT','Chọn video nguồn để áp hiệu ứng.');
+      if(!Array.isArray(params.effects)||params.effects.length<1||params.effects.length>8)throw err('MEDIA_INPUT','Chọn từ 1 đến 8 hiệu ứng.');
+      for(const e of params.effects)if(!EFFECT_IDS.has(e))throw err('MEDIA_INPUT','Hiệu ứng không hợp lệ: '+e);
+      if(params.effects.includes('title')&&(!params.title||!String(params.title).trim()))throw err('MEDIA_INPUT','Hiệu ứng Tiêu đề cần nội dung chữ (ô Tiêu đề).');
+      if(params.effects.includes('lower-third')&&(!params.name||!String(params.name).trim()))throw err('MEDIA_INPUT','Hiệu ứng Thẻ tên cần nội dung chữ (ô Thẻ tên).');
+      if(params.title!==undefined&&(typeof params.title!=='string'||params.title.length>120))throw err('MEDIA_INPUT','Tiêu đề tối đa 120 ký tự.');
+      if(params.name!==undefined&&(typeof params.name!=='string'||params.name.length>120))throw err('MEDIA_INPUT','Thẻ tên tối đa 120 ký tự.');
+    }
     if(['media.dub','media.retheme','media.voiceover'].includes(operation)){
       if(params.hardsubCover!==undefined&&!['off','blur','band'].includes(params.hardsubCover))throw err('MEDIA_INPUT','Chế độ che phụ đề cứng phải là off, blur hoặc band.');
       if(params.hardsubRegionPct!==undefined&&(!Number.isInteger(params.hardsubRegionPct)||params.hardsubRegionPct<10||params.hardsubRegionPct>40))throw err('MEDIA_INPUT','Vùng che phụ đề cứng phải là số nguyên 10–40 (% chiều cao).');
