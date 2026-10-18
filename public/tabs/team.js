@@ -167,3 +167,143 @@ setInterval(async()=>{
   if(!(teamBatchPending||teamTaskRequests.size||state.project.tasks?.some(t=>teamActiveStatuses.has(t.status))))return;
   teamPollPending=true;const id=state.project.id;try{const p=await api('/api/projects/'+id);if(state.project?.id===id){state.project=p;renderTasks();renderExecutionControls();}}catch(e){toast('Không tải được state thực thi: '+e.message);}finally{teamPollPending=false;}
 },1500);
+
+/* ================= Văn phòng AI (0.9.23) =================
+ * Phòng làm việc trực quan của đội: nhân viên là các vai thật trong app,
+ * vị trí và việc đang làm suy ra từ dữ liệu thật (orchestrator runs, thẻ
+ * tin ingest, task của dự án đang chọn). Không có chuyển động giả: không
+ * có việc thì nhân viên đứng ở bàn của mình với trạng thái "Đang chờ việc". */
+const OFFICE_CAST=[
+ {id:'boss',name:'Sếp Lâm',role:'Tổng giám đốc · duyệt đăng',icon:'👔',station:'boss'},
+ {id:'pm',name:'Tuấn',role:'Trưởng phòng · nhận & chia việc',icon:'🎯',station:'pm'},
+ {id:'news',name:'Na',role:'Tin tức · tìm tin theo lĩnh vực',icon:'📰',station:'news'},
+ {id:'script',name:'Hằng',role:'Biên tập · viết lời dẫn',icon:'✍️',station:'script'},
+ {id:'image',name:'Tí',role:'Hình ảnh · tạo minh họa',icon:'🎨',station:'image'},
+ {id:'media',name:'Minh',role:'Sản xuất · dựng video',icon:'🎬',station:'media'},
+ {id:'review',name:'Tâm',role:'Kiểm duyệt · soi chất lượng',icon:'🔍',station:'review'},
+ {id:'publish',name:'Phát',role:'Phát hành · đăng bài',icon:'🚀',station:'publish'},
+];
+const OFFICE_STATIONS={
+ boss:{x:50,y:9,label:'👔 Bàn Sếp Lâm'},
+ pm:{x:50,y:38,label:'🎯 Trưởng phòng'},
+ news:{x:10,y:22,label:'📰 Tin tức'},
+ script:{x:12,y:58,label:'✍️ Biên tập'},
+ image:{x:88,y:58,label:'🎨 Hình ảnh'},
+ media:{x:72,y:30,label:'🎬 Sản xuất'},
+ review:{x:88,y:22,label:'🔍 Kiểm duyệt'},
+ publish:{x:50,y:82,label:'🚀 Đăng bài'},
+ lounge:{x:14,y:86,label:'☕ Góc nghỉ'},
+};
+let officeNames={}; try{officeNames=JSON.parse(localStorage.getItem('aios-office-names')||'{}')}catch{officeNames={}}
+let officeState={runs:[],cards:[],tasks:[],loaded:false,lastFeed:[]};
+function officeAgentName(a){return officeNames[a.id]||a.name}
+function officeStationOf(agentId,ctx){
+ const a=OFFICE_CAST.find(x=>x.id===agentId); if(!a)return 'lounge';
+ const {activeRun,awaiting,tasks}=ctx;
+ switch(agentId){
+  case 'boss': return 'boss';
+  case 'pm': return awaiting?'boss':'pm';
+  case 'news': return activeRun&&ctx.stage==='intake'?'pm':'news';
+  case 'script': return 'script';
+  case 'image': return 'image';
+  case 'media': return 'media';
+  case 'review': return 'review';
+  case 'publish': return 'publish';
+  default: return a.station;
+ }
+}
+function officeStageOf(run){
+ if(!run)return null;
+ if(run.state==='awaiting-approval')return 'gate';
+ if(run.state==='completed')return 'done';
+ const names=(run.steps||[]).map(s=>s.name);
+ if(names.some(n=>n.startsWith('publish:')))return 'publish';
+ if(names.some(n=>n.startsWith('produce.')))return 'produce';
+ if(names.some(n=>n==='ai.script'||n==='ai.translate'))return 'script';
+ return 'intake';
+}
+function officeRender(){
+ const room=$('#officeRoom'); if(!room)return;
+ const runs=officeState.runs||[];
+ const awaiting=runs.find(r=>r.state==='awaiting-approval')||null;
+ const activeRun=runs.find(r=>r.state==='running')||awaiting;
+ const justCompleted=runs.find(r=>r.state==='completed'&&Date.now()-Date.parse(r.completedAt||0)<90000)||null;
+ const tasks=(state.project&&state.project.tasks)||[];
+ const ctx={activeRun,awaiting,tasks,stage:officeStageOf(activeRun),justCompleted};
+ const unused=(officeState.cards||[]).filter(c=>!c.usedByProjectId).length;
+ if(!room.dataset.built){
+  room.dataset.built='1';
+  room.innerHTML=Object.entries(OFFICE_STATIONS).map(([id,st])=>`<div class="office-station" style="left:${st.x}%;top:${st.y}%">${st.label}</div>`).join('')
+   +OFFICE_CAST.map(a=>`<button type="button" class="office-agent" id="officeAgent-${a.id}" data-office-agent="${a.id}" style="left:50%;top:50%" title="${esc(a.role)} — bấm để đổi tên"><span class="office-agent-icon">${a.icon}</span><span class="office-agent-name">${esc(officeAgentName(a))}</span><span class="office-agent-badge" hidden></span></button>`).join('')
+   +`<div class="office-package" id="officePackage" hidden>📦</div>`
+   +(awaiting?'':'' );
+  room.querySelectorAll('[data-office-agent]').forEach(el=>el.onclick=()=>{
+   const a=OFFICE_CAST.find(x=>x.id===el.dataset.officeAgent); if(!a)return;
+   const next=prompt(`Đổi tên cho ${a.role}:`,officeAgentName(a));
+   if(next&&next.trim()){officeNames[a.id]=next.trim().slice(0,24);localStorage.setItem('aios-office-names',JSON.stringify(officeNames));officeRender();}
+  });
+ }
+ const slotUse=new Map();
+ for(const a of OFFICE_CAST){
+  const el=$('#officeAgent-'+a.id); if(!el)continue;
+  const stId=officeStationOf(a.id,ctx);
+  const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
+  const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
+  const dx=slot===0?0:slot===1?9:-9;
+  el.style.left=(st.x+dx)+'%'; el.style.top=`calc(${st.y}% + 32px)`;
+  el.querySelector('.office-agent-name').textContent=officeAgentName(a);
+  const badge=el.querySelector('.office-agent-badge');
+  let badgeText='';
+  if(a.id==='boss'&&awaiting)badgeText='✋ chờ duyệt';
+  if(a.id==='news'&&unused)badgeText=unused+' tin mới';
+  if(a.id==='media'&&ctx.stage==='produce')badgeText='đang dựng…';
+  if(a.id==='script'&&ctx.stage==='script')badgeText='đang viết…';
+  if(a.id==='publish'&&ctx.stage==='publish')badgeText='đang đăng…';
+  badge.hidden=!badgeText; badge.textContent=badgeText;
+  el.classList.toggle('office-busy',Boolean(badgeText)||(a.id==='pm'&&Boolean(activeRun)));
+ }
+ const pkg=$('#officePackage');
+ if(pkg){
+  const target=awaiting?'boss':activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null;
+  if(target){const st=OFFICE_STATIONS[target];pkg.hidden=false;pkg.style.left=(st.x+4)+'%';pkg.style.top=(st.y-7)+'%';}
+  else pkg.hidden=true;
+ }
+ const approveBtn=$('#officeApprove');
+ if(awaiting&&!approveBtn){
+  const bar=document.createElement('div');bar.className='office-approve-bar';bar.id='officeApprove';
+  bar.innerHTML=`<span>📦 Có sản phẩm đang chờ Sếp Lâm duyệt đăng: <b>${esc(awaiting.title||awaiting.pipeline)}</b></span><button type="button" class="primary" id="officeApproveBtn">✔ Duyệt đăng ngay</button>`;
+  room.after(bar);
+  $('#officeApproveBtn').onclick=async()=>{const b=$('#officeApproveBtn');b.disabled=true;try{await api(`/api/orchestrator/runs/${encodeURIComponent(awaiting.id)}/approve`,{method:'POST',body:'{}'});toast('Đã duyệt đăng');officePoll(true);}catch(e){toast(e.message);b.disabled=false;}};
+ } else if(!awaiting&&approveBtn){approveBtn.remove();}
+ const feed=$('#officeFeed');
+ if(feed){
+  const lines=[];
+  if(!officeState.loaded)lines.push('Đang tải dữ liệu văn phòng…');
+  else{
+   if(unused)lines.push(`📰 ${officeAgentName(OFFICE_CAST[2])} đang giữ ${unused} thẻ tin chưa dùng.`);
+   if(activeRun&&activeRun.state==='running')lines.push(`🎯 ${officeAgentName(OFFICE_CAST[1])} đã chia việc: "${activeRun.title||activeRun.pipeline}" — đang ở công đoạn ${ctx.stage==='script'?'viết lời dẫn':ctx.stage==='produce'?'dựng video':ctx.stage==='publish'?'đăng bài':'tiếp nhận'}.`);
+   if(awaiting)lines.push(`👔 Sản phẩm "${awaiting.title||awaiting.pipeline}" đang ở trên bàn Sếp Lâm chờ duyệt.`);
+   if(justCompleted)lines.push(`🚀 ${officeAgentName(OFFICE_CAST[7])} vừa đăng xong: "${justCompleted.title||justCompleted.pipeline}".`);
+   if(!lines.length)lines.push('☕ Cả đội đang chờ việc. Quét tin mới ở tab Ý tưởng hoặc bật vòng khép kín ở tab Publish để văn phòng nhộn nhịp lên.');
+  }
+  feed.innerHTML=lines.map(l=>`<p>${esc(l)}</p>`).join('');
+ }
+ const clock=$('#officeClock');
+ if(clock)clock.textContent=officeState.loaded?('Cập nhật '+new Date().toLocaleTimeString('vi-VN')):'Đang tải…';
+}
+let officePollPending=false;
+async function officePoll(force){
+ if(officePollPending&&!force)return;
+ const room=$('#officeRoom'); if(!room)return;
+ officePollPending=true;
+ try{
+  const [orch,cards]=await Promise.all([api('/api/orchestrator').catch(()=>null),api('/api/ingest/cards').catch(()=>null)]);
+  if(orch)officeState.runs=orch.runs||[];
+  if(cards)officeState.cards=cards.cards||[];
+  officeState.loaded=true;
+ }catch{/* giữ trạng thái cũ */}
+ finally{officePollPending=false;officeRender();}
+}
+setInterval(()=>{const page=$('#page-team');if(page&&page.classList.contains('active')&&!document.hidden)officePoll();},4000);
+document.addEventListener('page-change',e=>{if(e.detail.page==='team'){officeRender();officePoll();}});
+officeRender();officePoll();

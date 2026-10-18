@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.22",
-  "channel": "v0.9.22-news-fields",
+  "version": "0.9.23",
+  "channel": "v0.9.23-ai-office",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -169,6 +169,10 @@
     "news_fields": {
       "status": "implemented",
       "note": "0.9.22: multi-field news teams. Ten built-in fields (thoi-su, kinh-doanh, cong-nghe, the-thao, giai-tri, suc-khoe, am-thuc, du-lich, xe-co, giao-duc) in src/lib/news-fields.mjs, each with classification keywords and a Google News RSS topic query. Ingest tags every card with a fieldId (source-pinned or keyword-classified, never guessed when nothing matches) and a deterministic 0-100 score (keywords + freshness, basis recorded as keyword-freshness). The news-video pipeline accepts fieldIds + perFieldDailyCap: its scheduler picks the highest-score unused card inside the enabled fields and records fieldId on the run. Idea tab shows per-field team cards (sources/cards/top score, enable toggle, one-click topic source), field+score badges on news cards, and a per-field performance summary joins orchestrator runs with publish-record metrics. Live-verified in the sandbox with fixture feeds and a simulated-AI Piper story run held at the approval gate."
+    },
+    "ai_office_view": {
+      "status": "implemented",
+      "note": "0.9.23: an 'AI Office' panel at the top of the Team tab visualizes the owner's AI team as named Vietnamese staff (boss 'Sếp Lâm' who approves publishing, PM Tuấn who receives and splits work, Na on news, Hằng on scripts, Tí on images, Minh on production, Tâm on review, Phát on publishing). Agent positions, badges, the parcel and the activity feed are derived ONLY from real app state — orchestrator runs and their recorded steps, unused ingest cards, project task statuses — polled every 4s; with no work the team honestly idles. Waiting runs surface an approve bar at the boss's desk that calls the real orchestrator approve route. Agent names are renamable (click an agent) and persist in localStorage. Deliberately NOT a simulation: unlike the competitor demo the owner saw (labeled 'no live inference'), nothing here moves without real work behind it."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",
