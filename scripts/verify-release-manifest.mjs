@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const reserved=new Set(['RELEASE_FILES_SHA256.json','SHA256SUMS.txt']);
-const banned=new Set(['.git','.data','node_modules','runtime-win-x64','runtime-win-arm64','backups','output']);
+const banned=new Set(['.git','.data','node_modules','runtime-win-x64','runtime-win-arm64','runtime-linux-x64','backups','output']);
 function walk(rel=''){
  const entries=[];
  for(const x of fs.readdirSync(path.join(root,rel),{withFileTypes:true})){

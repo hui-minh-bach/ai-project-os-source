@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.16",
-  "channel": "v0.9.16-platform-linking",
+  "version": "0.9.17",
+  "channel": "v0.9.17-linux-package",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -124,6 +124,10 @@
     "social_account_linking": {
       "status": "built",
       "scope": "Linking & consent UI for auto-posting (0.9.16, closing the gap the owner pointed at: the OAuth engine existed but the Connections tab had NO surface for it). Connections tab gains a \"Dang bai tu dong\" section with YouTube/Facebook/TikTok cards (status, real account label, page state) and a 3-step dialog: create your own developer app, paste the shown redirect URI into it, paste Client ID/Secret, open the platform consent page; the dialog polls and updates itself when the callback lands. Callback upgraded: stores client id/secret inside the encrypted token bundle (needed for refresh), resolves the REAL identity via fetchPlatformIdentity (YouTube channel title/id, Facebook Pages + per-Page tokens, TikTok username) and sets it as the connection label; a single Facebook Page is auto-selected, several Pages are picked in the dialog (POST /api/connections/:id/platform-page). facebookUpload now posts with the PAGE token. YouTube tokens refresh automatically in the publish path when near expiry (oauthRefreshToken, persisted back to the Vault). TikTok approval flag editable in the dialog; SELF_ONLY honesty kept. Verified against the protocol-faithful mock platforms (identity endpoints added to the fixture): identity for all 3 platforms, refresh semantics, a real Facebook upload whose every call carried the page token (test/oauth-link.test.mjs). NOT yet verified: the consent click-through against real Google/Meta/TikTok developer apps — that needs the owner’s own apps + accounts on Windows (Gate 5)."
+    },
+    "linux_package": {
+      "status": "built",
+      "scope": "Official Linux package (0.9.17, owner-approved): AI_PROJECT_OS_v0.9.17_Linux.tar.gz with the identical app tree, an official Node.js v24.20.0 linux-x64 runtime bundled as runtime-linux-x64, AI-Project-OS.sh launcher (bundled node first, system node fallback), install.sh (copies to ~/ai-project-os, creates a desktop entry + Desktop shortcut) and a Vietnamese Linux guide. The launcher already opens the browser via xdg-open; DATA_DIR on Linux is <install>/.data; managed-cli npm resolution is platform-aware. Windows-only honestly: Concat automatic setup stays Windows x64 (Linux users install Concat themselves; the RPC path works wherever Concat runs), one-click AI CLI installers that pin Windows builds keep their Windows scope. Verified on a real Linux machine (this build host): clean install into a fresh HOME, server boots with the BUNDLED node, release manifest ok, full test suite run from the packaged tree."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",
