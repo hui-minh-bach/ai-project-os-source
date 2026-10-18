@@ -43,11 +43,14 @@ export async function buildVoiceover({workspace,jobDir,videoSource,audioSource,c
   let capFile=null,segments=null;
   if(captionsSource){
     capFile=within(workspace,captionsSource);
-    insist(path.extname(capFile).toLowerCase()==='.srt','Chỉ chấp nhận phụ đề SRT có mốc thời gian.','VOICEOVER_SRT');
-    insist(fs.statSync(capFile).size<=2*1024*1024,'SRT quá lớn.','VOICEOVER_SRT');
-    segments=subtitles.parseSrt(fs.readFileSync(capFile,'utf8'));
-    insist(segments.length>0,'Không đọc được phụ đề SRT.','VOICEOVER_SRT');
-    insist(segments.every(s=>s.end<=audioSeconds+.1),'Phụ đề vượt quá thời lượng giọng đọc.','VOICEOVER_SRT');
+    const capExt=path.extname(capFile).toLowerCase();
+    insist(capExt==='.srt'||capExt==='.ass','Chỉ chấp nhận phụ đề SRT có mốc thời gian hoặc ASS karaoke do app tạo.','VOICEOVER_SRT');
+    insist(fs.statSync(capFile).size<=2*1024*1024,'Phụ đề quá lớn.','VOICEOVER_SRT');
+    if(capExt==='.srt'){
+      segments=subtitles.parseSrt(fs.readFileSync(capFile,'utf8'));
+      insist(segments.length>0,'Không đọc được phụ đề SRT.','VOICEOVER_SRT');
+      insist(segments.every(s=>s.end<=audioSeconds+.1),'Phụ đề vượt quá thời lượng giọng đọc.','VOICEOVER_SRT');
+    }
   }
   let music=null;
   if(musicSource){
@@ -77,5 +80,5 @@ export async function buildVoiceover({workspace,jobDir,videoSource,audioSource,c
   await run(ffmpegBin,args,{timeoutMs:Math.max(120000,audioSeconds*17000)});
   const qa=await quality.check({file:final,expectedDuration:audioSeconds,ffmpegBin,ffprobeBin,subtitleSegments:segments});
   insist(qa.passed,'Không nghiệm thu được video: '+qa.problems.join(','),'VOICEOVER_QA');
-  return {file:final,qa,voiceOrigin:'user-supplied-real-audio',subtitleSync:segments?'provided-timed-SRT':'none',alignment:stretch?'stretch-video-to-narration':extension>0?'freeze-last-frame-to-preserve-full-voice':'trim-video-to-voice-length',videoSeconds,audioSeconds,musicMixed:Boolean(music),musicVolume:music?Number(musicVolume):0,captionPath:capFile,hardsubCover:{mode:hardsubCover?.mode||'off',regionPct:cover.pct||Math.min(40,Math.max(10,Number(hardsubCover?.regionPct)||22)),applied:cover.applied}};
+  return {file:final,qa,voiceOrigin:'user-supplied-real-audio',subtitleSync:segments?'provided-timed-SRT':(capFile?'karaoke-ass':'none'),alignment:stretch?'stretch-video-to-narration':extension>0?'freeze-last-frame-to-preserve-full-voice':'trim-video-to-voice-length',videoSeconds,audioSeconds,musicMixed:Boolean(music),musicVolume:music?Number(musicVolume):0,captionPath:capFile,hardsubCover:{mode:hardsubCover?.mode||'off',regionPct:cover.pct||Math.min(40,Math.max(10,Number(hardsubCover?.regionPct)||22)),applied:cover.applied}};
 }

@@ -25,7 +25,8 @@ import { createPublishRecords } from './publish-records.mjs';
 import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegmentsWithModel, writeRethemeScriptWithModel, splitScriptAcrossWindows, writeTextWithModel, buildDirectorModelCall, parseDirectorPlan, routeDirectorPlan, groupSpeechSegments } from './media-ai.mjs';
 import { EFFECT_IDS, buildEffectsGraph, buildEffectsAss } from './media-effects.mjs';
 import { generateImage, IMAGE_PROVIDERS } from './image-gen.mjs';
-import { whisperStatus, transcribeLocal } from './local-whisper.mjs';
+import { whisperStatus, transcribeLocal, transcribeWordsLocal } from './local-whisper.mjs';
+import { alignWordsToSegments, buildKaraokeAss } from './karaoke-captions.mjs';
 
 const require=createRequire(import.meta.url);
 const PROJECT_ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -428,7 +429,24 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         await mediaUtils.run('ffmpeg',['-v','error','-y','-f','lavfi','-t',totalSeconds.toFixed(3),'-i','anullsrc=r=44100:cl=stereo',...groupFiles.flatMap(f=>['-i',f]),'-f','lavfi','-t',totalSeconds.toFixed(3),'-i','anoisesrc=color=pink:r=44100:a=0.5','-filter_complex',mixFilter,'-map','[track]','-ac','2','-ar','44100',out],{timeoutMs:600000});
         return {file:out,segReports,groupCount:groups.length};
       }
-      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13})=>{
+      // Karaoke captions ("chu chay theo loi"): word timings measured by
+      // local Whisper on the FINAL speech track when available, otherwise a
+      // deterministic proportional split. The shown text is always the
+      // segment script; Whisper contributes timing boundaries only.
+      async function karaokeBurnCaptions({jobId,dir,segments,texts,trackFile,language,real}){
+        const vs=(real.streams||[]).find(x=>x.codec_type==='video')||{};
+        let whisperWords=null;
+        if(whisperStatus(env).ready){
+          try{const tr=await transcribeWordsLocal({audio:trackFile,outputRoot:path.join(dir,'karaoke-whisper'),language:String(language||'vi').split('-')[0],env});whisperWords=tr.words;}catch{}
+        }
+        const segs=segments.map((sg,i)=>({...sg,text:texts[i]}));
+        const aligned=alignWordsToSegments(segs,whisperWords);
+        const assPath=path.join(dir,'captions-karaoke.ass');
+        fs.writeFileSync(assPath,buildKaraokeAss({segments:segs,perSegment:aligned.perSegment,width:vs.width||1280,height:vs.height||720}));
+        await artifactPort.putFile({jobId,source:assPath,name:'captions-karaoke.ass'});
+        return {captionsSource:path.relative(mediaWorkspace,assPath),captionStyle:'karaoke',captionTiming:aligned.method,wordCount:aligned.wordCount};
+      }
+      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.dub-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -471,10 +489,12 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         const dubWav=dubAsm.file;
         const translatedSrt=path.join(dir,'captions-target.srt');
         fs.writeFileSync(translatedSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:path.relative(mediaWorkspace,translatedSrt),musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
+        let burnCaptions=path.relative(mediaWorkspace,translatedSrt),captionStyle='segments',captionTiming=null;
+        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:dubWav,language:targetLanguage,real});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
+        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,dubWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-dubbed-voice.mp4'});
         await artifactPort.putFile({jobId,source:translatedSrt,name:`captions-${targetLanguage}.srt`});
-        const report={sourceLanguage,targetLanguage,segmentOrigin,translation:translationMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,speechGroups:dubAsm.groupCount,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
+        const report={sourceLanguage,targetLanguage,segmentOrigin,translation:translationMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,speechGroups:dubAsm.groupCount,captionStyle,captionTiming,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
         await artifactPort.putJson({jobId,name:'dub-report.json',data:report});
         return report;
       });
@@ -486,7 +506,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // model against a topic, or supplied with the task (array, or free
       // text split deterministically across the windows). The original
       // audio track is fully replaced and new subtitles are burned.
-      handlers.set('media.retheme',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage='vi',scriptSource='model',topic='',notes='',scriptText='',scriptTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13})=>{
+      handlers.set('media.retheme',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage='vi',scriptSource='model',topic='',notes='',scriptText='',scriptTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.retheme-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -542,10 +562,12 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         const voiceWav=rtAsm.file;
         const newSrt=path.join(dir,'captions-new.srt');
         fs.writeFileSync(newSrt,mediaSubtitles.srt(segments.map((s,i)=>({start:s.start,end:s.end,text:texts[i]}))));
-        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:path.relative(mediaWorkspace,newSrt),musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
+        let burnCaptions=path.relative(mediaWorkspace,newSrt),captionStyle='segments',captionTiming=null;
+        if(karaokeCaptions!==false){try{const kb=await karaokeBurnCaptions({jobId,dir,segments,texts,trackFile:voiceWav,language:targetLanguage,real});burnCaptions=kb.captionsSource;captionStyle=kb.captionStyle;captionTiming=kb.captionTiming;}catch{}}
+        const rendered=await buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'mix'),videoSource:source,audioSource:path.relative(mediaWorkspace,voiceWav),captionsSource:burnCaptions,musicSource:musicSource||null,musicVolume:musicVolume??.12,alignment:'hold',hardsubCover:{mode:hardsubCover,regionPct:hardsubRegionPct}});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-new-voice.mp4'});
         await artifactPort.putFile({jobId,source:newSrt,name:`captions-${targetLanguage}.srt`});
-        const report={topic:String(topic||''),targetLanguage,segmentOrigin,script:scriptMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,speechGroups:rtAsm.groupCount,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
+        const report={topic:String(topic||''),targetLanguage,segmentOrigin,script:scriptMeta,voiceProvider:provider.provider,hardsubCover:rendered.hardsubCover,speechGroups:rtAsm.groupCount,captionStyle,captionTiming,segments:segReports,overflowCount:segReports.filter(s=>s.overflow).length,qa:rendered.qa,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds};
         await artifactPort.putJson({jobId,name:'retheme-report.json',data:report});
         return report;
       });

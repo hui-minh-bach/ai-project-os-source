@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.12",
-  "channel": "v0.9.12-studio-effects",
+  "version": "0.9.13",
+  "channel": "v0.9.13-karaoke-captions",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -108,6 +108,10 @@
     "studio_effects": {
       "status": "built-live-verified",
       "scope": "CapCut-style EFFECTS mode added to Media Studio (0.9.12) after the user pointed out the Studio had no effects section. New operation media.effects + src/lib/media-effects.mjs: a curated catalog of 17 deterministic presets in 4 groups (frame: blurred-background 9:16 vertical / 16:9 horizontal pads; colour: vivid, bright, warm, cool, black-and-white, vintage, vignette, sharpen; motion: slow zoom in/out via zoompan, 1.25x speed-up, 0.8x slow-down with matched atempo, fade in/out on picture and sound; text: opening title + lower-third name card rendered from a generated ASS file through the same subtitles burn path as dubbing). One ffmpeg graph in a fixed order (speed -> pad -> zoom -> colour chain -> text burn); max 8 per task; inapplicable effects are reported in effects-report.json, never silently dropped; QA gate via the shared quality checker; the handler returns its report (the engine reads result.qa — a first live run caught a missing return and it was fixed). LIVE VERIFIED through the real API on the 1280x720 JFK clip: pad-vertical + vivid + vignette + title + lower-third completed, output 406x720, 80.04s == source, QA passed; the 2s frame shows the blurred bands, the big title and the boxed name card. Studio now has 10 modes; the earlier CapCut shell test was updated to expect 10 modes/panels."
+    },
+    "karaoke_captions": {
+      "status": "built-live-verified",
+      "scope": "Word-by-word karaoke captions for media.dub + media.retheme (0.9.13), the users words: \"chu ra toi dau doc toi do\" — text lights up exactly as the voice reaches each word. New src/lib/karaoke-captions.mjs + transcribeWordsLocal in local-whisper.mjs (whisper.cpp -ojf token offsets grouped into words). Timing source order: (1) measured word boundaries from local Whisper over the FINAL assembled speech track, resampled onto the scripts own words by character position (whisper supplies timing only, never the displayed text); (2) deterministic proportional fallback, disclosed in the report as captionTiming whisper-words|proportional alongside captionStyle karaoke|segments. Rendered as ASS \\kf sweeps (unsung white -> sung yellow) burned through the standard subtitles path; buildVoiceover now also accepts an app-generated .ass captions file (SRT behavior unchanged; SRT artifact still exported separately, plus captions-karaoke.ass). UI: Retheme panel checkbox (default on); AI Director routes dub/retheme with karaokeCaptions:true. LIVE VERIFIED through the real API on the JFK tea retheme with Whisper enabled: report path ran with a karaoke-whisper word pass, output 80.04s == source; the 3.0s frame shows \"Van hoa tra\" already yellow while \"Viet\" is still white — mid-sweep, matching the \\kf timings. Not yet applied to story/tts-video outputs."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

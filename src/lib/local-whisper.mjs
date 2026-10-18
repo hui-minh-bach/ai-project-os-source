@@ -30,3 +30,40 @@ export async function transcribeLocal({audio,outputRoot,language='vi',env=proces
  if(segments.length===0)throw blocked();
  return {segments,source:'whisper.cpp offline confirmed from real audio'};
 }
+
+/**
+ * Word-level transcription: same offline whisper.cpp, full-JSON output.
+ * Returns measured word boundaries from the actual audio (token offsets
+ * grouped into words); used to time karaoke captions to the real speech.
+ */
+export async function transcribeWordsLocal({audio,outputRoot,language='vi',env=process.env}={}){
+ const model=String(env.WHISPER_MODEL_PATH||'');const cli=String(env.WHISPER_CLI_PATH||'whisper-cli');
+ if(!model||!fs.existsSync(model)||!fs.statSync(model).isFile())throw blocked();
+ if(!audio||!fs.existsSync(audio))throw blocked();
+ fs.mkdirSync(outputRoot,{recursive:true,mode:0o700});
+ const stem=path.join(outputRoot,'whisper-words-'+crypto.randomUUID());
+ try{
+  await run(cli,['-m',model,'-f',audio,'-l',language,'-ojf','-of',stem],{timeoutMs:900000});
+ }catch(e){const problem=new Error('Whisper CLI không tạo được mốc từ: '+String(e.message||'').slice(0,240));problem.code='BLOCKED_STT';throw problem;}
+ const file=stem+'.json';if(!fs.existsSync(file))throw blocked();
+ const data=JSON.parse(fs.readFileSync(file,'utf8'));
+ const words=[];
+ for(const seg of data?.transcription||[]){
+  for(const tok of seg?.tokens||[]){
+   const text=String(tok?.text||'');
+   if(!text||text.startsWith('[_'))continue;
+   const from=Number(tok?.offsets?.from),to=Number(tok?.offsets?.to);
+   if(!Number.isFinite(from)||!Number.isFinite(to))continue;
+   const startsWord=text.startsWith(' ')||words.length===0;
+   const clean=text.trim();
+   if(startsWord||!/^[\p{L}\p{N}]/u.test(clean)){
+    if(clean)words.push({start:from/1000,end:to/1000,text:clean});
+   }else if(words.length){
+    words[words.length-1].text+=clean;
+    words[words.length-1].end=to/1000;
+   }
+  }
+ }
+ if(words.length===0)throw blocked();
+ return {words,source:'whisper.cpp word offsets from real audio'};
+}
