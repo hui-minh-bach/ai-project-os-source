@@ -142,6 +142,38 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     return {connected:true,apiVersion:version.apiVersion||null,concatVersion:version.concat||null};
   }
 
+  // Open the selected source video in the REAL Concat editor: create a
+  // Concat project from it through Concat's own JSON-RPC API (same calls
+  // the quick-edit engine uses, minus the export), then bring the Concat
+  // app to the front so the user can keep editing by hand in Concat's UI.
+  async function openInConcat({source}={}){
+    const setting=concatSettings();
+    if(!setting.token)throw err('BLOCKED_CONCAT','Mở Vault và bấm Cài + kết nối Concat tự động trong Video Studio trước.');
+    const srcFile=checkFile(mediaWorkspace,String(source||''));
+    if(!/\.(mp4|mov|mkv|webm|m4v)$/i.test(srcFile))throw err('MEDIA_PATH','Chỉ mở được tệp video trong Concat.');
+    await checkConcat();
+    const location=path.join(mediaWorkspace,'concat-projects');
+    fs.mkdirSync(location,{recursive:true,mode:0o700});
+    const name='aios-open-'+Date.now().toString(36);
+    const project=path.join(location,name);
+    const c=concatRpc.createSession(setting);
+    try{
+      const version=await c.call('version');
+      if(!(String(version?.apiVersion||'').startsWith('0.2')||version?.capabilities?.includes('json-rpc')))throw err('BLOCKED_CONCAT','Phiên bản Concat API không tương thích.');
+      await c.call('project.create',{location,name});
+      const imported=await c.call('media.import',{path:project,file:srcFile});
+      const mediaId=imported?.createdId;
+      if(!(typeof mediaId==='string'&&/^m[\w-]+$/i.test(mediaId)))throw err('BLOCKED_CONCAT','Concat không nhập được video này.');
+      const placed=await c.call('edit.apply',{path:project,command:{op:'addClipAtFirstFree',mediaId,start:0}});
+      if(typeof placed?.createdId!=='string')throw err('BLOCKED_CONCAT','Concat từ chối đặt clip vào timeline.');
+      await c.call('project.save',{path:project});
+    }finally{c.close();}
+    let guiOpened=false;
+    if(process.platform==='win32'){try{const exe=findInstalledConcat(env);if(exe){openConcat(exe);guiOpened=true;}}catch{}}
+    return {opened:true,guiOpened,projectName:name,projectPath:project,source:path.relative(mediaWorkspace,srcFile),
+      note:guiOpened?'Concat vừa được mở ở phía trước. Project "'+name+'" đã có sẵn clip — nếu Concat chưa hiện project, dùng Open Project và trỏ tới thư mục project.':'Đã tạo project trong Concat. Mở ứng dụng Concat, dùng Open Project và trỏ tới thư mục project để sửa tiếp.'};
+  }
+
   function persistExternalIndex(){
     fs.mkdirSync(data,{recursive:true,mode:0o700});
     const tmp=externalIndexPath+'.'+crypto.randomUUID()+'.tmp';
@@ -878,5 +910,5 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     fs.closeSync(fd);return {source:rel,name,size,sha256:digest.digest('hex')};
   }
   function stop(){if(timer){clearInterval(timer);timer=null;}if(core){core.close();core=null;}}
-  return {status,checkConcat,plannerStatus:mediaPlannerStatus,directorPlan,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
+  return {status,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
 }

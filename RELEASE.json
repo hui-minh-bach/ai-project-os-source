@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.14",
-  "channel": "v0.9.14-karaoke-sync-fix",
+  "version": "0.9.15",
+  "channel": "v0.9.15-concat-studio",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -112,6 +112,14 @@
     "karaoke_captions": {
       "status": "built-live-verified",
       "scope": "Word-by-word karaoke captions for media.dub + media.retheme. CORRECTED in 0.9.14 after an independent re-measurement (prompted by the user asking whether text and voice were really even) exposed a real sync defect in 0.9.13: word times were spread across the ORIGINAL segment windows while the grouped speech track reads each passage continuously at the start of its group — offsets up to seconds, worst in long pauses (voice said a word at 1.19s, its caption lit at 4.96s). Fix: alignKaraokeWords anchors every word to its speech GROUP’s real span [groupStart, groupStart + voiceSeconds/tempo] taken from the assembly segReports; Whisper word timings (transcribeWordsLocal, whisper.cpp -ojf over the final speech track) refine boundaries INSIDE that span only; fallback is a proportional split of the speech span; reports keep captionStyle/captionTiming disclosure. Dialogue windows now follow the voice, not the source windows. RE-MEASURED independently (fresh Whisper pass over the delivered videos own audio, one-to-one word matching): median absolute offset 0.12s, mean 0.33s; frame at 1.05s shows exactly the spoken word yellow and the next word white. Timing text is always the scripts own words. Not yet applied to story/tts-video outputs."
+    },
+    "concat_open_project": {
+      "status": "built",
+      "scope": "Open-in-Concat (0.9.15, user choice \"lam ca hai\"): POST /api/integrations/media/concat/open + host openInConcat — creates a real Concat project from the currently selected source video through Concat’s own JSON-RPC API (project.create/media.import/edit.apply addClipAtFirstFree/project.save, the same calls as the quick-edit engine minus export), then brings the installed Concat app to the front on Windows (openConcat). Studio transport bar button \"Mo trong Concat\" + note with the project path. Honest gates: requires Concat installed + Remote token configured (BLOCKED_CONCAT with Vault guidance otherwise); the GUI actually opening the created project is verified on the user’s Windows (Gate 4 class). Unit-verified against a stub Concat RPC server (call order probe/create/import/place/save, path-escape rejected)."
+    },
+    "studio_concat_theme": {
+      "status": "built",
+      "scope": "Media Studio redesigned Concat-style (0.9.15): dark editor theme scoped to #mediaStudio regardless of app theme; layout restructured — tools/preview/panels row on top, FULL-WIDTH multi-track timeline below; Concat lane colours (video lane blue with a REAL filmstrip drawn client-side from the preview video frames, caption lane pink like Concat text clips, result lane violet), violet playhead, transport bar (back/play-pause/forward 5s + time readout) under the preview. All existing ids, 10 modes and 10 panels preserved (capcut-studio contract test extended). Design verified by rendering the shipped HTML+CSS in a browser (live-app screenshots remain blocked in the sandbox by Chromium local-network policy, as in 0.9.7)."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

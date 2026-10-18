@@ -39,7 +39,7 @@ import { createUpdater } from './lib/updater.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.14';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.15';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -147,6 +147,7 @@ const server=http.createServer(async(req,res)=>{try{
     }finally{installingConcat=false;}
   }
   if(req.method==='GET'&&u.pathname==='/api/integrations/media/concat/test')return send(res,200,await integrations.checkConcat());
+  if(req.method==='POST'&&u.pathname==='/api/integrations/media/concat/open'){const input=await readBody(req);return send(res,200,await integrations.openInConcat({source:String(input.source||'')}));}
   if(req.method==='POST'&&u.pathname==='/api/integrations/media/concat/config'){
     const input=await readBody(req),token=String(input.token||'');
     if(!vaultStatus().unlocked)throw new Error('Mở Vault trước khi lưu token Concat.');

@@ -335,13 +335,14 @@ function mediaRenderTimeline(){const host=$('#mediaTimeline');if(!host)return;co
   if(!tl.duration){host.innerHTML='<p class="mediaHint">Chưa có dữ liệu đoạn cho tác vụ đang chọn. Các tác vụ Đổi chủ đề / Lồng tiếng có báo cáo mốc giây sẽ hiện đầy đủ ở đây.</p>';if(note)note.textContent='Chưa có dữ liệu đoạn.';return;}
   const step=tl.duration<=30?5:tl.duration<=90?10:tl.duration<=300?30:60;const ticks=[];for(let x=0;x<=tl.duration;x+=step)ticks.push(x);if(ticks[ticks.length-1]<tl.duration)ticks.push(Math.round(tl.duration));
   const pct=v=>Math.max(0,Math.min(100,(v/tl.duration)*100));
-  const segBlocks=tl.segments.map(sg=>`<div class="mediaTlBlock" data-tl-seek="${sg.start}" style="left:${pct(sg.start)}%;width:${Math.max(1.2,pct(sg.end)-pct(sg.start))}%" title="${esc(sg.text||'')}">${esc(sg.text||'đoạn')}</div>`).join('');
+  const segBlocks=tl.segments.map(sg=>`<div class="mediaTlBlock cap" data-tl-seek="${sg.start}" style="left:${pct(sg.start)}%;width:${Math.max(1.2,pct(sg.end)-pct(sg.start))}%" title="${esc(sg.text||'')}">${esc(sg.text||'đoạn')}</div>`).join('');
   host.innerHTML=`<div class="mediaTlInner"><div class="mediaTlRuler">${ticks.map(x=>`<span class="mediaTlTick" style="left:${pct(x)}%">${mediaTlFmt(x)}</span>`).join('')}<div class="mediaTlPlayhead"></div></div>
-  <div class="mediaTlRow"><span class="mediaTlRowLabel">Hình ảnh</span><div class="mediaTlTrack"><div class="mediaTlBlock alt" data-tl-seek="0" style="left:0%;width:100%" title="Video gốc">${esc(tl.sourceLabel||'Video gốc')}</div><div class="mediaTlPlayhead"></div></div></div>
-  <div class="mediaTlRow"><span class="mediaTlRowLabel">Đoạn / phụ đề</span><div class="mediaTlTrack">${segBlocks||'<span class="mediaHint" style="padding:6px">Chưa có dữ liệu đoạn.</span>'}<div class="mediaTlPlayhead"></div></div></div>
-  ${tl.outputName?`<div class="mediaTlRow"><span class="mediaTlRowLabel">Kết quả</span><div class="mediaTlTrack"><div class="mediaTlBlock" data-tl-seek="0" style="left:0%;width:100%" title="Video kết quả">${esc(tl.outputName)}</div><div class="mediaTlPlayhead"></div></div></div>`:''}</div>`;
+  <div class="mediaTlRow"><span class="mediaTlRowLabel">🎬 Hình ảnh</span><div class="mediaTlTrack"><div class="mediaTlBlock film" data-tl-seek="0" style="left:0%;width:100%" title="Video gốc">${esc(tl.sourceLabel||'Video gốc')}</div><div class="mediaTlPlayhead"></div></div></div>
+  <div class="mediaTlRow"><span class="mediaTlRowLabel">T Phụ đề</span><div class="mediaTlTrack">${segBlocks||'<span class="mediaHint" style="padding:6px">Chưa có dữ liệu đoạn.</span>'}<div class="mediaTlPlayhead"></div></div></div>
+  ${tl.outputName?`<div class="mediaTlRow"><span class="mediaTlRowLabel">✨ Kết quả</span><div class="mediaTlTrack"><div class="mediaTlBlock fx" data-tl-seek="0" style="left:0%;width:100%" title="Video kết quả">${esc(tl.outputName)}</div><div class="mediaTlPlayhead"></div></div></div>`:''}</div>`;
   if(note)note.textContent=tl.segments.length?tl.segments.length+' đoạn · tổng '+mediaTlFmt(tl.duration):'Tổng '+mediaTlFmt(tl.duration);
   mediaTlSyncPlayhead();
+  void mediaTlFilmstrip();
 }
 function mediaTlSyncPlayhead(){const player=$('#mediaMainPlayer');const tl=mediaUI.timeline;if(!player||!tl.duration)return;const frac=Math.max(0,Math.min(1,(player.currentTime||0)/tl.duration));document.querySelectorAll('.mediaTlPlayhead').forEach(ph=>{ph.style.left=(frac*100)+'%';});}
 (()=>{const player=$('#mediaMainPlayer');if(player&&player.addEventListener){player.addEventListener('timeupdate',mediaTlSyncPlayhead);player.addEventListener('seeked',mediaTlSyncPlayhead);player.addEventListener('loadedmetadata',()=>{if(!mediaUI.timeline.duration&&isFinite(player.duration)){mediaUI.timeline.duration=player.duration;mediaRenderTimeline();}});}})();
@@ -406,3 +407,48 @@ $('#mediaDirectorPlan')?.addEventListener('click',e=>{
   mediaSwitchMode(btn.dataset.directorRoute);
   mediaFeedback('Đã mở chế độ tương ứng ở cột phải. Điền biểu mẫu rồi bấm Tạo tác vụ.');
 });
+
+/* Concat-style filmstrip: draw real frames from the current preview video
+ * into the video lane of the timeline. Purely cosmetic; failures are silent. */
+let mediaFilmstripFor='';
+async function mediaTlFilmstrip(){
+  if(typeof document==='undefined'||!document.querySelector)return;
+  const block=document.querySelector('.mediaTlBlock.film');const player=$('#mediaMainPlayer');
+  if(!block||!player||!player.currentSrc)return;
+  const src=player.currentSrc;if(mediaFilmstripFor===src)return;mediaFilmstripFor=src;
+  try{
+    const v=document.createElement('video');v.muted=true;v.preload='auto';v.src=src;v.crossOrigin='anonymous';
+    await new Promise((res,rej)=>{v.addEventListener('loadedmetadata',res,{once:true});v.addEventListener('error',rej,{once:true});});
+    const dur=v.duration;if(!isFinite(dur)||dur<=0)return;
+    const strip=document.createElement('canvas');strip.width=720;strip.height=44;const ctx=strip.getContext('2d');
+    const n=8,w=strip.width/n;
+    for(let i=0;i<n;i++){
+      await new Promise(res=>{v.addEventListener('seeked',res,{once:true});v.currentTime=Math.min(dur-0.05,(i+0.5)*dur/n);setTimeout(res,900);});
+      try{ctx.drawImage(v,i*w,0,w,strip.height);}catch{}
+    }
+    block.style.backgroundImage=`url(${strip.toDataURL('image/jpeg',0.72)})`;
+    block.classList.add('hasStrip');
+  }catch{/* filmstrip is decoration only */}
+}
+/* Transport bar + open-in-Concat */
+(()=>{
+  const player=$('#mediaMainPlayer');if(!player)return;
+  const fmt=t=>{t=Math.max(0,Math.floor(t||0));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');};
+  const timeEl=$('#mediaTpTime'),playBtn=$('#mediaTpPlay');
+  const sync=()=>{if(timeEl)timeEl.textContent=fmt(player.currentTime)+' / '+fmt(player.duration);if(playBtn)playBtn.textContent=player.paused?'▶':'⏸';};
+  player.addEventListener('timeupdate',sync);player.addEventListener('play',sync);player.addEventListener('pause',sync);player.addEventListener('loadedmetadata',sync);
+  playBtn?.addEventListener('click',()=>{if(player.paused)void player.play();else player.pause();});
+  $('#mediaTpBack')?.addEventListener('click',()=>{player.currentTime=Math.max(0,player.currentTime-5);});
+  $('#mediaTpFwd')?.addEventListener('click',()=>{player.currentTime=Math.min(player.duration||1e9,player.currentTime+5);});
+  $('#mediaOpenConcat')?.addEventListener('click',async()=>{
+    const note=$('#mediaConcatNote');
+    if(!mediaUI.source){mediaFeedback('Chưa có video nguồn. Nạp video ở mục Phân tích hoặc chọn một tác vụ có video nguồn trước.','Error');return;}
+    const btn=$('#mediaOpenConcat');btn.disabled=true;
+    try{
+      const r=await api('/api/integrations/media/concat/open',{method:'POST',body:JSON.stringify({source:mediaUI.source})});
+      if(note){note.hidden=false;note.textContent='🐱 '+r.note+' Project: '+r.projectPath;}
+      mediaFeedback('Đã tạo project Concat "'+r.projectName+'" từ video đang chọn.','Success');
+    }catch(e){mediaFeedback('Mở trong Concat chưa được: '+(e.message||e),'Error');}
+    finally{btn.disabled=false;}
+  });
+})();

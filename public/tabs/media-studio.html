@@ -2,6 +2,7 @@
   <div class="mediaHeader"><div><h3>Video & Story Studio <span class="tag">V07–V10</span></h3><p>Tạo timeline nhiều lớp trong Concat từ cảnh thật, nhạc, giọng, phụ đề; FFmpeg dự phòng. Piper có thể tự đọc kịch bản offline khi cài model. HeyGen chỉ là tùy chọn trả phí.</p></div><div id="mediaStatusBar" class="mediaStatusBar" aria-live="polite"><span>Đang kiểm tra…</span></div></div>
   <div class="mediaWarning" id="mediaLimitations">Không cần HeyGen API: dùng giọng TTS/Whisper trong Concat hoặc nạp âm thanh thật; tự động sinh giọng bằng Piper local khi đã cài model. Đăng bài chưa mở.</div>
   <div class="mediaCapcut">
+   <div class="mediaCapcutMain">
     <aside class="mediaRail">
 <div class="mediaModeBar" role="group" aria-label="Công việc Video Studio">
     <button data-media-mode="analyze" class="active" type="button">◉ Phân tích video</button>
@@ -27,8 +28,9 @@
         <div class="mediaInline"><button id="mediaDirectorGo" type="button" class="primary">✨ Để AI hiểu &amp; lên kế hoạch</button></div>
         <div id="mediaDirectorPlan" class="mediaDirectorPlan" hidden></div>
       </div>
-      <div class="mediaStage"><video id="mediaMainPlayer" controls preload="metadata" aria-label="Khung xem trước video"></video><div id="mediaStageEmpty" class="mediaStageEmpty">Chưa chọn video. Bấm “▶ Xem trước” ở một tác vụ đã hoàn thành hoặc chọn video trong Kho media.</div><p id="mediaStageLabel">Khung xem trước kiểu CapCut: chọn kết quả ở cột phải hoặc kho bên trái.</p></div>
-      <div class="mediaTimelineWrap"><div class="mediaTimelineHead"><span>⏱ Dòng thời gian</span><span id="mediaTimelineNote" class="mediaHint">Chưa có dữ liệu đoạn.</span></div><div id="mediaTimeline" class="mediaTimeline"><p class="mediaHint">Dòng thời gian hiện các lớp thật của tác vụ được chọn: hình ảnh, đoạn lời/phụ đề theo đúng mốc giây trong báo cáo của tác vụ. Bấm vào dòng thời gian để nhảy tới vị trí đó trong khung xem trước.</p></div></div>
+      <div class="mediaStage"><video id="mediaMainPlayer" controls preload="metadata" aria-label="Khung xem trước video"></video><div id="mediaStageEmpty" class="mediaStageEmpty">Chưa chọn video. Bấm “▶ Xem trước” ở một tác vụ đã hoàn thành hoặc chọn video trong Kho media.</div><p id="mediaStageLabel">Khung xem trước: chọn kết quả ở cột phải hoặc kho bên trái.</p></div>
+      <div class="mediaTransport"><button id="mediaTpBack" type="button" title="Lùi 5 giây">⏪</button><button id="mediaTpPlay" type="button" title="Phát / tạm dừng">▶</button><button id="mediaTpFwd" type="button" title="Tới 5 giây">⏩</button><span id="mediaTpTime" class="mediaTpTime">00:00 / 00:00</span><span class="mediaTpSpacer"></span><button id="mediaOpenConcat" type="button" class="mediaConcatBtn" title="Tạo project từ video nguồn đang chọn và mở trong ứng dụng Concat thật để sửa tay">🐱 Mở trong Concat</button></div>
+      <p id="mediaConcatNote" class="mediaHint" hidden></p>
     </div>
     <div class="mediaSideCol">
 
@@ -195,5 +197,7 @@
     </div>
     <div class="mediaFieldset"><h4>Hàng đợi & kết quả thật</h4><p class="mediaHint">Mặc định chỉ xem tác vụ của video đang chọn để không nhầm clip mẫu cũ thành video mới. “Hoàn thành” chỉ xác nhận kỹ thuật.</p><label class="checkboxLine"><input id="mediaShowAllHistory" type="checkbox"> Hiện cả tác vụ của video khác / clip mẫu cũ</label><div id="mediaJobs" class="mediaQueue" aria-live="polite"><p class="mediaHint">Chưa có dữ liệu.</p></div></div>
     </div>
+   </div>
+      <div class="mediaTimelineWrap"><div class="mediaTimelineHead"><span>⏱ Dòng thời gian</span><span id="mediaTimelineNote" class="mediaHint">Chưa có dữ liệu đoạn.</span></div><div id="mediaTimeline" class="mediaTimeline"><p class="mediaHint">Dòng thời gian hiện các lớp thật của tác vụ được chọn: hình ảnh, đoạn lời/phụ đề theo đúng mốc giây trong báo cáo của tác vụ. Bấm vào dòng thời gian để nhảy tới vị trí đó trong khung xem trước.</p></div></div>
   </div>
 </section>

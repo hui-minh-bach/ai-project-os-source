@@ -62,3 +62,16 @@ test('timeline helpers parse real SRT cues and pick the right result video', () 
   assert.match(tl, /mediaTlPlayhead/);
   assert.match(el('#mediaTimelineNote').textContent, /2 đoạn/);
 });
+
+test('Studio wears the Concat-style dark theme and can open the real Concat editor (0.9.15)', () => {
+  assert.ok(html.includes('class="mediaCapcutMain"'), 'top row wrapper');
+  assert.ok(html.includes('id="mediaOpenConcat"'), 'open-in-Concat button');
+  assert.ok(html.includes('id="mediaTpPlay"') && html.includes('id="mediaTpTime"'), 'transport bar');
+  assert.match(css, /#mediaStudio\{background:#141419/, 'dark editor scope');
+  assert.match(css, /\.mediaTlBlock\.cap\{/, 'pink caption lane like Concat text clips');
+  assert.match(css, /\.mediaTlBlock\.film\{/, 'blue video lane');
+  assert.match(css, /\.mediaConcatBtn\{/, 'Concat button styling');
+  assert.match(js, /\/api\/integrations\/media\/concat\/open/, 'open route wired');
+  assert.match(js, /mediaTlFilmstrip/, 'real filmstrip thumbnails');
+  assert.match(js, /mediaTlBlock cap/, 'caption blocks use the pink lane class');
+});
