@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.19",
-  "channel": "v0.9.19-output-quality",
+  "version": "0.9.20",
+  "channel": "v0.9.20-macos-package",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -153,6 +153,10 @@
     "output_quality": {
       "status": "implemented",
       "note": "0.9.19: selectable output quality (standard/high/max = crf 21/18/15 + preset) for story, render, dub, retheme and voiceover; narration loudness normalized to about -14 LUFS in story clips and voiceover finals; effects pads render on full 1080x1920 / 1920x1080 canvases; procedural story illustration v2 (layered scenes, grain, vignette) with optional provider AI illustrations and a safe fallback."
+    },
+    "macos_package": {
+      "status": "implemented",
+      "note": "0.9.20 adds a macOS package: the same verified source plus official Node.js v24.20.0 runtimes for Apple Silicon (darwin-arm64) and Intel (darwin-x64), checksum-verified against nodejs.org SHASUMS256, with an arch-selecting double-click launcher. Windows-only extras are excluded; the Concat source zip and AGPL notices are kept. The bundled macOS Node binaries cannot be executed inside the Linux build sandbox, so the first boot on a real Mac is the recipient-side acceptance step; Gatekeeper may require right-click > Open on first launch because the package is not Apple-notarized."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

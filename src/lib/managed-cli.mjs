@@ -53,7 +53,7 @@ export function resolveCli(kind,{env=process.env,platform=process.platform,manag
  throw new Error(`Chưa cài ${kind==='codex'?'Codex':kind==='claude'?'Claude Code':'Gemini CLI'}. Chọn Cài công cụ AI trong tab Kết nối.`);
 }
 export function npmCliPath({nodePath=process.execPath,root=ROOT}={}){
- const runtimeDir=process.platform==='win32'?(process.arch==='arm64'?'runtime-win-arm64':'runtime-win-x64'):process.platform==='linux'?'runtime-linux-x64':null;
+ const runtimeDir=process.platform==='win32'?(process.arch==='arm64'?'runtime-win-arm64':'runtime-win-x64'):process.platform==='linux'?'runtime-linux-x64':process.platform==='darwin'?(process.arch==='arm64'?'runtime-darwin-arm64':'runtime-darwin-x64'):null;
  const bases=[path.dirname(nodePath),path.resolve(path.dirname(nodePath),'../lib'),path.resolve(path.dirname(nodePath),'../lib64'),...(runtimeDir?[path.join(root,runtimeDir)]:[]),root];
  for(const base of bases){const target=path.join(base,'node_modules','npm','bin','npm-cli.js');if(fs.existsSync(target))return target;}
  throw new Error('Thiếu npm trong Node.js portable. Chạy RUN-WINDOWS.cmd để hoàn tất bộ Node.js hoặc cài Node.js 22+.');
