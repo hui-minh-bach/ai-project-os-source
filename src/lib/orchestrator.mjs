@@ -29,7 +29,7 @@ export function defaultOrchestratorConfig() {
     stopAll: false,
     ingestScanMinutes: 30,
     pipelines: {
-      'news-video': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 2, activeHours: [7, 21], targetLanguage: 'vi' },
+      'news-video': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 2, activeHours: [7, 21], targetLanguage: 'vi', fieldIds: [], perFieldDailyCap: 1 },
       'dub-video': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 2, activeHours: [7, 21], sourceLanguage: 'en', targetLanguage: 'vi' },
       'idea-film': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 1, activeHours: [7, 21], targetLanguage: 'vi' },
     },
@@ -139,6 +139,11 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
   function getRun(id) { return state.runs.find(r => r.id === id) || null; }
   function activeRun(pipelineId) { return state.runs.find(r => r.pipeline === pipelineId && (r.state === 'running' || r.state === 'awaiting-approval')) || null; }
 
+  function runsTodayForField(pipelineId, fieldId) {
+    if (!fieldId) return 0;
+    const key = todayKey(now());
+    return state.runs.filter(r => r.pipeline === pipelineId && r.fieldId === fieldId && String(r.createdAt).slice(0, 10) === key && r.state !== 'failed').length;
+  }
   function runsToday(pipelineId) {
     const key = todayKey(now());
     return state.runs.filter(r => r.pipeline === pipelineId && String(r.createdAt).slice(0, 10) === key && r.state !== 'failed').length;
@@ -291,9 +296,10 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     const cfg = state.config.pipelines[pipelineId];
     if (activeRun(pipelineId)) throw err('ORCHESTRATOR_BUSY', `Quy trình ${pipelineId} đang có một lượt chạy chưa kết thúc. Hãy chờ hoặc duyệt lượt đó trước.`);
     if (runsToday(pipelineId) >= (cfg.dailyCap || 1)) throw err('ORCHESTRATOR_CAP', `Đã đạt trần ${cfg.dailyCap} sản phẩm hôm nay cho quy trình ${pipelineId}.`);
+    const inputCard = pipelineId === 'news-video' && input.cardId ? ingest.listCards().find(c => c.id === input.cardId) : null;
     const run = {
       id: idgen(), pipeline: pipelineId, state: 'running', createdAt: now().toISOString(),
-      cardId: input.cardId || null, sourceVideo: input.sourceVideo || null,
+      cardId: input.cardId || null, fieldId: inputCard?.fieldId || null, sourceVideo: input.sourceVideo || null,
       title: String(input.title || (pipelineId === 'news-video' ? 'Bản tin tự động' : pipelineId === 'dub-video' ? 'Video lồng tiếng tự động' : 'Phim từ ý tưởng')).slice(0, 160),
       ideaText: input.ideaText ? String(input.ideaText).slice(0, 4000) : null,
       steps: [], projectId: null, publish: [], error: null,
@@ -340,10 +346,15 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       if (!withinActiveHours(cfg)) { out.skipped.push({ pipelineId, reason: 'outside-active-hours' }); continue; }
       if (runsToday(pipelineId) >= (cfg.dailyCap || 1)) { out.skipped.push({ pipelineId, reason: 'daily-cap' }); continue; }
       if (pipelineId === 'news-video') {
-        const card = ingest.listCards({ unusedOnly: true })[0];
-        if (!card) { out.skipped.push({ pipelineId, reason: 'no-unused-card' }); continue; }
+        const fieldIds = Array.isArray(cfg.fieldIds) ? cfg.fieldIds : [];
+        const perFieldCap = Number(cfg.perFieldDailyCap ?? 1);
+        const candidates = ingest.listCards({ unusedOnly: true })
+          .filter(c => !fieldIds.length || (c.fieldId && fieldIds.includes(c.fieldId)))
+          .sort((a, b) => (b.score || 0) - (a.score || 0));
+        const card = candidates.find(c => !(perFieldCap > 0 && c.fieldId && runsTodayForField(pipelineId, c.fieldId) >= perFieldCap));
+        if (!card) { out.skipped.push({ pipelineId, reason: candidates.length ? 'field-daily-cap' : 'no-unused-card' }); continue; }
         const run = await startRun(pipelineId, { cardId: card.id, title: card.title });
-        out.started.push({ pipelineId, runId: run.id, state: run.state });
+        out.started.push({ pipelineId, runId: run.id, state: run.state, fieldId: run.fieldId || null });
       }
       // dub-video and idea-film need explicit inputs (a video / an idea);
       // they are started manually or by future input watchers, not by tick.

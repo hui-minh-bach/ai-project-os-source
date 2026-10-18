@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { classifyNewsField, scoreNewsItem, newsFieldById } from './news-fields.mjs';
 
 function err(code,message){const e=new Error(message);e.code=code;return e;}
 const FEED_KINDS=new Set(['rss','atom','auto']);
@@ -93,12 +94,14 @@ export function createIngestStore({file,fetchImpl}={}){
  const findSource=id=>state.sources.find(s=>s.id===id);
  const copySource=s=>({...s,keywords:[...s.keywords]});
 
- function addSource({name,url,kind='auto',enabled=true,keywords=[]}={}){
+ function addSource({name,url,kind='auto',enabled=true,keywords=[],fieldId=null}={}){
+  const fid=fieldId?String(fieldId).trim():null;
+  if(fid&&!newsFieldById(fid))throw err('INGEST_FIELD','Lĩnh vực tin không hợp lệ: '+fid);
   let parsed=null;try{parsed=new URL(String(url||''));}catch{}
   if(!parsed||!['http:','https:'].includes(parsed.protocol))throw err('INGEST_URL','Địa chỉ nguồn tin phải là URL http(s) hợp lệ.');
   if(!FEED_KINDS.has(kind))throw err('INGEST_URL','Loại nguồn tin phải là rss, atom hoặc auto.');
   const kw=Array.isArray(keywords)?[...new Set(keywords.map(k=>String(k||'').trim()).filter(Boolean))].slice(0,20):[];
-  const source={id:crypto.randomUUID(),name:String(name||'').trim().slice(0,120)||parsed.hostname,url:parsed.toString(),kind,enabled:enabled!==false,keywords:kw,createdAt:new Date().toISOString(),lastScanAt:null,lastError:null};
+  const source={id:crypto.randomUUID(),name:String(name||'').trim().slice(0,120)||parsed.hostname,url:parsed.toString(),kind,enabled:enabled!==false,keywords:kw,fieldId:fid,createdAt:new Date().toISOString(),lastScanAt:null,lastError:null};
   state.sources.push(source);save();
   return copySource(source);
  }
@@ -154,15 +157,17 @@ export function createIngestStore({file,fetchImpl}={}){
    const hash=sha256(key);
    if(seen.has(hash)){duplicates++;continue;}
    seen.add(hash);
-   state.cards.push({id:crypto.randomUUID(),sourceId:source.id,title:item.title||'(không có tiêu đề)',summary:String(item.summary||'').slice(0,500),link:item.link||'',publishedAt:item.publishedAt||null,fetchedAt,hash,usedByProjectId:null});
+   const cardFieldId=source.fieldId||classifyNewsField(item);
+   const scored=scoreNewsItem(item,{fieldId:cardFieldId});
+   state.cards.push({id:crypto.randomUUID(),sourceId:source.id,title:item.title||'(không có tiêu đề)',summary:String(item.summary||'').slice(0,500),link:item.link||'',publishedAt:item.publishedAt||null,fetchedAt,hash,usedByProjectId:null,fieldId:cardFieldId,score:scored.score,scoreBasis:scored.basis});
    added++;
   }
   source.lastScanAt=fetchedAt;source.lastError=null;save();
   return {sourceId:source.id,added,duplicates,filtered,total:items.length};
  }
 
- function listCards({unusedOnly=false}={}){
-  return state.cards.filter(c=>!unusedOnly||!c.usedByProjectId).slice().reverse().map(c=>({...c}));
+ function listCards({unusedOnly=false,fieldId=null}={}){
+  return state.cards.filter(c=>(!unusedOnly||!c.usedByProjectId)&&(!fieldId||c.fieldId===fieldId)).slice().reverse().map(c=>({...c}));
  }
  function markCardUsed(cardId,projectId){
   const card=state.cards.find(c=>c.id===cardId);

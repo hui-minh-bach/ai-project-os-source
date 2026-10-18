@@ -23,6 +23,9 @@
   </div>
   <section class="idea-panel" id="newsPanel" aria-labelledby="newsTitle" style="margin-top:16px;padding:18px">
     <div class="idea-heading"><div><h2 id="newsTitle">Nguồn tin tự động</h2><p>Khai báo nguồn RSS/Atom — hệ thống tự quét theo lịch, khử trùng lặp và biến tin mới thành thẻ đầu vào cho vòng khép kín ở tab Publish.</p></div></div>
+    <div class="idea-heading" style="margin-top:4px"><div><h3>Đội tin theo lĩnh vực</h3><p>Mỗi lĩnh vực là một đội tin riêng: bật lĩnh vực nào thì bộ điều phối mới lấy tin lĩnh vực đó làm video. Điểm tin (0–100) do công thức từ khóa + độ mới chấm, tin điểm cao được ưu tiên làm trước. Bấm “Thêm nguồn” để gắn nguồn tin theo chủ đề (Google News) cho lĩnh vực.</p></div></div>
+    <div id="newsFields"><div class="idea-empty"><p>Đang tải lĩnh vực…</p></div></div>
+    <div id="newsFieldSummary" style="margin:10px 0 4px"></div>
     <form id="newsSourceForm">
       <div class="idea-field"><label for="newsName">Tên nguồn</label><input id="newsName" maxlength="120" placeholder="Ví dụ: VnExpress – Thời sự"><small>Tên gợi nhớ cho nguồn tin; để trống sẽ dùng địa chỉ nguồn.</small></div>
       <div class="idea-field"><label for="newsUrl">Địa chỉ RSS/Atom <span>*</span></label><input id="newsUrl" type="url" maxlength="1000" required placeholder="https://example.com/rss.xml"><small>Đường dẫn feed RSS 2.0 hoặc Atom của trang tin.</small></div>

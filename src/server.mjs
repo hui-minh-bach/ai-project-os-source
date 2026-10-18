@@ -32,6 +32,7 @@ import { createEncryptedBackup, listBackups, backupFileByName } from './lib/cust
 import { systemDoctor } from './lib/system-doctor.mjs';
 import { createLocalAccess } from './lib/local-access.mjs';
 import { createIngestStore } from './lib/ingest.mjs';
+import { listNewsFields, newsFieldById, googleNewsRssUrl } from './lib/news-fields.mjs';
 import { createOrchestrator, createSimulatedAi, createGatewayAi } from './lib/orchestrator.mjs';
 import { writeTextWithModel, translateSegmentsWithModel } from './lib/media-ai.mjs';
 import { oauthAuthorizeUrl, oauthExchangeCode, fetchPlatformIdentity, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
@@ -39,7 +40,7 @@ import { createUpdater } from './lib/updater.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.21';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.22';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -90,7 +91,48 @@ const server=http.createServer(async(req,res)=>{try{
   if(ingestSourceMatch&&req.method==='POST'&&ingestSourceMatch[2]==='enabled'){const b=await readBody(req);return send(res,200,ingestStore.setSourceEnabled(ingestSourceMatch[1],Boolean(b.enabled)));}
   if(ingestSourceMatch&&req.method==='DELETE'&&!ingestSourceMatch[2]){ingestStore.removeSource(ingestSourceMatch[1]);return send(res,200,{ok:true});}
   if(req.method==='POST'&&u.pathname==='/api/ingest/scan'){const b=await readBody(req);const targets=b.sourceId?[b.sourceId]:ingestStore.listSources().filter(s=>s.enabled).map(s=>s.id);const results=[];for(const id of targets){try{results.push(await ingestStore.scanSource(id));}catch(e){results.push({sourceId:id,error:e.code||'INGEST_SCAN',message:e.message});}}return send(res,200,{results,counts:ingestStore.counts()});}
-  if(req.method==='GET'&&u.pathname==='/api/ingest/cards')return send(res,200,{cards:ingestStore.listCards().slice(0,100)});
+  if(req.method==='GET'&&u.pathname==='/api/ingest/cards')return send(res,200,{cards:ingestStore.listCards({fieldId:u.searchParams.get('fieldId')||null}).slice(0,100)});
+  if(req.method==='GET'&&u.pathname==='/api/ingest/fields'){
+    const cfgFields=orchestrator.getConfig().pipelines['news-video']?.fieldIds||[];
+    const allCards=ingestStore.listCards();const sources=ingestStore.listSources();
+    const fields=listNewsFields().map(f=>{
+      const fc=allCards.filter(c=>c.fieldId===f.id);
+      return {...f,sources:sources.filter(x=>x.fieldId===f.id).length,cards:fc.length,unusedCards:fc.filter(c=>!c.usedByProjectId).length,topScore:fc.reduce((m,c)=>Math.max(m,c.score||0),0),enabled:!cfgFields.length||cfgFields.includes(f.id)};
+    });
+    const unclassified=allCards.filter(c=>!c.fieldId).length;
+    return send(res,200,{fields,unclassified,fieldFilterActive:cfgFields.length>0});
+  }
+  const ingestFieldMatch=u.pathname.match(/^\/api\/ingest\/fields\/([a-z0-9-]+)\/(source|enabled)$/);
+  if(ingestFieldMatch&&req.method==='POST'){
+    const field=newsFieldById(ingestFieldMatch[1]);
+    if(!field)return send(res,404,{error:{code:'NEWS_FIELD_NOT_FOUND',message:'Không tìm thấy lĩnh vực tin.'}});
+    if(ingestFieldMatch[2]==='source'){
+      const existing=ingestStore.listSources().find(x=>x.fieldId===field.id);
+      if(existing)return send(res,200,{source:existing,created:false});
+      const source=ingestStore.addSource({name:'Google News — '+field.label,url:googleNewsRssUrl(field.query),fieldId:field.id});
+      return send(res,200,{source,created:true});
+    }
+    const b=await readBody(req);const cfg=orchestrator.getConfig();
+    const allIds=listNewsFields().map(f=>f.id);
+    let current=Array.isArray(cfg.pipelines['news-video'].fieldIds)&&cfg.pipelines['news-video'].fieldIds.length?[...cfg.pipelines['news-video'].fieldIds]:[...allIds];
+    current=Boolean(b.enabled)?[...new Set([...current,field.id])]:current.filter(id=>id!==field.id);
+    cfg.pipelines['news-video'].fieldIds=current.length===allIds.length?[]:current;
+    orchestrator.setConfig(cfg);
+    return send(res,200,{ok:true,enabled:Boolean(b.enabled),fieldIds:cfg.pipelines['news-video'].fieldIds});
+  }
+  if(req.method==='GET'&&u.pathname==='/api/orchestrator/fields-summary'){
+    const runs=orchestrator.listRuns().filter(r=>r.pipeline==='news-video');
+    const records=integrations.publishRecords.list({});
+    const byProject=new Map();
+    for(const r of records){if(!r.projectId)continue;const arr=byProject.get(r.projectId)||[];arr.push(r);byProject.set(r.projectId,arr);}
+    const fields=listNewsFields().map(f=>{
+      const fr=runs.filter(r=>r.fieldId===f.id);
+      const recs=fr.flatMap(r=>byProject.get(r.projectId)||[]);
+      const sum=k=>recs.reduce((a,r)=>a+(Number(r.metrics?.[k])||0),0);
+      return {fieldId:f.id,label:f.label,runs:fr.length,posts:recs.length,views:sum('views'),likes:sum('likes'),comments:sum('comments')};
+    });
+    return send(res,200,{fields});
+  }
   if(req.method==='GET'&&u.pathname==='/api/orchestrator')return send(res,200,{config:orchestrator.getConfig(),runs:orchestrator.listRuns().slice(0,50)});
   if(req.method==='POST'&&u.pathname==='/api/orchestrator/config'){const b=await readBody(req);return send(res,200,{config:orchestrator.setConfig(b.config||b)});}
   if(req.method==='POST'&&u.pathname==='/api/orchestrator/stop'){const b=await readBody(req);const cfg=orchestrator.getConfig();cfg.stopAll=Boolean(b.stopAll);return send(res,200,{config:orchestrator.setConfig(cfg)});}

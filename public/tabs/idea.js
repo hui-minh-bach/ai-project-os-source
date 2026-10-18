@@ -100,14 +100,23 @@ function newsSafeUrl(u){u=String(u||'');return /^https?:\/\//i.test(u)?u:''}
 async function renderNewsSources(){
  const sBox=$('#newsSources'),cBox=$('#newsCards');if(!sBox||!cBox)return;
  try{
-  const [src,cards]=await Promise.all([api('/api/ingest/sources'),api('/api/ingest/cards')]);
+  const [src,cards,fieldsRes,summaryRes]=await Promise.all([api('/api/ingest/sources'),api('/api/ingest/cards'),api('/api/ingest/fields').catch(()=>null),api('/api/orchestrator/fields-summary').catch(()=>null)]);
+  renderNewsFields(fieldsRes,summaryRes);
   const sources=src.sources||[],counts=src.counts||{};
   $('#newsStatus').textContent=`${counts.sources??sources.length} nguồn · ${counts.cards??(cards.cards||[]).length} thẻ tin · ${counts.unusedCards??(cards.cards||[]).filter(c=>!c.usedByProjectId).length} thẻ chưa dùng`;
   sBox.innerHTML=sources.length?sources.map(s=>`<div class="idea-stack-card" style="margin:8px 0"><div style="flex:1;min-width:0"><div class="idea-stack-title">${esc(s.name)}<span class="idea-stack-status ${s.enabled?'needed':''}">● ${s.enabled?'Đang bật':'Đang tắt'}</span></div><div class="idea-stack-description">${esc(s.url)}${s.keywords?.length?`<br>Từ khóa: ${esc(s.keywords.join(', '))}`:''}<br>Quét lần cuối: ${s.lastScanAt?esc(newsTime(s.lastScanAt)):'chưa quét'}</div>${s.lastError?`<div style="color:var(--danger)">${esc(s.lastError)}</div>`:''}</div><div class="inline"><label class="checkboxLine" style="margin:0"><input type="checkbox" data-news-toggle="${esc(s.id)}" ${s.enabled?'checked':''}> Bật</label><button type="button" class="ghost small" data-news-scan="${esc(s.id)}">Quét ngay</button><button type="button" class="ghost small" data-news-delete="${esc(s.id)}">Xóa</button></div></div>`).join(''):'<div class="idea-empty"><p>Chưa có nguồn tin nào. Thêm nguồn RSS/Atom ở trên để bắt đầu.</p></div>';
   const byId=new Map(sources.map(s=>[s.id,s.name]));
   const latest=[...(cards.cards||[])].sort((a,b)=>new Date(b.fetchedAt||b.publishedAt)-new Date(a.fetchedAt||a.publishedAt)).slice(0,20);
-  cBox.innerHTML=latest.length?latest.map(c=>{const url=newsSafeUrl(c.link);const srcName=c.sourceId?byId.get(c.sourceId):'';const summary=String(c.summary||'');return `<div class="idea-stack-card" style="margin:8px 0"><div style="min-width:0"><div class="idea-stack-title">${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(c.title)}</a>`:esc(c.title)}${c.usedByProjectId?'<span class="idea-stack-status needed">Đã dùng</span>':''}</div><div class="idea-stack-description">${srcName?`${esc(srcName)} · `:''}${esc(newsTime(c.publishedAt)||newsTime(c.fetchedAt))}${summary?`<br>${esc(summary.slice(0,220))}${summary.length>220?'…':''}`:''}</div></div></div>`}).join(''):'<div class="idea-empty"><p>Chưa có thẻ tin nào. Bấm “Quét ngay” ở một nguồn để lấy tin mới.</p></div>';
+  const fieldLabel=new Map(((fieldsRes&&fieldsRes.fields)||[]).map(f=>[f.id,f.label]));
+  cBox.innerHTML=latest.length?latest.map(c=>{const url=newsSafeUrl(c.link);const srcName=c.sourceId?byId.get(c.sourceId):'';const summary=String(c.summary||'');const badge=c.fieldId?`<span class="idea-stack-status needed">${esc(fieldLabel.get(c.fieldId)||c.fieldId)}${typeof c.score==='number'?` · ${c.score}đ`:''}</span>`:(typeof c.score==='number'?`<span class="idea-stack-status">${c.score}đ</span>`:'');return `<div class="idea-stack-card" style="margin:8px 0"><div style="min-width:0"><div class="idea-stack-title">${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(c.title)}</a>`:esc(c.title)}${c.usedByProjectId?'<span class="idea-stack-status needed">Đã dùng</span>':''}${badge}</div><div class="idea-stack-description">${srcName?`${esc(srcName)} · `:''}${esc(newsTime(c.publishedAt)||newsTime(c.fetchedAt))}${summary?`<br>${esc(summary.slice(0,220))}${summary.length>220?'…':''}`:''}</div></div></div>`}).join(''):'<div class="idea-empty"><p>Chưa có thẻ tin nào. Bấm “Quét ngay” ở một nguồn để lấy tin mới.</p></div>';
  }catch(e){sBox.innerHTML=`<div class="idea-empty"><p>${esc(e.message)}</p></div>`}
+}
+function renderNewsFields(fieldsRes,summaryRes){
+ const box=$('#newsFields'),sumBox=$('#newsFieldSummary');if(!box)return;
+ if(!fieldsRes||!Array.isArray(fieldsRes.fields)){box.innerHTML='<div class="idea-empty"><p>Chưa tải được danh sách lĩnh vực.</p></div>';return}
+ const perf=new Map(((summaryRes&&summaryRes.fields)||[]).map(x=>[x.fieldId,x]));
+ box.innerHTML=fieldsRes.fields.map(f=>{const p=perf.get(f.id);return `<div class="idea-stack-card" style="margin:8px 0"><div style="flex:1;min-width:0"><div class="idea-stack-title">${esc(f.label)}<span class="idea-stack-status ${f.enabled?'needed':''}">● ${f.enabled?'Đội đang bật':'Đội đang tắt'}</span></div><div class="idea-stack-description">${f.sources} nguồn · ${f.cards} thẻ tin · ${f.unusedCards} chưa dùng · điểm cao nhất ${f.topScore}${p&&p.posts?`<br>Đã đăng ${p.posts} bài · ${p.views} lượt xem · ${p.likes} lượt thích`:''}</div></div><div class="inline"><label class="checkboxLine" style="margin:0"><input type="checkbox" data-news-field-toggle="${esc(f.id)}" ${f.enabled?'checked':''}> Bật đội</label>${f.sources?`<button type="button" class="ghost small" data-news-field-scan="${esc(f.id)}">Quét tin</button>`:`<button type="button" class="ghost small" data-news-field-source="${esc(f.id)}">+ Thêm nguồn</button>`}</div></div>`}).join('')+(fieldsRes.unclassified?`<p class="idea-stack-description" style="margin:6px 2px">${fieldsRes.unclassified} thẻ tin chưa phân loại (không thuộc lĩnh vực nào).</p>`:'');
+ if(sumBox){const rows=(summaryRes&&summaryRes.fields||[]).filter(x=>x.posts>0);sumBox.innerHTML=rows.length?`<div class="idea-stack-description">Hiệu quả theo lĩnh vực: ${rows.map(x=>`${esc(x.label)} — ${x.posts} bài, ${x.views} lượt xem`).join(' · ')}</div>`:'';}
 }
 $('#newsSourceForm').onsubmit=e=>{e.preventDefault();(async()=>{try{
  const name=$('#newsName').value.trim(),url=$('#newsUrl').value.trim();
@@ -119,6 +128,9 @@ $('#newsSourceForm').onsubmit=e=>{e.preventDefault();(async()=>{try{
 }catch(err){toast(err.message)}})();};
 $('#newsPanel').addEventListener('click',async e=>{
  const scan=e.target.closest('[data-news-scan]'),del=e.target.closest('[data-news-delete]');
+ const fsrc=e.target.closest('[data-news-field-source]'),fscan=e.target.closest('[data-news-field-scan]');
+ if(fsrc){fsrc.disabled=true;try{const r=await api(`/api/ingest/fields/${encodeURIComponent(fsrc.dataset.newsFieldSource)}/source`,{method:'POST',body:'{}'});toast(r.created?'Đã thêm nguồn tin theo lĩnh vực':'Lĩnh vực này đã có nguồn');await api('/api/ingest/scan',{method:'POST',body:'{}'});await renderNewsSources()}finally{fsrc.disabled=false}return}
+ if(fscan){fscan.disabled=true;try{await api('/api/ingest/scan',{method:'POST',body:'{}'});toast('Đã quét tin');await renderNewsSources()}finally{fscan.disabled=false}return}
  try{
   if(e.target.id==='newsScanAll'){e.target.disabled=true;try{await api('/api/ingest/scan',{method:'POST',body:'{}'});toast('Đã quét tất cả nguồn tin');await renderNewsSources()}finally{e.target.disabled=false}return}
   if(scan){scan.disabled=true;try{await api('/api/ingest/scan',{method:'POST',body:JSON.stringify({sourceId:scan.dataset.newsScan})});toast('Đã quét nguồn tin')}finally{scan.disabled=false}await renderNewsSources();return}
@@ -126,6 +138,8 @@ $('#newsPanel').addEventListener('click',async e=>{
  }catch(err){toast(err.message)}
 });
 $('#newsPanel').addEventListener('change',async e=>{
+ const ft=e.target.closest('[data-news-field-toggle]');
+ if(ft){try{await api(`/api/ingest/fields/${encodeURIComponent(ft.dataset.newsFieldToggle)}/enabled`,{method:'POST',body:JSON.stringify({enabled:ft.checked})});toast(ft.checked?'Đã bật đội tin':'Đã tắt đội tin');await renderNewsSources()}catch(err){toast(err.message);ft.checked=!ft.checked}return}
  const t=e.target.closest('[data-news-toggle]');if(!t)return;
  try{await api(`/api/ingest/sources/${encodeURIComponent(t.dataset.newsToggle)}/enabled`,{method:'POST',body:JSON.stringify({enabled:t.checked})});await renderNewsSources()}
  catch(err){toast(err.message);t.checked=!t.checked}

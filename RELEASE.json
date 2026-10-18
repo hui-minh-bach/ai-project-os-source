@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.21",
-  "channel": "v0.9.21-slim-and-simple",
+  "version": "0.9.22",
+  "channel": "v0.9.22-news-fields",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -165,6 +165,10 @@
     "setup_checklist": {
       "status": "implemented",
       "note": "0.9.21: the Home tab opens with a getting-started checklist (connect an AI account, install Git + GitHub CLI, link GitHub, create the first project) computed from live app state, with one-click jumps to the right tab; it collapses to a done state and can be dismissed permanently."
+    },
+    "news_fields": {
+      "status": "implemented",
+      "note": "0.9.22: multi-field news teams. Ten built-in fields (thoi-su, kinh-doanh, cong-nghe, the-thao, giai-tri, suc-khoe, am-thuc, du-lich, xe-co, giao-duc) in src/lib/news-fields.mjs, each with classification keywords and a Google News RSS topic query. Ingest tags every card with a fieldId (source-pinned or keyword-classified, never guessed when nothing matches) and a deterministic 0-100 score (keywords + freshness, basis recorded as keyword-freshness). The news-video pipeline accepts fieldIds + perFieldDailyCap: its scheduler picks the highest-score unused card inside the enabled fields and records fieldId on the run. Idea tab shows per-field team cards (sources/cards/top score, enable toggle, one-click topic source), field+score badges on news cards, and a per-field performance summary joins orchestrator runs with publish-record metrics. Live-verified in the sandbox with fixture feeds and a simulated-AI Piper story run held at the approval gate."
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",
