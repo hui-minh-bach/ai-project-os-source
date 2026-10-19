@@ -383,7 +383,7 @@ function office3DBuild(THREE,room){
  scene.background=new THREE.Color(0x0b0b13);
  scene.fog=new THREE.Fog(0x0b0b13,30,60);
  const camera=new THREE.PerspectiveCamera(42,W()/H(),0.1,120);
- const orbit={theta:0,phi:1.23,radius:15.4};
+ const orbit={theta:0,phi:1.23,radius:15.4,lookX:0,lookY:1.0,lookZ:0};
  scene.add(new THREE.HemisphereLight(0x9d8fff,0x0a0a10,1.15));
  const pmrem=new THREE.PMREMGenerator(renderer);
  const envC=document.createElement('canvas'); envC.width=512; envC.height=256;
@@ -467,11 +467,59 @@ function office3DBuild(THREE,room){
  // màn hình tường lớn + tủ máy chủ + sofa góc nghỉ
  const wallScr=new THREE.Mesh(new THREE.PlaneGeometry(3.4,1.9),new THREE.MeshBasicMaterial({map:screenFor('boss')}));
  wallScr.position.set(-15.6,2.6,-4); wallScr.rotation.y=.62; scene.add(wallScr);
- const rackTex=canvasTex(128,256,(g,w,h)=>{g.fillStyle='#141821';g.fillRect(0,0,w,h);for(let y=10;y<h-8;y+=18)for(let x=10;x<w-14;x+=16){g.fillStyle=Math.random()<.5?'#34d399':'#57e6ff';g.globalAlpha=.5+Math.random()*.5;g.fillRect(x,y,7,7);g.globalAlpha=1;}});
- const rack=new THREE.Mesh(new THREE.BoxGeometry(1.7,2.7,.7),new THREE.MeshStandardMaterial({color:0x1a1e28,roughness:.5,metalness:.4}));
- rack.position.set(15.4,1.35,-6.5); rack.rotation.y=-.55; scene.add(rack);
- const rackFace=new THREE.Mesh(new THREE.PlaneGeometry(1.5,2.5),new THREE.MeshBasicMaterial({map:rackTex}));
- rackFace.position.set(0,0,.36); rack.add(rackFace);
+ const rackGroup=new THREE.Group();
+ const rackFrame=new THREE.Mesh(new THREE.BoxGeometry(1.7,2.7,.7),new THREE.MeshStandardMaterial({color:0x161a24,roughness:.45,metalness:.5}));
+ rackFrame.position.y=1.35; rackGroup.add(rackFrame);
+ const unitTexes=[0,1,2].map(v=>canvasTex(128,32,(g,w,h)=>{
+  g.fillStyle='#1b2130'; g.fillRect(0,0,w,h);
+  g.fillStyle='rgba(120,150,190,.35)'; for(let x=6;x<58;x+=6)g.fillRect(x,6,3,20);
+  for(let i=0;i<7;i++){g.fillStyle=['#34d399','#57e6ff','#facc15'][(i+v)%3]; g.globalAlpha=.55+((i*29+v*13)%10)/22; g.fillRect(70+i*8,12,5,8); g.globalAlpha=1;}
+  g.fillStyle='#39424f'; g.fillRect(64,4,2,24);
+ }));
+ for(let u=0;u<6;u++){
+  const unit=new THREE.Mesh(new THREE.BoxGeometry(1.52,.36,.05),new THREE.MeshStandardMaterial({color:0x232a3a,roughness:.4,metalness:.5}));
+  unit.position.set(0,.32+u*.4,.36); rackGroup.add(unit);
+  const uface=new THREE.Mesh(new THREE.PlaneGeometry(1.46,.3),new THREE.MeshBasicMaterial({map:unitTexes[u%3]}));
+  uface.position.set(0,.32+u*.4,.39); rackGroup.add(uface);
+  const handle=new THREE.Mesh(new THREE.BoxGeometry(.16,.03,.03),new THREE.MeshStandardMaterial({color:0x9aa6bd,roughness:.35,metalness:.7}));
+  handle.position.set(.62,.32+u*.4,.40); rackGroup.add(handle);
+ }
+ const rackStrip=new THREE.Mesh(new THREE.BoxGeometry(.045,2.5,.02),new THREE.MeshBasicMaterial({color:0x2dd4ee}));
+ rackStrip.position.set(-.8,1.35,.36); rackGroup.add(rackStrip);
+ const rackTop=new THREE.Mesh(new THREE.BoxGeometry(1.5,.05,.5),new THREE.MeshBasicMaterial({color:0xbfe9ff}));
+ rackTop.position.set(0,2.76,0); rackGroup.add(rackTop);
+ rackGroup.position.set(15.4,0,-6.5); rackGroup.rotation.y=-.55; scene.add(rackGroup);
+ // tủ lưu trữ kính phát sáng ở tường trái
+ const storageCab=new THREE.Group();
+ const cabFrame=new THREE.Mesh(new THREE.BoxGeometry(2.7,1.7,.62),new THREE.MeshStandardMaterial({color:0x1a1f2c,roughness:.45,metalness:.45}));
+ cabFrame.position.y=.95; storageCab.add(cabFrame);
+ const cabCols=[0x2dd4ee,0x8b5cf6,0x34d399];
+ for(let i=0;i<3;i++){
+  const glass=new THREE.Mesh(new THREE.PlaneGeometry(.78,1.34),new THREE.MeshBasicMaterial({color:cabCols[i],transparent:true,opacity:.30}));
+  glass.position.set(-.86+i*.86,.95,.32); storageCab.add(glass);
+  const shelf=new THREE.Mesh(new THREE.BoxGeometry(.78,.03,.5),new THREE.MeshStandardMaterial({color:0x39424f,roughness:.5}));
+  shelf.position.set(-.86+i*.86,.95,0); storageCab.add(shelf);
+  for(const [bx,by,bs,bc] of [[-.12,.28,.2,0x2b3448],[.1,.26,.16,0x232b3d],[-.02,.68,.24,0x2b3448]]){
+   const crate=new THREE.Mesh(new THREE.BoxGeometry(bs,bs*.8,bs),new THREE.MeshStandardMaterial({color:bc,roughness:.6}));
+   crate.position.set(-.86+i*.86+bx,.45+by,.02); storageCab.add(crate);
+  }
+ }
+ const cabTopPlant=new THREE.Mesh(new THREE.SphereGeometry(.16,10,8),new THREE.MeshStandardMaterial({color:0x2f9e5f,roughness:.7}));
+ cabTopPlant.position.set(.9,1.95,0); storageCab.add(cabTopPlant);
+ storageCab.position.set(-15.4,0,3.4); storageCab.rotation.y=.62; scene.add(storageCab);
+ // hai cột trụ có dải sáng đứng + đĩa đèn trần trên bệ điều phối
+ for(const px of [-13.5,13.5]){
+  const pillar=new THREE.Mesh(new THREE.CylinderGeometry(.34,.46,9.5,14),new THREE.MeshStandardMaterial({color:0x232838,roughness:.4,metalness:.55}));
+  pillar.position.set(px,4.75,-7.6); scene.add(pillar);
+  const pStrip=new THREE.Mesh(new THREE.BoxGeometry(.07,8.6,.07),new THREE.MeshBasicMaterial({color:0x57e6ff}));
+  pStrip.position.set(px*.93,4.6,-7.15); scene.add(pStrip);
+  const pRing=new THREE.Mesh(new THREE.TorusGeometry(.42,.03,8,20),new THREE.MeshBasicMaterial({color:0x8b5cf6}));
+  pRing.rotation.x=Math.PI/2; pRing.position.set(px,8.9,-7.6); scene.add(pRing);
+ }
+ const ceilDisc=new THREE.Mesh(new THREE.CylinderGeometry(3.1,3.3,.18,40),new THREE.MeshStandardMaterial({color:0x1c2231,roughness:.4,metalness:.5}));
+ ceilDisc.position.set(0,8.15,-.5); scene.add(ceilDisc);
+ const ceilGlow=new THREE.Mesh(new THREE.TorusGeometry(2.7,.05,10,48),new THREE.MeshBasicMaterial({color:0xbfe9ff}));
+ ceilGlow.rotation.x=Math.PI/2; ceilGlow.position.set(0,8.05,-.5); scene.add(ceilGlow);
  const sofaMat=new THREE.MeshStandardMaterial({color:0x2c3242,roughness:.85});
  const sofa=new THREE.Group();
  const sBase=new THREE.Mesh(new THREE.BoxGeometry(2.3,.42,.95),sofaMat); sBase.position.y=.3; sofa.add(sBase);
@@ -498,7 +546,26 @@ function office3DBuild(THREE,room){
    const body=new THREE.Mesh(new THREE.BoxGeometry(wd,ht,.05),darkMat); mon.add(body);
    const scr=new THREE.Mesh(new THREE.PlaneGeometry(wd-.08,ht-.08),new THREE.MeshBasicMaterial({map:tex})); scr.position.z=.031; mon.add(scr);
    const neck=new THREE.Mesh(new THREE.BoxGeometry(.07,.3,.05),darkMat); neck.position.set(0,-ht/2-.12,-.03); mon.add(neck);
+   const armJoint=new THREE.Mesh(new THREE.SphereGeometry(.05,10,8),darkMat); armJoint.position.set(0,-ht/2-.02,-.06); mon.add(armJoint);
    mon.position.set(x,y,z); mon.rotation.y=ry; grp.add(mon); return mon;
+  }
+  const monitorArm=new THREE.Mesh(new THREE.CylinderGeometry(.032,.032,.62,8),darkMat); monitorArm.position.set(0,1.02,-.6); monitorArm.rotation.x=.25; grp.add(monitorArm);
+  const plinth=new THREE.Mesh(new THREE.CylinderGeometry(1.95,2.05,.09,36),new THREE.MeshStandardMaterial({color:0x141824,roughness:.35,metalness:.5,envMapIntensity:.7}));
+  plinth.position.y=.045; grp.add(plinth);
+  const plinthEdge=new THREE.Mesh(new THREE.TorusGeometry(1.98,.02,8,48),new THREE.MeshBasicMaterial({color:accentCol}));
+  plinthEdge.rotation.x=Math.PI/2; plinthEdge.position.y=.09; grp.add(plinthEdge);
+  const drawer=new THREE.Mesh(new THREE.BoxGeometry(.46,.52,.5),new THREE.MeshStandardMaterial({color:0x1d2230,roughness:.5,metalness:.35}));
+  drawer.position.set(1.12,.3,.42); grp.add(drawer);
+  for(const dy of [.42,.24]){const line=new THREE.Mesh(new THREE.BoxGeometry(.4,.015,.01),new THREE.MeshBasicMaterial({color:accentCol})); line.position.set(1.12,dy,.675); grp.add(line);}
+  const drawerHandle=new THREE.Mesh(new THREE.BoxGeometry(.2,.025,.03),darkMat); drawerHandle.position.set(1.12,.33,.68); grp.add(drawerHandle);
+  const underGlow=new THREE.Mesh(new THREE.BoxGeometry(1.7,.045,.05),new THREE.MeshBasicMaterial({color:accentCol}));
+  underGlow.position.set(0,.14,-1.3); grp.add(underGlow);
+  const kbTex=canvasTex(128,48,(g,w,h)=>{g.clearRect(0,0,w,h);g.fillStyle='rgba(87,230,255,.85)';for(let r=0;r<3;r++)for(let i=0;i<12;i++)g.fillRect(4+i*10.4,4+r*13,8,9);});
+  const holoKb=new THREE.Mesh(new THREE.PlaneGeometry(.64,.24),new THREE.MeshBasicMaterial({map:kbTex,transparent:true,opacity:.55,side:THREE.DoubleSide}));
+  holoKb.position.set(0,.865,.28); holoKb.rotation.x=-1.25; grp.add(holoKb);
+  if(['boss','script','publish'].includes(stId)){
+   const pot=new THREE.Mesh(new THREE.CylinderGeometry(.055,.042,.09,10),new THREE.MeshStandardMaterial({color:0x8a5a34,roughness:.8})); pot.position.set(-.66,.885,.12); grp.add(pot);
+   const leaf=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),new THREE.MeshStandardMaterial({color:0x2f9e5f,roughness:.7})); leaf.position.set(-.66,1.0,.12); grp.add(leaf);
   }
   monitor(1.18,.7,screenFor(owner?owner.id:'pm'),0,1.42,-.62,0);
   monitor(.82,.52,screenTex,-1.02,1.32,-.34,.5);
@@ -525,6 +592,25 @@ function office3DBuild(THREE,room){
   const ringM=new THREE.Mesh(new THREE.RingGeometry(1.5,1.62,48),new THREE.MeshBasicMaterial({color:new THREE.Color(owner?owner.color:0x2dd4ee),transparent:true,opacity:.30,side:THREE.DoubleSide}));
   ringM.rotation.x=-Math.PI/2; ringM.position.set(p2.x,.015,p2.z); scene.add(ringM);
  }
+ // huy hiệu trung tâm + đường sáng dẫn lối từ bệ điều phối tới từng bàn
+ const medallionTex=canvasTex(512,512,(g,w,h)=>{
+  g.clearRect(0,0,w,h);
+  g.strokeStyle='rgba(87,230,255,.9)'; g.lineWidth=5; g.beginPath(); g.arc(256,256,238,0,7); g.stroke();
+  g.strokeStyle='rgba(139,92,246,.75)'; g.lineWidth=3; g.beginPath(); g.arc(256,256,206,0,7); g.stroke();
+  g.strokeStyle='rgba(87,230,255,.5)'; g.lineWidth=2;
+  for(let i=0;i<24;i++){const a=i/24*Math.PI*2; g.beginPath(); g.moveTo(256+Math.cos(a)*168,256+Math.sin(a)*168); g.lineTo(256+Math.cos(a)*200,256+Math.sin(a)*200); g.stroke();}
+  g.fillStyle='rgba(87,230,255,.85)'; g.font='bold 92px system-ui'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('AI',256,262);
+ });
+ const medallion=new THREE.Mesh(new THREE.CircleGeometry(3.3,48),new THREE.MeshBasicMaterial({map:medallionTex,transparent:true,opacity:.85,side:THREE.DoubleSide}));
+ medallion.rotation.x=-Math.PI/2; medallion.position.set(0,.014,-.5); scene.add(medallion);
+ for(const stId of ['boss','news','script','image','media','review','publish']){
+  const p3=officeWorld(OFFICE_STATIONS[stId]);
+  const dx=p3.x-0, dz=p3.z-(-.5), len=Math.hypot(dx,dz)-3.4;
+  if(len<1) continue;
+  const stripGeo=new THREE.PlaneGeometry(.42,len); stripGeo.rotateX(-Math.PI/2);
+  const strip=new THREE.Mesh(stripGeo,new THREE.MeshBasicMaterial({color:0x2dd4ee,transparent:true,opacity:.16,side:THREE.DoubleSide}));
+  strip.position.set(dx/2,.013,-.5+dz/2); strip.rotation.y=Math.atan2(dx,dz); scene.add(strip);
+ }
  const pmPos=officeWorld(OFFICE_STATIONS.pm);
  const podium=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.4,.12,40),new THREE.MeshStandardMaterial({color:0x1b2130,roughness:.4,metalness:.35}));
  podium.position.set(pmPos.x,.06,pmPos.z); scene.add(podium);
@@ -546,6 +632,8 @@ function office3DBuild(THREE,room){
    const capT=new THREE.Mesh(new THREE.CylinderGeometry(.64,.64,.1,20),capMat); capT.position.set(off,2.25,0); podGroup.add(capT);
    const capB=capT.clone(); capB.position.set(off,.05,0); podGroup.add(capB);
    const glow=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,1.9,12),new THREE.MeshBasicMaterial({color:0x2dd4ee,transparent:true,opacity:.17})); glow.position.set(off,1.15,0); podGroup.add(glow);
+   const baseRing=new THREE.Mesh(new THREE.TorusGeometry(.62,.022,8,28),new THREE.MeshBasicMaterial({color:0x2dd4ee})); baseRing.rotation.x=Math.PI/2; baseRing.position.set(off,.1,0); podGroup.add(baseRing);
+   const statusDot=new THREE.Mesh(new THREE.SphereGeometry(.05,10,8),new THREE.MeshBasicMaterial({color:[0x34d399,0xfacc15,0x57e6ff][[-1.15,0,1.15].indexOf(off)]||0x34d399})); statusDot.position.set(off,2.36,0); podGroup.add(statusDot);
   }
   const podSign=textSprite('🔋 PHÒNG NẠP NĂNG LƯỢNG',{size:36,color:'#7df0c8',scale:[3.8,.82]}); podSign.position.set(0,2.95,0); podGroup.add(podSign);
   podGroup.position.set(podPos.x,0,podPos.z); scene.add(podGroup);
@@ -560,6 +648,12 @@ function office3DBuild(THREE,room){
   for(const rot of [0,Math.PI/2]){const beam=new THREE.Mesh(new THREE.BoxGeometry(2.6,.09,.09),metal); beam.position.y=2.68; beam.rotation.y=rot; cage.add(beam); const beam2=beam.clone(); beam2.position.set(rot?1.25:0,2.68,rot?0:1.25); if(rot){beam2.position.set(1.25,2.68,0);} cage.add(beam2);}
   for(let i=-1;i<=1;i+=.25){for(const side of [-1.25,1.25]){const bar=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,2.6,6),metal); bar.position.set(i*1.0,1.32,side); cage.add(bar);} }
   for(let i=-1;i<=1;i+=.25){for(const side of [-1.25,1.25]){const bar=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,2.6,6),metal); bar.position.set(side,1.32,i*1.0); cage.add(bar);} }
+  const warnTex=canvasTex(128,16,(g,w,h)=>{for(let i=0;i<8;i++){g.fillStyle=i%2?'#0c0c10':'#ffd94d';g.save();g.translate(i*16,0);g.transform(1,0,-.5,1,8,0);g.fillRect(0,0,16,h);g.restore();}});
+  warnTex.wrapS=THREE.RepeatWrapping; warnTex.repeat.set(4,1);
+  for(const [wx,wz,wr] of [[0,1.42,0],[0,-1.42,0],[1.42,0,Math.PI/2],[-1.42,0,Math.PI/2]]){
+   const wst=new THREE.Mesh(new THREE.BoxGeometry(2.9,.07,.16),new THREE.MeshBasicMaterial({map:warnTex}));
+   wst.position.set(wx,.035,wz); wst.rotation.y=wr; cage.add(wst);
+  }
   const sign=textSprite('⚡ PHÒNG CHÍCH ĐIỆN',{size:40,color:'#ffd94d',scale:[3.4,.8]}); sign.position.set(0,3.25,0); cage.add(sign);
   cage.position.set(cagePos.x,0,cagePos.z); scene.add(cage);
  }
@@ -760,8 +854,8 @@ function office3DBuild(THREE,room){
   holoGlobe.rotation.y+=dt*.4; holoRing1.rotation.z+=dt*.8; holoRing2.rotation.z-=dt*.6; holoGlobe.position.y=3.05+Math.sin(t*1.3)*.07;
   for(const h of deskHolos){h.position.y=h.userData.baseY+Math.sin(t*1.8+h.userData.phase)*.045; h.rotation.y=Math.sin(t*.7+h.userData.phase)*.25;}
   dust.rotation.y=t*.008; dust.position.y=Math.sin(t*.3)*.15;
-  camera.position.set(Math.sin(orbit.theta)*Math.sin(orbit.phi)*orbit.radius,Math.cos(orbit.phi)*orbit.radius,Math.cos(orbit.theta)*Math.sin(orbit.phi)*orbit.radius);
-  camera.lookAt(0,1.0,0);
+  camera.position.set(orbit.lookX+Math.sin(orbit.theta)*Math.sin(orbit.phi)*orbit.radius,orbit.lookY+Math.cos(orbit.phi)*orbit.radius,orbit.lookZ+Math.cos(orbit.theta)*Math.sin(orbit.phi)*orbit.radius);
+  camera.lookAt(orbit.lookX,orbit.lookY,orbit.lookZ);
   renderer.render(scene,camera);
  });
 }

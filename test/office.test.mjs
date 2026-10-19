@@ -61,6 +61,16 @@ test('AI office 3D detail pass: jointed robots with role props, console desks, p
   assert.match(teamJs, /faceTexture\('blink'\)|faceTexCache\.blink/, 'agents blink');
 });
 
+test('AI office room detail pass: medallion floor, desk plinths, detailed cabinets', () => {
+  assert.match(teamJs, /medallion/, 'glowing center medallion on the floor');
+  assert.match(teamJs, /plinth/, 'each desk stands on its own plinth');
+  assert.match(teamJs, /monitorArm/, 'monitors are held by arms');
+  assert.match(teamJs, /rackGroup/, 'server rack built from individual units');
+  assert.match(teamJs, /storageCab/, 'glass storage cabinet on the wall');
+  assert.match(teamJs, /pillar/, 'structural pillars with light strips');
+  assert.match(teamJs, /lookX/, 'camera can focus a point for close-ups');
+});
+
 test('AI office: idle staff recharge in the energy pods, with the sleeping face on', () => {
   assert.match(teamJs, /lounge:\{x:10,y:85,label:'🔋 Phòng nạp năng lượng'\}/);
   assert.match(teamJs, /PHÒNG NẠP NĂNG LƯỢNG/);
