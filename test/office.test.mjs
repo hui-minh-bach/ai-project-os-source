@@ -53,6 +53,12 @@ test('AI office 3D detail pass: jointed robots with role props, console desks, p
   assert.match(teamJs, /shadowMap\.enabled/, 'soft shadows on for depth');
   assert.match(teamJs, /castShadow=true/, 'opaque scene meshes cast shadows');
   assert.match(teamJs, /deskHolos/, 'desk holograms float and sway');
+  assert.match(teamJs, /PMREMGenerator/, 'image-based lighting for glossy materials');
+  assert.match(teamJs, /ACESFilmicToneMapping/, 'cinematic tone mapping');
+  assert.match(teamJs, /visor/, 'glossy glass visor on the robot face');
+  assert.match(teamJs, /shinL/, 'separate knee pivots for sitting and stride knee-bend');
+  assert.match(teamJs, /ownDesk/, 'agents sit down at their own desks');
+  assert.match(teamJs, /faceTexture\('blink'\)|faceTexCache\.blink/, 'agents blink');
 });
 
 test('AI office: idle staff recharge in the energy pods, with the sleeping face on', () => {

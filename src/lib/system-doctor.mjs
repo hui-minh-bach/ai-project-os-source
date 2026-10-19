@@ -83,7 +83,7 @@ export function systemDoctor({dataDir=DATA_DIR,backupDir=BACKUP_DIR,root=ROOT,sm
   }
   add('windows',process.platform==='win32'?'info':'warning','Kiểm thử Windows',process.platform==='win32'?'Đang chạy trực tiếp trên Windows; cần thử theo phiếu nghiệm thu cho máy này.':`Đang chạy trên ${process.platform}/${process.arch}; đây không phải bằng chứng đã thử trên Windows.`, 'Chạy bộ nghiệm thu trên máy Windows 10/11 64-bit trước khi giao khách.');
   const count=Object.fromEntries(['pass','warning','fail','info'].map(s=>[s,checks.filter(x=>x.status===s).length]));
-  return {version:'0.9.28',timestamp:new Date().toISOString(),checks,count,
+  return {version:'0.9.29',timestamp:new Date().toISOString(),checks,count,
     capabilities:{projectManagement:filesValid&&dataWritable,backup:dataWritable&&backupWritable,video:mediaReady&&(smoke?encodingReady:true),aiCore:integrationsStatus?.core?.status==='active'||false,cloudSpeechVerified:false},
     label:'Chỉ kiểm thử cục bộ. Không gọi API AI, không xác nhận các dịch vụ trả phí.'};
 }
