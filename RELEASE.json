@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.26",
-  "channel": "v0.9.26-hybrid-office",
+  "version": "0.9.27",
+  "channel": "v0.9.27-office-detail",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -172,7 +172,7 @@
     },
     "ai_office_view": {
       "status": "implemented",
-      "note": "0.9.26 HYBRID OFFICE, direction chosen by the owner from an AI concept render: a high-detail PAINTED backdrop (AI-generated space-station panorama with Earth window, baked as public/assets/office-backdrop.jpg, ~460 KB) wraps the 3D room on a curved cylinder, while the staff remain REAL-TIME 3D robots driven by the same real app state. Robots redesigned cute: big round heads, side ear pods, antenna, chest light, and canvas-drawn FACE expressions that follow state — working (^^), idle (dots), sleeping (closed eyes), zapped (X X). Layout follows the concept: desks on an arc, the PM at a CENTER podium under a rotating hologram Earth, glowing floor rings per station, plant props, floor light pools. NEW 'Phòng nạp năng lượng' (from the same concept): a row of glass recharge pods — staff with no work go in to sleep-charge (ZZZ sprite + sleeping face; 2D room badge '💤 đang nạp năng lượng'); the electric cage remains for whoever really failed work. Backdrop is a baked image asset (binary, so it ships in packages but not in the GitHub text snapshot, like the hero images). QA screenshots with the real code + fixture work in ~/workspace/aios-office/."
+      "note": "0.9.27 DETAIL PASS (owner: 'tạo chi tiết từng góc của từng nhân vật, khung hình'): the 3D staff are rebuilt part by part — segmented legs (thigh/knee/shin/foot) on hip pivots, pelvis, tapered torso, role-color chest plate with the role emoji glyph, belt, backpack with accent stripe, shoulder pads, jointed arms (elbow + hand), neck, and the big head with crest stripe, glowing ear rings and antenna; every role carries its TOOL (PM clipboard, news magnifier, script pen, image camera, media clapper, review shield, publishing rocket; the boss gets a gold crown + tie). Desks are now curved CONSOLES with a glowing role-color trim band, three monitors whose screens are drawn per role (news headlines, script paragraphs, image grid, video timeline, review checklist, publish chart, boss dashboard, PM kanban), a floating hologram panel, keyboard, mug and a proper chair. Environment: ceiling light rings, decorative floor rings, a wall dashboard screen, an LED server rack, a lounge sofa. Idle agents ease to face the viewer; walking still follows real work. QA captured the room from three angles (wide / close-up / top) with the real code in ~/workspace/aios-office/. The screenshot QA caught and fixed a declaration-order (TDZ) crash in the new screen-texture helper. "
     }
   },
   "online_provider_apis": "separate user credentials and provider charges",

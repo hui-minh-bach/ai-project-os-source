@@ -44,6 +44,14 @@ test('AI office 3D: vendored Three.js scene with desks, city backdrop and orbit 
   assert.match(teamCss, /\.office-3d-canvas/);
 });
 
+test('AI office 3D detail pass: jointed robots with role props, console desks, per-role screens', () => {
+  assert.match(teamJs, /function officeAttachProp/);
+  assert.match(teamJs, /function screenFor\(kind\)/);
+  assert.match(teamJs, /buildLeg/, 'segmented legs with knees and feet');
+  assert.match(teamJs, /ceilRing/, 'ceiling light ring');
+  assert.match(teamJs, /__office3DCamera/, 'camera hook for multi-angle QA');
+});
+
 test('AI office: idle staff recharge in the energy pods, with the sleeping face on', () => {
   assert.match(teamJs, /lounge:\{x:10,y:85,label:'🔋 Phòng nạp năng lượng'\}/);
   assert.match(teamJs, /PHÒNG NẠP NĂNG LƯỢNG/);

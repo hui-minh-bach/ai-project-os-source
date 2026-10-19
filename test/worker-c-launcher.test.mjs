@@ -18,7 +18,7 @@ async function freeRange(){
 }
 async function waitFor(p,timeout=10_000){
  for(let i=0;i<timeout/100;i++){
-  try{const r=await fetch(`http://127.0.0.1:${p}/api/health`,{signal:AbortSignal.timeout(300)});if(r.ok&&(await r.json()).version==='0.9.26')return true;}catch{}
+  try{const r=await fetch(`http://127.0.0.1:${p}/api/health`,{signal:AbortSignal.timeout(300)});if(r.ok&&(await r.json()).version==='0.9.27')return true;}catch{}
   await sleep(100);
  }
  return false;
