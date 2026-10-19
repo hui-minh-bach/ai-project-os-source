@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.34",
-  "channel": "v0.9.34-ui-restructure-radar",
+  "version": "0.9.35",
+  "channel": "v0.9.35-idea-workboard",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -187,7 +187,8 @@
     "video_studio_tab": "Video & Story Studio is its own top-level tab with a CapCut-style dark editor layout (sticky preview stage, bottom multi-track timeline)",
     "publish_stats_dashboard": "Publish opens with a statistics dashboard: posted totals, views/likes/comments/shares and per-channel rollups computed from the real publish records; article drafts are counted separately",
     "news_radar": "News Radar tab: 20 selectable fields (dropdown, per-user), Tin nổi bật top-scored panel, per-card Làm video / Viết bài phân tích actions that start orchestrator runs ending at the boss approval gate; video posts gain deterministic field hashtags; articles are produced with caption + hashtags and delivered as publish drafts after approval",
-    "news_law_official_sources": "Vietnamese law field is restricted to official sources (chinhphu.vn, baochinhphu.vn, vbpl.vn, Ministry of Justice, National Assembly, courts, procuracy): cards show the publisher and an official-source badge or an explicit unverified-source warning, plus the legal document reference when present"
+    "news_law_official_sources": "Vietnamese law field is restricted to official sources (chinhphu.vn, baochinhphu.vn, vbpl.vn, Ministry of Justice, National Assembly, courts, procuracy): cards show the publisher and an official-source badge or an explicit unverified-source warning, plus the legal document reference when present",
+    "idea_work_board": "Idea Studio right panel: live team work board (stage, brief/spec state, task division with assignees and statuses, recent activity, 20s refresh)"
   },
   "online_provider_apis": "separate user credentials and provider charges",
   "build": "Integration-ABC-v0.8.5-Recorded-Workflow-Fix-Internal-RC-2026-10-16",

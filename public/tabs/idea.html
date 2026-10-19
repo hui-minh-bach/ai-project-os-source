@@ -4,7 +4,20 @@
 <div id="ideaGithubBox" hidden><div class="panel" id="githubRepoPanel"><h3>Kho GitHub — làm việc với repo có sẵn</h3><p>Đã liên kết GitHub cá nhân (tab Kết nối) thì app lấy được các repo của bạn: <b>nhập một repo thành dự án</b> để đội AI tiếp tục làm ngay trên code có sẵn, lấy <b>issue</b> làm brief giao việc, và khi xong <b>đẩy ngược lên GitHub bằng Pull Request</b>. Vercel: repo đã nối Vercel thì PR có bản xem trước tự động; hoặc dùng nút Deploy Vercel ở trên cho workspace này.</p><label>Tên hoặc link project Vercel của dự án (nếu đã nối Vercel — không bắt buộc)</label><input id="ghVercelProject" placeholder="vd: my-shop hoặc https://vercel.com/team/my-shop"><p><small>Khi nhập repo, app tự <b>đọc hướng dẫn trong repo</b> (README, HUONG-DAN, thư mục docs), tự nhận diện liên kết Vercel trong repo, và <b>lập danh sách việc tiếp tục</b> từ checklist trong hướng dẫn + issue đang mở + ghi chú TODO cho đội AI.</small></p><div class="inline"><button id="ghLoadRepos" class="ghost" type="button">Nạp danh sách repo của tôi</button></div><div id="ghRepoList" class="resultBox">Chưa nạp danh sách repo.</div><hr><h4>Repo gắn với dự án đang chọn</h4><div id="ghBinding" class="resultBox">Chọn một dự án đã nhập từ GitHub.</div><div class="inline"><button id="ghBuildContinuation" class="ghost" type="button">📘 Đọc hướng dẫn & lập việc tiếp tục</button><button id="ghLoadIssues" class="ghost" type="button">Liệt kê issue đang mở</button><button id="ghCreatePr" class="primary" type="button">Đẩy lên GitHub (tạo Pull Request)</button></div><div id="ghContinuation" class="resultBox"></div><div id="ghIssues" class="resultBox"></div><div id="ghPrResult" class="resultBox"></div></div></div>
 </div>
   <div class="idea-layout">
-    <section class="idea-setup idea-panel" aria-labelledby="ideaSetupTitle">
+    <section class="idea-founder idea-panel" aria-labelledby="ideaFounderTitle">
+      <div class="idea-heading"><span class="idea-badge" data-idea-icon="crown" aria-hidden="true"></span><div><h2 id="ideaFounderTitle">Trưởng phòng tiếp nhận</h2><p>Nói chuyện với AI trưởng phòng: trình bày dự án mới, dự án từ GitHub hoặc file trong máy — trưởng phòng đọc, nhận việc, rồi về họp đội và giao việc cho các AI phù hợp.</p></div><button id="ideaClearChat" type="button"><span data-idea-icon="trash" aria-hidden="true"></span>Xóa cuộc trò chuyện</button></div>
+      <div id="chat" class="idea-chat" role="log" aria-live="polite"></div>
+      <div class="idea-composer"><button id="ideaAttach" type="button" aria-label="Đính kèm nội dung tài liệu" title="Đính kèm tài liệu văn bản (tối đa 64 KB)"><span data-idea-icon="clip" aria-hidden="true"></span></button><input id="ideaAttachment" type="file" accept=".txt,.md,.json,.csv" hidden><textarea id="chatInput" rows="1" maxlength="16000" placeholder="Nhập tin nhắn của bạn... (Shift + Enter để xuống dòng)" aria-label="Tin nhắn cho Founder"></textarea><button id="sendChat" type="button" aria-label="Gửi tin nhắn"><span data-idea-icon="send" aria-hidden="true"></span></button></div>
+      <div class="idea-actions"><span id="ideaFounderStatus"></span><button id="ideaAnalyze" type="button"><span data-idea-icon="spark" aria-hidden="true"></span>Phân tích ý tưởng</button><button id="ideaSendCouncil" type="button"><span data-idea-icon="team" aria-hidden="true"></span>Họp đội chốt spec</button><button id="ideaAcceptJob" class="primary" type="button">✅ Nhận việc &amp; giao đội</button></div>
+      <div id="ideaError" role="alert" hidden></div>
+    </section>
+    <section class="idea-work idea-panel" aria-labelledby="ideaWorkTitle">
+      <div class="idea-heading"><span class="idea-badge">🎯</span><div><h2 id="ideaWorkTitle">Đội AI — chia việc &amp; tiến độ</h2><p>Trưởng phòng nhận việc ở ô chat bên trái; đội họp chốt spec, chia việc và làm ngay tại đây — ông thấy từng việc, ai làm, tới đâu rồi.</p></div></div>
+      <div id="ideaWorkActions"></div>
+      <div id="ideaWorkBoard"><div class="empty">Đang tải tiến độ…</div></div>
+    </section>
+  </div>
+  <section class="idea-setup idea-panel" style="margin-top:14px" aria-labelledby="ideaSetupTitle">
       <div class="idea-heading"><span class="idea-badge" data-idea-icon="edit" aria-hidden="true"></span><div><h2 id="ideaSetupTitle">Thiết lập ý tưởng dự án</h2><p>Cung cấp thông tin cơ bản để AI phân tích và đề xuất cấu trúc dự án phù hợp.</p></div></div>
       <form id="ideaBriefForm">
         <div class="idea-field"><label for="projectName">Tên dự án <span>*</span></label><input id="projectName" name="name" maxlength="100" required placeholder="Tên dự án của bạn"><small>Tên ngắn gọn, dễ nhớ cho dự án của bạn.</small></div>
@@ -17,13 +30,5 @@
         <section id="ideaBriefResult" class="idea-panel" hidden></section>
       </form>
     </section>
-    <section class="idea-founder idea-panel" aria-labelledby="ideaFounderTitle">
-      <div class="idea-heading"><span class="idea-badge" data-idea-icon="crown" aria-hidden="true"></span><div><h2 id="ideaFounderTitle">Trưởng phòng tiếp nhận</h2><p>Nói chuyện với AI trưởng phòng: trình bày dự án mới, dự án từ GitHub hoặc file trong máy — trưởng phòng đọc, nhận việc, rồi về họp đội và giao việc cho các AI phù hợp.</p></div><button id="ideaClearChat" type="button"><span data-idea-icon="trash" aria-hidden="true"></span>Xóa cuộc trò chuyện</button></div>
-      <div id="chat" class="idea-chat" role="log" aria-live="polite"></div>
-      <div class="idea-composer"><button id="ideaAttach" type="button" aria-label="Đính kèm nội dung tài liệu" title="Đính kèm tài liệu văn bản (tối đa 64 KB)"><span data-idea-icon="clip" aria-hidden="true"></span></button><input id="ideaAttachment" type="file" accept=".txt,.md,.json,.csv" hidden><textarea id="chatInput" rows="1" maxlength="16000" placeholder="Nhập tin nhắn của bạn... (Shift + Enter để xuống dòng)" aria-label="Tin nhắn cho Founder"></textarea><button id="sendChat" type="button" aria-label="Gửi tin nhắn"><span data-idea-icon="send" aria-hidden="true"></span></button></div>
-      <div class="idea-actions"><span id="ideaFounderStatus"></span><button id="ideaAnalyze" type="button"><span data-idea-icon="spark" aria-hidden="true"></span>Phân tích ý tưởng</button><button id="ideaSendCouncil" type="button"><span data-idea-icon="team" aria-hidden="true"></span>Họp đội chốt spec</button><button id="ideaAcceptJob" class="primary" type="button">✅ Nhận việc &amp; giao đội</button></div>
-      <div id="ideaError" role="alert" hidden></div>
-    </section>
-  </div>
   <section class="idea-panel" style="margin-top:16px;padding:18px"><div class="idea-heading"><div><h2>📡 Nguồn tin &amp; đội tin theo lĩnh vực</h2><p>Đã chuyển sang tab <b>Radar tin</b>: chọn lĩnh vực, xem tin nổi bật và bấm Làm video / Viết bài ngay trên từng ô tin.</p></div></div><button class="primary" type="button" onclick="page('radar')">Mở Radar tin →</button></section>
 </section>

@@ -65,7 +65,7 @@ function renderIdeaProject(){
  if(changed){ideaDraft=false;ideaDirty=false;ideaActiveProject=actual?.id||null;$('#chatInput').value='';ideaError();}
  const p=ideaDraft?null:actual;
  if(!ideaDirty){$('#projectName').value=p?.name||'';$('#ideaProductType').value=p?.productType||'';$('#ideaAudience').value=p?.audience||'';$('#ideaGoals').value=p?.goals||'';ideaSelectedFeatures=new Set(p?.mainFeatures||[]);$('#ideaSaveStatus').textContent=p?'Đã lưu trên máy':'Chưa có dự án';ideaRenderFeatures();}
- ideaRenderChat(p);ideaRenderStack(p?.stack);ideaRenderBrief(p?.analyzedBrief);ideaLoadRole();renderStack(p?.stack);
+ ideaRenderChat(p);ideaRenderStack(p?.stack);ideaRenderBrief(p?.analyzedBrief);ideaRenderWork(p);ideaLoadRole();renderStack(p?.stack);
 }
 async function ideaSave(){
  if(!['name','productType','audience','goals'].every(k=>ideaFields()[k]))throw new Error('Hãy điền đầy đủ thông tin bắt buộc.');
@@ -156,8 +156,29 @@ function ideaRenderSource(){
  const hint=$('#ideaSourceHint');
  if(hint)hint.textContent=ideaSource==='github'?'Chọn một repo có sẵn để nhập thành dự án — trưởng phòng đọc hướng dẫn trong repo và lập danh sách việc tiếp tục cho đội.':ideaSource==='files'?'Dùng nút kẹp giấy trong khung trò chuyện để đính kèm file cho trưởng phòng đọc (.txt/.md/.json/.csv).':'Cứ nhắn ý tưởng vào ô chat — trưởng phòng trao đổi, tự lập hồ sơ và nhận việc. Muốn điền theo mẫu thì bấm “Mẫu chi tiết”.';
 }
-$$('.idea-source-chip').forEach(b=>b.addEventListener('click',()=>{ideaSource=b.dataset.source;localStorage.setItem('aios-idea-source',ideaSource);ideaRenderSource();}));
+$$('.idea-source-chip').forEach(b=>b.addEventListener('click',()=>{ideaSource=b.dataset.source;localStorage.setItem('aios-idea-source',ideaSource);ideaRenderSource();
+}));
 ideaRenderSource();
+{const wa=$('#ideaWorkActions'),acts=document.querySelector('#page-idea .idea-actions');if(wa&&acts)wa.appendChild(acts);}
+const IDEA_TASK_STATUS={preparing:['Đang chuẩn bị','warn'],running:['Đang làm','warn'],testing:['Đang kiểm thử','warn'],repairing:['Đang sửa','warn'],reviewing:['Đang review','warn'],merging:['Đang gộp','warn'],review:['Chờ duyệt','warn'],done:['Đã xong','good'],completed:['Đã xong','good'],failed:['Lỗi','bad'],blocked:['Bị chặn','bad'],stale:['Lỗi thời','bad'],interrupted:['Bị gián đoạn','bad'],ready:['Sẵn sàng',''],queued:['Chờ làm',''],pending:['Chờ làm','']};
+function ideaRenderWork(p){
+ const box=$('#ideaWorkBoard');if(!box)return;
+ if(!p){box.innerHTML='<div class="empty">Chưa chọn dự án. Cứ nhắn ý tưởng vào ô chat bên trái — trưởng phòng sẽ tạo dự án và nhận việc.</div>';return}
+ const tasks=p.tasks||[];
+ const stageNames={idea:'Ý tưởng',discovery:'Đang làm rõ',spec:'Đã có spec',build:'Đang làm',building:'Đang làm',review:'Đang duyệt',done:'Hoàn thành',published:'Đã đăng'};
+ const spec=p.specifications?.length?`Spec v${p.specifications.length} · ${p.approvedSpecificationId?'đã duyệt':'chờ duyệt'}`:(p.analyzedBrief?'Đã phân tích brief · chưa họp đội':'Chưa phân tích');
+ const counts={};for(const t of tasks){const k=IDEA_TASK_STATUS[t.status]?.[0]||t.status;counts[k]=(counts[k]||0)+1}
+ const head=`<p style="margin:4px 0"><b>Giai đoạn:</b> ${esc(stageNames[p.stage]||p.stage||'—')} · <b>Hồ sơ:</b> ${esc(spec)}</p>`
+   +(tasks.length?`<p class="muted" style="margin:2px 0 8px">${tasks.length} việc: ${Object.entries(counts).map(([k,v])=>`${esc(k)} ${v}`).join(' · ')}</p>`:'<p class="muted" style="margin:2px 0 8px">Đội chưa chia việc. Khi trưởng phòng nhận việc, các việc sẽ hiện ở đây.</p>');
+ const rows=tasks.slice(0,30).map(t=>{const st=IDEA_TASK_STATUS[t.status]||[t.status,''];const who=t.assignedWorker?.label||t.workerBinding?.label||t.assignedWorker?.connectionId||'Worker AI';return `<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)"><span class="tag ${st[1]}">${esc(st[0])}</span><span style="flex:1">${esc(t.title||'(việc)')}</span><span class="muted">${esc(who)}</span>${Number.isFinite(t.progress)?`<span class="muted">${t.progress}%</span>`:''}</div>`}).join('');
+ const acts=(p.activity||[]).slice(-6).reverse().map(a=>`<p class="muted" style="margin:2px 0">• ${esc(a.text||'')}</p>`).join('');
+ box.innerHTML=head+rows+(acts?`<h4 style="margin:10px 0 4px">Hoạt động gần đây</h4>${acts}`:'');
+}
+let ideaWorkTimer=null;
+document.addEventListener('page-change',e=>{
+ if(e.detail.page==='idea'){clearInterval(ideaWorkTimer);ideaWorkTimer=setInterval(async()=>{if(ideaDirty||!state.project?.id)return;try{const p=await api(`/api/projects/${encodeURIComponent(state.project.id)}`);ideaRenderWork(p);}catch{}},20000);}
+ else clearInterval(ideaWorkTimer);
+});
 let ideaIntakeTimer=null;
 function ideaIntakePing(){
  const active=ideaDirty||!!(state.project?.messages||[]).some(m=>m.role==='user');

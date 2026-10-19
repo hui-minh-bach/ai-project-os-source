@@ -88,5 +88,5 @@
 
 /* Bàn tiếp nhận: nguồn 'Dự án mới' = chỉ ô chat, ẩn bảng mẫu (đợt B2) */
 #page-idea.chat-only:not(.show-form) .idea-setup{display:none}
-#page-idea.chat-only:not(.show-form) .idea-layout{grid-template-columns:1fr}
-#page-idea.chat-only:not(.show-form) .idea-founder{height:calc(100vh - 210px)}
+#page-idea .idea-work{padding:12px 14px;max-height:833px;overflow:auto;scrollbar-width:thin}
+#page-idea .idea-work .idea-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}
