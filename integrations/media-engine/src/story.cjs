@@ -21,7 +21,7 @@ async function loadText({workspace,source,text,python='python3',pdftotext='pdfto
  const py='import zipfile,sys,xml.etree.ElementTree as E\nf=zipfile.ZipFile(sys.argv[1]);t=E.fromstring(f.read("word/document.xml"));ns={"w":"http://schemas.openxmlformats.org/wordprocessingml/2006/main"};print("\\n".join("".join(n.text or "" for n in p.findall(".//w:t",ns)) for p in t.findall(".//w:p",ns)))';
  const r=await run(python,['-c',py,file],{timeoutMs:30000,maxOutput:12e6});insist(r.stdout.trim(),'Empty DOCX');return {text:r.stdout.trim(),source:file};
 }
-async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxChars=420,mode='verbatim',allowProviderImages=false,ffprobeBin='ffprobe',ffmpegBin='ffmpeg',python='python3',resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition='cut',transitionSeconds=0.4}){
+async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxChars=420,mode='verbatim',allowProviderImages=false,ffprobeBin='ffprobe',ffmpegBin='ffmpeg',python='python3',resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition='cut',transitionSeconds=0.4,karaokeCaptions=true,captionPreset='sweep'}){
  insist(mode==='verbatim'||mode==='adapted','Unknown story mode');
  insist(Number.isFinite(rate)&&rate>=0.65&&rate<=1.5,'Unsupported narration rate');
  insist(Number.isFinite(volume)&&volume>=0.1&&volume<=1,'Unsupported narration volume');
@@ -30,7 +30,7 @@ async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxCh
   insist(gateway?.invoke,'Adaptation requires explicit ProviderGateway','BLOCKED_PROVIDER');const r=await gateway.invoke({capability:'story.adapt',input:{text:body,retainFacts:true}});
   insist(typeof r?.text==='string'&&r.text.trim(),'Adaptation provider returned no story');body=r.text;
  }
- const ch=chapters(body),storyboard=[],subtitles=[];let cursor=0;
+ const ch=chapters(body),storyboard=[],subtitles=[],subtitleAudio=[];let cursor=0;
  const style='Vietnamese countryside at sunrise; repeating silhouette character designs; flat cinematic poster style';
  for(const chapter of ch){
   const parts=scenes(chapter.text,maxChars);
@@ -58,7 +58,7 @@ async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxCh
    let t=cursor;
    for(let k=0;k<units.length;k++){
     const end=k===units.length-1?cursor+measured:t+units[k].seconds;
-    subtitles.push({id:String(subtitles.length+1),start:t,end,text:units[k].text,sceneIndex:index});t=end;
+    subtitles.push({id:String(subtitles.length+1),start:t,end,text:units[k].text,sceneIndex:index});subtitleAudio.push(units[k].file);t=end;
    }
    const pic=fs.existsSync(imgPath)?{path:imgPath,origin:'checkpoint'}:await illustration({gateway,description:parts[j],characterSheet:style,output:imgPath,offline:!allowProviderImages,scene:index});
    const scene={index,chapter:chapter.number,sourceText:parts[j],title:`Scene ${index+1}`,image:pic.path,imageOrigin:pic.origin,audio:voicePath,duration:measured,voice,characterSheet:style,cacheKey:key,start:cursor,end:cursor+measured};
@@ -82,11 +82,52 @@ async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxCh
   for(let i=0;i<subtitles.length-1;i++){const next=subtitles[i+1];if(subtitles[i].end>next.start)subtitles[i].end=Math.max(subtitles[i].start+0.1,next.start);}
  }
  for(const sub of subtitles)delete sub.sceneIndex;
+ // Karaoke captions (0.9.31): word timings measured by local Whisper on each
+ // phrase's own synthesized audio when available; otherwise the aligner
+ // splits each phrase proportionally. Displayed text is always the script.
+ let karaokeFile=null,karaokeStyle=null,karaokeTiming=null,karaokeWords=0;
+ if(karaokeCaptions&&subtitles.length){
+  try{
+   const kc=await import(require('url').pathToFileURL(path.join(__dirname,'..','..','..','src','lib','karaoke-captions.mjs')).href);
+   const preset=kc.KARAOKE_PRESETS.includes(captionPreset)?captionPreset:'sweep';
+   let whisperWords=null;
+   const model=String(process.env.WHISPER_MODEL_PATH||''),cli=String(process.env.WHISPER_CLI_PATH||'whisper-cli');
+   if(model&&fs.existsSync(model)){
+    whisperWords=[];
+    const tmp=mkdir(path.join(jobDir,'karaoke-tmp'));
+    for(let i=0;i<subtitles.length;i++){
+     const src=subtitleAudio[i];if(!src||!fs.existsSync(src))continue;
+     try{
+      const w16=path.join(tmp,`phrase-${i}.wav`),stem=path.join(tmp,`phrase-${i}`);
+      await run(ffmpegBin,['-hide_banner','-loglevel','error','-nostdin','-y','-i',src,'-vn','-ac','1','-ar','16000','-c:a','pcm_s16le',w16],{timeoutMs:60000});
+      await run(cli,['-m',model,'-f',w16,'-l','vi','-ojf','-of',stem],{timeoutMs:300000});
+      const data=JSON.parse(fs.readFileSync(stem+'.json','utf8'));
+      for(const seg of data?.transcription||[])for(const tok of seg?.tokens||[]){
+       const text=String(tok?.text||'');if(!text||text.startsWith('[_'))continue;
+       const from=Number(tok?.offsets?.from),to=Number(tok?.offsets?.to);if(!Number.isFinite(from)||!Number.isFinite(to))continue;
+       const clean=text.trim(),startsWord=text.startsWith(' ')||whisperWords.length===0;
+       if(startsWord||!/^[\p{L}\p{N}]/u.test(clean)){if(clean)whisperWords.push({start:subtitles[i].start+from/1000,end:subtitles[i].start+to/1000,text:clean,phrase:i});}
+       else if(whisperWords.length){whisperWords[whisperWords.length-1].text+=clean;whisperWords[whisperWords.length-1].end=subtitles[i].start+to/1000;}
+      }
+     }catch{/* one phrase without measured words: the aligner falls back for it */}
+    }
+    try{fs.rmSync(tmp,{recursive:true,force:true});}catch{}
+    if(!whisperWords.length)whisperWords=null;
+   }
+   const aligned=kc.alignKaraokeWords({segments:subtitles,texts:subtitles.map(x=>x.text),whisperWords});
+   const ass=kc.buildKaraokeAss({segments:subtitles,timedWords:aligned.timedWords,width:sizes[resolution][0],height:sizes[resolution][1],preset});
+   karaokeFile=path.join(jobDir,'captions-karaoke.ass');
+   fs.writeFileSync(karaokeFile,ass);
+   karaokeStyle='karaoke-'+preset;karaokeTiming=aligned.method;karaokeWords=aligned.wordCount;
+  }catch{karaokeFile=null;}
+ }
+ if(!karaokeFile)karaokeStyle='srt-phrases';
  const timeline={version:1,kind:'story',width:sizes[resolution][0],height:sizes[resolution][1],fps:25,scenes:storyboard,expectedDuration,transition:effTransition,transitionSeconds:effSeconds};
  const metadata={mode,source:loaded.source,sourceSHA256:sha(body),sourceCharacters:body.length,chapters:ch.length,characters:characters(body),characterSheet:style,voice,rate,volume,emotion,rights,segmentTimings:'Measured via ffprobe for every separately synthesized Vietnamese phrase; not phoneme/word forced alignment',sceneCount:storyboard.length};
+ if(karaokeStyle){metadata.captionStyle=karaokeStyle;if(karaokeTiming)metadata.captionTiming=karaokeTiming;if(karaokeWords)metadata.captionWords=karaokeWords;}
  jsonWrite(path.join(jobDir,'storyboard.json'),{metadata,timeline});
  fs.writeFileSync(path.join(jobDir,'captions.srt'),subs.srt(subtitles));
  fs.writeFileSync(path.join(jobDir,'captions.vtt'),subs.vtt(subtitles));
- return {metadata,timeline,subtitles};
+ return {metadata,timeline,subtitles,karaokeFile};
 }
 module.exports={chapters,scenes,characters,loadText,buildStory};

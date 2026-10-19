@@ -28,7 +28,7 @@ export const MEDIA_TEMPLATES = [
     id: 'story-telling', name: 'Kể chuyện', icon: '📖',
     desc: 'Văn bản thành phim kể: giọng đọc, hình minh họa, chuyển cảnh trượt mềm.',
     needs: 'text', operation: 'media.story',
-    params: { transition: 'slideleft', transitionSeconds: 0.4 },
+    params: { transition: 'slideleft', transitionSeconds: 0.4, karaokeCaptions: true, captionPreset: 'pop' },
     effects: [],
     hint: 'Dán câu chuyện vào panel Kể chuyện, chọn giọng, bấm Chạy.',
   },

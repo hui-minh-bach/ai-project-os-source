@@ -97,16 +97,16 @@ function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeB
   const saved=await save(jobId,{edit,preview,final,qa},[['preview.mp4',preview.file],['final.mp4',final.file],['timeline.json',timelineFile],['captions.srt',subtitle]]);
   return {preview,final,qa,saved};
  });
- task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition,transitionSeconds,quality:qualityProfile},dir)=>{
-  const made=await story.buildStory({workspace:root,text,source,jobDir:dir,gateway:ProviderGateway,voice,mode,allowProviderImages,ffprobeBin,ffmpegBin,python:pythonBin,maxChars,resolution,rights,rate,volume,emotion,transition,transitionSeconds});
+ task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition,transitionSeconds,quality:qualityProfile,karaokeCaptions=true,captionPreset='sweep'},dir)=>{
+  const made=await story.buildStory({workspace:root,text,source,jobDir:dir,gateway:ProviderGateway,voice,mode,allowProviderImages,ffprobeBin,ffmpegBin,python:pythonBin,maxChars,resolution,rights,rate,volume,emotion,transition,transitionSeconds,karaokeCaptions,captionPreset});
   const onProgress=p=>EventBus.publish('media.progress',{jobId,operation:'story',...p});
-  const sound=music?within(root,music):null,subtitle=path.join(dir,'captions.srt');
+  const sound=music?within(root,music):null,subtitle=(made.karaokeFile&&fs.existsSync(made.karaokeFile))?made.karaokeFile:path.join(dir,'captions.srt');
   const preview=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,preview:true,subtitle,music:sound,onProgress});
   const final=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,subtitle,music:sound,onProgress,quality:qualityProfile||'high'});
   const qa=await quality.check({file:final.file,expectedDuration:made.timeline.expectedDuration,ffmpegBin,ffprobeBin,subtitleSegments:made.subtitles});
   insist(qa.passed,'Story quality failed: '+qa.problems.join(','),'QUALITY_FAILED');
   const storyboardFile=path.join(dir,'storyboard.json');
-  const saved=await save(jobId,{metadata:made.metadata,timeline:made.timeline,qa,preview,final},[['story-720p-or-source.mp4',final.file],['preview.mp4',preview.file],['captions.srt',subtitle],['captions.vtt',path.join(dir,'captions.vtt')],['storyboard.json',storyboardFile]]);
+  const saved=await save(jobId,{metadata:made.metadata,timeline:made.timeline,qa,preview,final},[['story-720p-or-source.mp4',final.file],['preview.mp4',preview.file],['captions.srt',path.join(dir,'captions.srt')],['captions.vtt',path.join(dir,'captions.vtt')],['captions-karaoke.ass',made.karaokeFile||null],['storyboard.json',storyboardFile]]);
   return {metadata:made.metadata,timeline:made.timeline,preview,final,qa,saved};
  });
  task('publish-draft',async({jobId,...draft})=>{const video=within(root,draft.video);const d=publisher.createDraft({...draft,video});await save(jobId,{draft:d});return d;});

@@ -623,25 +623,60 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       });
       // One-click script to a full narrated MP4, via an explicitly configured real TTS provider.
       // No provider credentials are exposed to the browser or stored in job parameters.
-      handlers.set('media.tts-video',async({jobId,source,text,voice,ttsProvider='auto',captionsSource,musicSource,musicVolume,alignment,rate=1})=>{
+      handlers.set('media.tts-video',async({jobId,source,text,voice,ttsProvider='auto',captionsSource,musicSource,musicVolume,alignment,rate=1,karaokeCaptions=true,captionPreset='sweep'})=>{
         const provider=ttsChoice(ttsProvider);
         const dir=path.join(mediaWorkspace,'.tts-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
         const wav=path.join(dir,'generated-voice.wav');
         const synth=await provider.synthesize({text,voice,rate,language:'vi',output:wav});
-        let captions=captionsSource||null,captionMethod='provided-SRT';
+        let captions=captionsSource||null,captionMethod='provided-SRT',captionStyle=null,captionTiming=null;
         if(!captions){
           const probes=require('../../integrations/media-engine/src/utils.cjs');
           const audioInfo=await probes.ffprobe(wav,'ffprobe');
-          const generated=writeWordCaptions(path.join(dir,'provider-captions.srt'),synth.wordTimestamps,{audioSeconds:probes.duration(audioInfo)});
-          if(generated){captions=generated.file;captionMethod=generated.method;}
-          else captionMethod='not-available-provider-did-not-return-word-timestamps';
+          const audioSeconds=probes.duration(audioInfo);
+          // Karaoke first (0.9.31): word-by-word captions anchored to Whisper
+          // timings measured on the synthesized track; script text is shown.
+          if(karaokeCaptions&&String(text||'').trim()){
+            try{
+              const preset=KARAOKE_PRESETS.includes(captionPreset)?captionPreset:'sweep';
+              let sentences=String(text).replace(/\s+/g,' ').split(/(?<=[.!?…])\s+/u).map(x=>x.trim()).filter(Boolean);
+              if(sentences.length===1&&sentences[0].length>220)sentences=sentences[0].split(/(?<=[,;:])\s+/u).map(x=>x.trim()).filter(Boolean);
+              let whisperWords=null,anchorSource=null;
+              if(Array.isArray(synth.wordTimestamps)&&synth.wordTimestamps.length){whisperWords=synth.wordTimestamps.map(w=>({start:Number(w.start),end:Number(w.end??w.start),text:String(w.word??w.text??'')})).filter(w=>Number.isFinite(w.start)&&w.text);anchorSource='provider';}
+              if(!whisperWords&&whisperStatus(env).ready){try{const tr=await transcribeWordsLocal({audio:wav,outputRoot:path.join(dir,'karaoke-whisper'),language:'vi',env});whisperWords=tr.words;anchorSource='whisper';}catch{}}
+              const totalChars=sentences.reduce((a,x)=>a+Math.max(1,x.length),0);
+              let charAcc=0,wordAcc=0;const totalWords=sentences.reduce((a,x)=>a+x.split(/\s+/).filter(Boolean).length,0);
+              const segments=sentences.map((t,i)=>{
+                let start,end;
+                if(whisperWords&&whisperWords.length){
+                  const wCount=t.split(/\s+/).filter(Boolean).length;
+                  const a=Math.min(whisperWords.length-1,Math.round(wordAcc/Math.max(1,totalWords)*whisperWords.length));
+                  const b=Math.min(whisperWords.length-1,Math.round((wordAcc+wCount)/Math.max(1,totalWords)*whisperWords.length)-1);
+                  start=whisperWords[Math.max(0,a)].start;end=whisperWords[Math.max(a,b)].end;wordAcc+=wCount;
+                }else{start=audioSeconds*(charAcc/totalChars);charAcc+=Math.max(1,t.length);end=audioSeconds*(charAcc/totalChars);}
+                return {id:String(i+1),start:Number(start.toFixed(3)),end:Number(Math.max(start+0.05,end).toFixed(3)),text:t};
+              });
+              const aligned=alignKaraokeWords({segments,texts:sentences,whisperWords});
+              let vs={};try{const vinfo=await probes.ffprobe(source,'ffprobe');vs=(vinfo.streams||[]).find(x=>x.codec_type==='video')||{};}catch{}
+              const assPath=path.join(dir,'captions-karaoke.ass');
+              fs.writeFileSync(assPath,buildKaraokeAss({segments,timedWords:aligned.timedWords,width:vs.width||1280,height:vs.height||720,preset}));
+              await artifactPort.putFile({jobId,source:assPath,name:'captions-karaoke.ass'});
+              captions=assPath;captionStyle='karaoke-'+preset;
+              if(anchorSource==='provider'){captionMethod='heygen-provider-word-timestamps';captionTiming='provider-words';const pc=writeWordCaptions(path.join(dir,'provider-captions.srt'),synth.wordTimestamps,{audioSeconds});if(pc)await artifactPort.putFile({jobId,source:pc.file,name:'provider-captions.srt'});}
+              else{captionMethod='karaoke-'+preset;captionTiming=aligned.method;}
+            }catch{/* fall through to the provider/SRT captions below */}
+          }
+          if(!captions){
+            const generated=writeWordCaptions(path.join(dir,'provider-captions.srt'),synth.wordTimestamps,{audioSeconds});
+            if(generated){captions=generated.file;captionMethod=generated.method;}
+            else captionMethod='not-available-provider-did-not-return-word-timestamps';
+          }
         }
         const rendered=await buildVoiceover({qualityProfile:typeof quality!=='undefined'?quality:'high',workspace:mediaWorkspace,jobDir:dir,videoSource:source,audioSource:wav,captionsSource:captions,musicSource,musicVolume,alignment});
         await artifactPort.putFile({jobId,source:wav,name:'generated-natural-voice.wav'});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-ai-narration.mp4'});
         if(rendered.captionPath)await artifactPort.putFile({jobId,source:rendered.captionPath,name:'captions.srt'});
-        const report={provider:synth.provider,voice:synth.voice,ttsRequestId:synth.providerRequestId,source:synth.provider==='piper-local'?'offline-licensed-model':'approved-external-api',captions:captionMethod,qa:rendered.qa,alignment:rendered.alignment,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds,musicMixed:rendered.musicMixed,musicVolume:rendered.musicVolume};
+        const report={provider:synth.provider,voice:synth.voice,ttsRequestId:synth.providerRequestId,source:synth.provider==='piper-local'?'offline-licensed-model':'approved-external-api',captions:captionMethod,captionStyle,captionTiming,qa:rendered.qa,alignment:rendered.alignment,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds,musicMixed:rendered.musicMixed,musicVolume:rendered.musicVolume};
         await artifactPort.putJson({jobId,name:'tts-video-report.json',data:report});
         return {file:rendered.file,report};
       });

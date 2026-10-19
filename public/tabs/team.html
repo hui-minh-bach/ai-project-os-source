@@ -4,6 +4,10 @@
     <div id="officeRoom" class="office-room" aria-live="polite"></div>
     <div id="officeFeed" class="office-feed" role="log" aria-label="Nhật ký văn phòng"></div>
   </section>
+  <details class="office-models-panel"><summary>🧩 Model 3D cho nhân vật (tùy chọn — file GLB theo brief kỹ thuật)</summary>
+    <p class="office-models-hint">Nạp file .glb cho từng nhân vật để thay robot mặc định. Model cần có khung xương và các clip đặt tên: idle, work, walk, cheer, fail — app sẽ cho nhân vật chạy đúng clip theo việc thật (đang làm = work, di chuyển = walk, hỏng việc vào chuồng = fail, xong việc = cheer). Chưa có model thì nhân vật giữ robot mặc định.</p>
+    <div id="officeModelRows"></div>
+  </details>
   <div class="team-controls">
     <div class="team-engine-control">
       <label for="taskEngineSelect">Engine thực thi</label>

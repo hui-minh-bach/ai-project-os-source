@@ -37,10 +37,11 @@ import { createOrchestrator, createSimulatedAi, createGatewayAi } from './lib/or
 import { writeTextWithModel, translateSegmentsWithModel } from './lib/media-ai.mjs';
 import { oauthAuthorizeUrl, oauthExchangeCode, fetchPlatformIdentity, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
 import { createUpdater } from './lib/updater.mjs';
+import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, OFFICE_MODEL_MAX_BYTES } from './lib/office-models.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.30';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.31';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -55,6 +56,7 @@ function send(res,status,data,type='application/json; charset=utf-8'){
   res.writeHead(status,{'content-type':type,'content-length':b.length,'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','content-security-policy':"default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"});res.end(b);
 }
 function readBody(req){return new Promise((resolve,reject)=>{let s='';req.on('data',d=>{s+=d;if(s.length>3_000_000){reject(new Error('Request quá lớn'));req.destroy();}});req.on('end',()=>{try{resolve(s?JSON.parse(s):{});}catch{reject(new Error('JSON không hợp lệ'));}});});}
+function readRawBody(req,max){return new Promise((resolve,reject)=>{const chunks=[];let total=0;req.on('data',d=>{total+=d.length;if(total>max){reject(Object.assign(new Error('File quá lớn'),{code:'OFFICE_MODEL_SIZE'}));req.destroy();return;}chunks.push(d);});req.on('end',()=>resolve(Buffer.concat(chunks)));req.on('error',reject);});}
 function routeProject(url){const m=url.match(/^\/api\/projects\/([^/]+)(?:\/(.+))?$/);return m?{id:decodeURIComponent(m[1]),action:m[2]||''}:null;}
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg','.woff2':'font/woff2'};
 
@@ -87,6 +89,11 @@ const server=http.createServer(async(req,res)=>{try{
   // --- Closed loop: ingest, orchestrator, platform publishing ---
   if(req.method==='GET'&&u.pathname==='/api/ingest/sources')return send(res,200,{sources:ingestStore.listSources(),counts:ingestStore.counts()});
   if(req.method==='POST'&&u.pathname==='/api/ingest/sources')return send(res,200,ingestStore.addSource(await readBody(req)));
+  if(u.pathname==='/api/office/models'&&req.method==='GET')return send(res,200,{models:listOfficeModels(DATA_DIR)});
+  const officeModelMatch=u.pathname.match(/^\/api\/office\/models\/([a-z]+)(\/file)?$/);
+  if(officeModelMatch&&req.method==='POST'&&!officeModelMatch[2]){try{const buf=await readRawBody(req,OFFICE_MODEL_MAX_BYTES);return send(res,200,{model:saveOfficeModel(DATA_DIR,officeModelMatch[1],buf)});}catch(e){return send(res,400,{error:e.code||'OFFICE_MODEL',message:e.message});}}
+  if(officeModelMatch&&req.method==='DELETE'&&!officeModelMatch[2]){try{return send(res,200,deleteOfficeModel(DATA_DIR,officeModelMatch[1]));}catch(e){return send(res,400,{error:e.code||'OFFICE_MODEL',message:e.message});}}
+  if(officeModelMatch&&req.method==='GET'&&officeModelMatch[2]){let file=null;try{file=officeModelPath(DATA_DIR,officeModelMatch[1]);}catch{file=null;}if(!file)return send(res,404,{error:'OFFICE_MODEL_MISSING',message:'Chưa có model cho nhân vật này.'});res.writeHead(200,{'content-type':'model/gltf-binary','content-length':fs.statSync(file).size,'cache-control':'no-store'});fs.createReadStream(file).on('error',()=>res.destroy()).pipe(res);return;}
   const ingestSourceMatch=u.pathname.match(/^\/api\/ingest\/sources\/([^/]+)(?:\/(enabled))?$/);
   if(ingestSourceMatch&&req.method==='POST'&&ingestSourceMatch[2]==='enabled'){const b=await readBody(req);return send(res,200,ingestStore.setSourceEnabled(ingestSourceMatch[1],Boolean(b.enabled)));}
   if(ingestSourceMatch&&req.method==='DELETE'&&!ingestSourceMatch[2]){ingestStore.removeSource(ingestSourceMatch[1]);return send(res,200,{ok:true});}

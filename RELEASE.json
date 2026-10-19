@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.30",
-  "channel": "v0.9.30-room-detail",
+  "version": "0.9.31",
+  "channel": "v0.9.31-glb-models-karaoke-update-proof",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -18,7 +18,7 @@
     "heygen_tts": "optional_external_paid_api_only_when_selected",
     "cinematic_ai_video": "not_available",
     "license": "removed_by_owner_decision_2026-10-17_no_licensing_no_trial_no_activation_free_distribution_via_github",
-    "auto_update": "implemented_signed_manifest_ed25519_plus_sha256_staged_download_applied_by_launcher_on_next_start_with_per_file_backup_and_automatic_rollback_tools/update-publish.mjs_signs_manifests_owner_key_frozen_now_used_for_update_signing_only",
+    "auto_update": "implemented_signed_manifest_ed25519_plus_sha256_staged_download_applied_by_launcher_on_next_start_with_per_file_backup_and_automatic_rollback_tools/update-publish.mjs_signs_manifests_owner_key_frozen_now_used_for_update_signing_only_e2e_verified_2026-10-19_scratch_copy_test_keypair_check_download_stage_then_real_launcher_applied_with_per_file_backups_and_a_poisoned_package_rolled_back_cleanly",
     "official_cli_login": "codex_chatgpt_claude_code_and_google_antigravity",
     "official_cli_installer": "Windows managed npm Codex/Claude, WinGet Antigravity",
     "cli_login_live_verified": "not_tested_without_real_customer_accounts",
@@ -177,7 +177,9 @@
     "github_continue_existing_project": {
       "status": "implemented",
       "note": "0.9.28 (owner: continuing OTHER in-progress work must have an input place — import the repo, the app reads its guide and continues the project): the Publish tab's Kho GitHub panel takes an optional Vercel project name/link at import time, and importing (or pressing 'Đọc hướng dẫn & lập việc tiếp tục' on a bound project) runs buildContinuationPlan in src/lib/github-repos.mjs — it reads the repo's own guide files (README, HUONG-DAN*, GUIDE*, SPEC*, docs/*.md), detects the Vercel link from .vercel/project.json, identifies the stack from package.json, scans TODO/FIXME notes, pulls open issues, and merges all of it into a deduplicated continuation checklist stored on the project binding. The guide text is written into the project brief (idea) and the checklist into the goals, so the Council/PM/Workers plan and execute FROM the repo's own instructions; finished work returns via the existing Pull Request flow, and Vercel deploys run from the same workspace (an imported .vercel link makes deploys target the existing Vercel project). Verified with a stub gh CLI and REAL local bare git remotes, including a seeded in-progress shop repo (guide checklist, docs plan, .vercel/project.json, TODO in source)."
-    }
+    },
+    "office_glb_models": "implemented_0.9.31_user_uploads_one_glb_per_cast_member_in_team_tab_stored_under_data_dir_office_models_served_locally_gltfloader_vendored_clips_idle_work_walk_cheer_fail_driven_by_real_office_state_procedural_robot_kept_as_fallback_and_for_members_without_a_model",
+    "media_karaoke_story_tts": "implemented_0.9.31_story_and_tts_video_now_burn_karaoke_word_by_word_captions_whisper_anchored_when_local_whisper_available_else_deterministic_proportional_same_engine_as_dub_and_retheme"
   },
   "online_provider_apis": "separate user credentials and provider charges",
   "build": "Integration-ABC-v0.8.5-Recorded-Workflow-Fix-Internal-RC-2026-10-16",

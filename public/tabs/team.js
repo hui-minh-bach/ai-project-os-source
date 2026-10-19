@@ -354,8 +354,19 @@ async function officePoll(force){
  finally{officePollPending=false;officeRender();}
 }
 setInterval(()=>{const page=$('#page-team');if(page&&page.classList.contains('active')&&!document.hidden)officePoll();},4000);
-document.addEventListener('page-change',e=>{if(e.detail.page==='team'){officeRender();officePoll();}});
-officeRender();officePoll();
+document.addEventListener('page-change',e=>{if(e.detail.page==='team'){officeRender();officePoll();officeModelsRender();}});
+const OFFICE_MODEL_CAST=[['boss','Sếp Lâm'],['pm','Tuấn — Trưởng phòng'],['news','Na — Tin tức'],['script','Hằng — Biên tập'],['image','Tí — Hình ảnh'],['media','Minh — Sản xuất'],['review','Tâm — Kiểm duyệt'],['publish','Phát — Đăng bài']];
+async function officeModelsRender(){
+ const box=document.getElementById('officeModelRows'); if(!box)return;
+ let models=[]; try{models=(await (await fetch('/api/office/models')).json()).models||[];}catch{}
+ box.innerHTML=OFFICE_MODEL_CAST.map(([id,label])=>{const m=models.find(x=>x.id===id);return '<div class="office-model-row"><span class="office-model-name">'+label+'</span><span class="office-model-state">'+(m?('✅ đã có model ('+Math.max(1,Math.round(m.bytes/1024))+' KB)'):'— chưa có, đang dùng robot mặc định')+'</span><label class="office-model-pick">Nạp file .glb<input type="file" accept=".glb" data-model-pick="'+id+'" hidden></label>'+(m?'<button type="button" class="ghost small" data-model-del="'+id+'">Xóa</button>':'')+'</div>';}).join('');
+ box.querySelectorAll('[data-model-pick]').forEach(inp=>inp.addEventListener('change',async()=>{const f=inp.files&&inp.files[0]; if(!f)return; const id=inp.getAttribute('data-model-pick');
+  try{const r=await fetch('/api/office/models/'+id,{method:'POST',body:f}); const j=await r.json(); if(!r.ok)throw new Error(j.message||'Nạp model thất bại'); if(window.__office3DLoadModels)window.__office3DLoadModels();}
+  catch(e){alert(e.message||'Nạp model thất bại');}
+  officeModelsRender();}));
+ box.querySelectorAll('[data-model-del]').forEach(btn=>btn.addEventListener('click',async()=>{await fetch('/api/office/models/'+btn.getAttribute('data-model-del'),{method:'DELETE'}); if(window.__office3DLoadModels)window.__office3DLoadModels(); officeModelsRender();}));
+}
+officeRender();officePoll();officeModelsRender();
 
 /* ================= Văn phòng 3D (0.9.25) =================
  * Cùng một bộ não trạng thái với phòng 2D (officeStationOf/officeCulprit),
@@ -757,6 +768,50 @@ function office3DBuild(THREE,room){
   return {a,grp,legL,legR,shinL,shinR,armL,armR,ring,nameSp,zzz,faceMat,faceMode:'idle',name:officeAgentName(a),target:new THREE.Vector3(),walking:false,busy:false,phase:Math.random()*7,sit:0};
  }
  const agents={}; for(const a of OFFICE_CAST){const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]); built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); agents[a.id]=built;}
+ // --- Model 3D GLB do người dùng nạp (0.9.31): có file thì thay robot mặc định ---
+ for(const id in agents){const A=agents[id];const keep=new Set([A.nameSp,A.zzz,A.ring]);const proc=new THREE.Group();proc.name='ProceduralBody';
+  [...A.grp.children].forEach(ch=>{if(!keep.has(ch))proc.add(ch);});
+  A.grp.add(proc);A.procBody=proc;}
+ let clipLogic=null; import('/office-clip.mjs').then(m=>{clipLogic=m;}).catch(()=>{});
+ function officePlayClip(A,want){
+  const M=A.model; if(!M||M.current===want)return;
+  const clip=M.clips[want]||M.clips.idle;
+  if(M.action){try{M.action.fadeOut(.22);}catch{}}
+  if(!clip||!A.mixer){M.current=want;M.action=null;return;}
+  const act=A.mixer.clipAction(clip);
+  act.reset(); act.enabled=true;
+  if(want==='cheer'){act.setLoop(THREE.LoopOnce,1); act.clampWhenFinished=true;}
+  else{act.setLoop(THREE.LoopRepeat,Infinity); act.clampWhenFinished=false;}
+  act.fadeIn(.22); act.play();
+  M.action=act; M.current=want;
+ }
+ let gltfLoaderPromise=null;
+ async function officeLoadModel(A){
+  try{
+   const list=await (await fetch('/api/office/models')).json();
+   const has=(list.models||[]).some(m=>m.id===A.a.id);
+   if(!has){if(A.modelRoot){A.grp.remove(A.modelRoot);A.modelRoot=null;} A.model=null; A.mixer=null; if(A.procBody)A.procBody.visible=true; return;}
+   if(!gltfLoaderPromise)gltfLoaderPromise=import('/vendor/addons/GLTFLoader.js').then(m=>new m.GLTFLoader());
+   const loader=await gltfLoaderPromise;
+   const gltf=await loader.loadAsync('/api/office/models/'+A.a.id+'/file');
+   const root=gltf.scene;
+   const box=new THREE.Box3().setFromObject(root); const size=box.getSize(new THREE.Vector3());
+   if(size.y>0)root.scale.setScalar(2.0/size.y);
+   const box2=new THREE.Box3().setFromObject(root); root.position.y-=box2.min.y;
+   root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+   if(A.modelRoot)A.grp.remove(A.modelRoot);
+   A.grp.add(root); A.modelRoot=root;
+   if(!clipLogic)clipLogic=await import('/office-clip.mjs');
+   const names=(gltf.animations||[]).map(c=>c.name);
+   const clips={};
+   for(const want of clipLogic.OFFICE_CLIPS){const found=clipLogic.officeFindClip(names,want); if(found)clips[want]=gltf.animations.find(c=>c.name===found);}
+   A.mixer=new THREE.AnimationMixer(root);
+   A.model={clips,current:null,action:null};
+   if(A.procBody)A.procBody.visible=false;
+  }catch(e){console.warn('Không nạp được model 3D cho',A.a.id,e);}
+ }
+ window.__office3DLoadModels=()=>{for(const id in agents)officeLoadModel(agents[id]);};
+ window.__office3DLoadModels();
  scene.traverse(o=>{if(o.isMesh&&o.material&&o.material.isMeshStandardMaterial&&!o.material.transparent){o.castShadow=true;o.receiveShadow=true;}});
  floor.receiveShadow=true;
  // đường chấm khi di chuyển + gói hàng
@@ -771,6 +826,7 @@ function office3DBuild(THREE,room){
  let zapId=null,zapClock=0;
  // --- đồng bộ từ trạng thái thật ---
  window.__office3D=true; window.__office3DCamera=orbit;
+ window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,A.model?{clip:A.model.current,clips:Object.keys(A.model.clips)}:null]));
  window.__office3DSync=(ctx)=>{
   const slotUse=new Map();
   for(const a of OFFICE_CAST){
@@ -787,6 +843,7 @@ function office3DBuild(THREE,room){
    const sleeping=stId==='lounge'&&!(ctx.culprit&&ctx.culprit.agentId===a.id);
    if(A.zzz)A.zzz.visible=sleeping;
    const fm=(ctx.culprit&&ctx.culprit.agentId===a.id)?'zap':sleeping?'sleep':A.busy?'work':'idle';
+   A.faceMode=fm;
    if(A.faceMat&&A.faceMode!==fm){A.faceMat.map=faceTexCache[fm];A.faceMat.needsUpdate=true;A.faceMode=fm;}
    const nm=officeAgentName(a);
    if(nm!==A.name){A.name=nm; const parent=A.nameSp.parent; const idx=parent.children.indexOf(A.nameSp); const fresh=textSprite(nm,{size:46,scale:[2.3,.58]}); fresh.position.y=2.85; parent.remove(A.nameSp); parent.add(fresh); A.nameSp=fresh;}
@@ -831,7 +888,17 @@ function office3DBuild(THREE,room){
    const sitT=(dist<=.05&&ownDesk)?1:0;
    if(dist<=.05)A.sit+=(sitT-A.sit)*Math.min(1,dt*3.2);
    const sit=A.sit, sw=Math.sin(t*11+A.phase);
-   if(A.walking){
+   if(A.model){if(A.wasBusy&&!A.busy&&!A.walking)A.cheerT=1.5; if(A.cheerT>0)A.cheerT-=dt;}
+   A.wasBusy=A.busy;
+   if(A.model){
+    if(A.walking){p.y=Math.abs(Math.sin(t*9+A.phase))*.04;}
+    else{p.y=0; let fd=0-A.grp.rotation.y; while(fd>Math.PI)fd-=2*Math.PI; while(fd<-Math.PI)fd+=2*Math.PI; A.grp.rotation.y+=fd*Math.min(1,dt*3.5);}
+    A.grp.rotation.x=0;
+    const want=clipLogic?clipLogic.officeClipFor({walking:A.walking,faceMode:A.faceMode,cheer:A.cheerT>0}):'idle';
+    officePlayClip(A,want);
+    if(A.mixer)A.mixer.update(dt);
+   }
+   else if(A.walking){
     A.legL.rotation.x=sw*.55*(1-sit); A.legR.rotation.x=-sw*.55*(1-sit);
     A.shinL.rotation.x=Math.max(0,-sw)*.55*(1-sit); A.shinR.rotation.x=Math.max(0,sw)*.55*(1-sit);
     A.armL.rotation.x=-sw*.44*(1-sit)-.55*sit; A.armR.rotation.x=sw*.44*(1-sit)-.55*sit;

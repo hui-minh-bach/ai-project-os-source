@@ -244,3 +244,11 @@
 .office-room.office-3d-on .office-station,.office-room.office-3d-on .office-agent,.office-room.office-3d-on .office-package{display:none}
 .office-3d-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:14px;cursor:grab}
 .office-3d-canvas:active{cursor:grabbing}
+
+.office-models-panel{margin:10px 0;padding:10px 14px;border:1px solid var(--border,#2a3350);border-radius:12px;background:rgba(255,255,255,.03)}
+.office-models-panel summary{cursor:pointer;font-weight:600}
+.office-models-hint{opacity:.85;font-size:.92em;line-height:1.5}
+.office-model-row{display:flex;align-items:center;gap:12px;padding:6px 0;border-top:1px dashed rgba(255,255,255,.08);flex-wrap:wrap}
+.office-model-name{min-width:170px;font-weight:600}
+.office-model-state{flex:1;opacity:.85}
+.office-model-pick{cursor:pointer;text-decoration:underline}
