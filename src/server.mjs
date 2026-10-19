@@ -21,7 +21,7 @@ import { importSkillUpload, importRepoZip, importRepoGit, listImportedRepos, del
 import { engineStatuses, installEngineSource, systemPrerequisites, systemPrerequisiteVersions, engineDiagnostics, listCustomEngines, saveCustomEngine, deleteCustomEngine } from './lib/engines.mjs';
 import { sandboxStatus } from './lib/sandbox.mjs';
 import { gitStatus, initGit, publishGitHub, deployVercel } from './lib/publish.mjs';
-import { listGithubRepos, importGithubRepo, listGithubIssues, useGithubIssueAsBrief, createGithubPullRequest } from './lib/github-repos.mjs';
+import { listGithubRepos, importGithubRepo, buildContinuationPlan, listGithubIssues, useGithubIssueAsBrief, createGithubPullRequest } from './lib/github-repos.mjs';
 import { connectCli } from './lib/cli-connections.mjs';
 import { listSupabaseProjects, createSupabaseProject, attachSupabaseProject, generateDbPassword } from './lib/supabase.mjs';
 import { attachVercelDomain } from './lib/domain.mjs';
@@ -40,7 +40,7 @@ import { createUpdater } from './lib/updater.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.27';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.28';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -397,7 +397,8 @@ const server=http.createServer(async(req,res)=>{try{
   if(rp&&req.method==='GET'&&rp.action==='git')return send(res,200,await gitStatus(rp.id));
   if(rp&&req.method==='POST'&&rp.action==='git/init')return send(res,200,await initGit(rp.id));
   if(req.method==='GET'&&u.pathname==='/api/github/repos')return send(res,200,await listGithubRepos());
-  if(req.method==='POST'&&u.pathname==='/api/github/import'){const b=await readBody(req);return send(res,200,await importGithubRepo({fullName:b.fullName}));}
+  if(req.method==='POST'&&u.pathname==='/api/github/import'){const b=await readBody(req);return send(res,200,await importGithubRepo({fullName:b.fullName,vercelProject:b.vercelProject}));}
+  if(rp&&req.method==='POST'&&rp.action==='github/continuation')return send(res,200,await buildContinuationPlan(rp.id));
   if(rp&&req.method==='GET'&&rp.action==='github/issues')return send(res,200,await listGithubIssues(rp.id));
   if(rp&&req.method==='POST'&&rp.action==='github/issue-brief'){const b=await readBody(req);return send(res,200,await useGithubIssueAsBrief(rp.id,{number:b.number}));}
   if(rp&&req.method==='POST'&&rp.action==='github/pull-request'){const b=await readBody(req).catch(()=>({}));return send(res,200,await createGithubPullRequest(rp.id,{title:b.title}));}

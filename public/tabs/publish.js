@@ -119,7 +119,22 @@ $('#closedLoopPanel').addEventListener('change',async e=>{
 /* ===== Kho GitHub: existing repos -> project -> issue brief -> PR ===== */
 function ghRenderBinding(){
   const box=$('#ghBinding');if(!box)return;const b=state.project?.settings?.github;
-  box.textContent=b?.fullName?`Dự án đang gắn với repo: ${b.fullName} (nhánh gốc ${b.defaultBranch||'main'})${b.issueNumber?` · Đang làm issue #${b.issueNumber}`:''}${b.lastPrUrl?` · PR gần nhất: ${b.lastPrUrl}`:''}`:'Dự án đang chọn chưa gắn repo GitHub nào. Nạp danh sách repo ở trên rồi bấm "Nhập thành dự án".';
+  if(!b?.fullName){box.textContent='Dự án đang chọn chưa gắn repo GitHub nào. Nạp danh sách repo ở trên rồi bấm "Nhập thành dự án".';ghRenderContinuation(null);return;}
+  const v=b.vercel?(b.vercel.detected?`Vercel: đã nối sẵn trong repo (project ${b.vercel.projectId})`:b.vercel.manual?`Vercel: ${b.vercel.manual}`:''):'';
+  box.textContent=`Dự án đang gắn với repo: ${b.fullName} (nhánh gốc ${b.defaultBranch||'main'})${b.issueNumber?` · Đang làm issue #${b.issueNumber}`:''}${b.lastPrUrl?` · PR gần nhất: ${b.lastPrUrl}`:''}${v?' · '+v:''}`;
+  ghRenderContinuation(b.continuation||null);
+}
+function ghRenderContinuation(c){
+  const box=$('#ghContinuation');if(!box)return;
+  if(!c){box.innerHTML='Chưa đọc hướng dẫn trong repo. Bấm nút <b>"Đọc hướng dẫn & lập việc tiếp tục"</b> để app đọc README/hướng dẫn trong repo, nhận diện liên kết Vercel và lập danh sách việc tiếp tục cho đội AI.';return;}
+  const srcName={guide:'📘 Hướng dẫn',issue:'🐛 Issue',todo:'📝 TODO'};
+  box.innerHTML=`<b>Đã đọc hướng dẫn trong repo</b> (${esc(String(c.builtAt||'').slice(0,10))})<br>`+
+   `File hướng dẫn: ${c.guideFiles?.length?c.guideFiles.map(f=>esc(f.path)).join(', '):'không thấy file nào'}<br>`+
+   (c.stack?`Stack: ${esc(c.stack)}<br>`:'')+
+   (c.vercel?`Vercel: ${c.vercel.detected?'đã nối sẵn trong repo':esc(c.vercel.manual||'')}<br>`:'')+
+   `<b>Danh sách việc tiếp tục (${c.items?.length||0}):</b>`+
+   (c.items?.length?c.items.map(i=>`<div class="ghRepoItem"><div>${srcName[i.source]||i.source} — ${esc(i.title)}</div></div>`).join(''):'<div>Chưa rút được mục việc nào (hướng dẫn không có checklist, không có issue mở, không có TODO).</div>')+
+   `<small>Brief của dự án đã được viết lại theo hướng dẫn trong repo — sang tab Hội đồng để đội AI lập kế hoạch và giao việc từ brief này.</small>`;
 }
 $('#ghLoadRepos')?.addEventListener('click',async()=>{
   const box=$('#ghRepoList');box.textContent='Đang nạp repo từ GitHub…';
@@ -131,8 +146,8 @@ $('#ghLoadRepos')?.addEventListener('click',async()=>{
 });
 $('#ghRepoList')?.addEventListener('click',async e=>{
   const btn=e.target.closest?.('[data-gh-import]');if(!btn)return;btn.disabled=true;btn.textContent='Đang clone repo…';
-  try{const x=await api('/api/github/import',{method:'POST',body:JSON.stringify({fullName:btn.dataset.ghImport})});
-    toast('Đã nhập repo thành dự án. Đang tải lại để chọn dự án mới…');setTimeout(()=>location.reload(),900);
+  try{const x=await api('/api/github/import',{method:'POST',body:JSON.stringify({fullName:btn.dataset.ghImport,vercelProject:$('#ghVercelProject')?.value||''})});
+    toast(x.continuation?`Đã nhập repo và đọc hướng dẫn: lập được ${x.continuation.items?.length||0} việc tiếp tục. Đang tải lại…`:'Đã nhập repo thành dự án. Đang tải lại để chọn dự án mới…');setTimeout(()=>location.reload(),1200);
   }catch(err){toast(err.message);btn.disabled=false;btn.textContent='Nhập thành dự án';}
 });
 $('#ghLoadIssues')?.addEventListener('click',async()=>{
@@ -148,6 +163,14 @@ $('#ghIssues')?.addEventListener('click',async e=>{
   try{const x=await api(`/api/projects/${state.project.id}/github/issue-brief`,{method:'POST',body:JSON.stringify({number:Number(btn.dataset.ghIssue)})});
     toast(`Đã lấy issue #${x.issue.number} làm brief. Sang tab Ý tưởng/Hội đồng để đội AI lập kế hoạch và giao việc như thường.`);try{await loadProjects?.();}catch{} ghRenderBinding();
   }catch(err){toast(err.message);btn.disabled=false;}
+});
+$('#ghBuildContinuation')?.addEventListener('click',async()=>{
+  if(!state.project)return toast('Chọn dự án trước');
+  const box=$('#ghContinuation');box.textContent='Đang đọc hướng dẫn trong repo và lập danh sách việc…';
+  try{const x=await api(`/api/projects/${state.project.id}/github/continuation`,{method:'POST',body:JSON.stringify({})});
+    try{await loadProjects?.();}catch{} ghRenderBinding();
+    toast(`Đã lập ${x.continuation.items?.length||0} việc tiếp tục từ hướng dẫn + issue + TODO. Brief dự án đã cập nhật theo hướng dẫn trong repo.`);
+  }catch(e){box.textContent='Chưa lập được: '+e.message;}
 });
 $('#ghCreatePr')?.addEventListener('click',async()=>{
   if(!state.project)return toast('Chọn dự án trước');

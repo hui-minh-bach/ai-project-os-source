@@ -52,7 +52,93 @@ export async function listGithubRepos(overrides = {}) {
   return { available: true, repos: arr.map(r => ({ fullName: r.nameWithOwner, description: r.description || '', url: r.url, private: !!r.isPrivate, updatedAt: r.updatedAt, defaultBranch: r.defaultBranchRef?.name || 'main', importedProjectId: imported.get(r.nameWithOwner) || null })) };
 }
 
-export async function importGithubRepo({ fullName } = {}, overrides = {}) {
+const GUIDE_NAME_RES = [/^readme\.md$/i, /^huong[-_ ]?dan.*\.md$/i, /^guide.*\.md$/i, /^spec.*\.md$/i, /^contributing\.md$/i];
+function scanGuideFiles(ws) {
+  const found = [];
+  try {
+    for (const e of fs.readdirSync(ws, { withFileTypes: true })) if (e.isFile() && GUIDE_NAME_RES.some(rx => rx.test(e.name))) found.push(e.name);
+    const docsDir = path.join(ws, 'docs');
+    if (fs.existsSync(docsDir)) for (const e of fs.readdirSync(docsDir, { withFileTypes: true })) if (e.isFile() && /\.md$/i.test(e.name)) found.push('docs/' + e.name);
+  } catch {}
+  const rank = n => (/readme/i.test(n) ? 0 : /huong/i.test(n) ? 1 : 2);
+  return [...new Set(found)].sort((a, b) => rank(a) - rank(b)).slice(0, 10);
+}
+function extractChecklist(text) {
+  const items = [];
+  for (const line of String(text || '').split(/\r?\n/)) { const m = line.match(/^\s*[-*]\s*\[ \]\s*(.+)$/); if (m) items.push(m[1].replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').trim()); }
+  return items.filter(Boolean).slice(0, 40);
+}
+function scanTodos(ws) {
+  const skip = new Set(['.git', 'node_modules', 'dist', 'build', '.next', 'coverage']);
+  const exts = new Set(['.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx', '.py', '.html', '.css', '.md']);
+  let count = 0; const samples = []; let visited = 0;
+  const walk = dir => {
+    if (visited > 600) return;
+    let entries = []; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      if (visited > 600) return;
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) { if (!skip.has(e.name)) walk(full); }
+      else if (e.isFile() && exts.has(path.extname(e.name).toLowerCase())) {
+        visited++;
+        let text = ''; try { text = fs.readFileSync(full, 'utf8'); } catch { continue; }
+        const hits = text.match(/\b(TODO|FIXME)\b[^\n]*/g) || [];
+        if (hits.length) { count += hits.length; if (samples.length < 10) samples.push(path.relative(ws, full) + ': ' + hits[0].slice(0, 90)); }
+      }
+    }
+  };
+  walk(ws);
+  return { count, samples };
+}
+/* Read the imported repo the way a new team member would: its own guide
+ * files (README / HUONG-DAN / docs), its Vercel link, its stack, its open
+ * issues and its TODO notes — then turn all of that into the project's
+ * continuation checklist and write the guide into the project brief, so
+ * the Council/PM/Workers plan from the repo's own instructions. */
+export async function buildContinuationPlan(projectId, overrides = {}) {
+  const project = getProject(projectId);
+  const b = project.settings?.github;
+  if (!b?.fullName) throw new Error('Dự án này chưa gắn với repo GitHub.');
+  const ws = workspaceDir(projectId);
+  const guideFiles = scanGuideFiles(ws);
+  let guideText = ''; const guideMeta = [];
+  for (const rel of guideFiles) {
+    let text = ''; try { text = fs.readFileSync(path.join(ws, rel), 'utf8'); } catch { continue; }
+    guideMeta.push({ path: rel, bytes: Buffer.byteLength(text) });
+    if (guideText.length < 20000) guideText += `\n\n===== ${rel} =====\n` + text.slice(0, 8000);
+  }
+  let vercel = b.vercel || null;
+  try {
+    const vj = JSON.parse(fs.readFileSync(path.join(ws, '.vercel', 'project.json'), 'utf8'));
+    if (vj.projectId) vercel = { detected: true, projectId: vj.projectId, orgId: vj.orgId || '', ...(vercel?.manual ? { manual: vercel.manual } : {}) };
+  } catch {}
+  let stack = '';
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(ws, 'package.json'), 'utf8'));
+    const deps = Object.keys({ ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) });
+    const hints = [['next', 'Next.js'], ['react', 'React'], ['vue', 'Vue'], ['svelte', 'Svelte'], ['express', 'Express'], ['fastify', 'Fastify'], ['electron', 'Electron'], ['tailwindcss', 'Tailwind']].filter(([k]) => deps.includes(k)).map(([, v]) => v);
+    stack = `Node project "${pkg.name || ''}"${hints.length ? ' · ' + hints.join(' + ') : ''}${deps.length ? ` · ${deps.length} thư viện` : ''}${pkg.scripts ? ' · lệnh có sẵn: ' + Object.keys(pkg.scripts).slice(0, 8).join(', ') : ''}`;
+  } catch {}
+  const items = []; const seen = new Set();
+  const pushItem = (source, title, ref = '') => { const t = String(title || '').trim().slice(0, 200); if (!t) return; const k = source + '|' + t.toLowerCase(); if (seen.has(k)) return; seen.add(k); items.push({ source, title: t, ref }); };
+  for (const t of extractChecklist(guideText)) pushItem('guide', t);
+  let issuesError = '';
+  try { const { issues } = await listGithubIssues(projectId, overrides); for (const i of issues) pushItem('issue', `#${i.number} ${i.title}`, i.url || ''); }
+  catch (e) { issuesError = e.message; }
+  const todos = scanTodos(ws);
+  if (todos.count) pushItem('todo', `Xử lý ${todos.count} ghi chú TODO/FIXME trong code`, todos.samples.join(' · '));
+  const counts = { guide: items.filter(i => i.source === 'guide').length, issue: items.filter(i => i.source === 'issue').length, todo: todos.count };
+  const continuation = { builtAt: new Date().toISOString(), guideFiles: guideMeta, vercel, stack, items, counts, ...(issuesError ? { issuesError } : {}) };
+  saveProjectGithub(projectId, { continuation, ...(vercel ? { vercel } : {}) });
+  const excerpt = guideText.trim().slice(0, 7000) || '(Repo chưa có file hướng dẫn/README đọc được — đội AI sẽ đọc trực tiếp code trong workspace.)';
+  updateProjectBrief(projectId, {
+    idea: `Tiếp tục dự án ${b.fullName} — dự án có sẵn được nhập từ GitHub${vercel ? ' (đã nối Vercel)' : ''}.\n\nHƯỚNG DẪN TRONG REPO — đội AI phải đọc kỹ và làm theo:\n${excerpt}`.slice(0, 12000),
+    goals: `Tiếp tục dự án theo đúng hướng dẫn trong repo. Danh sách việc tiếp tục hiện có ${items.length} mục (${counts.guide} từ hướng dẫn, ${counts.issue} issue đang mở, ${counts.todo} ghi chú TODO/FIXME). Làm xong từng phần thì đẩy Pull Request lên ${b.fullName} theo quy trình thường lệ để chủ dự án duyệt.${stack ? ' Stack: ' + stack + '.' : ''}`
+  });
+  return { ok: true, continuation };
+}
+
+export async function importGithubRepo({ fullName, vercelProject } = {}, overrides = {}) {
   if (!FULL_NAME_RE.test(fullName || '')) throw new Error('Tên repo không hợp lệ (cần dạng owner/repo).');
   const c = pickConn(overrides);
   if (!c) throw new Error('Chưa liên kết tài khoản GitHub.');
@@ -73,7 +159,11 @@ export async function importGithubRepo({ fullName } = {}, overrides = {}) {
   fs.rmSync(tmp, { recursive: true, force: true });
   const binding = { fullName, url: `https://github.com/${fullName}`, defaultBranch: (await run('git', ['branch', '--show-current'], { cwd: ws })).stdout.trim() || 'main', importedAt: new Date().toISOString(), issueNumber: null, issueUrl: '', lastPrUrl: '', lastBranch: '' };
   saveProjectGithub(project.id, binding);
-  return { projectId: project.id, binding };
+  if (vercelProject) saveProjectGithub(project.id, { vercel: { manual: String(vercelProject).slice(0, 200) } });
+  let continuation = null, continuationError = '';
+  try { continuation = (await buildContinuationPlan(project.id, overrides)).continuation; }
+  catch (e) { continuationError = e.message; }
+  return { projectId: project.id, binding: githubBinding(project.id), continuation, continuationError };
 }
 
 export function githubBinding(projectId) {

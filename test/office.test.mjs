@@ -50,6 +50,9 @@ test('AI office 3D detail pass: jointed robots with role props, console desks, p
   assert.match(teamJs, /buildLeg/, 'segmented legs with knees and feet');
   assert.match(teamJs, /ceilRing/, 'ceiling light ring');
   assert.match(teamJs, /__office3DCamera/, 'camera hook for multi-angle QA');
+  assert.match(teamJs, /shadowMap\.enabled/, 'soft shadows on for depth');
+  assert.match(teamJs, /castShadow=true/, 'opaque scene meshes cast shadows');
+  assert.match(teamJs, /deskHolos/, 'desk holograms float and sway');
 });
 
 test('AI office: idle staff recharge in the energy pods, with the sleeping face on', () => {

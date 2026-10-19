@@ -21,7 +21,25 @@ execFileSync('git', ['-C', seed, 'add', '-A']);
 execFileSync('git', ['-C', seed, '-c', 'user.email=t@t.t', '-c', 'user.name=T', 'commit', '-m', 'init']);
 execFileSync('git', ['-C', seed, 'push', 'origin', 'main']);
 
-const { listGithubRepos, importGithubRepo, listGithubIssues, useGithubIssueAsBrief, createGithubPullRequest } = await import('../src/lib/github-repos.mjs');
+// Seed a second repo that looks like a real in-progress project: a guide
+// with a checklist, docs, a Vercel link file, a stack and a TODO note.
+const bare2 = path.join(remoteBase, 'octo', 'shop.git');
+execFileSync('git', ['init', '--bare', '-b', 'main', bare2]);
+const seed2 = path.join(tmp, 'seed2');
+execFileSync('git', ['clone', bare2, seed2]);
+fs.writeFileSync(path.join(seed2, 'README.md'), '# Shop X\n\nHuong dan nhanh.\n\n## Viec con lai\n- [ ] Them trang gio hang\n- [x] Da xong trang chu\n- [ ] Viet test cho thanh toan\n');
+fs.mkdirSync(path.join(seed2, 'docs'), { recursive: true });
+fs.writeFileSync(path.join(seed2, 'docs', 'KE-HOACH.md'), '# Ke hoach\n- [ ] Noi Vercel preview cho PR\n');
+fs.mkdirSync(path.join(seed2, '.vercel'), { recursive: true });
+fs.writeFileSync(path.join(seed2, '.vercel', 'project.json'), JSON.stringify({ projectId: 'prj_test123', orgId: 'org_9' }));
+fs.writeFileSync(path.join(seed2, 'package.json'), JSON.stringify({ name: 'shop-x', dependencies: { next: '15.0.0', react: '19.0.0' }, scripts: { dev: 'next dev', build: 'next build' } }));
+fs.mkdirSync(path.join(seed2, 'src'), { recursive: true });
+fs.writeFileSync(path.join(seed2, 'src', 'cart.js'), '// TODO: validate stock before checkout\nexport const x = 1;\n');
+execFileSync('git', ['-C', seed2, 'add', '-A']);
+execFileSync('git', ['-C', seed2, '-c', 'user.email=t@t.t', '-c', 'user.name=T', 'commit', '-m', 'wip shop']);
+execFileSync('git', ['-C', seed2, 'push', 'origin', 'main']);
+
+const { listGithubRepos, importGithubRepo, buildContinuationPlan, listGithubIssues, useGithubIssueAsBrief, createGithubPullRequest } = await import('../src/lib/github-repos.mjs');
 const { getProject } = await import('../src/lib/projects.mjs');
 const { workspaceDir } = await import('../src/lib/workspace.mjs');
 
@@ -66,6 +84,29 @@ test('GitHub loop: list repos -> import as project -> issue brief -> work -> PR 
 
   const finalProject = getProject(imported.projectId);
   assert.equal(finalProject.settings.github.lastPrUrl, 'https://github.com/octo/demo/pull/42');
+});
+
+test('Continue an in-progress repo: the app reads its guide, detects Vercel and builds the continuation list', async () => {
+  const imported = await importGithubRepo({ fullName: 'octo/shop', vercelProject: 'shop-x' }, overrides);
+  const c = imported.continuation;
+  assert.ok(c, 'continuation plan is built during import');
+  assert.deepEqual(c.guideFiles.map(f => f.path).sort(), ['README.md', 'docs/KE-HOACH.md']);
+  assert.equal(c.counts.guide, 3, 'two README checklist items + one docs item (the done one excluded)');
+  assert.equal(c.counts.issue, 1);
+  assert.ok(c.counts.todo >= 1, 'TODO note in src/cart.js is counted');
+  assert.equal(c.vercel.detected, true);
+  assert.equal(c.vercel.projectId, 'prj_test123');
+  assert.equal(c.vercel.manual, 'shop-x', 'the manual Vercel input is kept next to the detected link');
+  assert.match(c.stack, /Next\.js/);
+  assert.ok(c.items.some(i => i.source === 'guide' && /gio hang/.test(i.title)));
+  assert.ok(c.items.some(i => i.source === 'issue' && /#7 Fix login/.test(i.title)));
+  const project = getProject(imported.projectId);
+  assert.match(project.idea, /HƯỚNG DẪN TRONG REPO/);
+  assert.match(project.idea, /Them trang gio hang/);
+  assert.match(project.goals, /Danh sách việc tiếp tục/);
+  const again = await buildContinuationPlan(imported.projectId, overrides);
+  assert.equal(again.ok, true);
+  assert.equal(again.continuation.items.length, c.items.length, 'rebuilding the plan is stable and deduped');
 });
 
 test('GitHub repos are honestly unavailable without a linked account', async () => {

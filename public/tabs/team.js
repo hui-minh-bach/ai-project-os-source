@@ -372,6 +372,7 @@ function officeWorld(pct){return {x:(pct.x-50)/50*13,z:(pct.y-50)/50*8.0};}
 function office3DBuild(THREE,room){
  const W=()=>room.clientWidth||1200,H=()=>430;
  const renderer=new THREE.WebGLRenderer({antialias:true});
+ renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
  renderer.setSize(W(),H());
  renderer.domElement.className='office-3d-canvas';
@@ -383,7 +384,7 @@ function office3DBuild(THREE,room){
  const camera=new THREE.PerspectiveCamera(42,W()/H(),0.1,120);
  const orbit={theta:0,phi:1.2,radius:16.8};
  scene.add(new THREE.HemisphereLight(0x9d8fff,0x0a0a10,1.15));
- const sun=new THREE.DirectionalLight(0xffffff,2.4); sun.position.set(7,14,7); scene.add(sun);
+ const sun=new THREE.DirectionalLight(0xffffff,2.4); sun.position.set(7,14,7); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-18; sun.shadow.camera.right=18; sun.shadow.camera.top=18; sun.shadow.camera.bottom=-18; sun.shadow.camera.far=42; sun.shadow.bias=-0.0004; scene.add(sun);
  const purple=new THREE.PointLight(0x7c5cff,60,40); purple.position.set(0,6,-4); scene.add(purple);
  // --- textures vẽ bằng canvas (không file ngoài) ---
  function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);return t;}
@@ -455,6 +456,7 @@ function office3DBuild(THREE,room){
  backdrop.position.y=4.2; scene.add(backdrop);
  // --- bàn làm việc ---
  const deskMat=new THREE.MeshStandardMaterial({color:0x5a4630,roughness:.7});
+ const deskHolos=[];
  function buildDesk(stId){
   const st=OFFICE_STATIONS[stId],pos=officeWorld(st),grp=new THREE.Group();
   const owner=OFFICE_CAST.find(a=>a.station===stId);
@@ -476,7 +478,7 @@ function office3DBuild(THREE,room){
   monitor(.82,.52,screenTex,-1.02,1.32,-.34,.5);
   monitor(.82,.52,screenTex,1.02,1.32,-.34,-.5);
   const holo=new THREE.Mesh(new THREE.PlaneGeometry(.95,.52),new THREE.MeshBasicMaterial({map:screenFor(owner?owner.id:'pm'),transparent:true,opacity:.45,side:THREE.DoubleSide}));
-  holo.position.set(0,2.14,-.55); holo.rotation.x=-.18; grp.add(holo);
+  holo.position.set(0,2.14,-.55); holo.rotation.x=-.18; holo.userData.baseY=2.14; holo.userData.phase=pos.x; deskHolos.push(holo); grp.add(holo);
   const kb=new THREE.Mesh(new THREE.BoxGeometry(.72,.03,.26),darkMat); kb.position.set(0,.83,.28); grp.add(kb);
   const mug=new THREE.Mesh(new THREE.CylinderGeometry(.05,.045,.1,12),new THREE.MeshStandardMaterial({color:0xe8e8f2,roughness:.4})); mug.position.set(.58,.88,.18); grp.add(mug);
   const seat=new THREE.Mesh(new THREE.CylinderGeometry(.31,.31,.08,18),darkMat); seat.position.set(0,.48,.88); grp.add(seat);
@@ -622,6 +624,8 @@ function office3DBuild(THREE,room){
   return {a,grp,legL,legR,armL,armR,ring,nameSp,zzz,faceMat,faceMode:'idle',name:officeAgentName(a),target:new THREE.Vector3(),walking:false,busy:false,phase:Math.random()*7};
  }
  const agents={}; for(const a of OFFICE_CAST){const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]); built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); agents[a.id]=built;}
+ scene.traverse(o=>{if(o.isMesh&&o.material&&o.material.isMeshStandardMaterial&&!o.material.transparent){o.castShadow=true;o.receiveShadow=true;}});
+ floor.receiveShadow=true;
  // đường chấm khi di chuyển + gói hàng
  for(const id in agents){const A=agents[id];const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);const line=new THREE.Line(geo,new THREE.LineDashedMaterial({color:new THREE.Color(A.a.color),dashSize:.22,gapSize:.14,transparent:true,opacity:.6}));line.visible=false;scene.add(line);A.path=line;}
  const parcel=new THREE.Mesh(new THREE.BoxGeometry(.36,.36,.36),new THREE.MeshStandardMaterial({color:0xffb020,emissive:0xcf7a00,emissiveIntensity:.55,roughness:.5}));
@@ -706,6 +710,7 @@ function office3DBuild(THREE,room){
   }
   if(parcel.visible){parcel.position.lerp(parcelTarget,Math.min(1,dt*5)); parcel.position.y=1.15+Math.sin(t*2.4)*.07; parcel.rotation.y+=dt*.8;}
   holoGlobe.rotation.y+=dt*.4; holoRing1.rotation.z+=dt*.8; holoRing2.rotation.z-=dt*.6; holoGlobe.position.y=3.05+Math.sin(t*1.3)*.07;
+  for(const h of deskHolos){h.position.y=h.userData.baseY+Math.sin(t*1.8+h.userData.phase)*.045; h.rotation.y=Math.sin(t*.7+h.userData.phase)*.25;}
   camera.position.set(Math.sin(orbit.theta)*Math.sin(orbit.phi)*orbit.radius,Math.cos(orbit.phi)*orbit.radius,Math.cos(orbit.theta)*Math.sin(orbit.phi)*orbit.radius);
   camera.lookAt(0,1.0,0);
   renderer.render(scene,camera);
