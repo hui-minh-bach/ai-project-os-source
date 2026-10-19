@@ -1,6 +1,7 @@
 // Radar tin (đợt E): chọn lĩnh vực bằng cửa xổ, tin nổi bật theo điểm,
 // mỗi ô tin có Làm video / Viết bài — bấm là giao thẳng cho bộ điều phối.
 let radarFieldId=localStorage.getItem('aios-radar-field')||'';
+const RADAR_FIELD_ICONS={'thoi-su':'🗞️','kinh-doanh':'📈','cong-nghe':'💻','the-thao':'⚽','giai-tri':'🎭','suc-khoe':'🩺','am-thuc':'🍜','du-lich':'🧳','xe-co':'🚗','giao-duc':'🎓','phap-luat':'⚖️','khoa-hoc':'🔬','moi-truong':'🌱','nong-nghiep':'🌾','giao-thong':'🚦','viec-lam':'💼','quoc-te':'🌍','van-hoa':'🏮','bat-dong-san':'🏠','thoi-tiet':'🌦️'};
 let radarFields=[];let radarSourceNames={};
 const radarEsc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function radarHost(link){try{return new URL(String(link||'')).hostname.replace(/^www\./,'')}catch{return ''}}
@@ -17,13 +18,14 @@ function radarCardHtml(card,field){
 }
 async function radarRender(){
  const field=radarFields.find(f=>f.id===radarFieldId);
+ $$('#radarTiles [data-radar-tile]').forEach(b=>{const on=b.dataset.radarTile===radarFieldId;b.style.background=on?'var(--accent)':'';b.style.color=on?'#fff':'';b.style.borderColor=on?'transparent':'';});
  const listBox=$('#radarCards'),featBox=$('#radarFeatured');if(!listBox)return;
  $('#radarLawNote').hidden=!field?.officialDomains?.length;
  $('#radarListTitle').textContent='Tin theo lĩnh vực: '+(field?.label||'');
  let cards=[];
  try{const r=await api(`/api/ingest/cards?fieldId=${encodeURIComponent(radarFieldId)}`);cards=r.cards||[];}catch(e){listBox.innerHTML=`<div class="empty">${radarEsc(e.message)}</div>`;return}
  cards.sort((a,b)=>(b.score||0)-(a.score||0));
- listBox.innerHTML=cards.length?cards.slice(0,30).map(c=>radarCardHtml(c,field)).join(''):'<div class="empty">Chưa có tin nào cho lĩnh vực này. Bấm “Quét tin mới” hoặc thêm nguồn ở mục quản lý bên dưới.</div>';
+ listBox.innerHTML=cards.length?cards.slice(0,30).map(c=>radarCardHtml(c,field)).join(''):'<div class="empty">Chưa có tin nào cho lĩnh vực này. Bấm “Quét tin mới” hệ thống tự lấy tin từ nguồn Google News theo lĩnh vực.</div>';
  featBox.innerHTML=cards.length?cards.slice(0,5).map((c,i)=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${i+1}. ${radarEsc(c.title)}</b><p class="muted" style="margin:2px 0">${c.score??'—'} điểm · ${radarEsc(c.publisher||radarSourceNames[c.sourceId]||'')}</p><div style="display:flex;gap:6px"><button class="ghost small" type="button" data-radar-produce="news-video" data-card="${c.id}">🎬 Video</button><button class="ghost small" type="button" data-radar-produce="news-article" data-card="${c.id}">✍️ Bài viết</button></div></div>`).join(''):'<div class="empty">Chưa có tin nổi bật.</div>';
 }
 async function radarInit(){
@@ -32,6 +34,9 @@ async function radarInit(){
   radarFields=fr.fields||[];radarSourceNames=Object.fromEntries((sr.sources||[]).map(x=>[x.id,x.name]));
   const sel=$('#radarField');
   sel.innerHTML=radarFields.map(f=>`<option value="${f.id}">${radarEsc(f.label)} (${f.cards||0} tin)</option>`).join('');
+  const tiles=$('#radarTiles');
+  if(tiles){tiles.innerHTML=radarFields.map(f=>`<button type="button" data-radar-tile="${f.id}" class="ghost small" style="white-space:nowrap;border-radius:999px">${RADAR_FIELD_ICONS[f.id]||'📰'} ${radarEsc(f.label)}</button>`).join('');
+  tiles.querySelectorAll('[data-radar-tile]').forEach(b=>b.onclick=()=>{sel.value=b.dataset.radarTile;sel.dispatchEvent(new Event('change'));});}
   if(!radarFields.some(f=>f.id===radarFieldId))radarFieldId=radarFields[0]?.id||'';
   sel.value=radarFieldId;
   await radarRender();
@@ -46,4 +51,4 @@ document.addEventListener('click',async e=>{
  catch(err){toast(err.message);}
  finally{b.disabled=false}
 });
-document.addEventListener('page-change',e=>{if(e.detail.page==='radar'){radarInit();renderNewsSources();}});
+document.addEventListener('page-change',e=>{if(e.detail.page==='radar'){radarInit();}});

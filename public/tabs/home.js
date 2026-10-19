@@ -42,7 +42,7 @@ function homeNextAction(project){
  if(!project)return {label:'Tạo dự án đầu tiên',page:'map',description:'Chưa có dự án trên máy.'};
  const stage=project.stage;
  if(['deployed','published'].includes(stage))return {label:'Xem tiến độ',page:'map',description:'Kiểm tra kết quả và lịch sử trước khi xuất bản tiếp.'};
- if(['planned','approved-spec','building'].includes(stage))return {label:'Mở AI Team',page:'team',description:'Kiểm tra nhiệm vụ và quyết định bước xử lý tiếp theo.'};
+ if(['planned','approved-spec','building'].includes(stage))return {label:'Mở Idea Studio',page:'idea',description:'Xem đội AI chia việc và quyết định bước xử lý tiếp theo.'};
  return {label:'Tiếp tục Idea Studio',page:'idea',description:'Làm rõ ý tưởng và lưu kế hoạch trước khi dùng AI.'};
 }
 function renderHomeCurrent(){
@@ -56,7 +56,7 @@ function renderHome(){
   const ps=state.projects||[],tasks=ps.flatMap(p=>p.tasks||[]),active=ps.filter(p=>!['deployed','published','archived'].includes(p.stage)).length;
   const recentDone=tasks.filter(t=>t.status==='done'&&Date.parse(t.completedAt)>=Date.now()-7*86400000).length;
   const connectionsKnown=state.vault?.unlocked===true;
-  const stats=[['folder','Dự án',ps.length,`${active} đang hoạt động`,'projects'],['link','Kết nối',connectionsKnown?state.connections.length:'—',connectionsKnown?'AI providers & dịch vụ':'Mở Vault để xem kết nối','connections'],['puzzle','Skills',state.skills.length,'Kỹ năng & công cụ','skills'],['check','Task Done',tasks.filter(t=>t.status==='done').length,`Hoàn thành ${recentDone} trong 7 ngày qua`,'team']];
+  const stats=[['folder','Dự án',ps.length,`${active} đang hoạt động`,'projects'],['link','Kết nối',connectionsKnown?state.connections.length:'—',connectionsKnown?'AI providers & dịch vụ':'Mở Vault để xem kết nối','connections'],['puzzle','Skills',state.skills.length,'Kỹ năng & công cụ','skills'],['check','Task Done',tasks.filter(t=>t.status==='done').length,`Hoàn thành ${recentDone} trong 7 ngày qua`,'idea']];
   $('#homeStats').innerHTML=stats.map(([icon,label,count,note,destination])=>`<button class="home-stat" data-home-destination="${destination}"><span class="home-stat-icon">${homeIcon(icon)}</span><span class="home-stat-copy"><span class="home-stat-label">${label}</span><b>${count}</b><span class="home-stat-note">${note}</span></span><span class="home-stat-arrow" aria-hidden="true">›</span></button>`).join('');
   $$('#homeStats [data-home-destination]').forEach(button=>button.onclick=()=>button.dataset.homeDestination==='projects'?homeShowAllProjects():page(button.dataset.homeDestination));
   const runtimes=[['node','Node.js'],['git','Git'],['docker','Docker'],['gh','GitHub CLI'],['vercel','Vercel CLI'],['supabase','Supabase CLI'],['python','Python']];

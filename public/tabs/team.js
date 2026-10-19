@@ -159,7 +159,7 @@ $('#runReady').onclick=async()=>{
 };
 $('#buildPlan').onclick=async()=>{const p=state.project;if(!p)return toast('Hãy chọn dự án');teamPlanPending=true;renderTeamActionAvailability();try{await api(`/api/projects/${p.id}/plan`,{method:'POST',body:JSON.stringify({managerId:$('#managerSelect').value||undefined})});if(state.project?.id===p.id)await chooseProject(p.id);toast('Đã chia task; kế hoạch trước được giữ trong lịch sử.');}catch(e){toast(e.message);}finally{teamPlanPending=false;renderTeamActionAvailability();}};
 async function loadWorkspace(){if(!state.project)return;const id=state.project.id;try{const x=await api(`/api/projects/${id}/workspace-summary`);if(state.project?.id===id)$('#workspaceFiles').innerHTML=x.files.length?x.files.map(f=>`<code>${esc(f)}</code>`).join(''):'<p class="team-empty-copy">Workspace chưa có file.</p>';}catch(e){$('#workspaceFiles').textContent='Workspace chưa khả dụng: '+e.message;}}
-document.addEventListener('page-change',e=>{if(e.detail.page==='team'){$('#subtitle').textContent='Nhiều agent thực thi song song trong worktree và sandbox riêng.';renderTasks();renderExecutionControls();}});
+document.addEventListener('page-change',e=>{if(e.detail.page==='idea'){renderTasks();renderExecutionControls();}});
 document.addEventListener('connections-change',()=>{renderTasks();renderExecutionControls();});
 setInterval(async()=>{
   if(!$('#page-team').classList.contains('active')||!state.project||teamPollPending)return;
@@ -302,7 +302,7 @@ function officeRender(){
   const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
   const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
   const dx=slot===0?0:slot===1?9:-9;
-  const targetX=st.x+dx;
+  const targetX=Math.max(6,Math.min(94,st.x+dx));
   const prev=officePrevPos[a.id];
   if(prev&&prev.station!==stId+':'+slot){
    el.classList.add('office-walking');
@@ -369,7 +369,7 @@ function officeRender(){
  }
  const clock=$('#officeClock');
  if(clock)clock.textContent=officeState.loaded?('Cập nhật '+new Date().toLocaleTimeString('vi-VN')):'Đang tải…';
- office3DEnsure();
+ if(window.__office3DWanted)office3DEnsure();
  if(window.__office3D)window.__office3DSync(ctx);
 }
 let officePollPending=false;
@@ -387,7 +387,7 @@ async function officePoll(force){
  finally{officePollPending=false;officeRender();}
 }
 setInterval(()=>{const page=$('#page-team');if(page&&page.classList.contains('active')&&!document.hidden)officePoll();},4000);
-document.addEventListener('page-change',e=>{if(e.detail.page==='team'){officeRender();officePoll();officeModelsRender();}});
+document.addEventListener('page-change',e=>{if(e.detail.page==='idea'){officeRender();officePoll();officeModelsRender();}});
 const OFFICE_MODEL_CAST=[['boss','Sếp Lâm'],['pm','Tuấn — Trưởng phòng'],['news','Na — Tin tức'],['script','Hằng — Biên tập'],['image','Tí — Hình ảnh'],['media','Minh — Sản xuất'],['review','Tâm — Kiểm duyệt'],['publish','Phát — Đăng bài']];
 async function officeModelsRender(){
  const box=document.getElementById('officeModelRows'); if(!box)return;
@@ -406,12 +406,14 @@ officeRender();officePoll();officeModelsRender();
  * chỉ khác cách vẽ: phòng 3D bằng Three.js (MIT, nhúng trong source).
  * Nếu WebGL/import lỗi, phòng 2D vẫn chạy như cũ — không giấu lỗi. */
 var office3DVisible=true;
-document.addEventListener('page-change',e=>{office3DVisible=e.detail.page==='team';});
+document.addEventListener('page-change',e=>{office3DVisible=e.detail.page==='idea';});
 function office3DEnsure(){
  if(window.__office3DEnsureStarted)return; window.__office3DEnsureStarted=true;
  const room=$('#officeRoom'); if(!room)return;
+ setTimeout(()=>{if(window.__office3DWanted&&!window.__office3DReady){const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D chưa tải được — đang dùng bản 2D';}console.warn('Phòng 3D không sẵn sàng sau 9 giây — giữ bản 2D.');}},9000);
  import('/vendor/three.module.min.js').then(THREE=>{try{office3DBuild(THREE,room);}catch(err){console.warn('Văn phòng 3D lỗi, dùng bản 2D:',err);}}).catch(()=>{});
 }
+{const tgl=$('#office3DToggle');if(tgl)tgl.onclick=()=>{window.__office3DWanted=true;tgl.disabled=true;tgl.textContent='🧊 Đang tải phòng 3D…';office3DEnsure();};}
 function officeWorld(pct){return {x:(pct.x-50)/50*13,z:(pct.y-50)/50*8.0};}
 let officeRoomDeckY=0; // 0 = phòng thủ tục; 0.18 = mặt boong của phòng GLB (nạp bất đồng bộ bên dưới)
 function officeYFor(stId){return (stId==='lounge'||stId==='cage')?0:officeRoomDeckY;}
@@ -424,7 +426,7 @@ function office3DBuild(THREE,room){
  renderer.setSize(W(),H());
  renderer.domElement.className='office-3d-canvas';
  room.appendChild(renderer.domElement);
- room.classList.add('office-3d-on');
+ // KHÔNG bật 'office-3d-on' ngay: lớp 2D chỉ ẩn sau khi khung hình 3D đầu tiên vẽ thành công (tránh hộp đen che hết bot khi 3D lỗi).
  const scene=new THREE.Scene();
  let officeComposer=null; // chuỗi hậu kỳ (bloom + chỉnh màu) — nạp lười bên dưới, lỗi thì render thường
  scene.background=new THREE.Color(0x0b0b13);
@@ -934,7 +936,7 @@ function office3DBuild(THREE,room){
  addEventListener('resize',()=>{renderer.setSize(W(),H()); if(officeComposer)officeComposer.setSize(W(),H());});
  // --- vòng lặp chuyển động ---
  const clockT=new THREE.Clock();
- renderer.setAnimationLoop(()=>{
+ renderer.setAnimationLoop(()=>{try{
   if(!office3DVisible||document.hidden)return;
   const dt=Math.min(clockT.getDelta(),.05),t=clockT.elapsedTime;
   for(const id in agents){
@@ -986,8 +988,9 @@ function office3DBuild(THREE,room){
   dust.rotation.y=t*.008; dust.position.y=Math.sin(t*.3)*.15;
   camera.position.set(orbit.lookX+Math.sin(orbit.theta)*Math.sin(orbit.phi)*orbit.radius,orbit.lookY+Math.cos(orbit.phi)*orbit.radius,orbit.lookZ+Math.cos(orbit.theta)*Math.sin(orbit.phi)*orbit.radius);
   camera.lookAt(orbit.lookX,orbit.lookY,orbit.lookZ);
+  if(!window.__office3DReady){window.__office3DReady=true;room.classList.add('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D đang bật';}}
   if(officeComposer)officeComposer.render(); else renderer.render(scene,camera);
- });
+ }catch(err){console.warn('Khung hình 3D lỗi — quay về phòng 2D:',err);try{renderer.setAnimationLoop(null);}catch{} window.__office3D=false;window.__office3DReady=false;const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');} });
  // --- Phòng GLB theo ảnh mẫu (nạp bất đồng bộ): có file thì thay vỏ phòng thủ tục, robot + trạng thái thật giữ nguyên ---
  // --- Thân TAM01 cho đội bot tài khoản: nạp 1 lần, nhân bản theo xương cho từng bot ---
  let tamTemplate=null,tamClipList=null,tamCloneFn=null,tamBusy=false;

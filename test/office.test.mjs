@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const teamHtml = fs.readFileSync(new URL('../public/tabs/team.html', import.meta.url), 'utf8');
+const teamHtml = fs.readFileSync(new URL('../public/tabs/idea.html', import.meta.url), 'utf8'); // Văn phòng AI nay nằm trong Idea Studio (bản 0.9.36)
 const teamJs = fs.readFileSync(new URL('../public/tabs/team.js', import.meta.url), 'utf8');
 const teamCss = fs.readFileSync(new URL('../public/tabs/team.css', import.meta.url), 'utf8');
 

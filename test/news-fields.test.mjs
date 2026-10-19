@@ -128,9 +128,11 @@ test('news fields: server routes and Radar UI are wired', () => {
   assert.match(server, /fields-summary/);
   assert.match(server, /googleNewsRssUrl/);
   const radarHtml = fs.readFileSync(new URL('../public/tabs/radar.html', import.meta.url), 'utf8');
-  const ideaJs = fs.readFileSync(new URL('../public/tabs/idea.js', import.meta.url), 'utf8');
-  assert.match(radarHtml, /id="newsFields"/);
-  assert.match(ideaJs, /renderNewsFields/);
-  assert.match(ideaJs, /data-news-field-toggle/);
-  assert.match(ideaJs, /fieldLabel/);
+  const radarJs = fs.readFileSync(new URL('../public/tabs/radar.js', import.meta.url), 'utf8');
+  assert.match(radarHtml, /id="radarField"/);
+  assert.match(radarHtml, /id="radarTiles"/);
+  assert.match(radarHtml, /id="radarFeatured"/);
+  assert.doesNotMatch(radarHtml, /id="newsPanel"/);
+  assert.match(radarJs, /radarInit/);
+  assert.match(radarJs, /data-radar-tile/);
 });
