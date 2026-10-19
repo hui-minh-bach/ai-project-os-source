@@ -34,7 +34,7 @@ export function officeFindClip(clipNames, wanted) {
   const w = officeClipKey(wanted);
   for (const n of names) if (officeClipKey(n) === w) return n;
   // Common synonyms used by modelers.
-  const syn = { work: ['working', 'type', 'typing'], walk: ['walking', 'run', 'running'], idle: ['stand', 'standing', 'breath', 'breathing'], cheer: ['celebrate', 'win', 'happy', 'wave'], fail: ['shock', 'shocked', 'electrocuted', 'hit'] };
+  const syn = { work: ['working', 'type', 'typing', 'keyboard', 'document', 'review'], walk: ['walking', 'run', 'running', 'forward'], idle: ['stand', 'standing', 'breath', 'breathing', 'breathe'], cheer: ['celebrate', 'win', 'happy', 'wave', 'approve', 'hello'], fail: ['shock', 'shocked', 'electrocuted', 'hit', 'reject'] };
   for (const alt of syn[w] || []) for (const n of names) if (officeClipKey(n) === alt) return n;
   return null;
 }

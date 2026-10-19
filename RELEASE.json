@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.32",
-  "channel": "v0.9.32-glb-office-room",
+  "version": "0.9.33",
+  "channel": "v0.9.33-tam01-account-fleet",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -180,7 +180,8 @@
     },
     "office_glb_models": "implemented_0.9.31_user_uploads_one_glb_per_cast_member_in_team_tab_stored_under_data_dir_office_models_served_locally_gltfloader_vendored_clips_idle_work_walk_cheer_fail_driven_by_real_office_state_procedural_robot_kept_as_fallback_and_for_members_without_a_model",
     "media_karaoke_story_tts": "implemented_0.9.31_story_and_tts_video_now_burn_karaoke_word_by_word_captions_whisper_anchored_when_local_whisper_available_else_deterministic_proportional_same_engine_as_dub_and_retheme",
-    "office_glb_room": "implemented_0.9.32_office_room_glb_built_from_owner_approved_ai_concept_images_loaded_as_team_tab_office_environment_agents_and_real_state_wiring_unchanged_station_coordinates_identical_deck_height_offset_applied_baked_glb_lights_removed_procedural_room_kept_as_automatic_fallback_plus_in_app_post_chain_same_as_design_preview_bloom_.34_.4_.8_vignette_cool_grade_outputpass_lazy_loaded_with_plain_render_fallback"
+    "office_glb_room": "implemented_0.9.32_office_room_glb_built_from_owner_approved_ai_concept_images_loaded_as_team_tab_office_environment_agents_and_real_state_wiring_unchanged_station_coordinates_identical_deck_height_offset_applied_baked_glb_lights_removed_procedural_room_kept_as_automatic_fallback_plus_in_app_post_chain_same_as_design_preview_bloom_.34_.4_.8_vignette_cool_grade_outputpass_lazy_loaded_with_plain_render_fallback",
+    "office_account_fleet": "tam01_v2_bundled_character_cloned_per_ai_account_up_to_10_bots_states_from_real_data_working_at_desks_via_project_worker_binding_failed_latest_to_electric_cage_with_replacement_idle_charging_bay_unverified_dimmed_offline_provider_tinted_emission_clips_typekeyboard_walkforward_idlebreath_approve_reject"
   },
   "online_provider_apis": "separate user credentials and provider charges",
   "build": "Integration-ABC-v0.8.5-Recorded-Workflow-Fix-Internal-RC-2026-10-16",

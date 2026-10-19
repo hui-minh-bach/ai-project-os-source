@@ -34,6 +34,7 @@ import { createLocalAccess } from './lib/local-access.mjs';
 import { createIngestStore } from './lib/ingest.mjs';
 import { listNewsFields, newsFieldById, googleNewsRssUrl } from './lib/news-fields.mjs';
 import { createOrchestrator, createSimulatedAi, createGatewayAi } from './lib/orchestrator.mjs';
+import { deriveFleet } from './lib/office-fleet.mjs';
 import { writeTextWithModel, translateSegmentsWithModel } from './lib/media-ai.mjs';
 import { oauthAuthorizeUrl, oauthExchangeCode, fetchPlatformIdentity, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
 import { createUpdater } from './lib/updater.mjs';
@@ -41,7 +42,7 @@ import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, 
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.32';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.33';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -89,6 +90,13 @@ const server=http.createServer(async(req,res)=>{try{
   // --- Closed loop: ingest, orchestrator, platform publishing ---
   if(req.method==='GET'&&u.pathname==='/api/ingest/sources')return send(res,200,{sources:ingestStore.listSources(),counts:ingestStore.counts()});
   if(req.method==='POST'&&u.pathname==='/api/ingest/sources')return send(res,200,ingestStore.addSource(await readBody(req)));
+  if(u.pathname==='/api/office/fleet'&&req.method==='GET'){
+    const conns=listConnections().filter(c=>AI_KINDS.includes(c.kind)).map(c=>{let connected=false;try{const a=modelAvailability(c.id);connected=a?.status==='verified'&&(a.models||[]).length>0;}catch{connected=false;}return {id:c.id,kind:c.kind,name:c.name||'',connected};});
+    const workerConnByProject={};
+    for(const pr of listProjects()){try{const w=projectModelRoles(pr.id)?.roles?.worker;if(w?.connectionId)workerConnByProject[pr.id]=String(w.connectionId);}catch{}}
+    const fleet=deriveFleet({connections:conns,runs:orchestrator.listRuns(),workerConnByProject,nowMs:Date.now()});
+    return send(res,200,{...fleet,generatedAt:new Date().toISOString()});
+  }
   if(u.pathname==='/api/office/models'&&req.method==='GET')return send(res,200,{models:listOfficeModels(DATA_DIR)});
   const officeModelMatch=u.pathname.match(/^\/api\/office\/models\/([a-z]+)(\/file)?$/);
   if(officeModelMatch&&req.method==='POST'&&!officeModelMatch[2]){try{const buf=await readRawBody(req,OFFICE_MODEL_MAX_BYTES);return send(res,200,{model:saveOfficeModel(DATA_DIR,officeModelMatch[1],buf)});}catch(e){return send(res,400,{error:e.code||'OFFICE_MODEL',message:e.message});}}

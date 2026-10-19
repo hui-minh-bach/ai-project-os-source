@@ -227,10 +227,23 @@ function officeCulprit(runs){
  return {agentId,run:failed,step:stepName};
 }
 let officeNames={}; try{officeNames=JSON.parse(localStorage.getItem('aios-office-names')||'{}')}catch{officeNames={}}
-let officeState={runs:[],cards:[],tasks:[],loaded:false,lastFeed:[]};
+let officeState={runs:[],cards:[],tasks:[],loaded:false,lastFeed:[],fleet:null,rosterSig:''};
 const officePrevPos={},officeWalkTimers={};
 function officeAgentName(a){return officeNames[a.id]||a.name}
+// --- Đội bot theo tài khoản (0.9.33): mỗi kết nối AI là một bot TAM01 ---
+function officeFleetActive(){return Boolean(officeState.fleet&&Array.isArray(officeState.fleet.bots));}
+function officeFleetBot(agentId){
+ if(!officeFleetActive()||!String(agentId).startsWith('bot-'))return null;
+ const cid=String(agentId).slice(4);
+ return officeState.fleet.bots.find(b=>b.connectionId===cid)||null;
+}
+function officeRosterCast(){
+ if(!officeFleetActive())return OFFICE_CAST;
+ const bots=officeState.fleet.bots.map(b=>({id:'bot-'+b.connectionId,name:b.label,role:b.provider+' · '+(b.state==='working'?'đang làm việc':b.state==='failed'?'lượt gần nhất lỗi':b.state==='charging'?'đang sạc · chờ việc':'chưa kết nối'),icon:'🤖',station:b.station==='bay'?'lounge':b.station,color:b.color,fleet:b}));
+ return [OFFICE_CAST[0],...bots];
+}
 function officeStationOf(agentId,ctx){
+ const bot=officeFleetBot(agentId); if(bot)return bot.station==='bay'?'lounge':bot.station;
  const a=OFFICE_CAST.find(x=>x.id===agentId); if(!a)return 'lounge';
  if(ctx.culprit&&ctx.culprit.agentId===agentId)return 'cage';
  const {activeRun,awaiting,tasks}=ctx;
@@ -266,20 +279,23 @@ function officeRender(){
  const culprit=officeCulprit(officeState.runs);
  const ctx={activeRun,awaiting,tasks,stage:officeStageOf(activeRun),justCompleted,culprit};
  const unused=(officeState.cards||[]).filter(c=>!c.usedByProjectId).length;
- if(!room.dataset.built){
-  room.dataset.built='1';
+ const roster=officeRosterCast();
+ const rosterSig=roster.map(a=>a.id).join(',');
+ if(!room.dataset.built||officeState.rosterSig!==rosterSig){
+  room.dataset.built='1'; officeState.rosterSig=rosterSig;
   room.innerHTML=Object.entries(OFFICE_STATIONS).map(([id,st])=>`<div class="office-station" style="left:${st.x}%;top:${st.y}%">${st.label}</div>`).join('')
-   +OFFICE_CAST.map(a=>`<button type="button" class="office-agent" id="officeAgent-${a.id}" data-office-agent="${a.id}" style="left:50%;top:50%" title="${esc(a.role)} — bấm để đổi tên"><span class="office-agent-shadow"></span>${officeFigure(a)}<span class="office-agent-name">${esc(officeAgentName(a))}</span><span class="office-agent-badge" hidden></span></button>`).join('')
+   +roster.map(a=>`<button type="button" class="office-agent" id="officeAgent-${a.id}" data-office-agent="${a.id}" style="left:50%;top:50%" title="${esc(a.role)}${a.fleet?'':' — bấm để đổi tên'}"><span class="office-agent-shadow"></span>${officeFigure(a)}<span class="office-agent-name">${esc(officeAgentName(a))}</span><span class="office-agent-badge" hidden></span></button>`).join('')
    +`<div class="office-package" id="officePackage" hidden>📦</div>`
    +(awaiting?'':'' );
   room.querySelectorAll('[data-office-agent]').forEach(el=>el.onclick=()=>{
-   const a=OFFICE_CAST.find(x=>x.id===el.dataset.officeAgent); if(!a)return;
+   const a=officeRosterCast().find(x=>x.id===el.dataset.officeAgent); if(!a)return;
+   if(a.fleet){toast(`🤖 ${a.name} (${a.fleet.provider}): ${a.role}`);return;}
    const next=prompt(`Đổi tên cho ${a.role}:`,officeAgentName(a));
    if(next&&next.trim()){officeNames[a.id]=next.trim().slice(0,24);localStorage.setItem('aios-office-names',JSON.stringify(officeNames));officeRender();}
   });
  }
  const slotUse=new Map();
- for(const a of OFFICE_CAST){
+ for(const a of roster){
   const el=$('#officeAgent-'+a.id); if(!el)continue;
   const stId=officeStationOf(a.id,ctx);
   const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
@@ -298,19 +314,20 @@ function officeRender(){
   el.querySelector('.office-agent-name').textContent=officeAgentName(a);
   const badge=el.querySelector('.office-agent-badge');
   let badgeText='';
-  if(a.id==='boss'&&awaiting)badgeText='✋ chờ duyệt';
+  if(a.fleet){const b=a.fleet; badgeText=b.cage?'⚡ đang bị chích điện':b.state==='working'?'đang làm việc…':b.state==='failed'?'⚡ vừa lỗi — chờ thay ca':b.state==='charging'?'🔋 đang sạc':'🔌 chưa kết nối';}
+  else if(a.id==='boss'&&awaiting)badgeText='✋ chờ duyệt';
   if(a.id==='news'&&unused)badgeText=unused+' tin mới';
   if(a.id==='media'&&ctx.stage==='produce')badgeText='đang dựng…';
   if(a.id==='script'&&ctx.stage==='script')badgeText='đang viết…';
   if(a.id==='publish'&&ctx.stage==='publish')badgeText='đang đăng…';
   if(culprit&&culprit.agentId===a.id)badgeText='⚡ đang bị chích điện';
-  if(officeStationOf(a.id,ctx)==='lounge'&&!(culprit&&culprit.agentId===a.id))badgeText='💤 đang nạp năng lượng';
+  if(!a.fleet&&officeStationOf(a.id,ctx)==='lounge'&&!(culprit&&culprit.agentId===a.id))badgeText='💤 đang nạp năng lượng';
   badge.hidden=!badgeText; badge.textContent=badgeText;
-  el.classList.toggle('office-busy',Boolean(badgeText)||(a.id==='pm'&&Boolean(activeRun)));
+  el.classList.toggle('office-busy',(Boolean(badgeText)&&(!a.fleet||a.fleet.state==='working'||a.fleet.cage))||(a.id==='pm'&&Boolean(activeRun)));
  }
  const pkg=$('#officePackage');
  if(pkg){
-  const target=awaiting?'boss':activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null;
+  const target=officeFleetActive()?(awaiting?'boss':(officeState.fleet.bots.find(b=>b.state==='working')?.station||null)):(awaiting?'boss':activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null);
   if(target){const st=OFFICE_STATIONS[target];pkg.hidden=false;pkg.style.left=(st.x+4)+'%';pkg.style.top=(st.y-7)+'%';}
   else pkg.hidden=true;
  }
@@ -325,6 +342,20 @@ function officeRender(){
  if(feed){
   const lines=[];
   if(!officeState.loaded)lines.push('Đang tải dữ liệu văn phòng…');
+  else if(officeFleetActive()){
+   if(awaiting)lines.push(`👔 Sản phẩm "${awaiting.title||awaiting.pipeline}" đang ở trên bàn Sếp Lâm chờ duyệt.`);
+   if(justCompleted)lines.push(`🎉 Lượt "${justCompleted.title||justCompleted.pipeline}" vừa hoàn thành tốt.`);
+   for(const b of officeState.fleet.bots){
+    if(b.state==='working')lines.push(`🤖 ${b.label} (${b.provider}) đang làm việc ở ${(OFFICE_STATIONS[b.station]||{}).label||'bàn làm việc'} — lượt chạy thật đang chạy trên tài khoản này.`);
+    else if(b.cage)lines.push(`⚡ ${b.label} đang ở Phòng chích điện vì lượt chạy gần nhất trên tài khoản này bị lỗi — bot khác đã ra thay bàn của nó.`);
+    else if(b.state==='failed')lines.push(`⚡ ${b.label} vừa có lượt chạy lỗi — đang chờ ở khu sạc và nhường bàn cho bot khác.`);
+    else if(b.state==='charging')lines.push(`🔋 ${b.label} (${b.provider}) đang ở trạm sạc — đã kết nối, chờ việc.`);
+    else lines.push(`🔌 ${b.label} (${b.provider}) chưa xác minh được — bot đang tắt ở khu sạc. Vào tab Kết nối để đăng nhập/xác minh tài khoản này.`);
+   }
+   if(officeState.fleet.overflow)lines.push(`… và ${officeState.fleet.overflow} tài khoản nữa chưa có bot (văn phòng tối đa 10 bot).`);
+   if(unused)lines.push(`📰 Đang có ${unused} thẻ tin chưa dùng ở tab Ý tưởng.`);
+   if(!lines.length)lines.push('☕ Chưa có tài khoản AI nào. Vào tab Kết nối để thêm tài khoản — mỗi tài khoản là một bot trong văn phòng.');
+  }
   else{
    if(unused)lines.push(`📰 ${officeAgentName(OFFICE_CAST[2])} đang giữ ${unused} thẻ tin chưa dùng.`);
    if(activeRun&&activeRun.state==='running')lines.push(`🎯 ${officeAgentName(OFFICE_CAST[1])} đã chia việc: "${activeRun.title||activeRun.pipeline}" — đang ở công đoạn ${ctx.stage==='script'?'viết lời dẫn':ctx.stage==='produce'?'dựng video':ctx.stage==='publish'?'đăng bài':'tiếp nhận'}.`);
@@ -346,9 +377,10 @@ async function officePoll(force){
  const room=$('#officeRoom'); if(!room)return;
  officePollPending=true;
  try{
-  const [orch,cards]=await Promise.all([api('/api/orchestrator').catch(()=>null),api('/api/ingest/cards').catch(()=>null)]);
+  const [orch,cards,fleet]=await Promise.all([api('/api/orchestrator').catch(()=>null),api('/api/ingest/cards').catch(()=>null),api('/api/office/fleet').catch(()=>null)]);
   if(orch)officeState.runs=orch.runs||[];
   if(cards)officeState.cards=cards.cards||[];
+  if(fleet&&Array.isArray(fleet.bots))officeState.fleet=fleet;
   officeState.loaded=true;
  }catch{/* giữ trạng thái cũ */}
  finally{officePollPending=false;officeRender();}
@@ -795,7 +827,7 @@ function office3DBuild(THREE,room){
   scene.add(grp);
   return {a,grp,legL,legR,shinL,shinR,armL,armR,ring,nameSp,zzz,faceMat,faceMode:'idle',name:officeAgentName(a),target:new THREE.Vector3(),walking:false,busy:false,phase:Math.random()*7,sit:0};
  }
- const agents={}; for(const a of OFFICE_CAST){const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]); built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); built.baseY=0; built.yCur=0; agents[a.id]=built;}
+ const agents={}; for(const a of officeRosterCast()){const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]); built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); built.baseY=0; built.yCur=0; agents[a.id]=built;}
  // --- Model 3D GLB do người dùng nạp (0.9.31): có file thì thay robot mặc định ---
  for(const id in agents){const A=agents[id];const keep=new Set([A.nameSp,A.zzz,A.ring]);const proc=new THREE.Group();proc.name='ProceduralBody';
   [...A.grp.children].forEach(ch=>{if(!keep.has(ch))proc.add(ch);});
@@ -838,7 +870,7 @@ function office3DBuild(THREE,room){
    if(A.procBody)A.procBody.visible=false;
   }catch(e){console.warn('Không nạp được model 3D cho',A.a.id,e);}
  }
- window.__office3DLoadModels=()=>{for(const id in agents)officeLoadModel(agents[id]);};
+ window.__office3DLoadModels=()=>{for(const id in agents){if(officeFleetActive()&&id!=='boss')continue; officeLoadModel(agents[id]);}};
  window.__office3DLoadModels();
  scene.traverse(o=>{if(o.isMesh&&o.material&&o.material.isMeshStandardMaterial&&!o.material.transparent){o.castShadow=true;o.receiveShadow=true;}});
  floor.receiveShadow=true;
@@ -856,8 +888,9 @@ function office3DBuild(THREE,room){
  window.__office3D=true; window.__office3DCamera=orbit;
  window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,A.model?{clip:A.model.current,clips:Object.keys(A.model.clips)}:null]));
  window.__office3DSync=(ctx)=>{
+  office3DReconcile();
   const slotUse=new Map();
-  for(const a of OFFICE_CAST){
+  for(const a of officeRosterCast()){
    const A=agents[a.id]; if(!A)continue;
    const stId=officeStationOf(a.id,ctx);
    const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
@@ -865,19 +898,19 @@ function office3DBuild(THREE,room){
    const dx=slot===0?0:slot===1?9:-9;
    const w=officeWorld(st); let tx=w.x+dx*.22; if(stId==='lounge')tx=w.x+[-1.15,0,1.15][slot%3];
    A.target.set(tx,0,w.z); A.baseY=officeYFor(stId);
-   A.busy=(a.id==='boss'&&Boolean(ctx.awaiting))||(a.id==='media'&&ctx.stage==='produce')||(a.id==='script'&&ctx.stage==='script')||(a.id==='publish'&&ctx.stage==='publish')||(ctx.culprit&&ctx.culprit.agentId===a.id);
+   A.busy=a.fleet?a.fleet.state==='working':((a.id==='boss'&&Boolean(ctx.awaiting))||(a.id==='media'&&ctx.stage==='produce')||(a.id==='script'&&ctx.stage==='script')||(a.id==='publish'&&ctx.stage==='publish')||(ctx.culprit&&ctx.culprit.agentId===a.id));
    A.ring.visible=A.busy;
-   if(ctx.culprit&&ctx.culprit.agentId===a.id)A.ring.material.color.set(0xff4545); else A.ring.material.color.set(a.color);
+   if((ctx.culprit&&ctx.culprit.agentId===a.id)||(a.fleet&&a.fleet.cage))A.ring.material.color.set(0xff4545); else A.ring.material.color.set(a.color);
    const sleeping=stId==='lounge'&&!(ctx.culprit&&ctx.culprit.agentId===a.id);
    if(A.zzz)A.zzz.visible=sleeping;
-   const fm=(ctx.culprit&&ctx.culprit.agentId===a.id)?'zap':sleeping?'sleep':A.busy?'work':'idle';
+   const fm=a.fleet?((a.fleet.cage||a.fleet.state==='failed')?'zap':a.fleet.state==='working'?'work':'sleep'):((ctx.culprit&&ctx.culprit.agentId===a.id)?'zap':sleeping?'sleep':A.busy?'work':'idle');
    A.faceMode=fm;
    if(A.faceMat&&A.faceMode!==fm){A.faceMat.map=faceTexCache[fm];A.faceMat.needsUpdate=true;A.faceMode=fm;}
    const nm=officeAgentName(a);
    if(nm!==A.name){A.name=nm; const parent=A.nameSp.parent; const idx=parent.children.indexOf(A.nameSp); const fresh=textSprite(nm,{size:46,scale:[2.3,.58]}); fresh.position.y=2.85; parent.remove(A.nameSp); parent.add(fresh); A.nameSp=fresh;}
   }
-  zapId=ctx.culprit?ctx.culprit.agentId:null;
-  const target=ctx.awaiting?'boss':ctx.activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null;
+  zapId=officeFleetActive()?(officeState.fleet.bots.find(b=>b.cage)?'bot-'+officeState.fleet.bots.find(b=>b.cage).connectionId:null):(ctx.culprit?ctx.culprit.agentId:null);
+  const target=officeFleetActive()?(ctx.awaiting?'boss':(officeState.fleet.bots.find(b=>b.state==='working')?.station||null)):(ctx.awaiting?'boss':ctx.activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null);
   if(target){const w=officeWorld(OFFICE_STATIONS[target]); parcelTarget.set(w.x+.8,1.15,w.z-.4); parcel.visible=true;} else parcel.visible=false;
  };
  // --- điều khiển camera: kéo để xoay, lăn chuột để zoom, bấm nhẹ để đổi tên ---
@@ -894,7 +927,7 @@ function office3DBuild(THREE,room){
   const ray=new THREE.Raycaster(); ray.setFromCamera(mouse,camera);
   const hits=ray.intersectObjects(Object.values(agents).map(A=>A.grp),true);
   if(hits.length){let o=hits[0].object;while(o&&!Object.values(agents).some(A=>A.grp===o))o=o.parent;
-   if(o){const A=Object.values(agents).find(x=>x.grp===o); if(A){const next=prompt(`Đổi tên cho ${A.a.role}:`,officeAgentName(A.a)); if(next&&next.trim()){officeNames[A.a.id]=next.trim().slice(0,24);localStorage.setItem('aios-office-names',JSON.stringify(officeNames));officeRender();}}}}
+   if(o){const A=Object.values(agents).find(x=>x.grp===o); if(A){if(A.a.fleet){toast(`🤖 ${A.a.name} (${A.a.fleet.provider}): ${A.a.role}`);}else{const next=prompt(`Đổi tên cho ${A.a.role}:`,officeAgentName(A.a)); if(next&&next.trim()){officeNames[A.a.id]=next.trim().slice(0,24);localStorage.setItem('aios-office-names',JSON.stringify(officeNames));officeRender();}}}}}
  });
  el.addEventListener('wheel',e=>{e.preventDefault();orbit.radius=Math.min(38,Math.max(15,orbit.radius+e.deltaY*.02));},{passive:false});
  addEventListener('resize',()=>{renderer.setSize(W(),H()); if(officeComposer)officeComposer.setSize(W(),H());});
@@ -955,6 +988,67 @@ function office3DBuild(THREE,room){
   if(officeComposer)officeComposer.render(); else renderer.render(scene,camera);
  });
  // --- Phòng GLB theo ảnh mẫu (nạp bất đồng bộ): có file thì thay vỏ phòng thủ tục, robot + trạng thái thật giữ nguyên ---
+ // --- Thân TAM01 cho đội bot tài khoản: nạp 1 lần, nhân bản theo xương cho từng bot ---
+ let tamTemplate=null,tamClipList=null,tamCloneFn=null,tamBusy=false;
+ const TAM_NATIVE_H=1.678,TAM_TARGET_H=1.9;
+ async function officeEnsureTam(){
+  if(tamTemplate||tamBusy)return; tamBusy=true;
+  try{
+   const [sk,gl]=await Promise.all([import('/vendor/addons/SkeletonUtils.js'),import('/vendor/addons/GLTFLoader.js')]);
+   const g=await new gl.GLTFLoader().loadAsync('/assets/tam01.glb');
+   tamTemplate=g.scene; tamClipList=g.animations||[]; tamCloneFn=sk.clone;
+   window.__officeTamClips=tamClipList.map(c=>c.name);
+   for(const A of Object.values(agents))if(A.a.fleet)officeAttachTam(A);
+  }catch(e){console.warn('Không nạp được thân TAM01, bot dùng thân mặc định:',e);}
+  tamBusy=false;
+ }
+ function officeAttachTam(A){
+  if(!tamTemplate||!tamCloneFn||A.model)return;
+  try{
+   const inst=tamCloneFn(tamTemplate);
+   const col=new THREE.Color(A.a.color||'#57e6ff');
+   const offline=A.a.fleet&&A.a.fleet.state==='offline';
+   inst.traverse(o=>{
+    if(!o.isMesh)return;
+    o.frustumCulled=false;
+    if(o.material){o.material=o.material.clone();
+     if(o.material.name==='emission'){o.material.emissive=new THREE.Color(col); o.material.color=new THREE.Color(col);}
+     else if(o.material.name==='blue'){o.material.color=new THREE.Color(o.material.color).lerp(col,.5);}
+     if(offline){o.material.color.multiplyScalar(.5); if('emissiveIntensity' in o.material)o.material.emissiveIntensity=.2;}
+    }
+   });
+   const grp=new THREE.Group(); grp.add(inst); grp.scale.setScalar(TAM_TARGET_H/TAM_NATIVE_H);
+   if(A.modelRoot)A.grp.remove(A.modelRoot);
+   A.grp.add(grp); A.modelRoot=grp;
+   const names=tamClipList.map(c=>c.name); const clips={};
+   const pref={idle:['Idle_Breathe'],work:['Type_Keyboard','Review_Document'],walk:['Walk_Forward','Walk_Fast'],cheer:['Approve','Wave_Hello'],fail:['Reject']};
+   for(const want of ['idle','work','walk','cheer','fail']){
+    let c=null; for(const n of pref[want]){c=tamClipList.find(x=>x.name===n); if(c)break;}
+    if(!c&&clipLogic){const f=clipLogic.officeFindClip(names,want); if(f)c=tamClipList.find(x=>x.name===f);}
+    if(c)clips[want]=c;
+   }
+   A.mixer=new THREE.AnimationMixer(inst);
+   A.model={clips,current:null,action:null};
+   if(A.procBody)A.procBody.visible=false;
+   window.__officeTamAttached=Object.values(agents).filter(x=>x.model&&x.a.fleet).length;
+  }catch(e){console.warn('Gắn thân TAM01 lỗi cho',A.a.id,e);}
+ }
+ // --- Đối chiếu đội hình 3D với danh sách hiện tại (bot vào/ra khi tài khoản đổi) ---
+ let rosterSig3D='';
+ function office3DReconcile(){
+  const roster=officeRosterCast(); const sig=roster.map(a=>a.id).join(',');
+  if(sig===rosterSig3D){for(const A of Object.values(agents))if(A.a.fleet&&!A.model)officeAttachTam(A); return;}
+  rosterSig3D=sig;
+  const want=new Set(roster.map(a=>a.id));
+  for(const id of Object.keys(agents))if(!want.has(id)){scene.remove(agents[id].grp); delete agents[id];}
+  for(const a of roster){
+   if(agents[a.id]){agents[a.id].a=a; continue;}
+   const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]||OFFICE_STATIONS.lounge);
+   built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); built.baseY=0; built.yCur=0;
+   agents[a.id]=built;
+  }
+  if(roster.some(a=>a.fleet))officeEnsureTam();
+ }
  window.__officeRoomMode='procedural';
  import('/vendor/addons/GLTFLoader.js').then(async ({GLTFLoader})=>{
   try{
