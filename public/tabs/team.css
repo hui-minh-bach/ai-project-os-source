@@ -238,3 +238,9 @@
 @keyframes officeSwing{from{transform:rotate(13deg)}to{transform:rotate(-13deg)}}
 @keyframes officeBob{from{transform:translateY(0)}to{transform:translateY(-2.4px)}}
 @keyframes officeIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.1px)}}
+
+/* ===== Văn phòng 3D (0.9.25) ===== */
+.office-room.office-3d-on{background:#0b0b13}
+.office-room.office-3d-on .office-station,.office-room.office-3d-on .office-agent,.office-room.office-3d-on .office-package{display:none}
+.office-3d-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:14px;cursor:grab}
+.office-3d-canvas:active{cursor:grabbing}

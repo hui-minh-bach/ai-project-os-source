@@ -29,6 +29,41 @@ test('AI office: staff are walking figures, animated only while moving', () => {
   assert.match(teamCss, /@keyframes officeBob/);
 });
 
+test('AI office 3D: vendored Three.js scene with desks, city backdrop and orbit camera', () => {
+  const vendor = fs.readFileSync(new URL('../public/vendor/three.module.min.js', import.meta.url), 'utf8');
+  assert.match(vendor, /Three\.js Authors/);
+  assert.match(teamJs, /import\('\/vendor\/three\.module\.min\.js'\)/);
+  assert.match(teamJs, /office3DBuild/);
+  assert.match(teamJs, /GridHelper/);
+  assert.match(teamJs, /office-backdrop\.jpg/, 'painted space-station backdrop asset');
+  assert.ok(fs.existsSync(new URL('../public/assets/office-backdrop.jpg', import.meta.url)), 'backdrop image ships in public/assets');
+  assert.match(teamJs, /CylinderGeometry/, 'curved panoramic backdrop');
+  assert.match(teamJs, /holoGlobe/, 'coordinator hologram globe');
+  assert.match(teamJs, /faceTexture\('zap'\)/, 'robot faces have expressions incl. zapped');
+  assert.match(teamJs, /LineDashedMaterial/, 'dotted walking paths');
+  assert.match(teamCss, /\.office-3d-canvas/);
+});
+
+test('AI office: idle staff recharge in the energy pods, with the sleeping face on', () => {
+  assert.match(teamJs, /lounge:\{x:10,y:85,label:'🔋 Phòng nạp năng lượng'\}/);
+  assert.match(teamJs, /PHÒNG NẠP NĂNG LƯỢNG/);
+  assert.match(teamJs, /stId==='lounge'/, 'pod slot offsets in the 3D sync');
+  assert.match(teamJs, /'sleep'/, 'sleeping face state');
+  assert.match(teamJs, /đang nạp năng lượng/, 'charging badge in the 2D room');
+});
+
+test('AI office: the electric room only takes staff who really failed work', () => {
+  assert.match(teamJs, /function officeCulprit\(runs\)/);
+  assert.match(teamJs, /cage:\{x:90/);
+  // culprit mapping by failed step
+  assert.match(teamJs, /stepName\.startsWith\('produce\.'\)\?'media'/);
+  assert.match(teamJs, /stepName\.startsWith\('publish:'\)\?'publish'/);
+  // a newer completed run releases the culprit
+  assert.match(teamJs, /completed\.createdAt/);
+  // 3D zap effect exists
+  assert.match(teamJs, /jaggedBolt/);
+});
+
 test('AI office: movement is driven by real app state, never a canned loop', () => {
   // data sources are the app's real endpoints
   assert.match(teamJs, /api\('\/api\/orchestrator'\)/);

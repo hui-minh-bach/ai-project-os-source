@@ -200,22 +200,39 @@ function officeFigure(a){
   </g></svg>`;
 }
 const OFFICE_STATIONS={
- boss:{x:50,y:9,label:'👔 Bàn Sếp Lâm'},
- pm:{x:50,y:38,label:'🎯 Trưởng phòng'},
- news:{x:10,y:22,label:'📰 Tin tức'},
- script:{x:12,y:58,label:'✍️ Biên tập'},
- image:{x:88,y:58,label:'🎨 Hình ảnh'},
- media:{x:72,y:30,label:'🎬 Sản xuất'},
- review:{x:88,y:22,label:'🔍 Kiểm duyệt'},
- publish:{x:50,y:82,label:'🚀 Đăng bài'},
- lounge:{x:14,y:86,label:'☕ Góc nghỉ'},
+ boss:{x:50,y:10,label:'👔 Bàn Sếp Lâm'},
+ news:{x:15,y:27,label:'📰 Tin tức'},
+ script:{x:38,y:20,label:'✍️ Biên tập'},
+ image:{x:62,y:20,label:'🎨 Hình ảnh'},
+ media:{x:85,y:27,label:'🎬 Sản xuất'},
+ pm:{x:50,y:47,label:'🎯 Điều phối'},
+ review:{x:24,y:66,label:'🔍 Kiểm duyệt'},
+ publish:{x:76,y:66,label:'🚀 Đăng bài'},
+ lounge:{x:10,y:85,label:'🔋 Phòng nạp năng lượng'},
+ cage:{x:90,y:83,label:'⚡ Phòng chích điện'},
 };
+/* Ai làm hỏng việc thì vào Phòng chích điện: xét lượt chạy THẤT BẠI gần
+ * nhất trong 24 giờ; nếu sau đó đã có lượt chạy hoàn thành mới hơn thì
+ * người đó được thả. Công đoạn hỏng ở đâu, người phụ trách ở đó chịu. */
+function officeCulprit(runs){
+ const sorted=[...(runs||[])].sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+ const failed=sorted.find(r=>r.state==='failed');
+ if(!failed)return null;
+ if(Date.now()-Date.parse(failed.createdAt||0)>24*3600*1000)return null;
+ const completed=sorted.find(r=>r.state==='completed');
+ if(completed&&String(completed.createdAt||'')>String(failed.createdAt||''))return null;
+ const badStep=(failed.steps||[]).find(x=>x.state==='failed');
+ const stepName=badStep?badStep.name:'';
+ const agentId=stepName.startsWith('produce.')?'media':stepName.startsWith('ai.')?'script':stepName.startsWith('publish:')?'publish':'pm';
+ return {agentId,run:failed,step:stepName};
+}
 let officeNames={}; try{officeNames=JSON.parse(localStorage.getItem('aios-office-names')||'{}')}catch{officeNames={}}
 let officeState={runs:[],cards:[],tasks:[],loaded:false,lastFeed:[]};
 const officePrevPos={},officeWalkTimers={};
 function officeAgentName(a){return officeNames[a.id]||a.name}
 function officeStationOf(agentId,ctx){
  const a=OFFICE_CAST.find(x=>x.id===agentId); if(!a)return 'lounge';
+ if(ctx.culprit&&ctx.culprit.agentId===agentId)return 'cage';
  const {activeRun,awaiting,tasks}=ctx;
  switch(agentId){
   case 'boss': return 'boss';
@@ -246,7 +263,8 @@ function officeRender(){
  const activeRun=runs.find(r=>r.state==='running')||awaiting;
  const justCompleted=runs.find(r=>r.state==='completed'&&Date.now()-Date.parse(r.completedAt||0)<90000)||null;
  const tasks=(state.project&&state.project.tasks)||[];
- const ctx={activeRun,awaiting,tasks,stage:officeStageOf(activeRun),justCompleted};
+ const culprit=officeCulprit(officeState.runs);
+ const ctx={activeRun,awaiting,tasks,stage:officeStageOf(activeRun),justCompleted,culprit};
  const unused=(officeState.cards||[]).filter(c=>!c.usedByProjectId).length;
  if(!room.dataset.built){
   room.dataset.built='1';
@@ -285,6 +303,8 @@ function officeRender(){
   if(a.id==='media'&&ctx.stage==='produce')badgeText='đang dựng…';
   if(a.id==='script'&&ctx.stage==='script')badgeText='đang viết…';
   if(a.id==='publish'&&ctx.stage==='publish')badgeText='đang đăng…';
+  if(culprit&&culprit.agentId===a.id)badgeText='⚡ đang bị chích điện';
+  if(officeStationOf(a.id,ctx)==='lounge'&&!(culprit&&culprit.agentId===a.id))badgeText='💤 đang nạp năng lượng';
   badge.hidden=!badgeText; badge.textContent=badgeText;
   el.classList.toggle('office-busy',Boolean(badgeText)||(a.id==='pm'&&Boolean(activeRun)));
  }
@@ -310,12 +330,15 @@ function officeRender(){
    if(activeRun&&activeRun.state==='running')lines.push(`🎯 ${officeAgentName(OFFICE_CAST[1])} đã chia việc: "${activeRun.title||activeRun.pipeline}" — đang ở công đoạn ${ctx.stage==='script'?'viết lời dẫn':ctx.stage==='produce'?'dựng video':ctx.stage==='publish'?'đăng bài':'tiếp nhận'}.`);
    if(awaiting)lines.push(`👔 Sản phẩm "${awaiting.title||awaiting.pipeline}" đang ở trên bàn Sếp Lâm chờ duyệt.`);
    if(justCompleted)lines.push(`🚀 ${officeAgentName(OFFICE_CAST[7])} vừa đăng xong: "${justCompleted.title||justCompleted.pipeline}".`);
+   if(culprit){const ca=OFFICE_CAST.find(x=>x.id===culprit.agentId);lines.push(`⚡ ${officeAgentName(ca)} đang ở Phòng chích điện vì lượt "${culprit.run.title||culprit.run.pipeline}" hỏng${culprit.step?` ở công đoạn ${culprit.step}`:''} — làm xong một lượt tốt là được thả.`);}
    if(!lines.length)lines.push('☕ Cả đội đang chờ việc. Quét tin mới ở tab Ý tưởng hoặc bật vòng khép kín ở tab Publish để văn phòng nhộn nhịp lên.');
   }
   feed.innerHTML=lines.map(l=>`<p>${esc(l)}</p>`).join('');
  }
  const clock=$('#officeClock');
  if(clock)clock.textContent=officeState.loaded?('Cập nhật '+new Date().toLocaleTimeString('vi-VN')):'Đang tải…';
+ office3DEnsure();
+ if(window.__office3D)window.__office3DSync(ctx);
 }
 let officePollPending=false;
 async function officePoll(force){
@@ -333,3 +356,254 @@ async function officePoll(force){
 setInterval(()=>{const page=$('#page-team');if(page&&page.classList.contains('active')&&!document.hidden)officePoll();},4000);
 document.addEventListener('page-change',e=>{if(e.detail.page==='team'){officeRender();officePoll();}});
 officeRender();officePoll();
+
+/* ================= Văn phòng 3D (0.9.25) =================
+ * Cùng một bộ não trạng thái với phòng 2D (officeStationOf/officeCulprit),
+ * chỉ khác cách vẽ: phòng 3D bằng Three.js (MIT, nhúng trong source).
+ * Nếu WebGL/import lỗi, phòng 2D vẫn chạy như cũ — không giấu lỗi. */
+var office3DVisible=true;
+document.addEventListener('page-change',e=>{office3DVisible=e.detail.page==='team';});
+function office3DEnsure(){
+ if(window.__office3DEnsureStarted)return; window.__office3DEnsureStarted=true;
+ const room=$('#officeRoom'); if(!room)return;
+ import('/vendor/three.module.min.js').then(THREE=>{try{office3DBuild(THREE,room);}catch(err){console.warn('Văn phòng 3D lỗi, dùng bản 2D:',err);}}).catch(()=>{});
+}
+function officeWorld(pct){return {x:(pct.x-50)/50*13,z:(pct.y-50)/50*8.0};}
+function office3DBuild(THREE,room){
+ const W=()=>room.clientWidth||1200,H=()=>430;
+ const renderer=new THREE.WebGLRenderer({antialias:true});
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+ renderer.setSize(W(),H());
+ renderer.domElement.className='office-3d-canvas';
+ room.appendChild(renderer.domElement);
+ room.classList.add('office-3d-on');
+ const scene=new THREE.Scene();
+ scene.background=new THREE.Color(0x0b0b13);
+ scene.fog=new THREE.Fog(0x0b0b13,30,60);
+ const camera=new THREE.PerspectiveCamera(42,W()/H(),0.1,120);
+ const orbit={theta:0,phi:1.18,radius:17.5};
+ scene.add(new THREE.HemisphereLight(0x9d8fff,0x0a0a10,1.15));
+ const sun=new THREE.DirectionalLight(0xffffff,2.4); sun.position.set(7,14,7); scene.add(sun);
+ const purple=new THREE.PointLight(0x7c5cff,60,40); purple.position.set(0,6,-4); scene.add(purple);
+ // --- textures vẽ bằng canvas (không file ngoài) ---
+ function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);return t;}
+ const screenTex=canvasTex(256,160,(g,w,h)=>{g.fillStyle='#0a1420';g.fillRect(0,0,w,h);const cols=['#57e6ff','#8b5cf6','#34d399','#f472b6','#facc15'];for(let i=0;i<13;i++){g.fillStyle=cols[i%cols.length];g.globalAlpha=.75;const lw=30+((i*67)%180);g.fillRect(12,10+i*11,lw,5);}g.globalAlpha=1;});
+ const backdropTex=new THREE.TextureLoader().load('/assets/office-backdrop.jpg'); backdropTex.colorSpace=THREE.SRGBColorSpace; backdropTex.wrapS=THREE.RepeatWrapping; backdropTex.repeat.set(1,.72); backdropTex.offset.set(0,.28);
+ function textSprite(text,{size=44,color='#e8e8f2',bg='rgba(13,13,20,.72)',scale=[2.6,.65]}={}){
+  const tex=canvasTex(512,128,(g,w,h)=>{g.fillStyle=bg;g.beginPath();g.roundRect(6,22,w-12,h-44,26);g.fill();g.font=`700 ${size}px system-ui,sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillStyle=color;g.fillText(text,w/2,h/2+2);});
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));sp.scale.set(scale[0],scale[1],1);return sp;
+ }
+ // --- sàn + phông thành phố ---
+ const floor=new THREE.Mesh(new THREE.CircleGeometry(30,48),new THREE.MeshStandardMaterial({color:0x171724,roughness:.5,metalness:.2}));
+ floor.rotation.x=-Math.PI/2; scene.add(floor);
+ const grid=new THREE.GridHelper(34,34,0x2e2e46,0x1d1d2c); grid.position.y=.01; grid.material.transparent=true; grid.material.opacity=.55; scene.add(grid);
+ const glowTex=canvasTex(512,512,(g,w,h)=>{g.clearRect(0,0,w,h);const blob=(x,y,r,col)=>{const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,col);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);};blob(150,300,190,'rgba(45,212,238,.20)');blob(370,190,200,'rgba(139,92,246,.17)');blob(256,256,150,'rgba(255,176,32,.07)');});
+ const glow=new THREE.Mesh(new THREE.CircleGeometry(30,48),new THREE.MeshBasicMaterial({map:glowTex,transparent:true,depthWrite:false}));
+ glow.rotation.x=-Math.PI/2; glow.position.y=.005; scene.add(glow);
+ // cây cảnh ở các góc cho phòng có sức sống
+ function buildPlant(px,pz){
+  const grp=new THREE.Group();
+  const pot=new THREE.Mesh(new THREE.CylinderGeometry(.24,.3,.42,12),new THREE.MeshStandardMaterial({color:0x37424e,roughness:.6})); pot.position.y=.21; grp.add(pot);
+  const leafMat=new THREE.MeshStandardMaterial({color:0x2f9e5f,roughness:.8});
+  for(const [lx,ly,lz,lr] of [[0,.85,0,.34],[-.2,.68,.08,.24],[.22,.72,-.06,.26]]){const leaf=new THREE.Mesh(new THREE.SphereGeometry(lr,12,10),leafMat); leaf.position.set(lx,ly,lz); grp.add(leaf);}
+  grp.position.set(px,0,pz); scene.add(grp);
+ }
+ buildPlant(-14.6,-6.2); buildPlant(14.6,-6.2); buildPlant(-15,4.4); buildPlant(15,4.6);
+ const backdrop=new THREE.Mesh(new THREE.CylinderGeometry(30,30,19,48,1,true,Math.PI-1.08,2.16),new THREE.MeshBasicMaterial({map:backdropTex,side:THREE.BackSide,fog:false}));
+ backdrop.position.y=4.2; scene.add(backdrop);
+ // --- bàn làm việc ---
+ const deskMat=new THREE.MeshStandardMaterial({color:0x5a4630,roughness:.7});
+ const darkMat=new THREE.MeshStandardMaterial({color:0x23232f,roughness:.85});
+ function buildDesk(stId){
+  const st=OFFICE_STATIONS[stId],pos=officeWorld(st),grp=new THREE.Group();
+  const top=new THREE.Mesh(new THREE.BoxGeometry(2.1,.1,1),deskMat); top.position.y=.78; grp.add(top);
+  for(const sx of [-0.7,0.7]){const mon=new THREE.Group();
+   const body=new THREE.Mesh(new THREE.BoxGeometry(1.0,.62,.05),darkMat); body.position.y=1.28; mon.add(body);
+   const scr=new THREE.Mesh(new THREE.PlaneGeometry(.92,.54),new THREE.MeshBasicMaterial({map:screenTex})); scr.position.set(0,1.28,.031); mon.add(scr);
+   mon.position.set(sx,0,-.18); mon.rotation.y=sx*-.28; grp.add(mon);}
+  const chair=new THREE.Mesh(new THREE.BoxGeometry(.55,.55,.55),darkMat); chair.position.set(0,.28,.78); grp.add(chair);
+  const back=new THREE.Mesh(new THREE.BoxGeometry(.55,.7,.09),darkMat); back.position.set(0,.85,1.02); grp.add(back);
+  const label=textSprite(st.label.replace(/^\S+\s/,''),{size:40,color:'#b9b9cc',scale:[2.2,.55]}); label.position.set(0,2.25,-.1); grp.add(label);
+  grp.position.set(pos.x,0,pos.z); grp.rotation.y=Math.PI; // mặt bàn hướng về phía sếp/người xem
+  scene.add(grp); return grp;
+ }
+ ['boss','news','script','image','media','review','publish'].forEach(buildDesk);
+ // vòng sáng dưới sàn mỗi trạm + bệ điều phối trung tâm với cầu hologram
+ for(const stId of ['boss','pm','news','script','image','media','review','publish']){
+  const p2=officeWorld(OFFICE_STATIONS[stId]); const owner=OFFICE_CAST.find(a=>a.station===stId);
+  const ringM=new THREE.Mesh(new THREE.RingGeometry(1.5,1.62,48),new THREE.MeshBasicMaterial({color:new THREE.Color(owner?owner.color:0x2dd4ee),transparent:true,opacity:.30,side:THREE.DoubleSide}));
+  ringM.rotation.x=-Math.PI/2; ringM.position.set(p2.x,.015,p2.z); scene.add(ringM);
+ }
+ const pmPos=officeWorld(OFFICE_STATIONS.pm);
+ const podium=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.4,.12,40),new THREE.MeshStandardMaterial({color:0x1b2130,roughness:.4,metalness:.35}));
+ podium.position.set(pmPos.x,.06,pmPos.z); scene.add(podium);
+ const earthTex=canvasTex(256,128,(g,w,h)=>{g.fillStyle='#1d4e89';g.fillRect(0,0,w,h);g.fillStyle='#3f9e4d';for(let i=0;i<26;i++){g.beginPath();g.ellipse(Math.random()*w,20+Math.random()*(h-40),8+Math.random()*20,5+Math.random()*11,Math.random()*3,0,7);g.fill();}g.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<20;i++){g.beginPath();g.ellipse(Math.random()*w,Math.random()*h,10+Math.random()*16,3+Math.random()*4,0,0,7);g.fill();}});
+ const holoGlobe=new THREE.Group();
+ holoGlobe.add(new THREE.Mesh(new THREE.SphereGeometry(.52,24,18),new THREE.MeshBasicMaterial({map:earthTex,transparent:true,opacity:.92})));
+ holoGlobe.add(new THREE.Mesh(new THREE.SphereGeometry(.55,18,12),new THREE.MeshBasicMaterial({color:0x57e6ff,wireframe:true,transparent:true,opacity:.26})));
+ const holoRing1=new THREE.Mesh(new THREE.TorusGeometry(.78,.012,8,64),new THREE.MeshBasicMaterial({color:0x57e6ff,transparent:true,opacity:.55})); holoRing1.rotation.x=1.1; holoGlobe.add(holoRing1);
+ const holoRing2=new THREE.Mesh(new THREE.TorusGeometry(.86,.012,8,64),new THREE.MeshBasicMaterial({color:0x8b5cf6,transparent:true,opacity:.45})); holoRing2.rotation.x=2.2; holoRing2.rotation.y=.7; holoGlobe.add(holoRing2);
+ holoGlobe.position.set(pmPos.x,3.05,pmPos.z); scene.add(holoGlobe);
+ // Phòng nạp năng lượng: dãy buồng sạc kính ở góc phòng — nhân viên rảnh vào ngủ sạc
+ const podPos=officeWorld(OFFICE_STATIONS.lounge);
+ {
+  const podGroup=new THREE.Group();
+  const glassMat=new THREE.MeshStandardMaterial({color:0x8fd8ff,transparent:true,opacity:.30,roughness:.1,metalness:.1,side:THREE.DoubleSide,emissive:0x1d4e5f,emissiveIntensity:.4});
+  const capMat=new THREE.MeshStandardMaterial({color:0x39424f,roughness:.4,metalness:.6});
+  for(const off of [-1.15,0,1.15]){
+   const tube=new THREE.Mesh(new THREE.CylinderGeometry(.6,.6,2.1,20,1,true),glassMat); tube.position.set(off,1.15,0); podGroup.add(tube);
+   const capT=new THREE.Mesh(new THREE.CylinderGeometry(.64,.64,.1,20),capMat); capT.position.set(off,2.25,0); podGroup.add(capT);
+   const capB=capT.clone(); capB.position.set(off,.05,0); podGroup.add(capB);
+   const glow=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,1.9,12),new THREE.MeshBasicMaterial({color:0x2dd4ee,transparent:true,opacity:.17})); glow.position.set(off,1.15,0); podGroup.add(glow);
+  }
+  const podSign=textSprite('🔋 PHÒNG NẠP NĂNG LƯỢNG',{size:36,color:'#7df0c8',scale:[3.8,.82]}); podSign.position.set(0,2.95,0); podGroup.add(podSign);
+  podGroup.position.set(podPos.x,0,podPos.z); scene.add(podGroup);
+ }
+ // --- Phòng chích điện: chuồng sắt ở góc phòng ---
+ const cagePos=officeWorld(OFFICE_STATIONS.cage);
+ const cage=new THREE.Group();
+ {
+  const metal=new THREE.MeshStandardMaterial({color:0x9aa3b2,metalness:.85,roughness:.35});
+  const base=new THREE.Mesh(new THREE.BoxGeometry(2.6,.09,2.6),new THREE.MeshStandardMaterial({color:0x2a2a33,roughness:.9})); base.position.y=.045; cage.add(base);
+  for(const [px,pz] of [[-1.25,-1.25],[1.25,-1.25],[-1.25,1.25],[1.25,1.25]]){const post=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,2.7,10),metal); post.position.set(px,1.35,pz); cage.add(post);}
+  for(const rot of [0,Math.PI/2]){const beam=new THREE.Mesh(new THREE.BoxGeometry(2.6,.09,.09),metal); beam.position.y=2.68; beam.rotation.y=rot; cage.add(beam); const beam2=beam.clone(); beam2.position.set(rot?1.25:0,2.68,rot?0:1.25); if(rot){beam2.position.set(1.25,2.68,0);} cage.add(beam2);}
+  for(let i=-1;i<=1;i+=.25){for(const side of [-1.25,1.25]){const bar=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,2.6,6),metal); bar.position.set(i*1.0,1.32,side); cage.add(bar);} }
+  for(let i=-1;i<=1;i+=.25){for(const side of [-1.25,1.25]){const bar=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,2.6,6),metal); bar.position.set(side,1.32,i*1.0); cage.add(bar);} }
+  const sign=textSprite('⚡ PHÒNG CHÍCH ĐIỆN',{size:40,color:'#ffd94d',scale:[3.4,.8]}); sign.position.set(0,3.25,0); cage.add(sign);
+  cage.position.set(cagePos.x,0,cagePos.z); scene.add(cage);
+ }
+ // --- mặt robot có biểu cảm (vẽ bằng canvas): đang làm / rảnh / ngủ sạc / bị chích ---
+ function faceTexture(mode){
+  const c=document.createElement('canvas'); c.width=256; c.height=192; const g=c.getContext('2d');
+  g.fillStyle='#0d1420'; g.beginPath(); g.roundRect(30,24,196,144,58); g.fill();
+  g.strokeStyle='rgba(87,230,255,.28)'; g.lineWidth=3; g.beginPath(); g.roundRect(30,24,196,144,58); g.stroke();
+  g.fillStyle='#57e6ff'; g.strokeStyle='#57e6ff'; g.lineWidth=11; g.lineCap='round';
+  const eye=(x,y)=>{ if(mode==='zap'){g.beginPath();g.moveTo(x-13,y-13);g.lineTo(x+13,y+13);g.moveTo(x+13,y-13);g.lineTo(x-13,y+13);g.stroke();}
+   else if(mode==='sleep'){g.beginPath();g.arc(x,y-4,14,Math.PI*.15,Math.PI*.85);g.stroke();}
+   else if(mode==='work'){g.beginPath();g.arc(x,y+6,14,Math.PI*1.1,Math.PI*1.9);g.stroke();}
+   else {g.beginPath();g.arc(x,y,9,0,Math.PI*2);g.fill();} };
+  eye(88,84); eye(168,84);
+  g.lineWidth=8; g.beginPath();
+  if(mode==='zap'){g.moveTo(104,140);g.lineTo(118,131);g.lineTo(132,140);g.lineTo(146,131);g.stroke();}
+  else if(mode==='sleep'){g.arc(128,130,7,0,Math.PI*2);g.stroke();}
+  else {g.arc(128,116,13,Math.PI*.2,Math.PI*.8);g.stroke();}
+  return new THREE.CanvasTexture(c);
+ }
+ const faceTexCache={work:faceTexture('work'),idle:faceTexture('idle'),sleep:faceTexture('sleep'),zap:faceTexture('zap')};
+ // --- nhân viên robot ---
+ function buildAgent(a){
+  const grp=new THREE.Group();
+  const mat=new THREE.MeshStandardMaterial({color:new THREE.Color(a.color),roughness:.45});
+  const white=new THREE.MeshStandardMaterial({color:0xeef0f6,roughness:.35});
+  const legGeo=new THREE.CapsuleGeometry(.07,.3,4,10); legGeo.translate(0,-.2,0);
+  const legL=new THREE.Mesh(legGeo,darkMat); legL.position.set(-.11,.55,0); grp.add(legL);
+  const legR=new THREE.Mesh(legGeo,darkMat); legR.position.set(.11,.55,0); grp.add(legR);
+  const body=new THREE.Mesh(new THREE.CapsuleGeometry(.28,.4,6,14),mat); body.position.y=.98; grp.add(body);
+  const armGeo=new THREE.CapsuleGeometry(.06,.3,4,10); armGeo.translate(0,-.17,0);
+  const armL=new THREE.Mesh(armGeo,mat); armL.position.set(-.38,1.26,0); grp.add(armL);
+  const armR=new THREE.Mesh(armGeo,mat); armR.position.set(.38,1.26,0); grp.add(armR);
+  const chest=new THREE.Mesh(new THREE.CircleGeometry(.055,16),new THREE.MeshBasicMaterial({color:0x9ff3ff})); chest.position.set(0,1.06,.275); grp.add(chest);
+  const head=new THREE.Group(); head.position.y=1.66;
+  const skull=new THREE.Mesh(new THREE.SphereGeometry(.36,26,20),white); skull.scale.y=.94; head.add(skull);
+  for(const sx of [-1,1]){const ear=new THREE.Mesh(new THREE.SphereGeometry(.1,12,10),mat); ear.position.set(sx*.36,0,0); head.add(ear);}
+  const ant=new THREE.Mesh(new THREE.CylinderGeometry(.014,.014,.2,6),darkMat); ant.position.y=.4; head.add(ant);
+  const antBall=new THREE.Mesh(new THREE.SphereGeometry(.05,10,8),new THREE.MeshBasicMaterial({color:new THREE.Color(a.color)})); antBall.position.y=.52; head.add(antBall);
+  const faceMat=new THREE.MeshBasicMaterial({map:faceTexCache.idle,transparent:true});
+  const face=new THREE.Mesh(new THREE.PlaneGeometry(.56,.42),faceMat); face.position.set(0,-.02,.31); head.add(face);
+  grp.add(head);
+  const ring=new THREE.Mesh(new THREE.RingGeometry(.44,.58,40),new THREE.MeshBasicMaterial({color:new THREE.Color(a.color),transparent:true,opacity:.95,side:THREE.DoubleSide}));
+  ring.rotation.x=-Math.PI/2; ring.position.y=.02; ring.visible=false; grp.add(ring);
+  const nameSp=textSprite(officeAgentName(a),{size:46,scale:[2.3,.58]}); nameSp.position.y=2.42; grp.add(nameSp);
+  const zzz=textSprite('💤',{size:52,bg:'rgba(0,0,0,0)',scale:[.7,.45]}); zzz.position.set(.6,2.2,0); zzz.visible=false; grp.add(zzz);
+  scene.add(grp);
+  return {a,grp,legL,legR,armL,armR,ring,nameSp,zzz,faceMat,faceMode:'idle',name:officeAgentName(a),target:new THREE.Vector3(),walking:false,busy:false,phase:Math.random()*7};
+ }
+ const agents={}; for(const a of OFFICE_CAST){const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]); built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); agents[a.id]=built;}
+ // đường chấm khi di chuyển + gói hàng
+ for(const id in agents){const A=agents[id];const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);const line=new THREE.Line(geo,new THREE.LineDashedMaterial({color:new THREE.Color(A.a.color),dashSize:.22,gapSize:.14,transparent:true,opacity:.6}));line.visible=false;scene.add(line);A.path=line;}
+ const parcel=new THREE.Mesh(new THREE.BoxGeometry(.36,.36,.36),new THREE.MeshStandardMaterial({color:0xffb020,emissive:0xcf7a00,emissiveIntensity:.55,roughness:.5}));
+ parcel.visible=false; scene.add(parcel);
+ const parcelTarget=new THREE.Vector3();
+ // tia điện
+ const bolts=[];
+ for(let i=0;i<3;i++){const geo=new THREE.BufferGeometry();const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xffe45e,transparent:true,opacity:.95}));line.visible=false;scene.add(line);bolts.push(line);}
+ function jaggedBolt(line,from,to){const pts=[];const N=7;for(let i=0;i<=N;i++){const t=i/N;const p=from.clone().lerp(to,t);if(i>0&&i<N){p.x+=(Math.random()-.5)*.3;p.z+=(Math.random()-.5)*.3;}pts.push(p);}line.geometry.dispose();line.geometry=new THREE.BufferGeometry().setFromPoints(pts);}
+ let zapId=null,zapClock=0;
+ // --- đồng bộ từ trạng thái thật ---
+ window.__office3D=true;
+ window.__office3DSync=(ctx)=>{
+  const slotUse=new Map();
+  for(const a of OFFICE_CAST){
+   const A=agents[a.id]; if(!A)continue;
+   const stId=officeStationOf(a.id,ctx);
+   const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
+   const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
+   const dx=slot===0?0:slot===1?9:-9;
+   const w=officeWorld(st); let tx=w.x+dx*.22; if(stId==='lounge')tx=w.x+[-1.15,0,1.15][slot%3];
+   A.target.set(tx,0,w.z);
+   A.busy=(a.id==='boss'&&Boolean(ctx.awaiting))||(a.id==='media'&&ctx.stage==='produce')||(a.id==='script'&&ctx.stage==='script')||(a.id==='publish'&&ctx.stage==='publish')||(ctx.culprit&&ctx.culprit.agentId===a.id);
+   A.ring.visible=A.busy;
+   if(ctx.culprit&&ctx.culprit.agentId===a.id)A.ring.material.color.set(0xff4545); else A.ring.material.color.set(a.color);
+   const sleeping=stId==='lounge'&&!(ctx.culprit&&ctx.culprit.agentId===a.id);
+   if(A.zzz)A.zzz.visible=sleeping;
+   const fm=(ctx.culprit&&ctx.culprit.agentId===a.id)?'zap':sleeping?'sleep':A.busy?'work':'idle';
+   if(A.faceMat&&A.faceMode!==fm){A.faceMat.map=faceTexCache[fm];A.faceMat.needsUpdate=true;A.faceMode=fm;}
+   const nm=officeAgentName(a);
+   if(nm!==A.name){A.name=nm; const parent=A.nameSp.parent; const idx=parent.children.indexOf(A.nameSp); const fresh=textSprite(nm,{size:46,scale:[2.3,.58]}); fresh.position.y=2.42; parent.remove(A.nameSp); parent.add(fresh); A.nameSp=fresh;}
+  }
+  zapId=ctx.culprit?ctx.culprit.agentId:null;
+  const target=ctx.awaiting?'boss':ctx.activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null;
+  if(target){const w=officeWorld(OFFICE_STATIONS[target]); parcelTarget.set(w.x+.8,1.15,w.z-.4); parcel.visible=true;} else parcel.visible=false;
+ };
+ // --- điều khiển camera: kéo để xoay, lăn chuột để zoom, bấm nhẹ để đổi tên ---
+ let dragging=false,dragMoved=0,px=0,py=0;
+ const el=renderer.domElement;
+ el.style.touchAction='none';
+ el.addEventListener('pointerdown',e=>{dragging=true;dragMoved=0;px=e.clientX;py=e.clientY;el.setPointerCapture(e.pointerId);});
+ el.addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-px,dy=e.clientY-py;dragMoved+=Math.abs(dx)+Math.abs(dy);px=e.clientX;py=e.clientY;orbit.theta-=dx*.005;orbit.phi=Math.min(1.35,Math.max(.55,orbit.phi-dy*.004));});
+ el.addEventListener('pointerup',e=>{
+  dragging=false;
+  if(dragMoved>6)return;
+  const rect=el.getBoundingClientRect();
+  const mouse=new THREE.Vector2(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);
+  const ray=new THREE.Raycaster(); ray.setFromCamera(mouse,camera);
+  const hits=ray.intersectObjects(Object.values(agents).map(A=>A.grp),true);
+  if(hits.length){let o=hits[0].object;while(o&&!Object.values(agents).some(A=>A.grp===o))o=o.parent;
+   if(o){const A=Object.values(agents).find(x=>x.grp===o); if(A){const next=prompt(`Đổi tên cho ${A.a.role}:`,officeAgentName(A.a)); if(next&&next.trim()){officeNames[A.a.id]=next.trim().slice(0,24);localStorage.setItem('aios-office-names',JSON.stringify(officeNames));officeRender();}}}}
+ });
+ el.addEventListener('wheel',e=>{e.preventDefault();orbit.radius=Math.min(38,Math.max(15,orbit.radius+e.deltaY*.02));},{passive:false});
+ addEventListener('resize',()=>renderer.setSize(W(),H()));
+ // --- vòng lặp chuyển động ---
+ const clockT=new THREE.Clock();
+ renderer.setAnimationLoop(()=>{
+  if(!office3DVisible||document.hidden)return;
+  const dt=Math.min(clockT.getDelta(),.05),t=clockT.elapsedTime;
+  for(const id in agents){
+   const A=agents[id],p=A.grp.position;
+   const dx=A.target.x-p.x,dz=A.target.z-p.z,dist=Math.hypot(dx,dz);
+   if(dist>.05){
+    const step=Math.min(dist,4.4*dt); p.x+=dx/dist*step; p.z+=dz/dist*step; A.walking=true;
+    const targetRot=Math.atan2(dx,dz); let dr=targetRot-A.grp.rotation.y; while(dr>Math.PI)dr-=2*Math.PI; while(dr<-Math.PI)dr+=2*Math.PI; A.grp.rotation.y+=dr*Math.min(1,dt*10);
+    const sw=Math.sin(t*11+A.phase)*.55;
+    A.legL.rotation.x=sw; A.legR.rotation.x=-sw; A.armL.rotation.x=-sw*.8; A.armR.rotation.x=sw*.8;
+    p.y=Math.abs(Math.sin(t*11+A.phase))*.05;
+    const pos=A.path.geometry.attributes.position; pos.setXYZ(0,p.x,.06,p.z); pos.setXYZ(1,A.target.x,.06,A.target.z); pos.needsUpdate=true; A.path.computeLineDistances(); A.path.visible=true;
+   } else {
+    A.walking=false; A.path.visible=false;
+    A.legL.rotation.x*=.8; A.legR.rotation.x*=.8; A.armL.rotation.x*=.8; A.armR.rotation.x*=.8;
+    p.y=Math.sin(t*1.7+A.phase)*.015;
+   }
+   if(zapId===id){
+    zapClock+=dt;
+    const burst=(zapClock%1.7)<.38;
+    if(burst){A.grp.rotation.z=(Math.random()-.5)*.22; if(Math.random()<.5){const from=new THREE.Vector3(cagePos.x+(Math.random()-.5)*2,2.6,cagePos.z+(Math.random()-.5)*2); const to=new THREE.Vector3(p.x,1.5,p.z); for(const b of bolts){jaggedBolt(b,from,to); b.visible=true;}}}
+    else {A.grp.rotation.z=0; for(const b of bolts)b.visible=false;}
+   } else if(A.grp.rotation.z)A.grp.rotation.z=0;
+  }
+  if(parcel.visible){parcel.position.lerp(parcelTarget,Math.min(1,dt*5)); parcel.position.y=1.15+Math.sin(t*2.4)*.07; parcel.rotation.y+=dt*.8;}
+  holoGlobe.rotation.y+=dt*.4; holoRing1.rotation.z+=dt*.8; holoRing2.rotation.z-=dt*.6; holoGlobe.position.y=3.05+Math.sin(t*1.3)*.07;
+  camera.position.set(Math.sin(orbit.theta)*Math.sin(orbit.phi)*orbit.radius,Math.cos(orbit.phi)*orbit.radius,Math.cos(orbit.theta)*Math.sin(orbit.phi)*orbit.radius);
+  camera.lookAt(0,.8,0);
+  renderer.render(scene,camera);
+ });
+}
