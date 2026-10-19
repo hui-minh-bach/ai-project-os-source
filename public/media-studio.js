@@ -301,7 +301,7 @@ $('#mediaJobs').addEventListener('click',async event=>{
 $('#mediaRefreshJobs').addEventListener('click',async()=>{await experienceRefresh();await mediaRefreshJobs()});
 $('#mediaShowAllHistory').addEventListener('change',mediaRenderJobs);
 document.addEventListener('project-change',()=>{void mediaRefreshJobs();void mediaPlannerRefresh()});
-document.addEventListener('page-change',e=>{if(e.detail.page==='engines'){void mediaRefreshJobs();void mediaPlannerRefresh();}});
+document.addEventListener('page-change',e=>{if(e.detail.page==='studio'){void mediaRefreshJobs();void mediaPlannerRefresh();}});
 setInterval(()=>{if(!document.hidden&&$('#page-engines')?.classList.contains('active'))mediaRefreshJobs()},8000);
 mediaSwitchMode('analyze');mediaSourceRefresh();mediaDirectorSourceRefresh();mediaRenderStatus();void mediaPlannerRefresh();
 

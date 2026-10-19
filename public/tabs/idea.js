@@ -41,15 +41,15 @@ function ideaRenderBrief(brief){
 }
 function ideaRenderChat(p){
  const messages=p?.messages||[];
- $('#chat').innerHTML=messages.length?messages.map(m=>`<div class="idea-message ${m.role==='user'?'user':'assistant'}"><span class="idea-avatar">${ideaIcon(m.role==='user'?'user':'crown')}</span><div class="idea-message-body"><div class="idea-message-content">${esc(m.content)}</div><div class="idea-message-meta"><time datetime="${esc(m.at)}">${Number.isFinite(Date.parse(m.at))?esc(new Intl.DateTimeFormat('vi-VN',{hour:'2-digit',minute:'2-digit'}).format(new Date(m.at))):''}</time>${m.role==='user'?`<span class="${m.status==='failed'?'failed':''}">${m.status==='failed'?(m.interruptedAt?'Bị gián đoạn — hãy gửi lại':'Gửi thất bại'):m.status==='pending'?'Đang gửi…':'✓✓'}</span>`:''}</div></div></div>`).join(''):`<div class="idea-empty"><span data-idea-icon="crown">${ideaIcon('crown')}</span><strong>${p?'Bắt đầu cùng AI Founder':'Ý tưởng mới bắt đầu từ đây'}</strong><p>${p?esc(p.idea||'Điền thông tin dự án và nhắn cho Founder để làm rõ ý tưởng.'): 'Điền thông tin bên trái, lưu ý tưởng và phân vai Founder tại Kết nối để bắt đầu.'}</p></div>`;
+ $('#chat').innerHTML=messages.length?messages.map(m=>`<div class="idea-message ${m.role==='user'?'user':'assistant'}"><span class="idea-avatar">${ideaIcon(m.role==='user'?'user':'crown')}</span><div class="idea-message-body"><div class="idea-message-content">${esc(m.content)}</div><div class="idea-message-meta"><time datetime="${esc(m.at)}">${Number.isFinite(Date.parse(m.at))?esc(new Intl.DateTimeFormat('vi-VN',{hour:'2-digit',minute:'2-digit'}).format(new Date(m.at))):''}</time>${m.role==='user'?`<span class="${m.status==='failed'?'failed':''}">${m.status==='failed'?(m.interruptedAt?'Bị gián đoạn — hãy gửi lại':'Gửi thất bại'):m.status==='pending'?'Đang gửi…':'✓✓'}</span>`:''}</div></div></div>`).join(''):`<div class="idea-empty"><span data-idea-icon="crown">${ideaIcon('crown')}</span><strong>${p?'Bắt đầu cùng Trưởng phòng':'Ý tưởng mới bắt đầu từ đây'}</strong><p>${p?esc(p.idea||'Nhắn cho Trưởng phòng để làm rõ ý tưởng.'): 'Cứ nhắn ý tưởng vào đây — Trưởng phòng sẽ trao đổi, tự lập hồ sơ dự án và nhận việc. Không cần điền mẫu.'}</p></div>`;
  $('#chat').scrollTop=$('#chat').scrollHeight;
 }
 function ideaRenderRole(){
  const available=ideaRole?.status==='verified';
- $('#ideaFounderStatus').textContent=ideaBusy?'Founder đang xử lý…':available?`Founder · ${ideaRole.model}`:ideaRole?.status==='locked'?'Vault đang khóa':'Chọn Founder tại Kết nối';
+ $('#ideaFounderStatus').textContent=ideaBusy?'Trưởng phòng đang xử lý…':available?`Trưởng phòng · ${ideaRole.model}`:ideaRole?.status==='locked'?'Vault đang khóa':'Chọn AI trưởng phòng (vai Founder) tại Kết nối';
  $('#ideaFounderStatus').title=ideaRole?.message||$('#ideaFounderStatus').textContent;
  for(const id of ['sendChat','ideaAnalyze'])$('#'+id).disabled=ideaBusy;
- $('#ideaSendCouncil').disabled=ideaBusy;
+ $('#ideaSendCouncil').disabled=ideaBusy;const _aj=$('#ideaAcceptJob');if(_aj)_aj.disabled=ideaBusy;
  $('#ideaClearChat').disabled=ideaBusy||ideaDraft||!state.project?.messages?.length;
  $('#ideaNewProject').disabled=ideaBusy;$('#ideaAttach').disabled=ideaBusy;$('#chatInput').disabled=ideaBusy;
  for(const id of ['projectName','ideaProductType','ideaAudience','ideaGoals'])$('#'+id).disabled=ideaBusy;
@@ -77,13 +77,13 @@ $('#ideaBriefForm').onsubmit=e=>{e.preventDefault();ideaAction(async()=>{await i
 for(const id of ['projectName','ideaProductType','ideaAudience','ideaGoals'])$('#'+id).addEventListener('input',ideaMarkDirty);
 $('#ideaNewProject').onclick=()=>{ideaDraft=true;ideaDirty=true;ideaRole=null;for(const id of ['projectName','ideaProductType','ideaAudience','ideaGoals'])$('#'+id).value='';ideaSelectedFeatures.clear();ideaRenderFeatures();ideaRenderChat(null);ideaRenderStack(null);ideaRenderBrief(null);$('#chatInput').value='';$('#ideaSaveStatus').textContent='Dự án mới · chưa lưu';ideaError();ideaRenderRole();$('#projectName').focus();};
 $('#sendChat').onclick=()=>ideaAction(async()=>{
- const message=$('#chatInput').value.trim();if(!message)throw new Error('Hãy nhập tin nhắn.');const p=await ideaSave();
+ const message=$('#chatInput').value.trim();if(!message)throw new Error('Hãy nhập tin nhắn.');const p=await ideaEnsureProject();
  try{await api(`/api/projects/${encodeURIComponent(p.id)}/chat`,{method:'POST',body:JSON.stringify({message})});$('#chatInput').value='';}
  finally{await chooseProject(p.id);}
 });
 $('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#sendChat').click();}});
 $('#ideaClearChat').onclick=()=>{if(ideaBusy)return;modal('<h2>Xóa cuộc trò chuyện?</h2><p>Hội thoại Founder và bản phân tích của dự án sẽ được xóa. Thông tin ý tưởng vẫn được giữ lại.</p><div class="inline"><button class="ghost" id="ideaCancelClear">Giữ hội thoại</button><button class="primary" id="ideaConfirmClear">Xóa hội thoại</button></div>');$('#ideaCancelClear').onclick=()=>$('#modal').classList.add('hidden');$('#ideaConfirmClear').onclick=()=>{$('#modal').classList.add('hidden');ideaAction(async()=>{if(!state.project||ideaDraft)return;await api(`/api/projects/${encodeURIComponent(state.project.id)}/chat/clear`,{method:'POST',body:'{}'});await chooseProject(state.project.id);toast('Đã xóa hội thoại Founder');});};};
-$('#ideaAnalyze').onclick=()=>ideaAction(async()=>{const p=await ideaSave();await api(`/api/projects/${encodeURIComponent(p.id)}/analyze-idea`,{method:'POST',body:'{}'});await chooseProject(p.id);toast('Đã phân tích ý tưởng và tạo project brief');});
+$('#ideaAnalyze').onclick=()=>ideaAction(async()=>{const p=await ideaEnsureProject();await api(`/api/projects/${encodeURIComponent(p.id)}/analyze-idea`,{method:'POST',body:'{}'});await chooseProject(p.id);toast('Đã phân tích ý tưởng và tạo project brief');});
 $('#ideaSendCouncil').onclick=()=>ideaAction(async()=>{const p=await ideaSave();await api(`/api/projects/${encodeURIComponent(p.id)}/send-council`,{method:'POST',body:'{}'});await chooseProject(p.id);page('council');toast('Đã gửi project brief sang AI Council');});
 $('#ideaAttach').onclick=()=>$('#ideaAttachment').click();
 $('#ideaAttachment').onchange=async()=>{const file=$('#ideaAttachment').files[0];if(!file)return;try{if(file.size>65536)throw new Error('Tài liệu phải nhỏ hơn 64 KB.');const content=await file.text();if(content.includes('\u0000'))throw new Error('Chỉ hỗ trợ tài liệu văn bản.');const value=[$('#chatInput').value,`Tài liệu: ${file.name}\n${content}`].filter(Boolean).join('\n\n');if(value.length>16000)throw new Error('Tin nhắn kèm tài liệu vượt 16.000 ký tự.');$('#chatInput').value=value;ideaError();$('#chatInput').focus();}catch(e){ideaError(e.message);}finally{$('#ideaAttachment').value='';}};
@@ -144,5 +144,36 @@ $('#newsPanel').addEventListener('change',async e=>{
  try{await api(`/api/ingest/sources/${encodeURIComponent(t.dataset.newsToggle)}/enabled`,{method:'POST',body:JSON.stringify({enabled:t.checked})});await renderNewsSources()}
  catch(err){toast(err.message);t.checked=!t.checked}
 });
-document.addEventListener('page-change',e=>{if(e.detail.page==='idea')renderNewsSources()});
+document.addEventListener('page-change',e=>{if(e.detail.page==='radar')renderNewsSources()});
 renderNewsSources();
+
+// ===== Bàn tiếp nhận (đợt B): nguồn dự án + hiện diện tại văn phòng =====
+let ideaSource=localStorage.getItem('aios-idea-source')||'new';
+function ideaRenderSource(){
+ $$('.idea-source-chip').forEach(b=>{const on=b.dataset.source===ideaSource;b.classList.toggle('primary',on);b.classList.toggle('ghost',!on);});
+ const gh=$('#ideaGithubBox'); if(gh)gh.hidden=ideaSource!=='github';
+ const pg=$('#page-idea'); if(pg)pg.classList.toggle('chat-only',ideaSource==='new');
+ const hint=$('#ideaSourceHint');
+ if(hint)hint.textContent=ideaSource==='github'?'Chọn một repo có sẵn để nhập thành dự án — trưởng phòng đọc hướng dẫn trong repo và lập danh sách việc tiếp tục cho đội.':ideaSource==='files'?'Dùng nút kẹp giấy trong khung trò chuyện để đính kèm file cho trưởng phòng đọc (.txt/.md/.json/.csv).':'Cứ nhắn ý tưởng vào ô chat — trưởng phòng trao đổi, tự lập hồ sơ và nhận việc. Muốn điền theo mẫu thì bấm “Mẫu chi tiết”.';
+}
+$$('.idea-source-chip').forEach(b=>b.addEventListener('click',()=>{ideaSource=b.dataset.source;localStorage.setItem('aios-idea-source',ideaSource);ideaRenderSource();}));
+ideaRenderSource();
+let ideaIntakeTimer=null;
+function ideaIntakePing(){
+ const active=ideaDirty||!!(state.project?.messages||[]).some(m=>m.role==='user');
+ if(active){try{localStorage.setItem('aios-intake',JSON.stringify({ts:Date.now(),lead:ideaRole?.connectionId||null}));}catch{}}
+}
+document.addEventListener('page-change',e=>{
+ if(e.detail.page==='idea'){ideaSource=localStorage.getItem('aios-idea-source')||'new';ideaRenderSource();ideaIntakePing();clearInterval(ideaIntakeTimer);ideaIntakeTimer=setInterval(ideaIntakePing,25000);}
+ else{clearInterval(ideaIntakeTimer);ideaIntakeTimer=null;}
+});
+{const aj=$('#ideaAcceptJob'); if(aj)aj.addEventListener('click',()=>ideaAction(async()=>{await ideaEnsureProject();ideaIntakePing();toast('Trưởng phòng đã nhận việc — đội chuyển sang họp chốt spec.');page('council');}));}
+
+{const ft=$('#ideaFormToggle'); if(ft)ft.addEventListener('click',()=>{const pg=$('#page-idea');const on=pg.classList.toggle('show-form');ft.textContent=on?'💬 Chỉ dùng ô chat':'📝 Mẫu chi tiết';});}
+async function ideaEnsureProject(){
+ const f=ideaFields();
+ if(['name','productType','audience','goals'].every(k=>f[k]))return ideaSave();
+ const payload={name:f.name||'Dự án mới',productType:f.productType||'',audience:f.audience||'',goals:f.goals||'',mainFeatures:f.mainFeatures};
+ const p=ideaDraft||!state.project?await api('/api/projects',{method:'POST',body:JSON.stringify(payload)}):await api(`/api/projects/${encodeURIComponent(state.project.id)}/brief`,{method:'POST',body:JSON.stringify(payload)});
+ ideaDirty=false;ideaDraft=false;state.project=p;await loadProjects();return p;
+}

@@ -95,13 +95,13 @@ export async function founderChat(id,connectionId,message){
 }
 export async function analyzeIdea(id){
   const p=getProject(id);const target=projectRoleTarget(p,'founder');
-  if(!p.productType||!p.audience?.trim()||!p.goals?.trim())throw new Error('Hãy điền loại sản phẩm, đối tượng người dùng và mục tiêu.');
+  if(!(p.productType&&p.audience?.trim()&&p.goals?.trim())&&!p.idea?.trim()&&!(p.messages||[]).some(m=>m.role==='user'))throw new Error('Hãy trao đổi với Trưởng phòng về ý tưởng (hoặc điền đủ loại sản phẩm, đối tượng, mục tiêu) trước khi phân tích.');
   ideaStart(id);
   try{
     const text=await ask(target,{system:'IDEA_BRIEF_V1. Bạn là solution architect và AI Founder. Phân tích ý tưởng thật, tránh tự bịa yêu cầu; đánh dấu câu hỏi chưa rõ trong openQuestions. Trả JSON thuần theo schema '+IDEA_BRIEF_SCHEMA+'. summary/problem/audience và goals/features/userFlows/successCriteria cần có nội dung. Mỗi danh sách tối đa 20 mục. Phân tích riêng GitHub, Vercel, Database, Auth, Storage, Domain, Payments và Backend. Chỉ chọn hạ tầng cần thiết. Không xem bản brief là specification đã được hội đồng duyệt.'+skillPrompt(['founder-discovery','system-architecture','security-review'],{role:'founder'}),prompt:briefContext(p)});
     const brief=normalizeAnalyzedBrief(extractJson(text));
     if((getProject(id).briefRevision||0)!==(p.briefRevision||0))throw new Error('Thông tin đã thay đổi trong khi phân tích. Hãy phân tích lại.');
-    return mutateProject(id,x=>{x.analyzedBrief={...brief,analyzedAt:now(),revision:x.briefRevision||0};x.stack=brief.stack;x.councilBrief=null;x.activity.push({at:now(),text:'Founder phân tích structured project brief'});});
+    return mutateProject(id,x=>{x.analyzedBrief={...brief,analyzedAt:now(),revision:x.briefRevision||0};x.stack=brief.stack;x.councilBrief=null;if(!x.audience?.trim()&&typeof brief.audience==='string'&&brief.audience.trim())x.audience=brief.audience.trim().slice(0,3000);if(!x.goals?.trim()&&Array.isArray(brief.goals)&&brief.goals.length)x.goals=brief.goals.join('\n').slice(0,6000);if(!x.productType)x.productType='other';x.activity.push({at:now(),text:'Founder phân tích structured project brief'});});
   }finally{ideaPending.delete(id);}
 }
 export function sendBriefToCouncil(id){

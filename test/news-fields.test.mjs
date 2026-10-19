@@ -8,8 +8,8 @@ import { createIngestStore } from '../src/lib/ingest.mjs';
 import { createOrchestrator, createSimulatedAi, defaultOrchestratorConfig } from '../src/lib/orchestrator.mjs';
 
 test('news fields: catalog is complete and Google News URL is a plain RSS feed', () => {
-  assert.equal(NEWS_FIELDS.length, 10);
-  assert.equal(new Set(NEWS_FIELDS.map(f => f.id)).size, 10);
+  assert.equal(NEWS_FIELDS.length, 20);
+  assert.equal(new Set(NEWS_FIELDS.map(f => f.id)).size, 20);
   for (const f of listNewsFields()) assert.ok(f.keywords.length >= 5, f.id);
   assert.equal(newsFieldById('the-thao').label, 'Thể thao');
   const url = googleNewsRssUrl('bóng đá Việt Nam');
@@ -122,14 +122,14 @@ test('orchestrator: per-field daily cap stops a second run for the same field', 
   assert.ok(second.skipped.some(s => s.reason === 'field-daily-cap'));
 });
 
-test('news fields: server routes and Idea UI are wired', () => {
+test('news fields: server routes and Radar UI are wired', () => {
   const server = fs.readFileSync(new URL('../src/server.mjs', import.meta.url), 'utf8');
   assert.match(server, /\/api\/ingest\/fields/);
   assert.match(server, /fields-summary/);
   assert.match(server, /googleNewsRssUrl/);
-  const ideaHtml = fs.readFileSync(new URL('../public/tabs/idea.html', import.meta.url), 'utf8');
+  const radarHtml = fs.readFileSync(new URL('../public/tabs/radar.html', import.meta.url), 'utf8');
   const ideaJs = fs.readFileSync(new URL('../public/tabs/idea.js', import.meta.url), 'utf8');
-  assert.match(ideaHtml, /id="newsFields"/);
+  assert.match(radarHtml, /id="newsFields"/);
   assert.match(ideaJs, /renderNewsFields/);
   assert.match(ideaJs, /data-news-field-toggle/);
   assert.match(ideaJs, /fieldLabel/);

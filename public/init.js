@@ -25,7 +25,8 @@ async function customerBootstrap(){
   customerShowFailure(first.name,first.error);
   $('#customerErrorMessage').textContent+=` (${failures.length} mục chưa tải được). Hãy kiểm tra Local Worker rồi nhấn Thử kết nối lại.`;
  }
- try{renderHome();}catch(error){customerShowFailure('Tổng quan',error);}
+ try{renderHome();}catch(error){customerShowFailure('Trang chủ',error);}
+ try{page('map');}catch{}
  customerBooting=false;if(retry)retry.disabled=false;
 }
 customerBootstrap();

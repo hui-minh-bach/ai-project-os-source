@@ -1,29 +1,31 @@
 <!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AI Project OS — Local Worker | AI Core + Media</title><script src="/theme.js"></script><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/tabs/home.css"><link rel="stylesheet" href="/tabs/connections.css"><link rel="stylesheet" href="/tabs/idea.css"><link rel="stylesheet" href="/tabs/council.css"><link rel="stylesheet" href="/tabs/team.css"><link rel="stylesheet" href="/tabs/skills.css"><link rel="stylesheet" href="/tabs/engines.css"><link rel="stylesheet" href="/tabs/map.css"><link rel="stylesheet" href="/tabs/publish.css"><link rel="stylesheet" href="/tabs/guide.css"><link rel="stylesheet" href="/experience.css"><link rel="stylesheet" href="/light-theme.css"></head><body>
 <div class="shell">
 <aside aria-label="Điều hướng chính"><div class="brand"><div class="brandLine"><span>◆</span> AI Project OS <b>LOCAL</b></div><small>Local Worker · tích hợp 3 phần</small></div>
-<button class="nav active" data-page="home"><span class="navIcon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 2 11 9h-3v11h-6v-7h-4v7H4V11H1Z"/></svg></span> Tổng quan</button>
+<button class="nav active" data-page="map"><span class="navIcon" aria-hidden="true">⌘</span> Project Map</button>
 <button class="nav" data-page="connections"><span class="navIcon" aria-hidden="true">⛓</span> Kết nối</button>
 <button class="nav" data-page="idea"><span class="navIcon" aria-hidden="true">✦</span> Idea Studio</button>
-<button class="nav" data-page="council"><span class="navIcon" aria-hidden="true">◈</span> AI Council</button>
+<button class="nav" data-page="studio"><span class="navIcon" aria-hidden="true">🎬</span> Video Studio</button>
 <button class="nav" data-page="team"><span class="navIcon" aria-hidden="true">▦</span> AI Team</button>
+<button class="nav" data-page="radar"><span class="navIcon" aria-hidden="true">📡</span> Radar tin</button>
 <button class="nav" data-page="skills"><span class="navIcon" aria-hidden="true">🧩</span> Skill Hub</button>
 <button class="nav" data-page="engines"><span class="navIcon" aria-hidden="true">⚙</span> Engine Hub</button>
-<button class="nav" data-page="map"><span class="navIcon" aria-hidden="true">⌘</span> Project Map</button>
 <button class="nav" data-page="publish"><span class="navIcon" aria-hidden="true">🚀</span> Publish</button>
 <button class="nav" data-page="guide"><span class="navIcon" aria-hidden="true">?</span> Hướng dẫn</button>
 <div class="secure">🔒&nbsp; local-only: 127.0.0.1<br><span id="vaultBadge">Vault đang khóa</span></div></aside>
-<main><header><div><h1 id="pageTitle">Tổng quan</h1><p id="subtitle">Một ô chat cho người dùng — nhiều AI và engine phối hợp phía sau.</p></div><div class="topActions"><select id="globalProjectSelect" aria-label="Dự án hiện tại"></select><button id="globalSearch" class="ghost" title="Tìm dự án, tab và skills (Ctrl+K)" aria-label="Tìm kiếm">⌕ <span class="searchLabel">Tìm kiếm</span></button><select id="themeSelect" aria-label="Chọn một trong năm giao diện"><option value="ocean">🌊 Ocean Blue</option><option value="emerald">🌿 Emerald Teal</option><option value="aurora">🌌 Aurora Violet</option><option value="arctic">☀ Arctic Light</option><option value="amber">🔥 Amber Copper</option></select><span class="integration-dot" id="integrationBadge" title="Trạng thái AI Core">Core: đang kiểm tra</span><button id="vaultBtn" class="ghost">Mở Vault</button></div></header>
+<main><header><div><h1 id="pageTitle">Project Map</h1><p id="subtitle">Nhìn toàn bộ dự án trong một màn hình.</p></div><div class="topActions"><select id="globalProjectSelect" aria-label="Dự án hiện tại"></select><button id="globalSearch" class="ghost" title="Tìm dự án, tab và skills (Ctrl+K)" aria-label="Tìm kiếm">⌕ <span class="searchLabel">Tìm kiếm</span></button><select id="themeSelect" aria-label="Chọn một trong năm giao diện"><option value="ocean">🌊 Ocean Blue</option><option value="emerald">🌿 Emerald Teal</option><option value="aurora">🌌 Aurora Violet</option><option value="arctic">☀ Arctic Light</option><option value="amber">🔥 Amber Copper</option></select><span class="integration-dot" id="integrationBadge" title="Trạng thái AI Core">Core: đang kiểm tra</span><button id="vaultBtn" class="ghost">Mở Vault</button></div></header>
 <div class="customer-error-banner hidden" id="customerErrorBanner" role="alert" aria-live="assertive"><div><strong id="customerErrorTitle">Không thể tải dữ liệu cục bộ</strong><p id="customerErrorMessage">Dữ liệu vẫn nằm trên máy; vui lòng thử lại.</p></div><button id="customerRetry" type="button" class="ghost">Thử kết nối lại</button><button id="customerShowGuide" type="button" class="ghost">Cách khắc phục</button></div>
-
-<!-- TAB:home -->
 
 <!-- TAB:connections -->
 
 <!-- TAB:idea -->
 
+<!-- TAB:studio -->
+
 <!-- TAB:council -->
 
 <!-- TAB:team -->
+
+<!-- TAB:radar -->
 
 <!-- TAB:skills -->
 
@@ -35,4 +37,4 @@
 
 <!-- TAB:guide -->
 </main></div>
-<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Hộp thoại AI Project OS"><div class="modalCard"><button id="closeModal" class="x" aria-label="Đóng hộp thoại">×</button><div id="modalBody"></div></div></div><div id="toast" class="toast" role="status" aria-live="polite"></div><script src="/app.js"></script><script src="/tabs/home.js"></script><script src="/tabs/connections.js"></script><script src="/tabs/idea.js"></script><script src="/tabs/council.js"></script><script src="/tabs/team.js"></script><script src="/tabs/skills.js"></script><script src="/tabs/engines.js"></script><script src="/tabs/map.js"></script><script src="/tabs/publish.js"></script><script src="/tabs/guide.js"></script><script src="/experience.js"></script><script src="/media-studio.js"></script><script src="/init.js"></script></body></html>
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Hộp thoại AI Project OS"><div class="modalCard"><button id="closeModal" class="x" aria-label="Đóng hộp thoại">×</button><div id="modalBody"></div></div></div><div id="toast" class="toast" role="status" aria-live="polite"></div><script src="/app.js"></script><script src="/tabs/home.js"></script><script src="/tabs/connections.js"></script><script src="/tabs/idea.js"></script><script src="/tabs/council.js"></script><script src="/tabs/team.js"></script><script src="/tabs/skills.js"></script><script src="/tabs/engines.js"></script><script src="/tabs/map.js"></script><script src="/tabs/publish.js"></script><script src="/tabs/radar.js"></script><script src="/tabs/guide.js"></script><script src="/experience.js"></script><script src="/media-studio.js"></script><script src="/init.js"></script></body></html>

@@ -174,3 +174,20 @@ html[data-theme="arctic"] .notice{background:#fff7df;color:#7a540c;border-color:
 #mediaStudio .mediaTemplateCard .mediaTemplateIcon{font-size:20px}
 #mediaStudio .mediaTemplateCard b{font-size:13px}
 #mediaStudio .mediaTemplateCard small{font-size:11px;line-height:1.45;color:#a7a7ba}
+
+/* ===== Media Studio — đợt C (0.9.34): biên tập kiểu CapCut/Concat =====
+   Sân khấu dính (sticky) để xem trước luôn trước mắt trong khi cột phải cuộn;
+   dòng thời gian thành thanh biên tập tối rõ lớp; sân khấu nền đen letterbox. */
+#page-studio .mediaStudio{border-radius:14px;padding:14px}
+#mediaStudio .mediaStageCol{position:sticky;top:10px}
+#mediaStudio .mediaStage{background:#000;border:1px solid #2b2b36;border-radius:12px;padding:10px;display:flex;justify-content:center}
+#mediaStudio .mediaStage video{max-height:54vh;width:100%;background:#000;border-radius:6px}
+#mediaStudio .mediaTransport{display:flex;justify-content:center;gap:8px;padding:8px 0 2px}
+#mediaStudio .mediaTransport button{background:#23232d;border:1px solid #31313e;color:#e6e3f2;border-radius:8px;min-width:40px;padding:5px 8px}
+#mediaStudio .mediaTransport button:hover{border-color:#7c6cf0}
+#mediaStudio .mediaTimelineWrap{background:#101016;border:1px solid #2b2b36;border-radius:12px;padding:10px 12px;margin-top:12px}
+#mediaStudio .mediaTlTrack{background:#1a1a21;border-color:#2e2e3a;height:36px}
+#mediaStudio .mediaTlBlock{height:28px;top:4px;font-size:10px}
+#mediaStudio .mediaTlRuler{border-bottom-color:#2e2e3a}
+#mediaStudio .mediaSideCol{display:flex;flex-direction:column;gap:12px}
+@media (max-width:1180px){#mediaStudio .mediaStageCol{position:static}}

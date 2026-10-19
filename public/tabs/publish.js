@@ -9,7 +9,7 @@ $('#openSupabaseCreate').onclick=async()=>{const id=$('#supabaseSelect').value;i
 $('#attachDomain').onclick=async()=>{try{const x=await api(`/api/projects/${state.project.id}/vercel/domain`,{method:'POST',body:JSON.stringify({connectionId:$('#vercelSelect').value,deploymentUrl:$('#domainDeployment').value,domain:$('#customDomain').value})});$('#domainResult').textContent=x.output||('✓ '+x.domain);toast('Đã gửi yêu cầu gắn domain')}catch(e){$('#domainResult').textContent=e.message;toast(e.message)}};
 
 /* ---- Vòng khép kín & đăng nền tảng (YouTube / Facebook / TikTok) ---- */
-const clPipelines=[['news-video','Tin tức → Video ngắn'],['dub-video','Video nước ngoài → Lồng tiếng'],['idea-film','Ý tưởng → Phim ngắn']];
+const clPipelines=[['news-video','Tin tức → Video ngắn'],['news-article','Tin tức → Bài phân tích'],['dub-video','Video nước ngoài → Lồng tiếng'],['idea-film','Ý tưởng → Phim ngắn']];
 const clPlatformList=[['youtube','YouTube'],['facebook','Facebook'],['tiktok','TikTok']];
 const clRunStates={pending:'Đang chờ',queued:'Đang chờ',scheduled:'Đã lên lịch',running:'Đang chạy','awaiting-approval':'Chờ duyệt đăng',approved:'Đã duyệt',publishing:'Đang đăng',completed:'Hoàn thành',done:'Hoàn thành',succeeded:'Hoàn thành',failed:'Thất bại',error:'Thất bại',stopped:'Đã dừng',cancelled:'Đã hủy',skipped:'Bỏ qua'};
 const clStepStates={pending:'chờ',queued:'chờ',running:'đang chạy',completed:'xong',done:'xong',succeeded:'xong',failed:'lỗi',error:'lỗi',skipped:'bỏ qua'};
@@ -61,7 +61,7 @@ function clRenderRecords(){
  if(!rows.length){box.innerHTML='<div class="empty">Chưa có bài đăng nào được ghi nhận.</div>';return}
  const fmt=n=>n===null||n===undefined?'—':new Intl.NumberFormat('vi-VN').format(n);
  const updated=rows.map(r=>r.metricsUpdatedAt).filter(Boolean).sort().at(-1);
- box.innerHTML=`<div style="overflow:auto"><table style="width:100%;border-collapse:collapse"><thead><tr>${['Nền tảng','Tiêu đề','Thời gian','Lượt xem','Thích','Bình luận','Liên kết'].map(h=>`<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line)">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>{const url=clSafeUrl(r.url);const pn=(clPlatformList.find(p=>p[0]===r.platform)||[])[1]||r.platform||'';return `<tr><td style="padding:6px;border-bottom:1px solid var(--line)">${esc(pn)} ${clSimBadge(r.simulated)}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${esc(r.title||r.platformVideoId||'')}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${esc(clTime(r.publishedAt))}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${fmt(r.metrics?.views)}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${fmt(r.metrics?.likes)}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${fmt(r.metrics?.comments)}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Mở ↗</a>`:'—'}</td></tr>`}).join('')}</tbody></table></div>${updated?`<p class="muted">Số liệu cập nhật lần cuối: ${esc(clTime(updated))}</p>`:''}`;
+ box.innerHTML=`<div style="overflow:auto"><table style="width:100%;border-collapse:collapse"><thead><tr>${['Nền tảng','Tiêu đề','Thời gian','Lượt xem','Thích','Bình luận','Liên kết'].map(h=>`<th style="text-align:left;padding:6px;border-bottom:1px solid var(--line)">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>{const url=clSafeUrl(r.url);const pn=(clPlatformList.find(p=>p[0]===r.platform)||[])[1]||r.platform||'';return `<tr><td style="padding:6px;border-bottom:1px solid var(--line)">${esc(pn)} ${clSimBadge(r.simulated)}${r.draft?' <span class="tag warn">📝 Bản nháp</span>':''}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${esc(r.title||r.platformVideoId||'')}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${esc(clTime(r.publishedAt))}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${fmt(r.metrics?.views)}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${fmt(r.metrics?.likes)}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${fmt(r.metrics?.comments)}</td><td style="padding:6px;border-bottom:1px solid var(--line)">${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Mở ↗</a>`:'—'}</td></tr>`}).join('')}</tbody></table></div>${updated?`<p class="muted">Số liệu cập nhật lần cuối: ${esc(clTime(updated))}</p>`:''}`;
 }
 async function loadClosedLoop(){
  if(!$('#closedLoopPanel'))return;
@@ -69,7 +69,7 @@ async function loadClosedLoop(){
  if(statusR.status==='fulfilled'){clData.platforms=statusR.value.media?.platforms||{};clData.publishRecordTotal=statusR.value.media?.publishRecords??null}
  if(orchR.status==='fulfilled'){clData.config=orchR.value.config||null;clData.runs=orchR.value.runs||[]}
  if(recR.status==='fulfilled'){clData.records=recR.value.records||[]}
- clRenderPlatforms();clRenderControls();clRenderRuns();clRenderRecords();
+ clRenderPlatforms();clRenderControls();clRenderRuns();clRenderRecords();clRenderStats();
 }
 function clCollectConfig(){
  const cfg=structuredClone(clData.config||{pipelines:{}});
@@ -104,7 +104,7 @@ $('#closedLoopPanel').addEventListener('click',async e=>{
  const runBtn=e.target.closest('[data-cl-run]'),apBtn=e.target.closest('[data-cl-approve]');
  try{
   if(e.target.id==='clRefresh'){await loadClosedLoop();toast('Đã làm mới vòng khép kín');return}
-  if(e.target.id==='clMetricsRefresh'){e.target.disabled=true;try{await api('/api/publish/metrics/refresh',{method:'POST',body:'{}'});await loadClosedLoop();toast('Đã cập nhật số liệu')}finally{e.target.disabled=false}return}
+  if(e.target.id==='clMetricsRefresh'||e.target.id==='pubStatsRefresh'){e.target.disabled=true;try{await api('/api/publish/metrics/refresh',{method:'POST',body:'{}'});await loadClosedLoop();toast('Đã cập nhật số liệu')}finally{e.target.disabled=false}return}
   if(e.target.id==='clSaveConfig'){const config=clCollectConfig();const saved=await api('/api/orchestrator/config',{method:'POST',body:JSON.stringify({config})});clData.config=saved.config||config;clRenderControls();toast('Đã lưu cấu hình vòng khép kín');return}
   if(runBtn){runBtn.disabled=true;try{await clRunPipeline(runBtn.dataset.clRun)}finally{runBtn.disabled=false}return}
   if(apBtn){apBtn.disabled=true;await api(`/api/orchestrator/runs/${encodeURIComponent(apBtn.dataset.clApprove)}/approve`,{method:'POST',body:'{}'});toast('Đã duyệt — hệ thống đang đăng bài');await loadClosedLoop();return}
@@ -182,3 +182,18 @@ $('#ghCreatePr')?.addEventListener('click',async()=>{
 });
 const ghOrigRenderPublish=renderPublish;
 renderPublish=async function(){await ghOrigRenderPublish();ghRenderBinding();};
+
+function clRenderStats(){
+ const kpi=$('#pubStatsKpis'),ch=$('#pubStatsChannels');if(!kpi)return;
+ const rows=clData.records||[];const posted=rows.filter(r=>!r.draft);const drafts=rows.filter(r=>r.draft);
+ const fmt=n=>new Intl.NumberFormat('vi-VN').format(n||0);
+ const sum=k=>posted.reduce((a,r)=>a+(Number(r.metrics?.[k])||0),0);
+ const hasShares=posted.some(r=>r.metrics&&'shares' in r.metrics);
+ const cards=[['Tổng bài đã đăng',fmt(posted.length)],['Lượt xem',fmt(sum('views'))],['Lượt thích',fmt(sum('likes'))],['Bình luận',fmt(sum('comments'))],['Chia sẻ',hasShares?fmt(sum('shares')):'— (nền tảng không trả số này)'],['Bản nháp chờ đăng',fmt(drafts.length)]];
+ kpi.innerHTML=cards.map(([t,v])=>`<div class="card"><h4>${t}</h4><p style="font-size:22px;font-weight:700">${v}</p></div>`).join('');
+ if(ch){
+   const by={};for(const r of posted){const b=by[r.platform]||(by[r.platform]={n:0,views:0,likes:0});b.n++;b.views+=Number(r.metrics?.views)||0;b.likes+=Number(r.metrics?.likes)||0;}
+   const names=Object.fromEntries(clPlatformList);
+   ch.innerHTML='<h4>Kênh / trang đang nắm giữ</h4>'+(Object.keys(by).length?Object.entries(by).map(([k,b])=>`<p>${esc(names[k]||k)} — <b>${fmt(b.n)}</b> bài · ${fmt(b.views)} lượt xem · ${fmt(b.likes)} lượt thích ${clData.platforms[k]?.accountLabel?`· ${esc(clData.platforms[k].accountLabel)}`:''}</p>`).join(''):'<p class="muted">Chưa có bài đăng nào được ghi nhận. Khi vòng khép kín đăng bài thật (hoặc mô phỏng có ghi rõ), số liệu sẽ hiện ở đây.</p>');
+ }
+}

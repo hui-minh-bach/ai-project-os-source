@@ -85,3 +85,8 @@
 @media(min-width:1001px){#page-idea .idea-founder{height:833px}#page-idea .idea-setup{max-height:833px;overflow:auto;scrollbar-width:none}#page-idea .idea-setup::-webkit-scrollbar{display:none}}
 #page-idea #ideaAudience{height:48px;min-height:48px}
 #page-idea .idea-field{margin-bottom:16px}
+
+/* Bàn tiếp nhận: nguồn 'Dự án mới' = chỉ ô chat, ẩn bảng mẫu (đợt B2) */
+#page-idea.chat-only:not(.show-form) .idea-setup{display:none}
+#page-idea.chat-only:not(.show-form) .idea-layout{grid-template-columns:1fr}
+#page-idea.chat-only:not(.show-form) .idea-founder{height:calc(100vh - 210px)}

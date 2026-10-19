@@ -201,6 +201,7 @@ function officeFigure(a){
 }
 const OFFICE_STATIONS={
  boss:{x:50,y:10,label:'👔 Bàn Sếp Lâm'},
+ intake:{x:63,y:12,label:'🤝 Nhận việc với Sếp'},
  news:{x:15,y:27,label:'📰 Tin tức'},
  script:{x:38,y:20,label:'✍️ Biên tập'},
  image:{x:62,y:20,label:'🎨 Hình ảnh'},
@@ -243,7 +244,7 @@ function officeRosterCast(){
  return [OFFICE_CAST[0],...bots];
 }
 function officeStationOf(agentId,ctx){
- const bot=officeFleetBot(agentId); if(bot)return bot.station==='bay'?'lounge':bot.station;
+ const bot=officeFleetBot(agentId); if(bot){try{const ink=JSON.parse(localStorage.getItem('aios-intake')||'null');if(ink&&Date.now()-ink.ts<180000&&(!ink.lead||ink.lead===bot.connectionId))return 'intake';}catch{} return bot.station==='bay'?'lounge':bot.station;}
  const a=OFFICE_CAST.find(x=>x.id===agentId); if(!a)return 'lounge';
  if(ctx.culprit&&ctx.culprit.agentId===agentId)return 'cage';
  const {activeRun,awaiting,tasks}=ctx;

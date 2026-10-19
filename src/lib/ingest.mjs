@@ -20,7 +20,7 @@ function decodeEntities(text){
   .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
 }
 function cleanText(raw){
- return decodeEntities(String(raw||'').replace(/<[^>]*>/g,' ')).replace(/\s+/g,' ').replace(/\s+([,.;:!?…])/g,'$1').trim();
+ return decodeEntities(decodeEntities(String(raw||'')).replace(/<\/?(a|font|b|i|u|p|br|div|span|img|table|thead|tbody|tr|td|th|ul|ol|li|strong|em|small|sub|sup|h[1-6])\b[^>]*>/gi,' ')).replace(/\s+/g,' ').replace(/\s+([,.;:!?…])/g,'$1').trim();
 }
 function tagText(block,tag){
  const m=block.match(new RegExp('<'+tag+'(?:\\s[^>]*)?>([\\s\\S]*?)</'+tag+'>','i'));
@@ -71,6 +71,7 @@ export function parseFeed(xml){
   summary:cleanText(tagText(block,'description')),
   publishedAt:toIso(tagText(block,'pubDate')),
   guid:cleanText(tagText(block,'guid')),
+  publisher:cleanText(tagText(block,'source'))||null,
  }));
 }
 
@@ -159,7 +160,7 @@ export function createIngestStore({file,fetchImpl}={}){
    seen.add(hash);
    const cardFieldId=source.fieldId||classifyNewsField(item);
    const scored=scoreNewsItem(item,{fieldId:cardFieldId});
-   state.cards.push({id:crypto.randomUUID(),sourceId:source.id,title:item.title||'(không có tiêu đề)',summary:String(item.summary||'').slice(0,500),link:item.link||'',publishedAt:item.publishedAt||null,fetchedAt,hash,usedByProjectId:null,fieldId:cardFieldId,score:scored.score,scoreBasis:scored.basis});
+   state.cards.push({id:crypto.randomUUID(),sourceId:source.id,title:item.title||'(không có tiêu đề)',summary:String(item.summary||'').slice(0,500),link:item.link||'',publisher:item.publisher||null,publishedAt:item.publishedAt||null,fetchedAt,hash,usedByProjectId:null,fieldId:cardFieldId,score:scored.score,scoreBasis:scored.basis});
    added++;
   }
   source.lastScanAt=fetchedAt;source.lastError=null;save();

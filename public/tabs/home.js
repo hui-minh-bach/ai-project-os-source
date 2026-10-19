@@ -39,7 +39,7 @@ function homeProjectStage(project){
   return ['idea',stage==='discovery'?'Khám phá':'Ý tưởng',stage==='discovery'?'Đang làm rõ ý tưởng':'Chưa bắt đầu'];
 }
 function homeNextAction(project){
- if(!project)return {label:'Tạo dự án đầu tiên',page:'home',description:'Chưa có dự án trên máy.'};
+ if(!project)return {label:'Tạo dự án đầu tiên',page:'map',description:'Chưa có dự án trên máy.'};
  const stage=project.stage;
  if(['deployed','published'].includes(stage))return {label:'Xem tiến độ',page:'map',description:'Kiểm tra kết quả và lịch sử trước khi xuất bản tiếp.'};
  if(['planned','approved-spec','building'].includes(stage))return {label:'Mở AI Team',page:'team',description:'Kiểm tra nhiệm vụ và quyết định bước xử lý tiếp theo.'};

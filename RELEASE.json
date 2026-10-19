@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.33",
-  "channel": "v0.9.33-tam01-account-fleet",
+  "version": "0.9.34",
+  "channel": "v0.9.34-ui-restructure-radar",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -181,7 +181,13 @@
     "office_glb_models": "implemented_0.9.31_user_uploads_one_glb_per_cast_member_in_team_tab_stored_under_data_dir_office_models_served_locally_gltfloader_vendored_clips_idle_work_walk_cheer_fail_driven_by_real_office_state_procedural_robot_kept_as_fallback_and_for_members_without_a_model",
     "media_karaoke_story_tts": "implemented_0.9.31_story_and_tts_video_now_burn_karaoke_word_by_word_captions_whisper_anchored_when_local_whisper_available_else_deterministic_proportional_same_engine_as_dub_and_retheme",
     "office_glb_room": "implemented_0.9.32_office_room_glb_built_from_owner_approved_ai_concept_images_loaded_as_team_tab_office_environment_agents_and_real_state_wiring_unchanged_station_coordinates_identical_deck_height_offset_applied_baked_glb_lights_removed_procedural_room_kept_as_automatic_fallback_plus_in_app_post_chain_same_as_design_preview_bloom_.34_.4_.8_vignette_cool_grade_outputpass_lazy_loaded_with_plain_render_fallback",
-    "office_account_fleet": "tam01_v2_bundled_character_cloned_per_ai_account_up_to_10_bots_states_from_real_data_working_at_desks_via_project_worker_binding_failed_latest_to_electric_cage_with_replacement_idle_charging_bay_unverified_dimmed_offline_provider_tinted_emission_clips_typekeyboard_walkforward_idlebreath_approve_reject"
+    "office_account_fleet": "tam01_v2_bundled_character_cloned_per_ai_account_up_to_10_bots_states_from_real_data_working_at_desks_via_project_worker_binding_failed_latest_to_electric_cage_with_replacement_idle_charging_bay_unverified_dimmed_offline_provider_tinted_emission_clips_typekeyboard_walkforward_idlebreath_approve_reject",
+    "ui_project_map_home": "Project Map is the home page: source strip (new idea / GitHub / local files / news radar) opens the intake flow; the former overview dashboard lives inside the map page",
+    "idea_reception_desk": "Idea Studio is a reception desk: one lead AI (Trưởng phòng tiếp nhận), chat-first intake for new projects (the brief is derived from the conversation and backfilled by analysis), GitHub import box, and an explicit Nhận việc & giao đội hand-off; the lead bot stands at the boss desk in the office while an intake is active",
+    "video_studio_tab": "Video & Story Studio is its own top-level tab with a CapCut-style dark editor layout (sticky preview stage, bottom multi-track timeline)",
+    "publish_stats_dashboard": "Publish opens with a statistics dashboard: posted totals, views/likes/comments/shares and per-channel rollups computed from the real publish records; article drafts are counted separately",
+    "news_radar": "News Radar tab: 20 selectable fields (dropdown, per-user), Tin nổi bật top-scored panel, per-card Làm video / Viết bài phân tích actions that start orchestrator runs ending at the boss approval gate; video posts gain deterministic field hashtags; articles are produced with caption + hashtags and delivered as publish drafts after approval",
+    "news_law_official_sources": "Vietnamese law field is restricted to official sources (chinhphu.vn, baochinhphu.vn, vbpl.vn, Ministry of Justice, National Assembly, courts, procuracy): cards show the publisher and an official-source badge or an explicit unverified-source warning, plus the legal document reference when present"
   },
   "online_provider_apis": "separate user credentials and provider charges",
   "build": "Integration-ABC-v0.8.5-Recorded-Workflow-Fix-Internal-RC-2026-10-16",

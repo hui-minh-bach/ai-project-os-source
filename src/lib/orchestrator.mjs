@@ -13,6 +13,7 @@
  * and (for publishing) the platform record exists.
  */
 import fs from 'node:fs';
+import { hashtagsForField } from './news-fields.mjs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
@@ -22,7 +23,7 @@ const mediaSubtitles = require('../../integrations/media-engine/src/subtitles.cj
 function err(code, message) { const e = new Error(message); e.code = code; return e; }
 const todayKey = (d) => d.toISOString().slice(0, 10);
 
-export const PIPELINE_IDS = ['news-video', 'dub-video', 'idea-film'];
+export const PIPELINE_IDS = ['news-video', 'news-article', 'dub-video', 'idea-film'];
 export function defaultOrchestratorConfig() {
   return {
     enabled: false,
@@ -30,6 +31,7 @@ export function defaultOrchestratorConfig() {
     ingestScanMinutes: 30,
     pipelines: {
       'news-video': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 2, activeHours: [7, 21], targetLanguage: 'vi', fieldIds: [], perFieldDailyCap: 1 },
+      'news-article': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['facebook'], dailyCap: 2, activeHours: [7, 21], targetLanguage: 'vi', fieldIds: [], perFieldDailyCap: 1 },
       'dub-video': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 2, activeHours: [7, 21], sourceLanguage: 'en', targetLanguage: 'vi' },
       'idea-film': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 1, activeHours: [7, 21], targetLanguage: 'vi' },
     },
@@ -235,10 +237,22 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       const script = await ai.writeNewsScript({ projectId: project.id, card });
       meta = script;
       step(run, 'ai.script', 'done', { provider: script.provider, aiMode: ai.mode });
+      { const tags = hashtagsForField(run.fieldId || card.fieldId); if (tags.length) script.publishDescription = (String(script.publishDescription || '') + '\n\n' + tags.join(' ')).slice(0, 1000); }
       const before = new Set(host.listArtifacts(project.id).map(a => a.id));
       await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', rights: 'summarized-from-source-with-credit' });
       step(run, 'produce.story', 'done');
       videoRel = materializeVideo(run, project.id, before);
+      ingest.markCardUsed(card.id, project.id);
+    } else if (run.pipeline === 'news-article') {
+      const card = ingest.listCards().find(c => c.id === run.cardId);
+      if (!card) throw err('ORCHESTRATOR_INPUT', 'Thẻ tin không còn tồn tại.');
+      const script = await ai.writeNewsScript({ projectId: project.id, card });
+      meta = script;
+      step(run, 'ai.script', 'done', { provider: script.provider, aiMode: ai.mode });
+      const tags = hashtagsForField(run.fieldId || card.fieldId);
+      const caption = `${script.publishTitle}\n\n${script.publishDescription}\n\n${tags.join(' ')}`.trim();
+      run.article = { title: script.publishTitle, body: script.text, description: script.publishDescription, caption, hashtags: tags, sourceUrl: card.link || null };
+      step(run, 'produce.article', 'done', { hashtags: tags.length });
       ingest.markCardUsed(card.id, project.id);
     } else if (run.pipeline === 'idea-film') {
       const script = await ai.writeIdeaScript({ projectId: project.id, idea: run.ideaText });
@@ -296,7 +310,7 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     const cfg = state.config.pipelines[pipelineId];
     if (activeRun(pipelineId)) throw err('ORCHESTRATOR_BUSY', `Quy trình ${pipelineId} đang có một lượt chạy chưa kết thúc. Hãy chờ hoặc duyệt lượt đó trước.`);
     if (runsToday(pipelineId) >= (cfg.dailyCap || 1)) throw err('ORCHESTRATOR_CAP', `Đã đạt trần ${cfg.dailyCap} sản phẩm hôm nay cho quy trình ${pipelineId}.`);
-    const inputCard = pipelineId === 'news-video' && input.cardId ? ingest.listCards().find(c => c.id === input.cardId) : null;
+    const inputCard = (pipelineId === 'news-video' || pipelineId === 'news-article') && input.cardId ? ingest.listCards().find(c => c.id === input.cardId) : null;
     const run = {
       id: idgen(), pipeline: pipelineId, state: 'running', createdAt: now().toISOString(),
       cardId: input.cardId || null, fieldId: inputCard?.fieldId || null, sourceVideo: input.sourceVideo || null,
@@ -310,6 +324,12 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     return structuredClone(run);
   }
 
+  function publishArticleDraft(run) {
+    const rec = host.publishRecords.append({ platform: 'facebook', projectId: run.projectId, taskId: null, title: run.article?.title || run.title, url: null, draft: true, caption: run.article?.caption || '', hashtags: run.article?.hashtags || [], sourceUrl: run.article?.sourceUrl || null, publishedAt: now().toISOString(), endpointHost: null, simulated: false, metrics: null, metricsUpdatedAt: null });
+    step(run, 'publish:draft', 'done', { recordId: rec?.id || null });
+    run.publish = [{ platform: 'facebook', recordId: rec?.id || null, url: null, simulated: false, draft: true }];
+  }
+
   async function approveRun(id) {
     const run = getRun(id);
     if (!run) throw err('ORCHESTRATOR_NOT_FOUND', 'Không tìm thấy lượt chạy.');
@@ -318,7 +338,8 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     run.state = 'running';
     step(run, 'gate', 'approved');
     try {
-      await publishAll(run, run.projectId, run.finalVideo, run.publishMeta);
+      if (run.pipeline === 'news-article') publishArticleDraft(run);
+      else await publishAll(run, run.projectId, run.finalVideo, run.publishMeta);
       run.state = 'completed';
       run.completedAt = now().toISOString();
     } catch (e) { run.state = 'failed'; run.error = { code: e.code || 'ORCHESTRATOR_RUN', message: String(e.message || e).slice(0, 400), ...(Array.isArray(e.failures) ? { failures: e.failures } : {}) }; }
