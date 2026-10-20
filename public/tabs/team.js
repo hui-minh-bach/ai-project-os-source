@@ -186,7 +186,7 @@ const OFFICE_CAST=[
 /* Hình nhân viên: người chibi vẽ bằng SVG — chân tay chuyển động khi đi. */
 function officeBotSpriteKey(provider){return {'ChatGPT':'chatgpt','Claude':'claude','Gemini':'gemini','Google Gemini':'gemini','Antigravity':'antigravity'}[provider]||'default'}
 function officeFigure(a){
- if(a.fleet){const pk=officeBotSpriteKey(a.fleet.provider); return `<span class="office-bot-sprites" aria-hidden="true"><img class="bot-sprite bot-pose-idle" src="/assets/bots/tam19-${pk}-idle.png" alt=""><img class="bot-sprite bot-pose-work" src="/assets/bots/tam19-${pk}-work.png" alt=""><img class="bot-sprite bot-pose-walk" src="/assets/bots/tam19-${pk}-walk.png" alt=""></span>`;}
+ if(a.fleet){const pk=officeBotSpriteKey(a.fleet.provider); return `<span class="office-bot-sprites" aria-hidden="true"><img class="bot-sprite bot-pose-idle" src="/assets/bots/tam19-${pk}-idle.png" alt=""><span class="bot-sit-window"><img class="bot-sit-sheet" src="/assets/bots/tam19-${pk}-sit.png" alt=""></span><img class="bot-sprite bot-pose-walk" src="/assets/bots/tam19-${pk}-walk.png" alt=""></span>`;}
  return `<svg class="office-figure" viewBox="0 0 48 66" aria-hidden="true">
   <g class="fig-bob">
    <g class="fig-leg fig-leg-l"><rect x="18.5" y="42" width="5" height="17" rx="2.4" fill="#3b3b4d"/><rect x="17.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
