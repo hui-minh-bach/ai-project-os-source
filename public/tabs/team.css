@@ -210,12 +210,12 @@
 .office-room::before{content:'';position:absolute;inset:0;background:
  repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 44px),
  repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 1px,transparent 1px 44px)}
-.office-station{position:absolute;transform:translate(-50%,-50%);padding:5px 10px;border-radius:999px;background:rgba(28,28,35,.88);border:1px solid #343442;color:#b9b9cc;font-size:11.5px;white-space:nowrap;z-index:1}
+.office-station{position:absolute;transform:translate(-50%,-50%);padding:2px 7px;border-radius:999px;background:rgba(20,22,30,.68);border:1px solid rgba(80,90,110,.5);color:#c9cede;font-size:10px;white-space:nowrap;z-index:1}
 .office-agent{position:absolute;transform:translate(-50%,-50%);z-index:3;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;border:0;cursor:pointer;transition:left 1.15s ease,top 1.15s ease;padding:0}
 .office-agent-icon{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:50%;font-size:22px;background:radial-gradient(circle at 35% 30%,#3d3d55,#23232f);border:2px solid #4a4a63;box-shadow:0 6px 16px rgba(0,0,0,.45)}
 .office-agent.office-busy .office-agent-icon{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.25),0 6px 16px rgba(0,0,0,.45)}
-.office-agent-name{font-size:11.5px;font-weight:600;color:#f0f0f8;background:rgba(16,16,22,.85);padding:1px 7px;border-radius:999px;border:1px solid #343442;max-width:132px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.office-agent-badge{font-size:10.5px;color:#ffd479;background:rgba(60,45,5,.85);padding:1px 6px;border-radius:999px;border:1px solid #6b5518}
+.office-agent-name{font-size:10px;font-weight:600;color:#f0f0f8;background:rgba(16,16,22,.82);padding:0 6px;border-radius:999px;border:1px solid #343442;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.office-agent-badge{font-size:9.5px;color:#ffd479;background:rgba(60,45,5,.85);padding:0 5px;border-radius:999px;border:1px solid #6b5518}
 .office-package{position:absolute;transform:translate(-50%,-50%);font-size:24px;z-index:2;transition:left 1.15s ease,top 1.15s ease;filter:drop-shadow(0 6px 8px rgba(0,0,0,.5))}
 .office-approve-bar{display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 14px;border-radius:10px;background:rgba(70,50,8,.35);border:1px solid #6b5518;color:#ffe1a1;font-size:13.5px}
 .office-approve-bar button{margin-left:auto}
@@ -224,7 +224,7 @@
 @media (max-width:760px){.office-station{font-size:10.5px}}
 
 /* ===== Nhân viên SVG + hoạt họa đi bộ (0.9.24) ===== */
-.office-station::after{content:'';position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);width:76px;height:12px;border-radius:6px;background:linear-gradient(180deg,#4b3a28,#33261a);box-shadow:0 4px 8px rgba(0,0,0,.4);opacity:.85}
+.office-station::after{content:none}
 .office-agent-shadow{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:40px;height:9px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(2px)}
 .office-figure{width:46px;height:63px;display:block;overflow:visible}
 .office-agent .fig-bob{animation:officeIdle 2.6s ease-in-out infinite}

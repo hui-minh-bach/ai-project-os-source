@@ -185,6 +185,19 @@ const OFFICE_CAST=[
 ];
 /* Hình nhân viên: người chibi vẽ bằng SVG — chân tay chuyển động khi đi. */
 function officeFigure(a){
+ if(a.fleet) return `<svg class="office-figure" viewBox="0 0 48 66" aria-hidden="true">
+  <g class="fig-bob">
+   <rect x="22.9" y="2" width="2.2" height="6" rx="1.1" fill="#9aa7bd"/><circle cx="24" cy="2.6" r="2" fill="${a.color}"/>
+   <g class="fig-leg fig-leg-l"><rect x="18.5" y="42" width="5" height="17" rx="2.4" fill="#3b3b4d"/><rect x="17.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
+   <g class="fig-leg fig-leg-r"><rect x="24.5" y="42" width="5" height="17" rx="2.4" fill="#33333f"/><rect x="23.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
+   <g class="fig-arm fig-arm-l"><rect x="9.5" y="25" width="5" height="15" rx="2.5" fill="${a.color}"/></g>
+   <g class="fig-arm fig-arm-r"><rect x="33.5" y="25" width="5" height="15" rx="2.5" fill="${a.color}"/></g>
+   <rect x="13" y="22" width="22" height="22" rx="7" fill="${a.color}"/>
+   <rect x="12" y="6" width="24" height="17" rx="8" fill="#e8edf5"/>
+   <rect x="15.5" y="9.5" width="17" height="10" rx="5" fill="#10151d"/>
+   <circle cx="20.5" cy="14.5" r="1.7" fill="${a.color}"/><circle cx="27.5" cy="14.5" r="1.7" fill="${a.color}"/>
+   <rect x="29" y="30" width="8" height="10" rx="1.6" fill="#10151d" stroke="#9aa7bd" stroke-width=".8"/>
+  </g></svg>`;
  return `<svg class="office-figure" viewBox="0 0 48 66" aria-hidden="true">
   <g class="fig-bob">
    <g class="fig-leg fig-leg-l"><rect x="18.5" y="42" width="5" height="17" rx="2.4" fill="#3b3b4d"/><rect x="17.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
@@ -247,6 +260,12 @@ let officeNames={}; try{officeNames=JSON.parse(localStorage.getItem('aios-office
 let officeState={runs:[],cards:[],tasks:[],loaded:false,lastFeed:[],fleet:null,rosterSig:''};
 const officePrevPos={},officeWalkTimers={};
 function officeAgentName(a){return officeNames[a.id]||a.name}
+function officeDisplayName(a,roster){
+ if(!a.fleet)return officeAgentName(a);
+ const same=(roster||[]).filter(x=>x.fleet&&x.fleet.provider===a.fleet.provider);
+ if(same.length<2)return a.fleet.provider;
+ return a.fleet.provider+' '+(same.findIndex(x=>x.id===a.id)+1);
+}
 // --- Đội bot theo tài khoản (0.9.33): mỗi kết nối AI là một bot TAM01 ---
 function officeFleetActive(){return Boolean(officeState.fleet&&Array.isArray(officeState.fleet.bots));}
 function officeFleetBot(agentId){
@@ -328,10 +347,10 @@ function officeRender(){
   }
   officePrevPos[a.id]={station:stId+':'+slot,x:targetX};
   el.style.left=targetX+'%'; el.style.top=`calc(${st.y}% + ${32+rowY}px)`;
-  el.querySelector('.office-agent-name').textContent=officeAgentName(a);
+  el.querySelector('.office-agent-name').textContent=officeDisplayName(a,roster);
   const badge=el.querySelector('.office-agent-badge');
   let badgeText='';
-  if(a.fleet){const b=a.fleet; badgeText=b.cage?'⚡ đang bị chích điện':b.state==='working'?'đang làm việc…':b.state==='failed'?'⚡ vừa lỗi — chờ thay ca':b.state==='charging'?'🔋 đang sạc':'🔌 chưa kết nối';}
+  if(a.fleet){const b=a.fleet; badgeText=b.cage?'⚡ đang bị chích điện':b.state==='working'?'đang làm việc…':b.state==='failed'?'⚡ vừa lỗi — chờ thay ca':'';}
   else if(a.id==='boss'&&awaiting)badgeText='✋ chờ duyệt';
   if(a.id==='news'&&unused)badgeText=unused+' tin mới';
   if(a.id==='media'&&ctx.stage==='produce')badgeText='đang dựng…';

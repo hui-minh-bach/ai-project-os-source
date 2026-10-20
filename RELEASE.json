@@ -1,7 +1,7 @@
 {
  "product": "AI Project OS Local Worker",
- "version": "0.9.38",
- "channel": "v0.9.38-tam19-new-room",
+ "version": "0.9.39",
+ "channel": "v0.9.39-office-declutter",
  "windows": {
   "architecture": "x64",
   "minimum": "Windows 10 64-bit",
@@ -193,7 +193,8 @@
   "radar_field_tiles": "Radar tin: hàng ô bo tròn chọn nhanh lĩnh vực (20 lĩnh vực) phía trên ô chọn; đã bỏ panel quản lý Nguồn tin khỏi tab Radar — lưới tin + Tin nổi bật như bản mẫu.",
   "idea_move_leftovers_fixed": "Bản vá các chỗ sót khi gom AI Team vào Idea Studio (bắt được nhờ kiểm độc lập sau 0.9.36): vòng cập nhật văn phòng 4 giây và vòng thực thi task 1,5 giây nay neo đúng trang Idea (văn phòng tự làm mới liên tục, không đứng im sau lần vẽ đầu); xử lý click bảng task gắn đúng trang Idea (bấm thẻ task mở chi tiết, menu ⋮ dùng được); toàn bộ CSS bảng task (theme tối + sáng) đổi neo từ trang AI Team cũ sang #page-idea nên bảng có định dạng trở lại; nút AI Team và mục rủi ro trong Project Map dẫn về Idea Studio; Hướng dẫn hết chỉ dẫn nguồn RSS đã gỡ.",
   "tam19_fleet_body": "Đội bot tài khoản dùng thân robot mới GuardianViet TAM19 (P09) do chủ sở hữu cung cấp: GLB 2,6MB, 5 clip (Idle, Walk, Greeting, Approve, InspectTablet — việc = InspectTablet, duyệt = Approve, lỗi = Idle trong chuồng chích điện), nhuộm màu theo hãng vào mắt phát sáng + men ngọc lam. TAM19 là hoạt hình theo node (không skin) — nhân bản nguyên cây node cho từng bot.",
-  "office_isometric_room": "Phông phòng 2D mới: phòng vũ trụ isometric render từ source Python do chủ sở hữu cung cấp (render lại 3000×2000 ngay trên máy chủ build) — 7 bàn có biển tên (SẾP LÂM, RESEARCH, CONTENT, DESIGN, VIDEO, CODE, QUALITY), phòng nạp năng lượng + phòng chích điện bằng kính, cầu hologram giữa phòng. Tọa độ trạm 2D được chiếu toán học từ scene gốc và đối chiếu với ảnh render, bot đứng đúng bàn/buồng. Phòng 3D (bấm nút) giữ nguyên bản cũ."
+  "office_isometric_room": "Phông phòng 2D mới: phòng vũ trụ isometric render từ source Python do chủ sở hữu cung cấp (render lại 3000×2000 ngay trên máy chủ build) — 7 bàn có biển tên (SẾP LÂM, RESEARCH, CONTENT, DESIGN, VIDEO, CODE, QUALITY), phòng nạp năng lượng + phòng chích điện bằng kính, cầu hologram giữa phòng. Tọa độ trạm 2D được chiếu toán học từ scene gốc và đối chiếu với ảnh render, bot đứng đúng bàn/buồng. Phòng 3D (bấm nút) giữ nguyên bản cũ.",
+  "office_declutter": "Gọn mặt tiền văn phòng 2D (theo phản hồi \"rối nùi\"): bot tài khoản có hình robot riêng (đầu trắng, ăng-ten, mắt màu hãng, thân màu hãng) thay hình người chung; bảng tên rút gọn theo hãng + số thứ tự khi trùng (ChatGPT 1/2/3, Gemini); bỏ nhãn trạng thái lặp trên từng bot (chỉ còn nhãn khi đang làm việc hoặc bị chích điện — chi tiết đầy đủ nằm ở dòng trạng thái dưới phòng); chip trạm nhỏ và trong hơn; bỏ khay bàn giả dưới chip trạm vì tranh phòng đã có bàn thật."
  },
  "online_provider_apis": "separate user credentials and provider charges",
  "build": "Integration-ABC-v0.8.5-Recorded-Workflow-Fix-Internal-RC-2026-10-16",
