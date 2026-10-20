@@ -16,8 +16,24 @@ function mediaRenderStatus(data=experience.status){
   const on=data.core.status==='active';
   el.innerHTML=`<span class="${on?'mediaSuccess':'mediaError'}">Core: ${on?'đang chạy':'chưa kích hoạt'}</span><span>Concat: ${data.media.concat?.configured?'đã cấu hình token (cần xác minh Remote)':'chưa nối Remote'}</span><span>Giọng local: ${data.media.localTts?.ready?'Piper sẵn sàng':'dùng giọng trong Concat hoặc nạp file'}</span><span>Whisper: ${data.media.whisper?.ready?'đã có model':'chưa cài model'}</span><span class="${data.media.status==='available'?'mediaSuccess':'mediaError'}">FFmpeg: ${data.media.ffmpeg?'dự phòng sẵn sàng':'chưa có'}</span><span>Đăng bài: chưa mở</span>`;
   const warn=$('#mediaLimitations');if(warn)warn.textContent=on?'Không cần HeyGen API: Concat có biên tập, giọng đọc và phụ đề local trong ứng dụng. Để TỰ động tạo giọng qua một tác vụ cần Piper + model offline; nếu Concat đã tạo WAV/MP3 thì nạp tại Thay giọng thật. API Concat 0.2 chưa điều khiển TTS trực tiếp. Đăng bài vẫn khóa.':'Core chưa hoạt động. Kiểm tra Local Worker và mở Vault; không nhập khóa API vào trình duyệt.';
+  mediaRenderKokoroRow(data);
   mediaGuardUnavailableOptions(data);
 }
+function mediaRenderKokoroRow(data){
+  const row=$('#mediaKokoroRow');if(!row)return;
+  const k=data?.media?.kokoroTts;
+  row.hidden=false;
+  const st=$('#mediaKokoroStatus'),btn=$('#mediaKokoroInstall');
+  if(!k){st.textContent='Kokoro: chưa rõ trạng thái.';return;}
+  if(k.ready){st.textContent=`Kokoro (giọng Anh local): sẵn sàng — giọng: ${k.voices.join(', ')}.`;btn.hidden=true;}
+  else{st.textContent='Kokoro (giọng Anh local, Apache-2.0): chưa cài.';btn.hidden=false;btn.disabled=!!k.installing;btn.textContent=k.installing?'⏳ Đang cài Kokoro…':'⬇ Cài Kokoro (~95MB)';}
+}
+$('#mediaKokoroInstall')?.addEventListener('click',async()=>{
+  const btn=$('#mediaKokoroInstall'),st=$('#mediaKokoroStatus');
+  btn.disabled=true;btn.textContent='⏳ Đang cài Kokoro… (tải ~95MB, giữ mạng ổn định)';
+  try{const r=await api('/api/media/kokoro/install',{method:'POST'});if(st)st.textContent='Kokoro: cài xong — sẵn sàng.';toast('Kokoro đã sẵn sàng — chọn "Kokoro" ở ô giọng đọc khi lồng tiếng Anh');mediaRenderKokoroRow({media:{kokoroTts:r}});}
+  catch(e){if(st)st.textContent='Cài Kokoro lỗi: '+e.message;btn.disabled=false;btn.textContent='⬇ Cài Kokoro (~95MB)';}
+});
 function mediaGuardUnavailableOptions(data){
   const media=data?.media||{};
   const whisperReady=!!media.whisper?.ready;

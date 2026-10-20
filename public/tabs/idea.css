@@ -90,3 +90,22 @@
 #page-idea.chat-only:not(.show-form) .idea-setup{display:none}
 #page-idea .idea-work{padding:12px 14px;max-height:833px;overflow:auto;scrollbar-width:thin}
 #page-idea .idea-work .idea-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}
+
+/* Đội AI bàn việc — luồng sự kiện thật tại bàn tiếp nhận */
+.idea-meeting{margin-top:14px;border-top:1px solid var(--border,#223);padding-top:10px}
+.idea-meeting-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.idea-meeting-head h3{margin:0;font-size:14px}
+#ideaMeetingLive{font-size:12px;color:#7ee2a8}
+.idea-meeting-feed{max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px 2px}
+.meeting-row{display:flex;gap:8px;align-items:baseline;background:rgba(127,166,255,.06);border:1px solid rgba(127,166,255,.12);border-radius:10px;padding:6px 9px;font-size:13px}
+.meeting-actor{font-weight:700;white-space:nowrap;color:#9fc2ff}
+.meeting-text{flex:1;line-height:1.45;word-break:break-word}
+.meeting-chip{font-size:11px;padding:1px 7px;border-radius:99px;white-space:nowrap;background:#233;color:#cfe3ff}
+.meeting-chip.ok{background:rgba(46,160,90,.25);color:#8fe6b0}
+.meeting-chip.run{background:rgba(30,120,255,.3);color:#bcd6ff;animation:meetingPulse 1.2s ease-in-out infinite}
+.meeting-chip.wait{background:rgba(230,170,40,.28);color:#ffd97a}
+.meeting-chip.fail{background:rgba(220,60,60,.28);color:#ffb3b3}
+.meeting-chip.skip{background:rgba(140,140,140,.25);color:#ccc}
+.meeting-time{font-size:11px;color:#8fa3c8;white-space:nowrap}
+.idea-meeting-note{font-size:12px;margin:4px 0 0}
+@keyframes meetingPulse{50%{opacity:.55}}

@@ -38,6 +38,73 @@ export function defaultOrchestratorConfig() {
   };
 }
 
+/* -------- Reception meeting feed -------- */
+
+/** Render recorded runs as a meeting-style event feed for the intake desk.
+ * Every event is a deterministic rendering of a REAL run record (its creation,
+ * its recorded steps, its gate and its outcome) — never invented dialogue.
+ * The UI labels it as such; simulated steps keep their simulated label. */
+export const PIPELINE_LABELS = Object.freeze({ 'news-video': 'Tin → Video', 'news-article': 'Tin → Bài viết', 'dub-video': 'Lồng tiếng video', 'idea-film': 'Ý tưởng → Phim' });
+const FEED_STEP = Object.freeze({
+  'project': ['Trưởng phòng tiếp nhận', 'lập hồ sơ dự án'],
+  'ai.script': ['AI Biên kịch', 'viết kịch bản'],
+  'produce.story': ['AI Sản xuất', 'dựng video'],
+  'produce.article': ['AI Sản xuất', 'soạn bài viết'],
+  'produce.dub': ['AI Sản xuất', 'lồng tiếng'],
+  'analyze.transcribe': ['AI Phân tích', 'bóc băng lời thoại'],
+  'ai.translate': ['AI Dịch thuật', 'dịch nội dung'],
+  'metrics': ['AI Phát hành', 'cập nhật số liệu'],
+  'run': ['Hệ thống', 'lượt chạy'],
+});
+function feedStepText(step) {
+  const d = step.detail || {};
+  if (step.name === 'gate') {
+    if (step.state === 'waiting') return ['Trưởng phòng tiếp nhận', 'Sản phẩm đã xong — đang chờ Sếp Lâm duyệt đăng.'];
+    if (step.state === 'approved') return ['Sếp Lâm', 'Đã duyệt — cho phép đăng.'];
+    return ['Cổng duyệt', `Cổng duyệt: ${step.state}.`];
+  }
+  if (step.name.startsWith('publish:')) {
+    const platform = step.name.slice('publish:'.length);
+    if (platform === 'draft') return ['AI Phát hành', step.state === 'done' ? 'Đã tạo bản nháp bài đăng.' : 'Không tạo được bản nháp bài đăng.'];
+    if (step.state === 'done') return ['AI Phát hành', `Đã đăng lên ${platform}${d.simulated ? ' (qua môi trường mô phỏng)' : ''}${d.url ? `: ${d.url}` : ''}.`];
+    if (step.state === 'failed') return ['AI Phát hành', `Đăng lên ${platform} thất bại${d.code ? ` (${d.code})` : ''}.`];
+    return ['AI Phát hành', `Đăng ${platform}: ${step.state}.`];
+  }
+  const [actor, work] = FEED_STEP[step.name] || ['Đội AI', step.name];
+  if (step.state === 'done') {
+    let extra = '';
+    if (step.name === 'ai.script' || step.name === 'ai.translate') extra = d.aiMode === 'simulated' ? ' (AI mô phỏng)' : d.provider ? ` (model: ${d.provider})` : '';
+    if (step.name === 'ai.translate' && Number.isFinite(d.segments)) extra += ` — ${d.segments} đoạn`;
+    if (step.name === 'produce.article' && Number.isFinite(d.hashtags)) extra = ` — kèm ${d.hashtags} hashtag`;
+    return [actor, `Đã xong bước ${work}${extra}.`];
+  }
+  if (step.state === 'failed') return [actor, `Lỗi ở bước ${work}${d.code ? ` (${d.code})` : ''}.`];
+  if (step.state === 'skipped') return [actor, `Bỏ qua bước ${work}.`];
+  return [actor, `Bước ${work}: ${step.state}.`];
+}
+export function buildRunFeed(runs, { limit = 150, nowMs = Date.now() } = {}) {
+  const events = [];
+  for (const run of Array.isArray(runs) ? runs : []) {
+    if (!run || typeof run !== 'object') continue;
+    const title = String(run.title || 'Lượt chạy').slice(0, 160);
+    const label = PIPELINE_LABELS[run.pipeline] || run.pipeline || '';
+    events.push({ id: `${run.id}:created`, runId: run.id, at: run.createdAt || null, actor: 'Trưởng phòng tiếp nhận', kind: 'run.created', state: 'info', pipeline: run.pipeline || null, text: `Nhận việc: “${title}”${label ? ` — quy trình ${label}` : ''}.` });
+    (run.steps || []).forEach((step, i) => {
+      if (!step || typeof step !== 'object') return;
+      const [actor, text] = feedStepText(step);
+      events.push({ id: `${run.id}:step:${i}`, runId: run.id, at: step.at || null, actor, kind: step.name, state: step.state, pipeline: run.pipeline || null, text });
+    });
+    if (run.state === 'running') {
+      const last = (run.steps || []).at(-1);
+      events.push({ id: `${run.id}:live`, runId: run.id, at: new Date(nowMs).toISOString(), actor: 'Trưởng phòng tiếp nhận', kind: 'run.live', state: 'running', pipeline: run.pipeline || null, text: `Đang chạy “${title}” — bước gần nhất: ${last ? last.name : 'khởi động'}.` });
+    }
+    if (run.state === 'completed') events.push({ id: `${run.id}:done`, runId: run.id, at: run.completedAt || (run.steps || []).at(-1)?.at || null, actor: 'Trưởng phòng tiếp nhận', kind: 'run.completed', state: 'done', pipeline: run.pipeline || null, text: `Hoàn tất lượt chạy “${title}”.` });
+    if (run.state === 'failed') events.push({ id: `${run.id}:failed`, runId: run.id, at: (run.steps || []).at(-1)?.at || null, actor: 'Hệ thống', kind: 'run.failed', state: 'failed', pipeline: run.pipeline || null, text: `Lượt chạy “${title}” thất bại${run.error?.code ? ` (${run.error.code})` : ''}${run.error?.message ? `: ${String(run.error.message).slice(0, 200)}` : ''}.` });
+  }
+  events.sort((a, b) => String(a.at || '').localeCompare(String(b.at || '')));
+  return events.slice(-limit);
+}
+
 /* -------- AI adapters -------- */
 
 /** Simulated stand-in: deterministic, uses only the input's own text for
@@ -55,7 +122,8 @@ export function createSimulatedAi() {
     async writeNewsScript({ card }) {
       const title = String(card.title || '').trim();
       const summary = String(card.summary || '').trim();
-      const text = [title.endsWith('.') ? title : title + '.', summary, `Thông tin được tổng hợp và viết lại từ nguồn: ${card.link}`].filter(Boolean).join(' ').slice(0, 900);
+      const body = String(card.fullText || '').trim() || summary;
+      const text = [title.endsWith('.') ? title : title + '.', body, `Thông tin được tổng hợp và viết lại từ nguồn: ${card.link}`].filter(Boolean).join(' ').slice(0, 900);
       return { text, publishTitle: title.slice(0, 100), publishDescription: (summary + `\nNguồn: ${card.link}`).slice(0, 1000), provider: 'simulated-local', model: null };
     },
     async writeIdeaScript({ idea }) {
@@ -77,7 +145,7 @@ export function createGatewayAi({ writeTextWithModel, translateSegmentsWithModel
     async writeNewsScript({ projectId, card }) {
       const r = await writeTextWithModel(projectId, {
         instructions: 'Bạn là biên tập viên tin tức video. Viết lời dẫn đọc thành tiếng cho một video tin ngắn 60-90 giây bằng tiếng Việt: viết LẠI bằng lời của mình từ thẻ tin được cung cấp, không sao chép nguyên văn, giữ đúng sự kiện, cuối lời dẫn ghi rõ nguồn. Chỉ trả về lời dẫn thuần văn, không tiêu đề, không markdown.',
-        prompt: JSON.stringify({ title: card.title, summary: card.summary, link: card.link }),
+        prompt: JSON.stringify({ title: card.title, summary: card.summary, body: String(card.fullText || '').slice(0, 3500) || undefined, link: card.link }),
         maxChars: 1400,
       });
       return { text: r.text, publishTitle: String(card.title || '').slice(0, 100), publishDescription: (String(card.summary || '') + `\nNguồn: ${card.link}`).slice(0, 1000), provider: r.provider, model: r.model };
@@ -263,7 +331,7 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       step(run, 'produce.story', 'done');
       videoRel = materializeVideo(run, project.id, before);
     } else if (run.pipeline === 'dub-video') {
-      const params = { source: run.sourceVideo, sourceLanguage: cfg.sourceLanguage || 'en', targetLanguage: cfg.targetLanguage || 'vi', ttsProvider: 'local' };
+      const params = { source: run.sourceVideo, sourceLanguage: cfg.sourceLanguage || 'en', targetLanguage: cfg.targetLanguage || 'vi', ttsProvider: ['local','heygen','fpt','kokoro'].includes(cfg.ttsProvider) ? cfg.ttsProvider : 'local' };
       if (ai.mode === 'simulated') {
         const before = new Set(host.listArtifacts(project.id).map(a => a.id));
         // Copy the source into this project's media flow by analyzing it in

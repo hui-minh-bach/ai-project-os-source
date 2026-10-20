@@ -30,7 +30,8 @@
         <label for="mediaDirectorWish">Bạn muốn gì?</label>
         <textarea id="mediaDirectorWish" rows="3" maxlength="2000" placeholder="Có video: ví dụ “làm bản dọc, thêm phụ đề, nhạc nhẹ” — hoặc để trống để AI tự đề xuất. Chưa có video: gõ ý tưởng, ví dụ “video giải thích vì sao nên uống cà phê buổi sáng, giọng thân thiện”"></textarea>
         <label for="mediaDirectorVoice">Giọng đọc khi lồng tiếng / đổi chủ đề</label>
-        <select id="mediaDirectorVoice"><option value="local" selected>Piper trên máy — miễn phí, hơi máy</option><option value="fpt">FPT.AI — giọng Việt tự nhiên (cần API key, cấu hình ở tab Hướng dẫn)</option><option value="heygen">HeyGen — trả phí theo tài khoản HeyGen</option></select>
+        <select id="mediaDirectorVoice"><option value="local" selected>Piper trên máy — miễn phí, hơi máy</option><option value="kokoro">Kokoro trên máy — giọng Anh tự nhiên (miễn phí, chỉ tiếng Anh)</option><option value="fpt">FPT.AI — giọng Việt tự nhiên (cần API key, cấu hình ở tab Hướng dẫn)</option><option value="heygen">HeyGen — trả phí theo tài khoản HeyGen</option></select>
+        <p class="mediaHint" id="mediaKokoroRow" hidden><span id="mediaKokoroStatus"></span> <button id="mediaKokoroInstall" type="button">⬇ Cài Kokoro (~95MB)</button></p>
         <div class="mediaInline"><button id="mediaDirectorGo" type="button" class="primary">✨ Để AI hiểu &amp; lên kế hoạch</button></div>
         <div id="mediaDirectorPlan" class="mediaDirectorPlan" hidden></div>
       </div>
@@ -170,7 +171,7 @@
         <label for="mediaRethemeCaptionPreset">Kiểu chữ chạy</label>
         <select id="mediaRethemeCaptionPreset"><option value="sweep" selected>Quét vàng — chữ sáng dần theo lời (chuẩn)</option><option value="pop">Chữ nảy — từng từ lớn kiểu TikTok</option><option value="box">Hộp nổi — cả dòng trên nền vàng, chữ hát chuyển đen</option></select>
         <label for="mediaRethemeTts">Giọng đọc mới</label>
-        <select id="mediaRethemeTts"><option value="local" selected>Piper trên máy — miễn phí, hơi máy</option><option value="fpt">FPT.AI — giọng Việt tự nhiên (cần API key)</option><option value="heygen">HeyGen — trả phí</option></select>
+        <select id="mediaRethemeTts"><option value="local" selected>Piper trên máy — miễn phí, hơi máy</option><option value="kokoro">Kokoro trên máy — giọng Anh tự nhiên (chỉ khi chủ đề mới là tiếng Anh)</option><option value="fpt">FPT.AI — giọng Việt tự nhiên (cần API key)</option><option value="heygen">HeyGen — trả phí</option></select>
         <label for="mediaRethemeFptVoice">Giọng FPT.AI (khi chọn FPT.AI)</label>
         <select id="mediaRethemeFptVoice"><option value="banmai">Ban Mai — nữ, miền Bắc</option><option value="lannhi">Lan Nhi — nữ, miền Nam</option><option value="leminh">Lê Minh — nam, miền Bắc</option><option value="giahuy">Gia Huy — nam, miền Nam</option><option value="myan">Mỹ An — nữ, miền Trung</option><option value="thuminh">Thu Minh — nữ, miền Bắc</option><option value="linhsan">Linh San — nữ, miền Nam</option></select>
         

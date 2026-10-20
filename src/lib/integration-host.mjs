@@ -18,6 +18,7 @@ import { createHeygenTts } from './heygen-tts.mjs';
 import { createFptTts } from './fpt-tts.mjs';
 import { templateById, directorPlanForTemplate, MEDIA_TEMPLATES } from './media-templates.mjs';
 import { piperStatus, piperSynthesize, piperVoiceFor } from './local-piper-tts.mjs';
+import { kokoroStatus, kokoroSynthesize, kokoroVoiceFor } from './kokoro-tts.mjs';
 import { buildVoiceover } from './voiceover.mjs';
 import { writeWordCaptions } from './voice-captions.mjs';
 import { DATA_DIR } from './store.mjs';
@@ -111,7 +112,12 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
   function ttsChoice(requested='auto'){
     // Never select a billable provider without an explicit user choice.
     // Legacy 'auto' jobs use local only; if local is absent they block.
-    if(!['auto','local','heygen','fpt'].includes(requested))throw err('BLOCKED_TTS','Nhà cung cấp giọng không hợp lệ.');
+    if(!['auto','local','heygen','fpt','kokoro'].includes(requested))throw err('BLOCKED_TTS','Nhà cung cấp giọng không hợp lệ.');
+    if(requested==='kokoro'){
+      const ks=kokoroStatus(env);
+      if(!ks.ready)throw err('BLOCKED_TTS',ks.installHint);
+      return {provider:'kokoro-local',configured:()=>true,synthesize:input=>kokoroSynthesize({...input,env})};
+    }
     if(requested==='fpt'){
       if(!fptTts.configured())throw err('BLOCKED_TTS','FPT.AI chưa được cấu hình API key; nhập key FPT.AI trong Media Studio hoặc chọn Piper local.');
       return {...fptTts,provider:'fpt'};
@@ -210,7 +216,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       mode=master?'vault-enabled':'local-only';
       const gateway={invoke:async(request)=>{
         const capability=request?.capability;
-        if(capability==='speech.synthesize'){const tts=ttsChoice(request?.input?.ttsProvider||'auto');let input=request.input;if(tts.provider==='piper-local'&&input&&typeof input==='object'){const v=piperVoiceFor(input.voice,env);if(v)input={...input,voice:v};}return tts.synthesize(input);}
+        if(capability==='speech.synthesize'){const tts=ttsChoice(request?.input?.ttsProvider||'auto');let input=request.input;if(tts.provider==='piper-local'&&input&&typeof input==='object'){const v=piperVoiceFor(input.voice,env);if(v)input={...input,voice:v};}if(tts.provider==='kokoro-local'&&input&&typeof input==='object'){const v=kokoroVoiceFor(input.voice,env);if(v)input={...input,voice:v};}return tts.synthesize(input);}
         if(capability==='speech.transcribe'){
           const audio=checkFile(mediaWorkspace,request?.input?.audio||'');
           const jobId=String(request?.jobId||'');
@@ -527,13 +533,14 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const tr=await translateSegmentsWithModel(ctx.projectId,segments,targetLanguage);
           texts=tr.texts;translationMeta={origin:'project-worker-model',provider:tr.provider,model:tr.model};
         }
-        const provider=ttsChoice(['heygen','fpt'].includes(ttsProvider)?ttsProvider:'local');
+        const provider=ttsChoice(['heygen','fpt','kokoro'].includes(ttsProvider)?ttsProvider:'local');
         if(provider.provider==='piper-local'){
           const voiceName=piperStatus(env).voice||'';
           const voiceLang=(voiceName.split(/[_-]/)[0]||'').toLowerCase();
           const targetBase=String(targetLanguage).toLowerCase().split('-')[0];
           if(voiceLang&&voiceLang!==targetBase)throw err('BLOCKED_DUB_VOICE',`Giọng Piper đang cài là ${voiceName} (ngôn ngữ ${voiceLang}), không khớp ngôn ngữ đích ${targetLanguage}. Cài model giọng cho ${targetLanguage} hoặc chọn HeyGen.`);
         }
+        if(provider.provider==='kokoro-local'&&String(targetLanguage).toLowerCase().split('-')[0]!=='en')throw err('BLOCKED_DUB_VOICE',`Kokoro chỉ đọc tiếng Anh, không lồng được sang ${targetLanguage}. Chọn Piper (giọng local đúng ngôn ngữ) hoặc FPT.AI cho tiếng Việt.`);
         const dubAsm=await assembleSpeechTrack({dir,segments,texts,provider,voice,language:targetLanguage,totalSeconds:real.seconds,outName:'dub-track.wav'});
         const segReports=dubAsm.segReports;
         const dubWav=dubAsm.file;
@@ -600,13 +607,14 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const wr=await writeRethemeScriptWithModel(ctx.projectId,segments,{topic,notes,language:targetLanguage});
           texts=wr.texts;scriptMeta={origin:'project-worker-model',provider:wr.provider,model:wr.model};
         }
-        const provider=ttsChoice(['heygen','fpt'].includes(ttsProvider)?ttsProvider:'local');
+        const provider=ttsChoice(['heygen','fpt','kokoro'].includes(ttsProvider)?ttsProvider:'local');
         if(provider.provider==='piper-local'){
           const voiceName=piperStatus(env).voice||'';
           const voiceLang=(voiceName.split(/[_-]/)[0]||'').toLowerCase();
           const targetBase=String(targetLanguage).toLowerCase().split('-')[0];
           if(voiceLang&&voiceLang!==targetBase)throw err('BLOCKED_RETHEME_VOICE',`Giọng Piper đang cài là ${voiceName} (ngôn ngữ ${voiceLang}), không khớp ngôn ngữ giọng mới ${targetLanguage}. Cài model giọng cho ${targetLanguage} hoặc chọn HeyGen.`);
         }
+        if(provider.provider==='kokoro-local'&&String(targetLanguage).toLowerCase().split('-')[0]!=='en')throw err('BLOCKED_RETHEME_VOICE',`Kokoro chỉ đọc tiếng Anh, không đọc được kịch bản ${targetLanguage}. Chọn Piper hoặc FPT.AI cho ngôn ngữ đó.`);
         const rtAsm=await assembleSpeechTrack({dir,segments,texts,provider,voice,language:targetLanguage,totalSeconds:real.seconds,outName:'new-voice-track.wav'});
         const segReports=rtAsm.segReports;
         const voiceWav=rtAsm.file;
@@ -759,7 +767,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       modelVerified:!!usage?.verifiedModelCalls},
       media:{status:media?(probeCache.ffmpeg&&probeCache.ffprobe?'available':'dependency-missing'):'core-offline',
         version:media?.version||'0.1.0',sourceIncluded:true,ffmpeg:probeCache.ffmpeg||null,ffprobe:probeCache.ffprobe||null,
-        operations:Object.keys(ALLOWED_OPERATIONS),storyTts:piperStatus(env).ready?'piper-local-ready':tts.configured()?'optional-heygen-api':'needs-local-piper-or-imported-audio',ttsProvider:piperStatus(env).ready?'piper-local':tts.configured()?'heygen':'none',ttsVoiceConfigured:piperStatus(env).ready||tts.voiceConfigured(),localTts:piperStatus(env),heygenOptionalConfigured:tts.configured(),transcription:(whisperStatus(env).ready?'whisper.cpp-local-real':'needs-approved-provider'),socialPosting:'opt-in-approval-gated',platforms:Object.fromEntries(PLATFORM_KINDS.map(k=>[k,platformConnectionStatus(k,findConnectionByKind(k))])),publishRecords:publishRecords.list().length,whisper:whisperStatus(env),concat:{configured:!!concatSettings().token,mode:'real-multitrack-editor-project-after-approval',speech:'available-in-editor-not-in-json-rpc-0.2'}},
+        operations:Object.keys(ALLOWED_OPERATIONS),storyTts:piperStatus(env).ready?'piper-local-ready':tts.configured()?'optional-heygen-api':'needs-local-piper-or-imported-audio',ttsProvider:piperStatus(env).ready?'piper-local':tts.configured()?'heygen':'none',ttsVoiceConfigured:piperStatus(env).ready||tts.voiceConfigured(),localTts:piperStatus(env),kokoroTts:kokoroStatus(env),heygenOptionalConfigured:tts.configured(),transcription:(whisperStatus(env).ready?'whisper.cpp-local-real':'needs-approved-provider'),socialPosting:'opt-in-approval-gated',platforms:Object.fromEntries(PLATFORM_KINDS.map(k=>[k,platformConnectionStatus(k,findConnectionByKind(k))])),publishRecords:publishRecords.list().length,whisper:whisperStatus(env),concat:{configured:!!concatSettings().token,mode:'real-multitrack-editor-project-after-approval',speech:'available-in-editor-not-in-json-rpc-0.2'}},
       workspace:'dedicated-local-directory',host:'127.0.0.1',approvalRequired:true};
   }
   // Metrics sweep (M7): refresh view/like/comment counts for confirmed
@@ -853,7 +861,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         if(!Array.isArray(params.translatedTexts)||params.translatedTexts.length<1||params.translatedTexts.length>200)throw err('MEDIA_INPUT','Bản dịch nạp sẵn cần 1-200 đoạn.');
         for(const t of params.translatedTexts)if(typeof t!=='string'||!t.trim()||t.length>1000)throw err('MEDIA_INPUT','Mỗi đoạn dịch cần 1-1.000 ký tự.');
       }
-      if(params.ttsProvider!==undefined&&!['local','heygen'].includes(params.ttsProvider))throw err('MEDIA_INPUT','Nhà cung cấp giọng lồng tiếng không hợp lệ.');
+      if(params.ttsProvider!==undefined&&!['local','heygen','fpt','kokoro'].includes(params.ttsProvider))throw err('MEDIA_INPUT','Nhà cung cấp giọng lồng tiếng không hợp lệ.');
     }
     if(operation==='media.voiceover'&&(!params.source||!params.audioSource))throw err('MEDIA_INPUT','Cần một video nguồn và một file âm thanh WAV/MP3/M4A.');
     if(operation==='media.effects'){
@@ -954,7 +962,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     catch(e){return {available:false,fallback:true,reason:'AI chưa trả lời được ('+(e.code||'lỗi')+'). Thử lại sau, hoặc tự chọn cách làm bằng các nút bên dưới.'};}
     let plan;try{plan=parseDirectorPlan(reply.text);}catch(e){return {available:false,fallback:true,reason:e.message+' Hãy thử mô tả rõ hơn, hoặc tự chọn cách làm bằng các nút bên dưới.'};}
     const routed=routeDirectorPlan(plan,{source,sourceLabel:'',whisperReady});
-    if(routed.params&&['media.dub','media.retheme'].includes(routed.operation)&&['fpt','heygen'].includes(voiceProvider))routed.params.ttsProvider=voiceProvider;
+    if(routed.params&&['media.dub','media.retheme'].includes(routed.operation)&&['fpt','heygen','kokoro'].includes(voiceProvider))routed.params.ttsProvider=voiceProvider;
     return {available:true,plan,routed:{operation:routed.operation,params:routed.params||null,needsInput:routed.needsInput||null},warnings:routed.warnings||[],model:{provider:selection.target?.provider||selection.provider||'model',name:selection.target?.model||selection.model||''},probe:probe?{seconds:Math.round(probe.seconds),hasAudio:!!hasAudioFlag,transcriptHeard:!!transcript}:null};
   }
   function demoSample(){requireCore();const source=path.resolve(root,'integrations/media-engine/artifacts/samples/source.mp4');

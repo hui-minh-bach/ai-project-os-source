@@ -14,36 +14,63 @@ export const CLI_TOOLS=Object.freeze({
  gemini:{package:'@google/gemini-cli@latest',entry:'@google/gemini-cli/dist/index.js',url:'https://github.com/google-gemini/gemini-cli'}
 });
 const cleanKind=k=>{if(!Object.hasOwn(CLI_TOOLS,k))throw new Error('CLI không được hỗ trợ.');return k;};
-function packageEntry(nodeModules,kind){
- kind=cleanKind(kind);
- const info=CLI_TOOLS[kind],parts=info.entry.split('/'),packageName=parts.slice(0,2),pkg=path.join(nodeModules,...packageName);
- // Prefer the version-pinned known entry, but support publisher layout changes
- // only if the official package explicitly declares a safe JavaScript bin file.
- const known=path.join(nodeModules,...parts);if(fs.existsSync(known)&&fs.statSync(known).isFile())return known;
+function safePackageFile(pkg,file){
  try{
-  const manifest=JSON.parse(fs.readFileSync(path.join(pkg,'package.json'),'utf8'));
-  if(manifest.name!==packageName.join('/'))return null;
-  const bin=typeof manifest.bin==='string'?manifest.bin:manifest.bin?.[kind];
-  if(typeof bin!=='string'||!/^([a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+\.(js|mjs|cjs)$/.test(bin))return null;
-  const actual=path.resolve(pkg,bin),relative=path.relative(pkg,actual);
+  const actual=path.resolve(pkg,file),relative=path.relative(pkg,actual);
   if(relative.startsWith('..')||path.isAbsolute(relative)||!fs.statSync(actual).isFile())return null;
   // Reject symbolic links leaving the official package directory.
   if(!fs.realpathSync(actual).startsWith(fs.realpathSync(pkg)+path.sep))return null;
   return actual;
  }catch{return null;}
 }
-export function managedEntry(kind){return packageEntry(path.join(TOOLS_DIR,'node_modules'),kind);}
+// Resolve the official package's launcher as {file, native} or null.
+// Publishers have moved from JavaScript launchers to native binaries
+// (Claude Code 2.x declares "bin": "bin/claude.exe" and ships no cli.js),
+// so accept both forms — but only a launcher the package itself declares
+// in package.json bin, the pinned known entry, or its own bin/ folder.
+function packageEntry(nodeModules,kind){
+ kind=cleanKind(kind);
+ const info=CLI_TOOLS[kind],parts=info.entry.split('/'),packageName=parts.slice(0,2),pkg=path.join(nodeModules,...packageName);
+ const known=path.join(nodeModules,...parts);
+ if(fs.existsSync(known)&&fs.statSync(known).isFile())return {file:known,native:false};
+ let manifest=null;try{manifest=JSON.parse(fs.readFileSync(path.join(pkg,'package.json'),'utf8'));}catch{}
+ if(!manifest||manifest.name!==packageName.join('/'))return null;
+ const bin=typeof manifest.bin==='string'?manifest.bin:manifest.bin?.[kind];
+ if(typeof bin==='string'&&/^([a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/.test(bin)){
+  const file=safePackageFile(pkg,bin);
+  if(file)return {file,native:!/\.(js|mjs|cjs)$/.test(bin)};
+ }
+ for(const cand of [`bin/${kind}.exe`,`bin/${kind}`,`${kind}.exe`]){
+  const file=safePackageFile(pkg,cand);if(file)return {file,native:true};
+ }
+ return null;
+}
+function entryResolution(entry,source){return entry.native?{command:entry.file,args:[],source}:{command:process.execPath,args:[entry.file],source};}
+export function managedEntry(kind){const e=packageEntry(path.join(TOOLS_DIR,'node_modules'),kind);return e?e.file:null;}
+export function managedResolution(kind){const e=packageEntry(path.join(TOOLS_DIR,'node_modules'),kind);return e?entryResolution(e,'managed'):null;}
 export function resolveCli(kind,{env=process.env,platform=process.platform,managed=true}={}){
  kind=cleanKind(kind);
- const entry=managed&&managedEntry(kind);if(entry)return {command:process.execPath,args:[entry],source:'managed'};
- const cliName=kind==='codex'?'codex':kind;
+ if(managed){const r=managedResolution(kind);if(r)return r;}
+ const cliName=kind;
  const paths=String(env.PATH||env.Path||'').split(platform==='win32'?';':path.delimiter).filter(Boolean);
+ if(platform==='win32'){
+  // A long-running app process can hold a stale PATH from before the user
+  // installed a CLI. Always also probe the standard per-user locations:
+  // the Claude Code native installer (~\.local\bin) and npm global (%APPDATA%\npm).
+  const home=env.USERPROFILE||env.HOME||'';
+  if(home)paths.push(path.join(home,'.local','bin'));
+  if(env.APPDATA)paths.push(path.join(env.APPDATA,'npm'));
+ }else{
+  const home=env.HOME||env.USERPROFILE||'';
+  if(home)paths.push(path.join(home,'.local','bin'));
+ }
  for(const dir of paths){
   if(platform==='win32'){
    // Windows npm .cmd shims are not launched through a shell. Use the
-   // documented package JavaScript entrypoint with our trusted Node binary.
-   const js=packageEntry(path.join(dir,'node_modules'),kind);
-   if(js)return {command:process.execPath,args:[js],source:'system'};
+   // publisher-declared entrypoint: a JS file via our trusted Node binary,
+   // or the package's native binary directly.
+   const entry=packageEntry(path.join(dir,'node_modules'),kind);
+   if(entry)return entryResolution(entry,'system');
    const exe=path.join(dir,cliName+'.exe');if(fs.existsSync(exe))return {command:exe,args:[],source:'system'};
   }else{
    const binary=path.join(dir,cliName);

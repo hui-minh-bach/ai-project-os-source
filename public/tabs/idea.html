@@ -10,6 +10,11 @@
       <div class="idea-composer"><button id="ideaAttach" type="button" aria-label="Đính kèm nội dung tài liệu" title="Đính kèm tài liệu văn bản (tối đa 64 KB)"><span data-idea-icon="clip" aria-hidden="true"></span></button><input id="ideaAttachment" type="file" accept=".txt,.md,.json,.csv" hidden><textarea id="chatInput" rows="1" maxlength="16000" placeholder="Nhập tin nhắn của bạn... (Shift + Enter để xuống dòng)" aria-label="Tin nhắn cho Founder"></textarea><button id="sendChat" type="button" aria-label="Gửi tin nhắn"><span data-idea-icon="send" aria-hidden="true"></span></button></div>
       <div class="idea-actions"><span id="ideaFounderStatus"></span><button id="ideaAnalyze" type="button"><span data-idea-icon="spark" aria-hidden="true"></span>Phân tích ý tưởng</button><button id="ideaSendCouncil" type="button"><span data-idea-icon="team" aria-hidden="true"></span>Họp đội chốt spec</button><button id="ideaAcceptJob" class="primary" type="button">✅ Nhận việc &amp; giao đội</button></div>
       <div id="ideaError" role="alert" hidden></div>
+      <div class="idea-meeting">
+        <div class="idea-meeting-head"><h3>🗣 Đội AI bàn việc — trực tiếp</h3><span id="ideaMeetingLive" class="muted" role="status"></span></div>
+        <div id="ideaMeetingFeed" class="idea-meeting-feed" role="log" aria-label="Đội AI bàn việc"><p class="muted">Đang tải nhật ký làm việc…</p></div>
+        <p class="muted idea-meeting-note">Giao việc xong, đội AI làm gì sẽ hiện tại đây: mỗi dòng là một sự kiện THẬT trong nhật ký chạy của app (nhận việc, từng bước làm, chờ Sếp duyệt, đăng bài, ghi chú điều phối) — không phải hội thoại dựng sẵn.</p>
+      </div>
     </section>
       <section class="office-panel" aria-label="Văn phòng AI">
     <div class="office-head"><div><h2>🏢 Văn phòng AI</h2><p>Đội của Sếp Lâm đang làm việc — chuyển động và trạng thái lấy từ công việc THẬT đang chạy trong app (lượt chạy vòng khép kín, thẻ tin, task dự án), không phải hoạt hình dựng sẵn. Bấm vào một nhân viên để đổi tên.</p></div><span style="display:flex;gap:8px;align-items:center"><button id="office3DToggle" class="ghost small" type="button">🧊 Xem phòng 3D</button><span id="officeClock" class="office-clock" role="status">Đang tải văn phòng…</span></span></div>

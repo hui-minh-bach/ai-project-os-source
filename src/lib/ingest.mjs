@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { classifyNewsField, scoreNewsItem, newsFieldById } from './news-fields.mjs';
+import { fetchArticleText } from './fulltext.mjs';
 
 function err(code,message){const e=new Error(message);e.code=code;return e;}
 const FEED_KINDS=new Set(['rss','atom','auto']);
@@ -95,14 +96,14 @@ export function createIngestStore({file,fetchImpl}={}){
  const findSource=id=>state.sources.find(s=>s.id===id);
  const copySource=s=>({...s,keywords:[...s.keywords]});
 
- function addSource({name,url,kind='auto',enabled=true,keywords=[],fieldId=null}={}){
+ function addSource({name,url,kind='auto',enabled=true,keywords=[],fieldId=null,fullText=true}={}){
   const fid=fieldId?String(fieldId).trim():null;
   if(fid&&!newsFieldById(fid))throw err('INGEST_FIELD','Lĩnh vực tin không hợp lệ: '+fid);
   let parsed=null;try{parsed=new URL(String(url||''));}catch{}
   if(!parsed||!['http:','https:'].includes(parsed.protocol))throw err('INGEST_URL','Địa chỉ nguồn tin phải là URL http(s) hợp lệ.');
   if(!FEED_KINDS.has(kind))throw err('INGEST_URL','Loại nguồn tin phải là rss, atom hoặc auto.');
   const kw=Array.isArray(keywords)?[...new Set(keywords.map(k=>String(k||'').trim()).filter(Boolean))].slice(0,20):[];
-  const source={id:crypto.randomUUID(),name:String(name||'').trim().slice(0,120)||parsed.hostname,url:parsed.toString(),kind,enabled:enabled!==false,keywords:kw,fieldId:fid,createdAt:new Date().toISOString(),lastScanAt:null,lastError:null};
+  const source={id:crypto.randomUUID(),name:String(name||'').trim().slice(0,120)||parsed.hostname,url:parsed.toString(),kind,enabled:enabled!==false,keywords:kw,fieldId:fid,fullText:fullText!==false,createdAt:new Date().toISOString(),lastScanAt:null,lastError:null};
   state.sources.push(source);save();
   return copySource(source);
  }
@@ -148,6 +149,7 @@ export function createIngestStore({file,fetchImpl}={}){
   const seen=new Set(state.cards.map(c=>c.hash));
   const kw=source.keywords.map(k=>k.toLowerCase());
   let added=0,duplicates=0,filtered=0;
+  const addedCards=[];
   for(const item of items){
    const key=String(item.link||item.guid||item.title||'').trim();
    if(!key){filtered++;continue;}
@@ -160,11 +162,26 @@ export function createIngestStore({file,fetchImpl}={}){
    seen.add(hash);
    const cardFieldId=source.fieldId||classifyNewsField(item);
    const scored=scoreNewsItem(item,{fieldId:cardFieldId});
-   state.cards.push({id:crypto.randomUUID(),sourceId:source.id,title:item.title||'(không có tiêu đề)',summary:String(item.summary||'').slice(0,500),link:item.link||'',publisher:item.publisher||null,publishedAt:item.publishedAt||null,fetchedAt,hash,usedByProjectId:null,fieldId:cardFieldId,score:scored.score,scoreBasis:scored.basis});
+   const card={id:crypto.randomUUID(),sourceId:source.id,title:item.title||'(không có tiêu đề)',summary:String(item.summary||'').slice(0,500),link:item.link||'',publisher:item.publisher||null,publishedAt:item.publishedAt||null,fetchedAt,hash,usedByProjectId:null,fieldId:cardFieldId,score:scored.score,scoreBasis:scored.basis};
+   state.cards.push(card);addedCards.push(card);
    added++;
   }
+  // Full-text (Miniflux pattern): only for brand-new cards whose feed summary
+  // is too short to write from, capped per scan so a big feed stays fast, and
+  // fully failure-tolerant — a card without full text simply keeps its summary.
+  let fullTextFetched=0;
+  if(source.fullText!==false){
+   for(const card of addedCards){
+    if(fullTextFetched>=3)break;
+    if(!card.link||String(card.summary||'').length>=280)continue;
+    try{
+     const r=await fetchArticleText(card.link,{fetchImpl:fetcher});
+     if(r.ok){card.fullText=r.text.slice(0,6000);card.fullTextAt=fetchedAt;fullTextFetched++;}
+    }catch{/* a failed article fetch never fails the scan */}
+   }
+  }
   source.lastScanAt=fetchedAt;source.lastError=null;save();
-  return {sourceId:source.id,added,duplicates,filtered,total:items.length};
+  return {sourceId:source.id,added,duplicates,filtered,total:items.length,fullTextFetched};
  }
 
  function listCards({unusedOnly=false,fieldId=null}={}){
@@ -177,8 +194,21 @@ export function createIngestStore({file,fetchImpl}={}){
   save();
   return {...card};
  }
+ function getCard(cardId){
+  const card=state.cards.find(c=>c.id===cardId);
+  return card?{...card}:null;
+ }
+ function setCardFullText(cardId,{text,title}={}){
+  const card=state.cards.find(c=>c.id===cardId);
+  if(!card)throw err('INGEST_NOT_FOUND','Không tìm thấy thẻ tin.');
+  card.fullText=String(text||'').slice(0,6000);
+  if(title)card.fullTextTitle=String(title).slice(0,300);
+  card.fullTextAt=new Date().toISOString();
+  save();
+  return {...card};
+ }
  function counts(){
   return {sources:state.sources.length,enabledSources:state.sources.filter(s=>s.enabled).length,cards:state.cards.length,unusedCards:state.cards.filter(c=>!c.usedByProjectId).length};
  }
- return {addSource,listSources,setSourceEnabled,removeSource,scanSource,listCards,markCardUsed,counts};
+ return {addSource,listSources,setSourceEnabled,removeSource,scanSource,listCards,markCardUsed,getCard,setCardFullText,counts};
 }

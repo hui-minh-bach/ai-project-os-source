@@ -2,6 +2,7 @@ import { projectMapSnapshot, exportMapSvg } from './lib/project-map.mjs';
 import { deleteAccountProfile, verifyAccountModel, startAccountLogin, refreshAccount, cancelAccountLogin, logoutAccount, readAccountUsage, accountAvailability, closeAccountSessions } from './lib/account-auth.mjs';
 import { usageSummary } from './lib/usage.mjs';
 import { cliToolsStatus, installManagedCli } from './lib/managed-cli.mjs';
+import { kokoroStatus, kokoroInstall, kokoroInstalling } from './lib/kokoro-tts.mjs';
 import { createCliAccount, cliAccountStatus, removeCliAccount, verifyCliAccountModel, startCliLoginWindow } from './lib/cli-account.mjs';
 import { infraToolsStatus, installInfraTool, startInfraLoginWindow } from './lib/infra-tools.mjs';
 import { createAntigravityAccount, antigravityStatus, listAntigravityModels, verifyAntigravityModel, openAntigravityLogin, installAntigravityWindows, removeAntigravityAccount } from './lib/antigravity-account.mjs';
@@ -19,6 +20,7 @@ import { snapshot, workspaceSummary } from './lib/workspace.mjs';
 import { listSkills, saveCustomSkill, setSkillEnabled, deleteCustomSkill, sampleSkillMapping } from './lib/skills.mjs';
 import { importSkillUpload, importRepoZip, importRepoGit, listImportedRepos, deleteImportedRepo } from './lib/skill-import.mjs';
 import { engineStatuses, installEngineSource, systemPrerequisites, systemPrerequisiteVersions, engineDiagnostics, listCustomEngines, saveCustomEngine, deleteCustomEngine } from './lib/engines.mjs';
+import { installOpencode, opencodeInstalling } from './lib/opencode.mjs';
 import { sandboxStatus } from './lib/sandbox.mjs';
 import { gitStatus, initGit, publishGitHub, deployVercel } from './lib/publish.mjs';
 import { listGithubRepos, importGithubRepo, buildContinuationPlan, listGithubIssues, useGithubIssueAsBrief, createGithubPullRequest } from './lib/github-repos.mjs';
@@ -32,8 +34,10 @@ import { createEncryptedBackup, listBackups, backupFileByName } from './lib/cust
 import { systemDoctor } from './lib/system-doctor.mjs';
 import { createLocalAccess } from './lib/local-access.mjs';
 import { createIngestStore } from './lib/ingest.mjs';
+import { fetchArticleText } from './lib/fulltext.mjs';
 import { listNewsFields, newsFieldById, googleNewsRssUrl } from './lib/news-fields.mjs';
-import { createOrchestrator, createSimulatedAi, createGatewayAi } from './lib/orchestrator.mjs';
+import { createOrchestrator, createSimulatedAi, createGatewayAi, buildRunFeed } from './lib/orchestrator.mjs';
+import { operatorStatus, createOperatorToken, revokeOperatorToken, verifyOperatorToken, operatorCan, addOperatorNote, listOperatorNotes, operatorNoteEvents } from './lib/operator.mjs';
 import { deriveFleet } from './lib/office-fleet.mjs';
 import { writeTextWithModel, translateSegmentsWithModel } from './lib/media-ai.mjs';
 import { oauthAuthorizeUrl, oauthExchangeCode, fetchPlatformIdentity, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
@@ -42,7 +46,7 @@ import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, 
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.41';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.43';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -70,6 +74,37 @@ try{const messages=recoverInterruptedFounderChats();if(messages)console.warn(`Re
 
 const server=http.createServer(async(req,res)=>{try{
   const u=new URL(req.url,'http://localhost');
+  // --- External operator channel (token-gated, narrow scope) ---
+  // Reached through the owner's own private network (e.g. Tailscale Serve
+  // proxies to this loopback port), so the Host is the tailnet name rather
+  // than 127.0.0.1. The operator token — never the browser session — is the
+  // credential here, and only these four endpoints exist on this channel.
+  if(u.pathname.startsWith('/api/operator/ext/')){
+    const auth=verifyOperatorToken(req.headers['x-aios-operator']);
+    if(!auth)return send(res,401,{error:'Operator token không hợp lệ hoặc đã bị thu hồi.'});
+    try{
+      if(req.method==='GET'&&u.pathname==='/api/operator/ext/status'){
+        const cfg=orchestrator.getConfig();
+        return send(res,200,{ok:true,version:VERSION,stopAll:cfg.stopAll,pipelines:Object.fromEntries(Object.entries(cfg.pipelines).map(([k,v])=>[k,{enabled:v.enabled,aiMode:v.aiMode,dailyCap:v.dailyCap}])),runs:orchestrator.listRuns().slice(-15).map(r=>({id:r.id,pipeline:r.pipeline,state:r.state,title:r.title,createdAt:r.createdAt,steps:(r.steps||[]).length})),notes:listOperatorNotes(10)});
+      }
+      if(req.method==='POST'&&u.pathname==='/api/operator/ext/run'){
+        if(!operatorCan(auth,'run'))return send(res,403,{error:'Token chưa được cấp quyền tạo lượt chạy (scope run).'});
+        const b=await readBody(req);const run=await orchestrator.startRun(String(b.pipeline||''),{cardId:b.cardId||null,sourceVideo:b.sourceVideo||null,title:b.title||undefined,ideaText:b.ideaText||null});
+        return send(res,200,{run});
+      }
+      if(req.method==='POST'&&u.pathname==='/api/operator/ext/note'){
+        if(!operatorCan(auth,'note'))return send(res,403,{error:'Token chưa được cấp quyền gửi ghi chú (scope note).'});
+        const b=await readBody(req);const note=addOperatorNote(b.text);
+        return send(res,200,{note});
+      }
+      if(req.method==='POST'&&u.pathname==='/api/operator/ext/approve'){
+        if(!operatorCan(auth,'approvePublish'))return send(res,403,{error:'Token không có quyền duyệt đăng (scope approvePublish đang tắt — Sếp giữ cổng duyệt).'});
+        const b=await readBody(req);const run=await orchestrator.approveRun(String(b.runId||''));
+        return send(res,200,{run});
+      }
+      return send(res,404,{error:'Operator endpoint không tồn tại.'});
+    }catch(e){return send(res,400,{error:e.message});}
+  }
   if(!['127.0.0.1','localhost'].includes((req.headers.host||'').split(':')[0]))return send(res,403,{error:'Local-only host required.'});
   if(req.method==='GET'&&u.pathname==='/'&&u.searchParams.has('launch')){
     if(localAccess.validTicket(u.searchParams.get('launch')))return localAccess.grant(res);
@@ -107,6 +142,15 @@ const server=http.createServer(async(req,res)=>{try{
   if(ingestSourceMatch&&req.method==='DELETE'&&!ingestSourceMatch[2]){ingestStore.removeSource(ingestSourceMatch[1]);return send(res,200,{ok:true});}
   if(req.method==='POST'&&u.pathname==='/api/ingest/scan'){const b=await readBody(req);const targets=b.sourceId?[b.sourceId]:ingestStore.listSources().filter(s=>s.enabled).map(s=>s.id);const results=[];for(const id of targets){try{results.push(await ingestStore.scanSource(id));}catch(e){results.push({sourceId:id,error:e.code||'INGEST_SCAN',message:e.message});}}return send(res,200,{results,counts:ingestStore.counts()});}
   if(req.method==='GET'&&u.pathname==='/api/ingest/cards')return send(res,200,{cards:ingestStore.listCards({fieldId:u.searchParams.get('fieldId')||null}).slice(0,100)});
+  const ingestCardFullText=u.pathname.match(/^\/api\/ingest\/cards\/([^/]+)\/fulltext$/);
+  if(req.method==='POST'&&ingestCardFullText){
+    const card=ingestStore.getCard(ingestCardFullText[1]);
+    if(!card)return send(res,404,{error:'Không tìm thấy thẻ tin.'});
+    if(!card.link)return send(res,422,{error:'Thẻ tin không có link nguồn để lấy toàn văn.'});
+    const r=await fetchArticleText(card.link);
+    if(!r.ok)return send(res,422,{error:'Không lấy được toàn văn từ nguồn ('+r.reason+'). Đọc trực tiếp tại link nguồn.'});
+    return send(res,200,ingestStore.setCardFullText(card.id,{text:r.text,title:r.title}));
+  }
   if(req.method==='GET'&&u.pathname==='/api/ingest/fields'){
     const cfgFields=orchestrator.getConfig().pipelines['news-video']?.fieldIds||[];
     const allCards=ingestStore.listCards();const sources=ingestStore.listSources();
@@ -154,6 +198,15 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='POST'&&u.pathname==='/api/orchestrator/run'){const b=await readBody(req);const run=await orchestrator.startRun(String(b.pipeline||''),{cardId:b.cardId||null,sourceVideo:b.sourceVideo||null,title:b.title||undefined,ideaText:b.ideaText||null});return send(res,200,{run});}
   const orchApproveMatch=u.pathname.match(/^\/api\/orchestrator\/runs\/([^/]+)\/approve$/);
   if(req.method==='POST'&&orchApproveMatch)return send(res,200,{run:await orchestrator.approveRun(orchApproveMatch[1])});
+  if(req.method==='GET'&&u.pathname==='/api/orchestrator/feed'){
+    const events=[...buildRunFeed(orchestrator.listRuns()),...operatorNoteEvents(50)];
+    events.sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
+    return send(res,200,{events:events.slice(-150),generatedAt:new Date().toISOString()});
+  }
+  // --- Operator channel management (the boss, via the browser session) ---
+  if(req.method==='GET'&&u.pathname==='/api/operator')return send(res,200,{status:operatorStatus(),notes:listOperatorNotes(20)});
+  if(req.method==='POST'&&u.pathname==='/api/operator/token'){const b=await readBody(req);return send(res,200,createOperatorToken(b.scopes||{}));}
+  if(req.method==='DELETE'&&u.pathname==='/api/operator/token')return send(res,200,{status:revokeOperatorToken()});
   if(req.method==='GET'&&u.pathname==='/api/publish/records')return send(res,200,{records:integrations.publishRecords.list({projectId:u.searchParams.get('projectId')||undefined})});
   if(req.method==='POST'&&u.pathname==='/api/publish/metrics/refresh'){const b=await readBody(req).catch(()=>({}));return send(res,200,{results:await integrations.refreshPublishMetrics({projectId:b.projectId||undefined})});}
   const oauthStartMatch=u.pathname.match(/^\/api\/connections\/oauth\/([a-z]+)\/start$/);
@@ -360,6 +413,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='POST'&&u.pathname==='/api/engines/custom')return send(res,200,saveCustomEngine(await readBody(req)));
   if(u.pathname.match(/^\/api\/engines\/custom\/[^/]+$/)){const id=decodeURIComponent(u.pathname.split('/')[4]);if(req.method==='PUT')return send(res,200,saveCustomEngine(await readBody(req),{updateId:id}));if(req.method==='DELETE')return send(res,200,deleteCustomEngine(id));}
   if(req.method==='GET'&&u.pathname==='/api/engines')return send(res,200,await engineStatuses());
+  if(req.method==='POST'&&u.pathname==='/api/engines/opencode/install-runtime'){try{return send(res,200,{...await installOpencode(),installing:false});}catch(e){return send(res,409,{error:e.message,installing:opencodeInstalling()});}}
   if(req.method==='POST'&&u.pathname.match(/^\/api\/engines\/[^/]+\/install$/)){const id=decodeURIComponent(u.pathname.split('/')[3]);return send(res,200,await installEngineSource(id));}
 
   if(req.method==='GET'&&u.pathname==='/api/vault')return send(res,200,vaultStatus());
@@ -373,6 +427,8 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='POST'&&/^\/api\/antigravity\/[a-f0-9-]{36}\/verify$/.test(u.pathname))return send(res,200,await verifyAntigravityModel(u.pathname.split('/')[3],(await readBody(req)).model));
   if(req.method==='GET'&&u.pathname==='/api/ai-tools')return send(res,200,cliToolsStatus());
   if(req.method==='POST'&&/^\/api\/ai-tools\/(codex|claude|gemini)\/install$/.test(u.pathname))return send(res,200,await installManagedCli(u.pathname.split('/')[3]));
+  if(req.method==='GET'&&u.pathname==='/api/media/kokoro')return send(res,200,{...kokoroStatus(),installing:kokoroInstalling()});
+  if(req.method==='POST'&&u.pathname==='/api/media/kokoro/install'){try{return send(res,200,{...await kokoroInstall(),installing:false});}catch(e){return send(res,409,{error:e.message,installing:kokoroInstalling()});}}
   if(req.method==='POST'&&/^\/api\/cli-accounts\/(claude|gemini)\/connect$/.test(u.pathname)){const kind=u.pathname.split('/')[3];return send(res,200,createCliAccount(kind,(await readBody(req)).name));}
   if(req.method==='POST'&&/^\/api\/cli-accounts\/(claude|gemini)\/login$/.test(u.pathname))return send(res,200,await startCliLoginWindow(u.pathname.split('/')[3]));
   if(req.method==='GET'&&u.pathname==='/api/infra-accounts/status')return send(res,200,{tools:infraToolsStatus()});

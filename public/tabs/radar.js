@@ -14,7 +14,7 @@ function radarLawBadge(card,field){
 }
 function radarCardHtml(card,field){
  const used=card.usedByProjectId?' <span class="tag">Đã dùng</span>':'';
- return `<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:flex-start"><span class="tag" title="Điểm tin do công thức từ khóa + độ mới chấm">${card.score??'—'} điểm</span><div style="flex:1"><b>${radarEsc(card.title)}</b><p class="muted" style="margin:2px 0">${radarEsc(card.publisher||radarSourceNames[card.sourceId]||'')} · ${card.publishedAt?radarEsc(new Date(card.publishedAt).toLocaleString('vi-VN')):''}</p>${card.summary?`<p style="margin:2px 0">${radarEsc(String(card.summary).slice(0,220))}</p>`:''}${radarLawBadge(card,field)}<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button class="primary small" type="button" data-radar-produce="news-video" data-card="${card.id}">🎬 Làm video</button><button class="ghost small" type="button" data-radar-produce="news-article" data-card="${card.id}">✍️ Viết bài phân tích</button>${card.link?`<a class="ghost small" href="${radarEsc(card.link)}" target="_blank" rel="noopener noreferrer">Đọc nguồn ↗</a>`:''}${used}</div></div></div></div>`;
+ return `<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:flex-start"><span class="tag" title="Điểm tin do công thức từ khóa + độ mới chấm">${card.score??'—'} điểm</span><div style="flex:1"><b>${radarEsc(card.title)}</b><p class="muted" style="margin:2px 0">${radarEsc(card.publisher||radarSourceNames[card.sourceId]||'')} · ${card.publishedAt?radarEsc(new Date(card.publishedAt).toLocaleString('vi-VN')):''}</p>${card.summary?`<p style="margin:2px 0">${radarEsc(String(card.summary).slice(0,220))}</p>`:''}${radarLawBadge(card,field)}<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap"><button class="primary small" type="button" data-radar-produce="news-video" data-card="${card.id}">🎬 Làm video</button><button class="ghost small" type="button" data-radar-produce="news-article" data-card="${card.id}">✍️ Viết bài phân tích</button>${card.link?`<a class="ghost small" href="${radarEsc(card.link)}" target="_blank" rel="noopener noreferrer">Đọc nguồn ↗</a>`:''}${card.fullText?`<button class="ghost small" type="button" data-radar-viewfull="${card.id}">📄 Toàn văn (${String(card.fullText).length.toLocaleString('vi-VN')} chữ)</button>`:(card.link?`<button class="ghost small" type="button" data-radar-getfull="${card.id}">📄 Lấy toàn văn</button>`:'')}${used}</div><div id="radarFull-${card.id}" hidden style="margin-top:8px;max-height:300px;overflow:auto;border-top:1px dashed var(--line);padding-top:6px">${card.fullText?radarEsc(card.fullText).replace(/\n+/g,'<br>'):''}</div></div></div></div>`;
 }
 async function radarRender(){
  const field=radarFields.find(f=>f.id===radarFieldId);
@@ -45,6 +45,17 @@ async function radarInit(){
 $('#radarField')?.addEventListener('change',e=>{radarFieldId=e.target.value;localStorage.setItem('aios-radar-field',radarFieldId);radarRender();});
 $('#radarScan')?.addEventListener('click',async e=>{e.target.disabled=true;$('#radarStatus').textContent='Đang quét…';try{await api('/api/ingest/scan',{method:'POST',body:'{}'});await radarInit();$('#radarStatus').textContent='Đã quét xong.';}catch(err){$('#radarStatus').textContent=err.message;}finally{e.target.disabled=false}});
 document.addEventListener('click',async e=>{
+ const vf=e.target.closest('[data-radar-viewfull]');
+ if(vf){const box=document.getElementById('radarFull-'+vf.dataset.radarViewfull);if(box)box.hidden=!box.hidden;return;}
+ const gf=e.target.closest('[data-radar-getfull]');
+ if(gf){
+  gf.disabled=true;gf.textContent='⏳ Đang lấy toàn văn…';
+  try{const card=await api('/api/ingest/cards/'+encodeURIComponent(gf.dataset.radarGetfull)+'/fulltext',{method:'POST',body:'{}'});
+   const box=document.getElementById('radarFull-'+card.id);if(box){box.innerHTML=radarEsc(card.fullText||'').replace(/\n+/g,'<br>');box.hidden=false;}
+   gf.textContent='📄 Toàn văn ('+String(card.fullText||'').length.toLocaleString('vi-VN')+' chữ)';gf.dataset.radarViewfull=card.id;gf.removeAttribute('data-radar-getfull');gf.disabled=false;
+  }catch(err){gf.textContent='📄 Lấy toàn văn';gf.disabled=false;toast(err.message);}
+  return;
+ }
  const b=e.target.closest('[data-radar-produce]');if(!b)return;
  b.disabled=true;
  try{const r=await api('/api/orchestrator/run',{method:'POST',body:JSON.stringify({pipeline:b.dataset.radarProduce,cardId:b.dataset.card})});toast(b.dataset.radarProduce==='news-video'?'Đã giao đội AI làm video — xem tiến độ và duyệt đăng ở tab Publish.':'Đã giao đội AI viết bài — bài kèm caption + hashtag sẽ về Publish chờ duyệt.');if(r?.run?.id)console.info('radar run',r.run.id);}

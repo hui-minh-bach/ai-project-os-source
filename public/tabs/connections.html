@@ -16,6 +16,10 @@
     <div class="cc-section-head"><div><h2 id="platformsTitle">Đăng bài tự động</h2><p>Liên kết tài khoản YouTube, Facebook Page và TikTok của bạn bằng OAuth chính thức của từng nền tảng để vòng khép kín tự đăng video. Mỗi nền tảng cần một “ứng dụng nhà phát triển” của chính bạn (miễn phí) — bấm “Liên kết &amp; cấp quyền” để xem hướng dẫn từng bước ngay trong hộp thoại. Token lưu trong Secret Vault trên máy này; phần mềm không bao giờ nhận mật khẩu nền tảng của bạn.</p></div></div>
     <div id="platformGrid" class="cc-grid"></div>
   </section>
+  <section class="cc-panel" aria-labelledby="operatorTitle">
+    <div class="cc-section-head"><div><h2 id="operatorTitle">Điều phối từ xa (Operator)</h2><p>Giao quyền điều khiển app cho một trợ lý bên ngoài mà Sếp tin cậy (ví dụ trợ lý AI của Sếp) qua một token riêng, có phân quyền và thu hồi được bất cứ lúc nào. Token chỉ mở đúng 4 việc: xem trạng thái vòng khép kín, tạo lượt chạy, gửi ghi chú tư vấn vào bàn tiếp nhận, và — chỉ khi Sếp bật riêng — duyệt đăng thay. App vẫn chỉ nghe trong máy; muốn trợ lý với tới được, Sếp nối máy qua mạng riêng (Tailscale) theo hướng dẫn trong hộp thoại tạo token. Mật khẩu, Vault và dữ liệu dự án không đi qua kênh này.</p></div></div>
+    <div id="operatorPanel"><p class="cc-dialog-note">Đang tải trạng thái điều phối…</p></div>
+  </section>
   <section class="cc-panel" aria-labelledby="updateTitle">
     <div class="cc-section-head"><div><h2 id="updateTitle">Cập nhật phần mềm</h2><p>Kênh cập nhật có chữ ký số của nhà phát hành: ứng dụng chỉ nhận bản mới khi chữ ký và mã SHA-256 khớp, bản cũ được sao lưu và tự khôi phục nếu cập nhật lỗi. Phần mềm không dùng license — cứ cài và dùng.</p></div></div>
     <div id="updatePanel"><p class="cc-dialog-note">Đang tải trạng thái cập nhật…</p></div>

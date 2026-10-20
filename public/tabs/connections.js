@@ -1,4 +1,17 @@
 const ccProviders=[['openai','OpenAI / ChatGPT'],['gemini','Google Gemini'],['anthropic','Anthropic Claude'],['openai_compatible','Khác / OpenAI-compatible']];
+// One-click presets for the OpenAI-compatible slot: the user's own account/key
+// at each provider (or a local server that needs no key). Only the name and
+// Base URL are filled in — the credential always comes from the user.
+const ccCompatPresets=[
+ {name:'DeepSeek',base:'https://api.deepseek.com/v1'},
+ {name:'xAI Grok',base:'https://api.x.ai/v1'},
+ {name:'Mistral AI',base:'https://api.mistral.ai/v1'},
+ {name:'Groq',base:'https://api.groq.com/openai/v1'},
+ {name:'OpenRouter',base:'https://openrouter.ai/api/v1'},
+ {name:'Together AI',base:'https://api.together.xyz/v1'},
+ {name:'Ollama (máy local — không cần key)',base:'http://127.0.0.1:11434/v1'},
+ {name:'LM Studio (máy local — không cần key)',base:'http://127.0.0.1:1234/v1'},
+];
 const ccRoles=[['founder','Chatbox / Founder','Lên ý tưởng, định hướng, phân tích.'],['council','AI Council','Phản biện, góp ý đa chiều.'],['worker','Worker / Builder','Thực thi, lập trình, xây dựng.'],['reviewer','Reviewer','Kiểm tra, đánh giá, tối ưu.']];
 const ccAccounts={};
 function ccSvg(body,cls=''){return `<svg class="${cls}" viewBox="0 0 32 32" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg">${body}</svg>`}
@@ -83,9 +96,10 @@ function ccConnectionDialog(kind,id,apiOnly=false){
  if(kind==='openai'&&!apiOnly)return ccOpenAIMethod(id);
  if(['gemini','anthropic'].includes(kind)&&!apiOnly)return ccOtherAIMethod(kind,id);
  const old=id==='new'?null:(state.connections.find(x=>x.id===id)||ccCurrent(kind)),info=kindInfo[kind],ai=ccProviders.some(p=>p[0]===kind);
- modal(`<h2>${old?'Quản lý':'Kết nối'} ${esc(info?.[0]||kind)}</h2><p class="cc-dialog-note">${ai?'Chỉ dùng API key chính thức. Không nhập email, password, cookie hoặc session token của website. Model sẽ được tải từ Models API sau khi lưu.':'Dùng CLI đã đăng nhập hoặc token API chính thức. Trạng thái chỉ được xác minh sau khi kiểm tra dịch vụ.'}</p>${old?`<div class="cc-dialog-status">${esc(old.name)} · ${esc(ccStatus(old,!ai)[1])}<br>${esc(old.availability?.message||old.meta?.login||'')}</div>`:''}<label for="cname">Tên hiển thị</label><input id="cname" value="${esc(old?.name||info?.[0]||kind)}"><label for="csecret">API key / Token ${old?'(để trống để giữ credential)':''}</label><input id="csecret" type="password" autocomplete="new-password" placeholder="${old?'Credential được giữ trong Vault':'Nhập API key chính thức'}">${['openai_compatible','supabase'].includes(kind)?`<label for="cbase">${kind==='supabase'?'Supabase Project URL':'Base URL (ví dụ https://api.example.com/v1)'}</label><input id="cbase" value="${esc(old?.baseUrl||'')}" placeholder="https://...">`:''}${kind==='supabase'?`<label class="checkboxLine"><input type="checkbox" id="cmanagement" ${old?.meta?.management?'checked':''}> Supabase Management PAT</label>`:''}<div id="ccDialogError" class="cc-dialog-error" role="status"></div><div class="cc-dialog-actions"><button id="saveConn" class="primary">Lưu & xác minh</button>${old?'<button id="ccTest" class="ghost">Kiểm tra</button>':''}${old&&ai?'<button id="ccRefresh" class="ghost">Làm mới models</button>':''}${old?'<button id="ccDisconnect" class="ghost">Ngắt kết nối</button>':''}</div>`);
+ modal(`<h2>${old?'Quản lý':'Kết nối'} ${esc(info?.[0]||kind)}</h2><p class="cc-dialog-note">${ai?'Chỉ dùng API key chính thức. Không nhập email, password, cookie hoặc session token của website. Model sẽ được tải từ Models API sau khi lưu.':'Dùng CLI đã đăng nhập hoặc token API chính thức. Trạng thái chỉ được xác minh sau khi kiểm tra dịch vụ.'}</p>${old?`<div class="cc-dialog-status">${esc(old.name)} · ${esc(ccStatus(old,!ai)[1])}<br>${esc(old.availability?.message||old.meta?.login||'')}</div>`:''}<label for="cname">Tên hiển thị</label><input id="cname" value="${esc(old?.name||info?.[0]||kind)}"><label for="csecret">API key / Token ${old?'(để trống để giữ credential)':''}</label><input id="csecret" type="password" autocomplete="new-password" placeholder="${old?'Credential được giữ trong Vault':'Nhập API key chính thức'}">${kind==='openai_compatible'?`<label for="cpreset">Nhà cung cấp có sẵn — chọn để điền sẵn tên và Base URL</label><select id="cpreset"><option value="">— Tự nhập —</option>${ccCompatPresets.map(p=>`<option value="${esc(p.base)}" data-name="${esc(p.name.replace(/ \(.*$/,''))}">${esc(p.name)}</option>`).join('')}</select>`:''}${['openai_compatible','supabase'].includes(kind)?`<label for="cbase">${kind==='supabase'?'Supabase Project URL':'Base URL (ví dụ https://api.example.com/v1)'}</label><input id="cbase" value="${esc(old?.baseUrl||'')}" placeholder="https://...">`:''}${kind==='supabase'?`<label class="checkboxLine"><input type="checkbox" id="cmanagement" ${old?.meta?.management?'checked':''}> Supabase Management PAT</label>`:''}<div id="ccDialogError" class="cc-dialog-error" role="status"></div><div class="cc-dialog-actions"><button id="saveConn" class="primary">Lưu & xác minh</button>${old?'<button id="ccTest" class="ghost">Kiểm tra</button>':''}${old&&ai?'<button id="ccRefresh" class="ghost">Làm mới models</button>':''}${old?'<button id="ccDisconnect" class="ghost">Ngắt kết nối</button>':''}</div>`);
  const run=async(button,fn)=>{button.disabled=true;$('#ccDialogError').textContent='Đang xác minh…';try{await fn();await loadConnections();$('#modal').classList.add('hidden')}catch(e){await loadConnections();if($('#ccDialogError'))$('#ccDialogError').textContent=e.message}finally{button.disabled=false}};
- $('#saveConn').onclick=e=>run(e.target,async()=>{if(!old&&!$('#csecret').value.trim())throw new Error('Cần API credential để kết nối.');await api('/api/connections',{method:'POST',body:JSON.stringify({id:old?.id,kind,name:$('#cname').value,secret:$('#csecret').value,baseUrl:$('#cbase')?.value||old?.baseUrl||'',meta:kind==='supabase'?{management:$('#cmanagement').checked,authMode:'pat'}:{}})});toast('Credential đã mã hóa; kết nối đã xác minh')});
+ const preset=$('#cpreset');if(preset)preset.onchange=()=>{const o=preset.selectedOptions[0];if(!o||!o.value)return;$('#cbase').value=o.value;if(o.dataset.name)$('#cname').value=o.dataset.name;};
+ $('#saveConn').onclick=e=>run(e.target,async()=>{let secret=$('#csecret').value;if(!old&&!secret.trim()){const base=($('#cbase')?.value||'').trim();if(kind==='openai_compatible'&&/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?(\/|$)/i.test(base))secret='local-no-key';else throw new Error('Cần API credential để kết nối.');}await api('/api/connections',{method:'POST',body:JSON.stringify({id:old?.id,kind,name:$('#cname').value,secret,baseUrl:$('#cbase')?.value||old?.baseUrl||'',meta:kind==='supabase'?{management:$('#cmanagement').checked,authMode:'pat'}:{}})});toast('Credential đã mã hóa; kết nối đã xác minh')});
  if(old){$('#ccTest').onclick=e=>run(e.target,async()=>{const r=await api(`/api/connections/${encodeURIComponent(old.id)}/test`,{method:'POST',body:'{}'});toast(r.message)});if(ai)$('#ccRefresh').onclick=e=>run(e.target,async()=>{const r=await api(`/api/connections/${encodeURIComponent(old.id)}/models`);toast(`Đã tải ${r.length} model từ provider`)});$('#ccDisconnect').onclick=()=>{modal(`<h2>Ngắt kết nối ${esc(old.name)}</h2><p class="cc-dialog-note">Credential sẽ được xóa khỏi Vault. Các vai trò đang dùng kết nối này sẽ cần được phân lại.</p><button id="ccConfirmDisconnect" class="primary">Ngắt kết nối</button><div id="ccDialogError" class="cc-dialog-error" role="status"></div>`);$('#ccConfirmDisconnect').onclick=e=>run(e.target,async()=>{await api('/api/connections/'+encodeURIComponent(old.id),{method:'DELETE'});toast('Đã ngắt kết nối')})};}
 }
 async function ccSaveRoles(roles){
@@ -307,6 +321,43 @@ async function renderUpdatePanel(){
   }catch(e){box.innerHTML=`<p class="cc-dialog-note">Không tải được trạng thái cập nhật: ${esc(e.message||e)}</p>`}
 }
 document.addEventListener('page-change',e=>{if(e.detail?.page==='connections')renderUpdatePanel()});
+
+// --- External operator channel panel ---
+async function renderOperatorPanel(){
+  const box=$('#operatorPanel');if(!box)return;
+  try{
+    const {status,notes}=await api('/api/operator');
+    const scopeName={run:'Tạo lượt chạy vòng khép kín',note:'Gửi ghi chú / tư vấn vào bàn tiếp nhận',approvePublish:'Duyệt đăng thay Sếp'};
+    if(!status.enabled){
+      box.innerHTML=`
+      <p class="cc-dialog-note">Chưa cấp quyền cho ai. Tạo một token và chọn đúng việc được phép làm:</p>
+      <label class="checkboxLine"><input type="checkbox" id="opScopeRun" checked> ${scopeName.run}</label>
+      <label class="checkboxLine"><input type="checkbox" id="opScopeNote" checked> ${scopeName.note}</label>
+      <label class="checkboxLine"><input type="checkbox" id="opScopeApprove"> ${scopeName.approvePublish} <b>(cân nhắc — mặc định tắt, Sếp giữ cổng duyệt)</b></label>
+      <div class="cc-dialog-actions"><button id="opCreate" class="primary">Tạo token điều phối</button></div>
+      <div id="opMsg" class="cc-dialog-note" role="status"></div>`;
+      $('#opCreate').onclick=async e=>{e.target.disabled=true;try{
+        const r=await api('/api/operator/token',{method:'POST',body:JSON.stringify({scopes:{run:$('#opScopeRun').checked,note:$('#opScopeNote').checked,approvePublish:$('#opScopeApprove').checked}})});
+        box.innerHTML=`
+        <div class="cc-dialog-status">✅ Đã tạo token. <b>Token chỉ hiện MỘT lần này</b> — sao chép ngay và gửi cho trợ lý của Sếp qua kênh riêng:</div>
+        <label for="opTokenValue">Token điều phối</label>
+        <input id="opTokenValue" readonly value="${esc(r.token)}" onclick="this.select()">
+        <p class="cc-dialog-note">Để trợ lý với tới app (app chỉ nghe trong máy này):<br>1) Cài <b>Tailscale</b> trên máy này và đăng nhập tài khoản của Sếp (miễn phí).<br>2) Mở CMD, chạy: <code>tailscale serve --bg 4321</code> — Tailscale cho một địa chỉ dạng <code>https://ten-may.xxxx.ts.net</code> chỉ các máy trong mạng riêng của Sếp mới vào được.<br>3) Gửi cho trợ lý <b>địa chỉ đó + token ở trên</b>. Trợ lý xem trạng thái, giao việc, gửi tư vấn vào bàn tiếp nhận — mọi việc đều ghi lại ở đây và ở mục “Đội AI bàn việc”.<br>Muốn cắt quyền: bấm “Thu hồi token” — token cũ chết ngay.</p>
+        <div class="cc-dialog-actions"><button id="opDone" class="primary">Đã sao chép xong</button></div>`;
+        $('#opDone').onclick=()=>renderOperatorPanel();
+      }catch(err){const m=$('#opMsg');if(m)m.textContent=err.message;e.target.disabled=false}};
+    }else{
+      box.innerHTML=`
+      <div class="cc-dialog-status">🟢 Kênh điều phối ĐANG MỞ · tạo lúc ${esc(String(status.createdAt||'').slice(0,16).replace('T',' '))}<br>Quyền đã cấp: ${Object.entries(status.scopes).filter(([,v])=>v).map(([k])=>esc(scopeName[k]||k)).join(' · ')||'chưa có quyền nào'}</div>
+      ${(notes||[]).length?`<p class="cc-dialog-note">Ghi chú điều phối gần nhất:</p>${notes.slice(-5).reverse().map(n=>`<div class="cc-dialog-status">${esc(String(n.at||'').slice(0,16).replace('T',' '))} — ${esc(n.text)}</div>`).join('')}`:'<p class="cc-dialog-note">Chưa có ghi chú nào từ kênh điều phối.</p>'}
+      <div class="cc-dialog-actions"><button id="opRevoke" class="ghost">Thu hồi token (cắt quyền ngay)</button><button id="opRecreate" class="ghost">Tạo lại token mới</button></div>
+      <div id="opMsg" class="cc-dialog-note" role="status"></div>`;
+      $('#opRevoke').onclick=async e=>{e.target.disabled=true;try{await api('/api/operator/token',{method:'DELETE'});renderOperatorPanel();toast('Đã thu hồi token điều phối')}catch(err){const m=$('#opMsg');if(m)m.textContent=err.message;e.target.disabled=false}};
+      $('#opRecreate').onclick=async e=>{e.target.disabled=true;try{await api('/api/operator/token',{method:'DELETE'});renderOperatorPanel();toast('Đã hủy token cũ — tạo token mới ở bước tiếp theo')}catch(err){const m=$('#opMsg');if(m)m.textContent=err.message;e.target.disabled=false}};
+    }
+  }catch(e){box.innerHTML=`<p class="cc-dialog-note">Không tải được trạng thái điều phối: ${esc(e.message||e)}</p>`}
+}
+document.addEventListener('page-change',e=>{if(e.detail?.page==='connections')renderOperatorPanel()});
 
 /* ---- Platform linking for auto-posting (YouTube / Facebook / TikTok) ---- */
 const ccPlatforms=[['youtube','YouTube','Đăng video lên kênh YouTube của bạn.','https://console.cloud.google.com/apis/credentials','Google Cloud Console','youtube.upload, youtube.readonly'],['facebook','Facebook Page','Đăng video lên Facebook Page bạn quản lý.','https://developers.facebook.com/apps','Meta for Developers','pages_show_list, pages_manage_posts, pages_read_engagement'],['tiktok','TikTok','Đăng video lên tài khoản TikTok của bạn.','https://developers.tiktok.com','TikTok Developers','user.info.basic, video.upload, video.publish']];

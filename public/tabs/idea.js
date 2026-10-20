@@ -117,6 +117,27 @@ document.addEventListener('page-change',e=>{
  if(e.detail.page==='idea'){ideaSource=localStorage.getItem('aios-idea-source')||'new';ideaRenderSource();ideaIntakePing();clearInterval(ideaIntakeTimer);ideaIntakeTimer=setInterval(ideaIntakePing,25000);}
  else{clearInterval(ideaIntakeTimer);ideaIntakeTimer=null;}
 });
+// ===== Đội AI bàn việc: luồng sự kiện THẬT tại bàn tiếp nhận =====
+let ideaMeetingTimer=null,ideaMeetingSig='';
+const ideaMeetingState={done:['Hoàn thành','ok'],running:['Đang chạy','run'],waiting:['Chờ Sếp duyệt','wait'],failed:['Lỗi','fail'],approved:['Đã duyệt','ok'],skipped:['Bỏ qua','skip'],info:['','']};
+async function ideaMeetingTick(){
+ const box=$('#ideaMeetingFeed');if(!box)return;
+ try{
+  const r=await api('/api/orchestrator/feed');
+  const events=r.events||[];
+  const live=$('#ideaMeetingLive');
+  if(live){const running=events.filter(e=>e.state==='running').length;live.textContent=running?`● ${running} việc đang chạy`:'Đội đang chờ việc';}
+  const sig=events.length+':'+(events.at(-1)?.id||'');
+  if(sig===ideaMeetingSig)return;ideaMeetingSig=sig;
+  const nearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<80;
+  box.innerHTML=events.length?events.map(e=>{const st=ideaMeetingState[e.state]||['',''];const t=e.at?new Intl.DateTimeFormat('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}).format(new Date(e.at)):'';return `<div class="meeting-row"><span class="meeting-actor">${esc(e.actor)}</span><span class="meeting-text">${esc(e.text)}</span>${st[0]?`<span class="meeting-chip ${st[1]}">${st[0]}</span>`:''}<time class="meeting-time">${esc(t)}</time></div>`;}).join(''):'<p class="muted">Chưa có lượt chạy nào. Giao việc ở Radar tin hoặc bấm “Nhận việc &amp; giao đội” — đội làm gì sẽ hiện tại đây.</p>';
+  if(nearBottom)box.scrollTop=box.scrollHeight;
+ }catch{/* giữ nguyên khung khi mất kết nối tạm thời */}
+}
+document.addEventListener('page-change',e=>{
+ if(e.detail.page==='idea'){ideaMeetingTick();clearInterval(ideaMeetingTimer);ideaMeetingTimer=setInterval(ideaMeetingTick,5000);}
+ else{clearInterval(ideaMeetingTimer);ideaMeetingTimer=null;}
+});
 {const aj=$('#ideaAcceptJob'); if(aj)aj.addEventListener('click',()=>ideaAction(async()=>{await ideaEnsureProject();ideaIntakePing();toast('Trưởng phòng đã nhận việc — đội chuyển sang họp chốt spec.');page('council');}));}
 
 {const ft=$('#ideaFormToggle'); if(ft)ft.addEventListener('click',()=>{const pg=$('#page-idea');const on=pg.classList.toggle('show-form');ft.textContent=on?'💬 Chỉ dùng ô chat':'📝 Mẫu chi tiết';});}

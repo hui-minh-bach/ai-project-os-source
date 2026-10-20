@@ -20,17 +20,39 @@ const VALID_STATUS=new Set(['SUCCESS']);
 const safeExecutable=(p)=>{try{return fs.statSync(p).isFile()?p:null;}catch{return null;}};
 export function antigravityLauncher({platform=process.platform,env=process.env}={}){
  const dirs=[];
+ let ideFound=false;
  if(platform==='win32'){
   const local=env.LOCALAPPDATA||path.join(env.USERPROFILE||env.HOME||'', 'AppData','Local');
+  const home=env.USERPROFILE||env.HOME||'';
   dirs.push(path.join(local,'agy','bin','agy.exe'));
+  dirs.push(path.join(local,'agy','agy.exe'));
   // WinGet registers a per-user link, which may not yet be present in PATH
   // of an already-running AI Project OS process.
   dirs.push(path.join(local,'Microsoft','WinGet','Links','agy.exe'));
+  // WinGet package payloads — the Links entry can lag behind the install
+  // or be skipped, so probe the package folders directly (bounded scan).
+  try{
+   const pkgs=path.join(local,'Microsoft','WinGet','Packages');
+   for(const name of fs.readdirSync(pkgs)){
+    if(!/^Google\.AntigravityCLI/i.test(name))continue;
+    const base=path.join(pkgs,name);
+    dirs.push(path.join(base,'agy.exe'),path.join(base,'bin','agy.exe'));
+    try{for(const sub of fs.readdirSync(base,{withFileTypes:true}))if(sub.isDirectory())dirs.push(path.join(base,sub.name,'agy.exe'),path.join(base,sub.name,'bin','agy.exe'));}catch{}
+   }
+  }catch{}
+  dirs.push(path.join(local,'Programs','Antigravity CLI','bin','agy.exe'));
+  dirs.push(path.join(local,'Programs','Antigravity','bin','agy.exe'));
+  if(home)dirs.push(path.join(home,'.local','bin','agy.exe'));
+  // The Antigravity desktop IDE is a different install from the CLI: detect
+  // it so the user gets the right instruction instead of a bare "not found".
+  ideFound=Boolean(safeExecutable(path.join(local,'Programs','Antigravity','Antigravity.exe')));
  }
  for(const d of String(env.PATH||env.Path||'').split(platform==='win32'?';':path.delimiter).filter(Boolean)){
   dirs.push(path.join(d,platform==='win32'?'agy.exe':'agy'));
+  if(platform==='win32')dirs.push(path.join(d,'bin','agy.exe'));
  }
  for(const file of dirs){const found=safeExecutable(file);if(found)return {command:found,args:[],source:'official-install'};}
+ if(ideFound)throw new Error('Đã thấy ứng dụng Antigravity (IDE) trên máy, nhưng chưa có Antigravity CLI (lệnh agy) — IDE và CLI là hai bản cài khác nhau. Bấm nút 1 để cài CLI bằng WinGet, rồi bấm Kiểm tra lại.');
  throw new Error('Chưa tìm thấy Antigravity CLI. Cài từ trang chính thức của Google, sau đó bấm Kiểm tra lại.');
 }
 export function antigravityEnvironment({env=process.env}={}){
@@ -67,8 +89,8 @@ export function createAntigravityAccount(name='Google Antigravity'){
 }
 export function antigravityStatus(id){
  if(id)currentAccount(id);
- let installed=false;try{antigravityLauncher();installed=true;}catch{}
- return {installed,officialUrl:DOCS,mode:'google-account',availability:id?modelAvailability(id):undefined,message:installed?'Đã tìm thấy CLI. Chỉ model phản hồi thực tế mới được phân vai.':'Hãy cài CLI chính thức của Google.'};
+ let installed=false,probe='';try{antigravityLauncher();installed=true;}catch(e){probe=e.message;}
+ return {installed,officialUrl:DOCS,mode:'google-account',availability:id?modelAvailability(id):undefined,message:installed?'Đã tìm thấy CLI. Chỉ model phản hồi thực tế mới được phân vai.':(probe||'Hãy cài CLI chính thức của Google.')};
 }
 export async function listAntigravityModels(id,deps={}){
  const c=currentAccount(id);const bin=(deps.resolve||antigravityLauncher)();const {cwd,env}=(deps.profile||antigravityEnvironment)();
