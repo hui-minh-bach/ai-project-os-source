@@ -254,3 +254,17 @@
 .office-model-name{min-width:170px;font-weight:600}
 .office-model-state{flex:1;opacity:.85}
 .office-model-pick{cursor:pointer;text-decoration:underline}
+
+/* ===== Bot tài khoản: sprite TAM19 render từ GLB thật (0.9.40) ===== */
+.office-bot-sprites{position:relative;display:block;width:48px;height:84px}
+.bot-sprite{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:none;filter:drop-shadow(0 5px 5px rgba(0,0,0,.35))}
+.office-agent .bot-pose-idle{display:block}
+.office-agent[data-pose="work"] .bot-pose-idle{display:none}
+.office-agent[data-pose="work"] .bot-pose-work{display:block}
+.office-agent.office-walking .bot-pose-idle,.office-agent.office-walking .bot-pose-work{display:none}
+.office-agent.office-walking .bot-pose-walk{display:block}
+.office-agent.office-walking .office-bot-sprites{animation:officeBotBob .3s ease-in-out infinite alternate}
+@keyframes officeBotBob{from{transform:translateY(0)}to{transform:translateY(-2.5px)}}
+.office-agent.office-face-left .office-bot-sprites{transform:scaleX(-1)}
+.office-agent[data-state="offline"] .bot-sprite{filter:grayscale(.28) brightness(.86) drop-shadow(0 5px 5px rgba(0,0,0,.35))}
+.office-agent[data-state="failed"] .bot-pose-idle{filter:drop-shadow(0 0 7px rgba(255,84,60,.6))}

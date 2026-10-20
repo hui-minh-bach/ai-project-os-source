@@ -184,20 +184,9 @@ const OFFICE_CAST=[
  {id:'publish',name:'Phát',role:'Phát hành · đăng bài',icon:'🚀',station:'publish',color:'#fb7185'},
 ];
 /* Hình nhân viên: người chibi vẽ bằng SVG — chân tay chuyển động khi đi. */
+function officeBotSpriteKey(provider){return {'ChatGPT':'chatgpt','Claude':'claude','Gemini':'gemini','Google Gemini':'gemini','Antigravity':'antigravity'}[provider]||'default'}
 function officeFigure(a){
- if(a.fleet) return `<svg class="office-figure" viewBox="0 0 48 66" aria-hidden="true">
-  <g class="fig-bob">
-   <rect x="22.9" y="2" width="2.2" height="6" rx="1.1" fill="#9aa7bd"/><circle cx="24" cy="2.6" r="2" fill="${a.color}"/>
-   <g class="fig-leg fig-leg-l"><rect x="18.5" y="42" width="5" height="17" rx="2.4" fill="#3b3b4d"/><rect x="17.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
-   <g class="fig-leg fig-leg-r"><rect x="24.5" y="42" width="5" height="17" rx="2.4" fill="#33333f"/><rect x="23.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
-   <g class="fig-arm fig-arm-l"><rect x="9.5" y="25" width="5" height="15" rx="2.5" fill="${a.color}"/></g>
-   <g class="fig-arm fig-arm-r"><rect x="33.5" y="25" width="5" height="15" rx="2.5" fill="${a.color}"/></g>
-   <rect x="13" y="22" width="22" height="22" rx="7" fill="${a.color}"/>
-   <rect x="12" y="6" width="24" height="17" rx="8" fill="#e8edf5"/>
-   <rect x="15.5" y="9.5" width="17" height="10" rx="5" fill="#10151d"/>
-   <circle cx="20.5" cy="14.5" r="1.7" fill="${a.color}"/><circle cx="27.5" cy="14.5" r="1.7" fill="${a.color}"/>
-   <rect x="29" y="30" width="8" height="10" rx="1.6" fill="#10151d" stroke="#9aa7bd" stroke-width=".8"/>
-  </g></svg>`;
+ if(a.fleet){const pk=officeBotSpriteKey(a.fleet.provider); return `<span class="office-bot-sprites" aria-hidden="true"><img class="bot-sprite bot-pose-idle" src="/assets/bots/tam19-${pk}-idle.png" alt=""><img class="bot-sprite bot-pose-work" src="/assets/bots/tam19-${pk}-work.png" alt=""><img class="bot-sprite bot-pose-walk" src="/assets/bots/tam19-${pk}-walk.png" alt=""></span>`;}
  return `<svg class="office-figure" viewBox="0 0 48 66" aria-hidden="true">
   <g class="fig-bob">
    <g class="fig-leg fig-leg-l"><rect x="18.5" y="42" width="5" height="17" rx="2.4" fill="#3b3b4d"/><rect x="17.8" y="56" width="7" height="4" rx="2" fill="#22222e"/></g>
@@ -336,7 +325,7 @@ function officeRender(){
   const stId=officeStationOf(a.id,ctx);
   const st=OFFICE_STATIONS_2D[stId]||OFFICE_STATIONS_2D.lounge;
   const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
-  const dx=(stId==='lounge'||stId==='cage')?[0,4.5,-4.5,8.5,-8.5][slot%5]:[0,6,-6,11,-11][slot%5]; const rowY=(stId==='lounge'&&slot>=3)?30:(slot>=5?34:0);
+  const dx=(stId==='lounge'||stId==='cage')?[0,5.5,-5.5,10.5,-10.5][slot%5]:[0,6,-6,11,-11][slot%5]; const rowY=(stId==='lounge'&&slot>=3)?30:(slot>=5?34:0);
   const targetX=Math.max(6,Math.min(94,st.x+dx));
   const prev=officePrevPos[a.id];
   if(prev&&prev.station!==stId+':'+slot){
@@ -350,7 +339,7 @@ function officeRender(){
   el.querySelector('.office-agent-name').textContent=officeDisplayName(a,roster);
   const badge=el.querySelector('.office-agent-badge');
   let badgeText='';
-  if(a.fleet){const b=a.fleet; badgeText=b.cage?'⚡ đang bị chích điện':b.state==='working'?'đang làm việc…':b.state==='failed'?'⚡ vừa lỗi — chờ thay ca':'';}
+  if(a.fleet){const b=a.fleet; badgeText=b.cage?'⚡ đang bị chích điện':b.state==='working'?'đang làm việc…':b.state==='failed'?'⚡ vừa lỗi — chờ thay ca':''; el.dataset.pose=b.state==='working'&&!b.cage?'work':'idle'; el.dataset.state=b.cage?'failed':b.state;}
   else if(a.id==='boss'&&awaiting)badgeText='✋ chờ duyệt';
   if(a.id==='news'&&unused)badgeText=unused+' tin mới';
   if(a.id==='media'&&ctx.stage==='produce')badgeText='đang dựng…';
