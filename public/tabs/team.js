@@ -145,7 +145,7 @@ $('#teamTaskForm').addEventListener('submit',async e=>{
 });
 async function teamRunTask(taskId){const p=state.project,task=p?.tasks?.find(t=>t.id===taskId);if(!task||!teamCanRun(task))return toast(task?teamRunReason(task):'Không tìm thấy task');teamTaskRequests.add(taskId);teamMenuTask=null;renderTasks();try{const result=await api(`/api/projects/${p.id}/run-task`,{method:'POST',body:JSON.stringify({taskId})});if(state.project?.id===p.id)await chooseProject(p.id);toast(result.merged?`${taskId} đã merge; xem receipt test và review trong chi tiết`:`${taskId}: ${result.task?.status||'chưa merge'}`);}catch(err){toast(err.message);if(state.project?.id===p.id)await chooseProject(p.id);}finally{teamTaskRequests.delete(taskId);renderTasks();}}
 async function teamArchiveTask(taskId){const p=state.project;try{const next=await api(`/api/projects/${p.id}/tasks/${taskId}`,{method:'DELETE'});if(state.project?.id===p.id){state.project=next;teamMenuTask=null;renderTasks();}toast('Đã lưu trữ task cùng review, commit và log.');}catch(e){toast(e.message);}}
-$('#page-team').addEventListener('click',async e=>{
+$('#page-idea').addEventListener('click',async e=>{
   const tab=e.target.closest('[data-team-tab]');if(tab){teamDetailTab=tab.dataset.teamTab;renderTeamDetail();return;}
   const select=e.target.closest('[data-team-select]');if(select){teamSelectedTask=select.dataset.teamSelect;teamDetailTab='description';renderTasks();return;}
   const copy=e.target.closest('[data-team-copy]');if(copy){try{await navigator.clipboard.writeText(copy.dataset.teamCopy);toast('Đã sao chép đường dẫn lịch sử.');}catch{toast('Clipboard chưa khả dụng trong trình duyệt này.');}return;}
@@ -162,8 +162,8 @@ async function loadWorkspace(){if(!state.project)return;const id=state.project.i
 document.addEventListener('page-change',e=>{if(e.detail.page==='idea'){renderTasks();renderExecutionControls();}});
 document.addEventListener('connections-change',()=>{renderTasks();renderExecutionControls();});
 setInterval(async()=>{
-  if(!$('#page-team').classList.contains('active')||!state.project||teamPollPending)return;
-  const task=state.project.tasks?.find(t=>t.id===teamSelectedTask),runtime=$('#page-team [data-team-runtime]');if(task&&runtime)runtime.textContent=teamDuration(task);
+  if(!$('#page-idea').classList.contains('active')||!state.project||teamPollPending)return;
+  const task=state.project.tasks?.find(t=>t.id===teamSelectedTask),runtime=$('#page-idea [data-team-runtime]');if(task&&runtime)runtime.textContent=teamDuration(task);
   if(!(teamBatchPending||teamTaskRequests.size||state.project.tasks?.some(t=>teamActiveStatuses.has(t.status))))return;
   teamPollPending=true;const id=state.project.id;try{const p=await api('/api/projects/'+id);if(state.project?.id===id){state.project=p;renderTasks();renderExecutionControls();}}catch(e){toast('Không tải được state thực thi: '+e.message);}finally{teamPollPending=false;}
 },1500);
@@ -211,6 +211,22 @@ const OFFICE_STATIONS={
  publish:{x:76,y:66,label:'🚀 Đăng bài'},
  lounge:{x:10,y:85,label:'🔋 Phòng nạp năng lượng'},
  cage:{x:90,y:83,label:'⚡ Phòng chích điện'},
+};
+/* Tọa độ 2D khớp phông phòng isometric mới (office-backdrop.jpg): chiếu từ
+ * tọa độ thế giới của scene gốc qua đúng camera render, đã đối chiếu với
+ * ảnh render thật. Chỉ dùng cho bản 2D — bản 3D giữ OFFICE_STATIONS cũ. */
+const OFFICE_STATIONS_2D={
+ boss:{x:36.8,y:66.6,label:'👔 Bàn Sếp Lâm'},
+ intake:{x:42.7,y:68.4,label:'🤝 Nhận việc với Sếp'},
+ news:{x:39.9,y:40.7,label:'📰 Tin tức'},
+ script:{x:34,y:49.1,label:'✍️ Biên tập'},
+ image:{x:57.7,y:64,label:'🎨 Hình ảnh'},
+ media:{x:65.1,y:43.8,label:'🎬 Sản xuất'},
+ pm:{x:65.7,y:56.9,label:'🎯 Điều phối'},
+ review:{x:55.1,y:37.6,label:'🔍 Kiểm duyệt'},
+ publish:{x:61.5,y:47.5,label:'🚀 Đăng bài'},
+ lounge:{x:41.6,y:30.2,label:'🔋 Phòng nạp năng lượng'},
+ cage:{x:77.3,y:52.6,label:'⚡ Phòng chích điện'},
 };
 /* Ai làm hỏng việc thì vào Phòng chích điện: xét lượt chạy THẤT BẠI gần
  * nhất trong 24 giờ; nếu sau đó đã có lượt chạy hoàn thành mới hơn thì
@@ -284,7 +300,7 @@ function officeRender(){
  const rosterSig=roster.map(a=>a.id).join(',');
  if(!room.dataset.built||officeState.rosterSig!==rosterSig){
   room.dataset.built='1'; officeState.rosterSig=rosterSig;
-  room.innerHTML=Object.entries(OFFICE_STATIONS).map(([id,st])=>`<div class="office-station" style="left:${st.x}%;top:${st.y}%">${st.label}</div>`).join('')
+  room.innerHTML=Object.entries(OFFICE_STATIONS_2D).map(([id,st])=>`<div class="office-station" style="left:${st.x}%;top:${st.y}%">${st.label}</div>`).join('')
    +roster.map(a=>`<button type="button" class="office-agent" id="officeAgent-${a.id}" data-office-agent="${a.id}" style="left:50%;top:50%" title="${esc(a.role)}${a.fleet?'':' — bấm để đổi tên'}"><span class="office-agent-shadow"></span>${officeFigure(a)}<span class="office-agent-name">${esc(officeAgentName(a))}</span><span class="office-agent-badge" hidden></span></button>`).join('')
    +`<div class="office-package" id="officePackage" hidden>📦</div>`
    +(awaiting?'':'' );
@@ -299,9 +315,9 @@ function officeRender(){
  for(const a of roster){
   const el=$('#officeAgent-'+a.id); if(!el)continue;
   const stId=officeStationOf(a.id,ctx);
-  const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
+  const st=OFFICE_STATIONS_2D[stId]||OFFICE_STATIONS_2D.lounge;
   const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
-  const dx=slot===0?0:slot===1?9:-9;
+  const dx=(stId==='lounge'||stId==='cage')?[0,4.5,-4.5,8.5,-8.5][slot%5]:[0,6,-6,11,-11][slot%5]; const rowY=(stId==='lounge'&&slot>=3)?30:(slot>=5?34:0);
   const targetX=Math.max(6,Math.min(94,st.x+dx));
   const prev=officePrevPos[a.id];
   if(prev&&prev.station!==stId+':'+slot){
@@ -311,7 +327,7 @@ function officeRender(){
    officeWalkTimers[a.id]=setTimeout(()=>el.classList.remove('office-walking'),1300);
   }
   officePrevPos[a.id]={station:stId+':'+slot,x:targetX};
-  el.style.left=targetX+'%'; el.style.top=`calc(${st.y}% + 32px)`;
+  el.style.left=targetX+'%'; el.style.top=`calc(${st.y}% + ${32+rowY}px)`;
   el.querySelector('.office-agent-name').textContent=officeAgentName(a);
   const badge=el.querySelector('.office-agent-badge');
   let badgeText='';
@@ -329,7 +345,7 @@ function officeRender(){
  const pkg=$('#officePackage');
  if(pkg){
   const target=officeFleetActive()?(awaiting?'boss':(officeState.fleet.bots.find(b=>b.state==='working')?.station||null)):(awaiting?'boss':activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null);
-  if(target){const st=OFFICE_STATIONS[target];pkg.hidden=false;pkg.style.left=(st.x+4)+'%';pkg.style.top=(st.y-7)+'%';}
+  if(target){const st=OFFICE_STATIONS_2D[target];pkg.hidden=false;pkg.style.left=(st.x+4)+'%';pkg.style.top=(st.y-7)+'%';}
   else pkg.hidden=true;
  }
  const approveBtn=$('#officeApprove');
@@ -386,7 +402,7 @@ async function officePoll(force){
  }catch{/* giữ trạng thái cũ */}
  finally{officePollPending=false;officeRender();}
 }
-setInterval(()=>{const page=$('#page-team');if(page&&page.classList.contains('active')&&!document.hidden)officePoll();},4000);
+setInterval(()=>{const page=$('#page-idea');if(page&&page.classList.contains('active')&&!document.hidden)officePoll();},4000);
 document.addEventListener('page-change',e=>{if(e.detail.page==='idea'){officeRender();officePoll();officeModelsRender();}});
 const OFFICE_MODEL_CAST=[['boss','Sếp Lâm'],['pm','Tuấn — Trưởng phòng'],['news','Na — Tin tức'],['script','Hằng — Biên tập'],['image','Tí — Hình ảnh'],['media','Minh — Sản xuất'],['review','Tâm — Kiểm duyệt'],['publish','Phát — Đăng bài']];
 async function officeModelsRender(){
@@ -994,12 +1010,12 @@ function office3DBuild(THREE,room){
  // --- Phòng GLB theo ảnh mẫu (nạp bất đồng bộ): có file thì thay vỏ phòng thủ tục, robot + trạng thái thật giữ nguyên ---
  // --- Thân TAM01 cho đội bot tài khoản: nạp 1 lần, nhân bản theo xương cho từng bot ---
  let tamTemplate=null,tamClipList=null,tamCloneFn=null,tamBusy=false;
- const TAM_NATIVE_H=1.678,TAM_TARGET_H=1.9;
+ const TAM_NATIVE_H=1.6004,TAM_TARGET_H=1.9;
  async function officeEnsureTam(){
   if(tamTemplate||tamBusy)return; tamBusy=true;
   try{
    const [sk,gl]=await Promise.all([import('/vendor/addons/SkeletonUtils.js'),import('/vendor/addons/GLTFLoader.js')]);
-   const g=await new gl.GLTFLoader().loadAsync('/assets/tam01.glb');
+   const g=await new gl.GLTFLoader().loadAsync('/assets/tam19.glb');
    tamTemplate=g.scene; tamClipList=g.animations||[]; tamCloneFn=sk.clone;
    window.__officeTamClips=tamClipList.map(c=>c.name);
    for(const A of Object.values(agents))if(A.a.fleet)officeAttachTam(A);
@@ -1016,8 +1032,8 @@ function office3DBuild(THREE,room){
     if(!o.isMesh)return;
     o.frustumCulled=false;
     if(o.material){o.material=o.material.clone();
-     if(o.material.name==='emission'){o.material.emissive=new THREE.Color(col); o.material.color=new THREE.Color(col);}
-     else if(o.material.name==='blue'){o.material.color=new THREE.Color(o.material.color).lerp(col,.5);}
+     if(o.material.name==='emission'||o.material.name==='Eye cyan emission'||o.material.name==='Blue LED'){o.material.emissive=new THREE.Color(col); o.material.color=new THREE.Color(col);}
+     else if(o.material.name==='blue'||o.material.name==='Phu Quoc turquoise'){o.material.color=new THREE.Color(o.material.color).lerp(col,.5);}
      if(offline){o.material.color.multiplyScalar(.5); if('emissiveIntensity' in o.material)o.material.emissiveIntensity=.2;}
     }
    });
@@ -1025,7 +1041,7 @@ function office3DBuild(THREE,room){
    if(A.modelRoot)A.grp.remove(A.modelRoot);
    A.grp.add(grp); A.modelRoot=grp;
    const names=tamClipList.map(c=>c.name); const clips={};
-   const pref={idle:['Idle_Breathe'],work:['Type_Keyboard','Review_Document'],walk:['Walk_Forward','Walk_Fast'],cheer:['Approve','Wave_Hello'],fail:['Reject']};
+   const pref={idle:['Idle','Idle_Breathe'],work:['InspectTablet','Type_Keyboard','Review_Document'],walk:['Walk','Walk_Forward','Walk_Fast'],cheer:['Approve','Wave_Hello','Greeting'],fail:['Reject','Idle']};
    for(const want of ['idle','work','walk','cheer','fail']){
     let c=null; for(const n of pref[want]){c=tamClipList.find(x=>x.name===n); if(c)break;}
     if(!c&&clipLogic){const f=clipLogic.officeFindClip(names,want); if(f)c=tamClipList.find(x=>x.name===f);}

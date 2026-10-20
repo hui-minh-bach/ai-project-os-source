@@ -49,7 +49,7 @@ test('Arctic repair does not paint over any of four dark theme settings',()=>{
 test('hard-to-read controls and runtime states have dedicated light-theme fixes',()=>{
   const targets=['#page-idea .idea-field label span','#page-idea .idea-feature[aria-pressed="true"]',
     '#page-idea .idea-message-body','#page-connections .cc-card', '#page-connections button.cc-button.connect',
-    '#page-team .team-run-button','#page-team .team-status-pill.running',
+    '#page-idea .team-run-button','#page-idea .team-status-pill.running',
     '#page-skills .skills-categories button[aria-pressed="true"]',
     '#page-engines .engineBadge.safe','#page-map .map-status.done',
     '#page-council .council-vote.consider','.modalCard', '.customer-steps>div'];
