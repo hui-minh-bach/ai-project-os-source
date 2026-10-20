@@ -250,6 +250,7 @@ let officeState={runs:[],cards:[],tasks:[],loaded:false,lastFeed:[],fleet:null,r
 const officePrevPos={},officeWalkTimers={};
 function officeAgentName(a){return officeNames[a.id]||a.name}
 function officeDisplayName(a,roster){
+ if(a.fleet&&a.fleet.standby)return officeAgentName(a);
  if(!a.fleet)return officeAgentName(a);
  const same=(roster||[]).filter(x=>x.fleet&&x.fleet.provider===a.fleet.provider);
  if(same.length<2)return a.fleet.provider;
@@ -263,9 +264,17 @@ function officeFleetBot(agentId){
  return officeState.fleet.bots.find(b=>b.connectionId===cid)||null;
 }
 function officeRosterCast(){
- if(!officeFleetActive())return OFFICE_CAST;
- const bots=officeState.fleet.bots.map(b=>({id:'bot-'+b.connectionId,name:b.label,role:b.provider+' · '+(b.state==='working'?'đang làm việc':b.state==='failed'?'lượt gần nhất lỗi':b.state==='charging'?'đang sạc · chờ việc':'chưa kết nối'),icon:'🤖',station:b.station==='bay'?'lounge':b.station,color:b.color,fleet:b}));
- return [OFFICE_CAST[0],...bots];
+ const bots=officeFleetActive()?officeState.fleet.bots.map(b=>({id:'bot-'+b.connectionId,name:b.label,role:b.provider+' · '+(b.state==='working'?'đang làm việc':b.state==='failed'?'lượt gần nhất lỗi':b.state==='charging'?'đang sạc · chờ việc':'chưa kết nối'),icon:'🤖',station:b.station==='bay'?'lounge':b.station,color:b.color,fleet:b})):[];
+ const cast=[OFFICE_CAST[0],...bots];
+ /* Phòng luôn đủ 10 robot TÂM-19 (chỉ đạo Sếp Lâm 20/10): robot đã có tài
+  * khoản/bàn thì ngồi ở bàn; các ô robot còn trống đứng ở Phòng nạp năng
+  * lượng với nhãn chờ tài khoản — là Ô TRỐNG trung thực, không giả làm
+  * tài khoản thật. Liên kết thêm tài khoản thì robot ở phòng sạc tự ra
+  * ngồi bàn của tài khoản đó. */
+ for(let i=bots.length;i<10;i++){
+  cast.push({id:'slot-'+(i+1),name:'Robot '+(i+1),role:'Ô robot trống — chờ tài khoản. Vào tab Kết nối, liên kết một tài khoản AI để robot này có bàn làm việc.',icon:'🤖',station:'lounge',color:'#5b7a99',fleet:{provider:'TAM-19',state:'charging',standby:true}});
+ }
+ return cast;
 }
 function officeStationOf(agentId,ctx){
  const bot=officeFleetBot(agentId); if(bot){try{const ink=JSON.parse(localStorage.getItem('aios-intake')||'null');if(ink&&Date.now()-ink.ts<180000&&(!ink.lead||ink.lead===bot.connectionId))return 'intake';}catch{} return bot.station==='bay'?'lounge':bot.station;}
@@ -325,7 +334,7 @@ function officeRender(){
   const stId=officeStationOf(a.id,ctx);
   const st=OFFICE_STATIONS_2D[stId]||OFFICE_STATIONS_2D.lounge;
   const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
-  const dx=(stId==='lounge'||stId==='cage')?[0,5.5,-5.5,10.5,-10.5][slot%5]:[0,6,-6,11,-11][slot%5]; const rowY=(stId==='lounge'&&slot>=3)?30:(slot>=5?34:0);
+  const dx=stId==='lounge'?[-13,-6.5,0,6.5,13][slot%5]:(stId==='cage'?[0,5.5,-5.5,10.5,-10.5][slot%5]:[0,6,-6,11,-11][slot%5]); const rowY=stId==='lounge'?(slot>=5?38:0):(slot>=5?34:0);
   const targetX=Math.max(6,Math.min(94,st.x+dx));
   const prev=officePrevPos[a.id];
   if(prev&&prev.station!==stId+':'+slot){
@@ -378,10 +387,12 @@ function officeRender(){
     else lines.push(`🔌 ${b.label} (${b.provider}) chưa xác minh được — bot đang tắt ở khu sạc. Vào tab Kết nối để đăng nhập/xác minh tài khoản này.`);
    }
    if(officeState.fleet.overflow)lines.push(`… và ${officeState.fleet.overflow} tài khoản nữa chưa có bot (văn phòng tối đa 10 bot).`);
+   if(officeState.fleet.bots.length<10)lines.push(`🔋 ${10-officeState.fleet.bots.length} robot TÂM-19 đang đứng ở Phòng nạp năng lượng — ô trống chờ tài khoản. Liên kết thêm tài khoản ở tab Kết nối, robot sẽ tự ra ngồi bàn.`);
    if(unused)lines.push(`📰 Đang có ${unused} thẻ tin chưa dùng ở tab Ý tưởng.`);
    if(!lines.length)lines.push('☕ Chưa có tài khoản AI nào. Vào tab Kết nối để thêm tài khoản — mỗi tài khoản là một bot trong văn phòng.');
   }
   else{
+   lines.push('🔋 Cả 10 robot TÂM-19 đang đứng ở Phòng nạp năng lượng — chưa có tài khoản nào được giao bàn. Vào tab Kết nối để liên kết tài khoản AI đầu tiên.');
    if(unused)lines.push(`📰 ${officeAgentName(OFFICE_CAST[2])} đang giữ ${unused} thẻ tin chưa dùng.`);
    if(activeRun&&activeRun.state==='running')lines.push(`🎯 ${officeAgentName(OFFICE_CAST[1])} đã chia việc: "${activeRun.title||activeRun.pipeline}" — đang ở công đoạn ${ctx.stage==='script'?'viết lời dẫn':ctx.stage==='produce'?'dựng video':ctx.stage==='publish'?'đăng bài':'tiếp nhận'}.`);
    if(awaiting)lines.push(`👔 Sản phẩm "${awaiting.title||awaiting.pipeline}" đang ở trên bàn Sếp Lâm chờ duyệt.`);

@@ -6,7 +6,7 @@ import fs from 'node:fs';
 const release=JSON.parse(fs.readFileSync(new URL('../RELEASE.json',import.meta.url),'utf8'));
 test('internal integration build fails closed until live commercial release gates have evidence',()=>{
  const a=assessCommercialRelease({release});
- assert.equal(a.version,'0.9.44');assert.equal(a.commercialReady,false);
+ assert.equal(a.version,'0.9.45');assert.equal(a.commercialReady,false);
  assert.ok(a.blocked.includes('S01'));assert.ok(a.blocked.includes('W01-W02'));
  assert.ok(a.blocked.includes('A02-A03'));assert.ok(a.blocked.includes('S02'));
  const actual=spawnSync(process.execPath,[new URL('../scripts/release-readiness.mjs',import.meta.url).pathname,'--enforce'],{encoding:'utf8'});
