@@ -1,7 +1,7 @@
 {
  "product": "AI Project OS Local Worker",
- "version": "0.9.43",
- "channel": "v0.9.43-kokoro-fulltext-opencode",
+ "version": "0.9.44",
+ "channel": "v0.9.44-account-pool-rotation",
  "windows": {
   "architecture": "x64",
   "minimum": "Windows 10 64-bit",
@@ -205,7 +205,8 @@
   "project_map_shell_fix": "Fixed a stray extra </div> in radar.html that closed the app shell early and pushed Skills/Engines/Project Map/Publish/Guide below the 100vh shell (home page looked empty). Guarded by a tab-fragment tag-balance test.",
   "kokoro_tts": "Local English neural TTS (Kokoro-82M, Apache-2.0) installed on demand from the official npm package kokoro-js 1.2.1 plus the Hugging Face model repo; the quantized model SHA-256 is verified against the repo LFS oid after download. Wired into the Studio voice picker for dub and retheme (English targets only — other languages hit the honest voice-language guard; Vietnamese stays on Piper) and into the orchestrator dub pipeline. Synthesis live-verified headless on Linux producing real 24kHz WAV; Windows run still needs the owner acceptance pass like every local engine.",
   "radar_full_text": "News cards can carry full article text, Miniflux-style: readability extraction on scan (max 3 new cards per scan, per-source opt-out, only when the summary is short), an in-card reader plus fetch-on-demand endpoint, and the news script writers (simulated and gateway) now write from the full text instead of the short summary.",
-  "opencode_engine": "OpenCode (MIT, opencode-ai 1.19.3) joins the engine registry: one-click npm runtime install from the Engines tab, headless task adapter via opencode run --format json using the owner configured model connection — including LOCAL models over any OpenAI-compatible endpoint (Ollama/LM Studio). Locked by default behind the same explicit unsafe-host opt-in as mini-SWE-agent. The live model loop is NOT yet verified end-to-end in the development sandbox (its proxy blocks OpenCode's provider runtime) — owner Windows acceptance run pending."
+  "opencode_engine": "OpenCode (MIT, opencode-ai 1.19.3) joins the engine registry: one-click npm runtime install from the Engines tab, headless task adapter via opencode run --format json using the owner configured model connection — including LOCAL models over any OpenAI-compatible endpoint (Ollama/LM Studio). Locked by default behind the same explicit unsafe-host opt-in as mini-SWE-agent. The live model loop is NOT yet verified end-to-end in the development sandbox (its proxy blocks OpenCode's provider runtime) — owner Windows acceptance run pending.",
+  "account_pool_rotation": "Account pool + quota rotation (0.9.44): connections of the same AI kind form a pool; providers.ask resolves the role's pinned account first, and on a quota/rate-limit signal (HTTP 429 or a quota message from the vendor CLI/API) it cools that account down until its reset (parsed from the provider error when present, else 60 min for account kinds / 2 min for API kinds) and retries the SAME call on the next pooled account whose verified registry contains the same model. Non-quota errors never fail over. Every quota hit, switch and pool exhaustion is recorded in account-pool.json and rendered in the reception meeting feed; Connections cards show pool size and cooldown state. Scope: text inference through providers.ask (Founder/Council/Worker/Reviewer and all pipelines). External code engines (OpenCode/mini-SWE) and image generation keep their pinned connection in this version. Accounts are only the owner's own logged-in accounts; the pool never creates accounts or shares credentials."
  },
  "online_provider_apis": "separate user credentials and provider charges",
  "build": "Integration-ABC-v0.8.5-Recorded-Workflow-Fix-Internal-RC-2026-10-16",

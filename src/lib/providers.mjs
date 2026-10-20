@@ -5,6 +5,7 @@ import { askCliAccount } from './cli-account.mjs';
 import { askAntigravityAccount, listAntigravityModels } from './antigravity-account.mjs';
 import { getConnection, saveConnection, createVaultSecretRedactor } from './vault.mjs';
 import { resolveModelConnection, recordModels, invalidateModels, modelAvailability } from './model-bindings.mjs';
+import { poolCandidates, isQuotaError, noteQuotaHit, noteSwitch, notePoolExhausted, poolKindLabel } from './account-pool.mjs';
 
 const DEFAULT_TIMEOUT_MS = 90000;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -56,13 +57,38 @@ function requireText(name, text) {
   return out;
 }
 
+function poolExhaustedError(primary, earliestResetMs) {
+  const when = earliestResetMs ? ` Sớm nhất mở lại lúc ${new Date(earliestResetMs).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}.` : '';
+  return new Error(`Tất cả tài khoản ${poolKindLabel(primary.kind)} trong bể đều đang nghỉ hạn mức.${when} Hãy chờ hạn mức đặt lại hoặc thêm tài khoản ${poolKindLabel(primary.kind)} khác ở tab Kết nối.`);
+}
+
 export async function ask(connectionId, { system = '', prompt = '', usageContext = null }) {
   const redact = createVaultSecretRedactor();
   let c;
   try {
-    c = resolveModelConnection(connectionId);
-    if(usageContext)c.usageContext={...c.usageContext,...usageContext};
-    return redact(await askConnection(c, {system, prompt}));
+    const primary = resolveModelConnection(connectionId);
+    if(usageContext)primary.usageContext={...primary.usageContext,...usageContext};
+    c = primary;
+    // Account pool (v0.9.44): same-kind verified accounts form a pool. A
+    // quota/rate-limit failure cools the account down and the SAME call is
+    // retried on the next pooled account; any other error keeps the legacy
+    // single-account behavior exactly.
+    const { candidates, earliestResetMs } = poolCandidates(primary);
+    if (!candidates.length) { notePoolExhausted(primary.kind, earliestResetMs); throw poolExhaustedError(primary, earliestResetMs); }
+    let quotaErr = null;
+    for (const cand of candidates) {
+      c = cand;
+      try {
+        const out = await askConnection(cand, { system, prompt });
+        if (cand.id !== primary.id) noteSwitch(primary, cand, primary.model);
+        return redact(out);
+      } catch (e) {
+        if (isQuotaError(e)) { noteQuotaHit(cand, e); quotaErr = e; continue; }
+        throw e;
+      }
+    }
+    notePoolExhausted(primary.kind, earliestResetMs);
+    throw poolExhaustedError(primary, earliestResetMs);
   } catch (e) {
     if (c && [401,403,404].includes(e?.status)) invalidateModels(c.id);
     // Do not retain the original stack/cause/custom fields containing provider

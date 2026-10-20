@@ -38,6 +38,7 @@ import { fetchArticleText } from './lib/fulltext.mjs';
 import { listNewsFields, newsFieldById, googleNewsRssUrl } from './lib/news-fields.mjs';
 import { createOrchestrator, createSimulatedAi, createGatewayAi, buildRunFeed } from './lib/orchestrator.mjs';
 import { operatorStatus, createOperatorToken, revokeOperatorToken, verifyOperatorToken, operatorCan, addOperatorNote, listOperatorNotes, operatorNoteEvents } from './lib/operator.mjs';
+import { poolFeedEvents, poolInfoFor } from './lib/account-pool.mjs';
 import { deriveFleet } from './lib/office-fleet.mjs';
 import { writeTextWithModel, translateSegmentsWithModel } from './lib/media-ai.mjs';
 import { oauthAuthorizeUrl, oauthExchangeCode, fetchPlatformIdentity, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
@@ -46,7 +47,7 @@ import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, 
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.43';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.44';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -199,7 +200,7 @@ const server=http.createServer(async(req,res)=>{try{
   const orchApproveMatch=u.pathname.match(/^\/api\/orchestrator\/runs\/([^/]+)\/approve$/);
   if(req.method==='POST'&&orchApproveMatch)return send(res,200,{run:await orchestrator.approveRun(orchApproveMatch[1])});
   if(req.method==='GET'&&u.pathname==='/api/orchestrator/feed'){
-    const events=[...buildRunFeed(orchestrator.listRuns()),...operatorNoteEvents(50)];
+    const events=[...buildRunFeed(orchestrator.listRuns()),...operatorNoteEvents(50),...poolFeedEvents(50)];
     events.sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
     return send(res,200,{events:events.slice(-150),generatedAt:new Date().toISOString()});
   }
@@ -436,7 +437,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='POST'&&/^\/api\/infra-accounts\/(github|vercel|supabase)\/login$/.test(u.pathname))return send(res,200,await startInfraLoginWindow(u.pathname.split('/')[3]));
   if(req.method==='GET'&&/^\/api\/cli-accounts\/[a-f0-9-]{36}\/status$/.test(u.pathname))return send(res,200,cliAccountStatus(u.pathname.split('/')[3]));
   if(req.method==='POST'&&/^\/api\/cli-accounts\/[a-f0-9-]{36}\/verify$/.test(u.pathname))return send(res,200,await verifyCliAccountModel(u.pathname.split('/')[3],(await readBody(req)).model));
-  if(req.method==='GET'&&u.pathname==='/api/connections')return send(res,200,listConnections().map(c=>({...c,availability:c.kind==='chatgpt_account'?accountAvailability(c.id):AI_KINDS.includes(c.kind)?modelAvailability(c.id):undefined,usage:AI_KINDS.includes(c.kind)||c.kind==='chatgpt_account'?usageSummary(c.id):undefined})));
+  if(req.method==='GET'&&u.pathname==='/api/connections')return send(res,200,listConnections().map(c=>({...c,availability:c.kind==='chatgpt_account'?accountAvailability(c.id):AI_KINDS.includes(c.kind)?modelAvailability(c.id):undefined,usage:AI_KINDS.includes(c.kind)||c.kind==='chatgpt_account'?usageSummary(c.id):undefined,pool:AI_KINDS.includes(c.kind)?poolInfoFor(c.id):undefined})));
   if(req.method==='POST'&&u.pathname==='/api/accounts/login')return send(res,200,await startAccountLogin(await readBody(req)));
   if(u.pathname.match(/^\/api\/accounts\/[^/]+\/(status|usage|cancel|logout|verify)$/)){const [, , , id,action]=u.pathname.split('/');const key=decodeURIComponent(id);if(req.method==='POST'&&action==='verify')return send(res,200,await verifyAccountModel(key,(await readBody(req)).model));if(req.method==='GET'&&action==='status')return send(res,200,await refreshAccount(key));if(req.method==='GET'&&action==='usage')return send(res,200,await readAccountUsage(key));if(req.method==='POST'&&action==='cancel')return send(res,200,await cancelAccountLogin(key));if(req.method==='POST'&&action==='logout')return send(res,200,await logoutAccount(key));}
   if(req.method==='POST'&&u.pathname==='/api/connections'){const input=await readBody(req);if(['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(input.kind))throw new Error('Dùng quy trình đăng nhập tài khoản chính thức.');const old=input.id?listConnections().find(c=>c.id===input.id):null;const rawMeta=(input.meta&&typeof input.meta==='object')?input.meta:{};input.meta={management:input.kind==='supabase'&&input.meta?.management===true,...(old?.meta?.authMode==='cli'&&!input.secret?{authMode:'cli'}:{authMode:'pat'})};if(PLATFORM_KINDS.includes(input.kind)){input.meta={...(old?.meta||{})};for(const k of ['pageId','pageName','accountLabel','channelTitle','channelId','pages','username','tiktokApproved','linkedAt'])if(rawMeta[k]!==undefined)input.meta[k]=rawMeta[k];}const c=saveConnection(input);if(AI_KINDS.includes(c.kind)){await listModels(c.id);}else await testConnection(c.id);return send(res,200,c);}

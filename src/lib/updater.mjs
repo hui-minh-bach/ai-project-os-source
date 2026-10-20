@@ -42,6 +42,11 @@ export function signManifest(privateKeyPem, fields) {
   const sig = crypto.sign(null, Buffer.from(canonicalManifest(base), 'utf8'), privateKeyPem);
   return { ...base, signature: sig.toString('base64url') };
 }
+// Built-in update channel (v0.9.44): the owner's public source repo serves
+// the signed manifest + package from its latest GitHub Release, so an
+// installed copy needs zero configuration to receive updates. A per-install
+// update-config.json or AIOS_UPDATE_MANIFEST_URL still overrides this.
+export const DEFAULT_UPDATE_MANIFEST_URL = 'https://github.com/hui-minh-bach/ai-project-os-source/releases/latest/download/update-manifest.json';
 export function verifyManifest(manifest, publicKeyPem = OWNER_PUBLIC_KEY_PEM) {
   if (!manifest || manifest.product !== 'ai-project-os' || !manifest.version || !manifest.url || !manifest.sha256 || !manifest.signature)
     throw fail('UPDATE_MANIFEST', 'Manifest cập nhật thiếu trường bắt buộc.');
@@ -147,7 +152,7 @@ export function createUpdater({ dataDir, currentVersion, publicKeyPem = OWNER_PU
   const pendingFile = path.join(dataDir, 'pending-update.json');
   const readJson = (f) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return null; } };
   const writeJson = (f, v) => { fs.mkdirSync(path.dirname(f), { recursive: true }); const t = f + '.tmp'; fs.writeFileSync(t, JSON.stringify(v, null, 2)); fs.renameSync(t, f); };
-  function getConfig() { return readJson(configFile) || { url: process.env.AIOS_UPDATE_MANIFEST_URL || '' }; }
+  function getConfig() { return readJson(configFile) || { url: process.env.AIOS_UPDATE_MANIFEST_URL || DEFAULT_UPDATE_MANIFEST_URL }; }
   function setConfig({ url }) {
     const u = String(url || '').trim();
     if (u && !/^https?:\/\//i.test(u)) throw fail('UPDATE_CONFIG', 'URL manifest cập nhật phải bắt đầu bằng http:// hoặc https://');
