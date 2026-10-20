@@ -448,7 +448,15 @@ function office3DEnsure(){
  setTimeout(()=>{if(window.__office3DWanted&&!window.__office3DReady){const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D chưa tải được — đang dùng bản 2D';}console.warn('Phòng 3D không sẵn sàng sau 9 giây — giữ bản 2D.');}},9000);
  import('/vendor/three.module.min.js').then(THREE=>{try{office3DBuild(THREE,room);}catch(err){console.warn('Văn phòng 3D lỗi, dùng bản 2D:',err);}}).catch(()=>{});
 }
-{const tgl=$('#office3DToggle');if(tgl)tgl.onclick=()=>{window.__office3DWanted=true;tgl.disabled=true;tgl.textContent='🧊 Đang tải phòng 3D…';office3DEnsure();};}
+{const tgl=$('#office3DToggle');if(tgl)tgl.onclick=()=>{
+ const roomEl=$('#officeRoom');
+ if(window.__office3DReady&&roomEl&&roomEl.classList.contains('office-3d-on')){window.__office3DOff=true;roomEl.classList.remove('office-3d-on');tgl.textContent='🧊 Xem phòng 3D';try{localStorage.setItem('aios-office-view','2d');}catch{} return;}
+ if(window.__office3DReady&&window.__office3DOff){window.__office3DOff=false;if(roomEl)roomEl.classList.add('office-3d-on');tgl.textContent='🧊 Phòng 3D đang bật — bấm để về 2D';try{localStorage.setItem('aios-office-view','3d');}catch{} return;}
+ window.__office3DWanted=true;tgl.disabled=true;tgl.textContent='🧊 Đang tải phòng 3D…';try{localStorage.setItem('aios-office-view','3d');}catch{} office3DEnsure();};}
+/* Phòng 3D là chế độ mở đầu của Văn phòng AI từ 0.9.46 (robot TAM-19 của
+ * Sếp là mô hình 3D — phải đi lại được trong phòng 3D). Ai đã chọn 2D thì
+ * app nhớ lựa chọn đó; 3D lỗi/tải chậm thì tự giữ bản 2D như cũ. */
+try{if(localStorage.getItem('aios-office-view')!=='2d'){window.__office3DWanted=true;const t=$('#office3DToggle');if(t){t.disabled=true;t.textContent='🧊 Đang tải phòng 3D…';}office3DEnsure();}}catch{}
 function officeWorld(pct){return {x:(pct.x-50)/50*13,z:(pct.y-50)/50*8.0};}
 let officeRoomDeckY=0; // 0 = phòng thủ tục; 0.18 = mặt boong của phòng GLB (nạp bất đồng bộ bên dưới)
 function officeYFor(stId){return (stId==='lounge'||stId==='cage')?0:officeRoomDeckY;}
@@ -870,7 +878,7 @@ function office3DBuild(THREE,room){
  for(const id in agents){const A=agents[id];const keep=new Set([A.nameSp,A.zzz,A.ring]);const proc=new THREE.Group();proc.name='ProceduralBody';
   [...A.grp.children].forEach(ch=>{if(!keep.has(ch))proc.add(ch);});
   A.grp.add(proc);A.procBody=proc;}
- let clipLogic=null; import('/office-clip.mjs').then(m=>{clipLogic=m;}).catch(()=>{});
+ let clipLogic=null; import('/office-clip.mjs').then(m=>{clipLogic=m;}).catch(e=>{console.warn('Không nạp được logic clip phòng 3D — dùng quy tắc dự phòng:',e);});
  function officePlayClip(A,want){
   const M=A.model; if(!M||M.current===want)return;
   const clip=M.clips[want]||M.clips.idle;
@@ -924,7 +932,7 @@ function office3DBuild(THREE,room){
  let zapId=null,zapClock=0;
  // --- đồng bộ từ trạng thái thật ---
  window.__office3D=true; window.__office3DCamera=orbit;
- window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,A.model?{clip:A.model.current,clips:Object.keys(A.model.clips)}:null]));
+ window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,sit:Math.round((A.sit||0)*100)/100,station:A.station||null,pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
  window.__office3DSync=(ctx)=>{
   office3DReconcile();
   const slotUse=new Map();
@@ -934,8 +942,10 @@ function office3DBuild(THREE,room){
    const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
    const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
    const dx=slot===0?0:slot===1?9:-9;
-   const w=officeWorld(st); let tx=w.x+dx*.22; if(stId==='lounge')tx=w.x+[-1.15,0,1.15][slot%3];
-   A.target.set(tx,0,w.z); A.baseY=officeYFor(stId);
+   const w=officeWorld(st); let tx=w.x+dx*.22, tz=w.z;
+   if(stId==='lounge'){const col=slot%5,row=Math.floor(slot/5)%2; tx=w.x+[-2.2,-1.1,0,1.1,2.2][col]; tz=w.z+(row===0?-.85:.85);}
+   else if(stId==='cage')tx=w.x+[-1.15,0,1.15][slot%3];
+   A.target.set(tx,0,tz); A.baseY=officeYFor(stId); A.station=stId;
    A.busy=a.fleet?a.fleet.state==='working':((a.id==='boss'&&Boolean(ctx.awaiting))||(a.id==='media'&&ctx.stage==='produce')||(a.id==='script'&&ctx.stage==='script')||(a.id==='publish'&&ctx.stage==='publish')||(ctx.culprit&&ctx.culprit.agentId===a.id));
    A.ring.visible=A.busy;
    if((ctx.culprit&&ctx.culprit.agentId===a.id)||(a.fleet&&a.fleet.cage))A.ring.material.color.set(0xff4545); else A.ring.material.color.set(a.color);
@@ -972,7 +982,7 @@ function office3DBuild(THREE,room){
  // --- vòng lặp chuyển động ---
  const clockT=new THREE.Clock();
  renderer.setAnimationLoop(()=>{try{
-  if(!office3DVisible||document.hidden)return;
+  if(!office3DVisible||document.hidden||window.__office3DOff)return;
   const dt=Math.min(clockT.getDelta(),.05),t=clockT.elapsedTime;
   for(const id in agents){
    const A=agents[id],p=A.grp.position;
@@ -992,11 +1002,15 @@ function office3DBuild(THREE,room){
    A.wasBusy=A.busy;
    if(A.model){
     if(A.walking){p.y=A.yCur+Math.abs(Math.sin(t*9+A.phase))*.04;}
-    else{p.y=A.yCur; let fd=0-A.grp.rotation.y; while(fd>Math.PI)fd-=2*Math.PI; while(fd<-Math.PI)fd+=2*Math.PI; A.grp.rotation.y+=fd*Math.min(1,dt*3.5);}
+    else{p.y=A.yCur-0.5*A.sit; let fd=0-A.grp.rotation.y; while(fd>Math.PI)fd-=2*Math.PI; while(fd<-Math.PI)fd+=2*Math.PI; A.grp.rotation.y+=fd*Math.min(1,dt*3.5);}
     A.grp.rotation.x=0;
-    const want=clipLogic?clipLogic.officeClipFor({walking:A.walking,faceMode:A.faceMode,cheer:A.cheerT>0}):'idle';
+    const want=clipLogic?clipLogic.officeClipFor({walking:A.walking,faceMode:A.faceMode,cheer:A.cheerT>0}):(A.faceMode==='zap'?'fail':A.walking?'walk':A.cheerT>0?'cheer':A.faceMode==='work'?'work':'idle');
     officePlayClip(A,want);
     if(A.mixer)A.mixer.update(dt);
+    if(A.bend&&A.sit>0.01){const s=A.sit,B=A.bend;
+     if(B.hipL)B.hipL.rotation.x-=1.05*s; if(B.hipR)B.hipR.rotation.x-=1.05*s;
+     if(B.kneeL)B.kneeL.rotation.x+=1.5*s; if(B.kneeR)B.kneeR.rotation.x+=1.5*s;
+     if(B.ankleL)B.ankleL.rotation.x-=0.22*s; if(B.ankleR)B.ankleR.rotation.x-=0.22*s;}
    }
    else if(A.walking){
     A.legL.rotation.x=sw*.55*(1-sit); A.legR.rotation.x=-sw*.55*(1-sit);
@@ -1023,7 +1037,7 @@ function office3DBuild(THREE,room){
   dust.rotation.y=t*.008; dust.position.y=Math.sin(t*.3)*.15;
   camera.position.set(orbit.lookX+Math.sin(orbit.theta)*Math.sin(orbit.phi)*orbit.radius,orbit.lookY+Math.cos(orbit.phi)*orbit.radius,orbit.lookZ+Math.cos(orbit.theta)*Math.sin(orbit.phi)*orbit.radius);
   camera.lookAt(orbit.lookX,orbit.lookY,orbit.lookZ);
-  if(!window.__office3DReady){window.__office3DReady=true;room.classList.add('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D đang bật';}}
+  if(!window.__office3DReady){window.__office3DReady=true;room.classList.add('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D đang bật — bấm để về 2D';}}
   if(officeComposer)officeComposer.render(); else renderer.render(scene,camera);
  }catch(err){console.warn('Khung hình 3D lỗi — quay về phòng 2D:',err);try{renderer.setAnimationLoop(null);}catch{} window.__office3D=false;window.__office3DReady=false;const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');} });
  // --- Phòng GLB theo ảnh mẫu (nạp bất đồng bộ): có file thì thay vỏ phòng thủ tục, robot + trạng thái thật giữ nguyên ---
@@ -1057,6 +1071,7 @@ function office3DBuild(THREE,room){
     }
    });
    const grp=new THREE.Group(); grp.add(inst); grp.scale.setScalar(TAM_TARGET_H/TAM_NATIVE_H);
+   A.bend={hipL:inst.getObjectByName('Hip_L'),hipR:inst.getObjectByName('Hip_R'),kneeL:inst.getObjectByName('Knee_L'),kneeR:inst.getObjectByName('Knee_R'),ankleL:inst.getObjectByName('Ankle_L'),ankleR:inst.getObjectByName('Ankle_R')};
    if(A.modelRoot)A.grp.remove(A.modelRoot);
    A.grp.add(grp); A.modelRoot=grp;
    const names=tamClipList.map(c=>c.name); const clips={};
