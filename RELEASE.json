@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.50",
-  "channel": "v0.9.50-tam19-p16-office",
+  "version": "0.9.51",
+  "channel": "v0.9.51-antigravity-models-fix",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",

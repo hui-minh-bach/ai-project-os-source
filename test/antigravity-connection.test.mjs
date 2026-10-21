@@ -18,11 +18,21 @@ async function launch(data,bin){const port=await reserve();const child=spawn(pro
  return {request,stop:async()=>{if(child.exitCode===null){child.kill('SIGTERM');await Promise.race([once(child,'exit'),delay(1500)]);if(child.exitCode===null)child.kill('SIGKILL');}}};
 }
 function fixtureCommand(bin){const file=path.join(bin,'agy');const content=`#!/usr/bin/env node
+const fs=require('node:fs'),path=require('node:path');
 const a=process.argv.slice(2);
-if(a.includes('models')) {console.log(JSON.stringify({status:'SUCCESS',command:{name:'models',data:{models:[{id:'gemini-test-flash'},{id:'gemini-test-pro'},{id:'../../bad'}]}}}));process.exit(0)}
-if(a.includes('--model')) {const body=require('node:fs').readFileSync(0,'utf8');const message=JSON.parse(body.trim());if(message.event!=='user'||!message.message.content.includes('Yêu cầu:'))process.exit(2);if(a.includes('-p'))process.exit(3);const model=a[a.indexOf('--model')+1];const bad=model==='gemini-test-pro';console.log(JSON.stringify({event:'init',init:{permission_mode:'request-review',tools:[],cwd:process.cwd()}}));if(bad)console.log(JSON.stringify({event:'step_update',step_update:{step_type:'tool',tool_name:'run_command'}}));console.log(JSON.stringify({event:'result',result:{status:'SUCCESS',response:'OK from '+model,usage:{input_tokens:8,output_tokens:3}}}));process.exit(0)}
+fs.appendFileSync(path.join(__dirname,'agy-calls.log'),JSON.stringify(a)+'\\n');
+let mode='table';try{mode=fs.readFileSync(path.join(__dirname,'agy-mode'),'utf8').trim()||'table'}catch{}
+if(a.includes('models')) {
+ if(mode==='flags-error'){process.stderr.write('Error: flags provided but not defined: -output-format');process.exit(1)}
+ // Real CLI 1.4.0: the models subcommand accepts NO flags besides -h/--help.
+ if(a.some(x=>x.startsWith('-'))){process.stderr.write('Error: flags provided but not defined: -output-format');process.exit(1)}
+ if(mode==='json'){console.log(JSON.stringify({status:'SUCCESS',command:{name:'models',data:{models:[{id:'gemini-test-flash'},{id:'gemini-test-pro'},{id:'../../bad'}]}}}));process.exit(0)}
+ console.log('Available models');console.log('gemini-test-flash      Gemini Test Flash (High)');console.log('gemini-test-pro        Gemini Test Pro (Thinking)');console.log('internal');process.exit(0)}
+if(a.includes('--model')) {if(mode==='ask-error'){process.stderr.write('quota exhausted: model unavailable');process.exit(1)}const body=fs.readFileSync(0,'utf8');const message=JSON.parse(body.trim());if(message.event!=='user'||!message.message.content.includes('Yêu cầu:'))process.exit(2);if(a.includes('-p'))process.exit(3);const model=a[a.indexOf('--model')+1];const bad=model==='gemini-test-pro';console.log(JSON.stringify({event:'init',init:{permission_mode:'request-review',tools:[],cwd:process.cwd()}}));if(bad)console.log(JSON.stringify({event:'step_update',step_update:{step_type:'tool',tool_name:'run_command'}}));console.log(JSON.stringify({event:'result',result:{status:'SUCCESS',response:'OK from '+model,usage:{input_tokens:8,output_tokens:3}}}));process.exit(0)}
 process.stderr.write('invalid args');process.exit(1);
 `;fs.writeFileSync(file,content,{mode:0o755});fs.chmodSync(file,0o755);}
+function fixtureCalls(bin){try{return fs.readFileSync(path.join(bin,'agy-calls.log'),'utf8').trim().split('\n').filter(Boolean).map(l=>JSON.parse(l));}catch{return[];}}
+function fixtureSetup(mode){const root=fs.mkdtempSync(path.join(os.tmpdir(),'aios-agy-')),data=path.join(root,'data'),bin=path.join(root,'bin');fs.mkdirSync(bin,{recursive:true});fixtureCommand(bin);if(mode)fs.writeFileSync(path.join(bin,'agy-mode'),mode);return {root,data,bin};}
 test('Antigravity login is official, checks real model catalog, rejects tools, reuses user data across application replacement',async()=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'aios-agy-')),data=path.join(root,'data'),bin=path.join(root,'bin');fs.mkdirSync(bin,{recursive:true});fixtureCommand(bin);let app;
  try{
@@ -35,6 +45,11 @@ test('Antigravity login is official, checks real model catalog, rejects tools, r
   r=await app.request('POST','/api/antigravity/connect',{name:'Google personal'});assert.equal(r.status,200);const id=r.value.id;
   r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-flash'});assert.equal(r.status,500,'must fetch real catalog first');
   r=await app.request('GET',`/api/antigravity/${id}/models`);assert.equal(r.status,200);assert.deepEqual(r.value,['gemini-test-flash','gemini-test-pro']);
+  // Regression (CLI 1.4.0): the models call must be EXACTLY ['models'] — the
+  // real CLI exits non-zero on ANY flag ("flags provided but not defined"),
+  // which the app once misreported as an incomplete Google login.
+  const modelCalls=fixtureCalls(bin).filter(a=>a.includes('models'));assert.ok(modelCalls.length>=1,'fixture must record the models call');
+  for(const a of modelCalls){assert.deepEqual(a,['models'],'models must be invoked bare');assert.ok(!a.includes('--output-format'),'--output-format must never be passed to the models call');}
   r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-pro'});assert.equal(r.status,500,'tool invocation must not verify AI');
   r=await app.request('GET','/api/connections');assert.equal(r.value.find(c=>c.id===id).availability.status,'unverified');
   r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-flash'});assert.equal(r.status,200);
@@ -46,5 +61,35 @@ test('Antigravity login is official, checks real model catalog, rejects tools, r
   const stored=fs.readFileSync(path.join(data,'projects.json'),'utf8'),vault=fs.readFileSync(path.join(data,'vault.enc.json'),'utf8');assert.ok(!vault.includes('antigravity-test-strong-pass'));
   await app.stop();app=null;
   const after=fs.readFileSync(path.join(data,'projects.json'),'utf8');assert.equal(after,stored);assert.equal(fs.readFileSync(path.join(data,'vault.enc.json'),'utf8'),vault);
+ }finally{if(app)await app.stop();fs.rmSync(root,{recursive:true,force:true})}
+});
+test('Antigravity models: JSON envelope catalog is still accepted and unsafe ids are filtered',async()=>{
+ const {root,data,bin}=fixtureSetup('json');let app;
+ try{
+  app=await launch(data,bin);
+  let r=await app.request('POST','/api/vault/unlock',{password:'antigravity-test-strong-pass'});assert.equal(r.status,200);
+  r=await app.request('POST','/api/antigravity/connect',{name:'Google personal'});assert.equal(r.status,200);const id=r.value.id;
+  r=await app.request('GET',`/api/antigravity/${id}/models`);assert.equal(r.status,200);assert.deepEqual(r.value,['gemini-test-flash','gemini-test-pro']);
+ }finally{if(app)await app.stop();fs.rmSync(root,{recursive:true,force:true})}
+});
+test('Antigravity models: a CLI failure surfaces the CLI’s own words, not a generic login blame',async()=>{
+ const {root,data,bin}=fixtureSetup('flags-error');let app;
+ try{
+  app=await launch(data,bin);
+  let r=await app.request('POST','/api/vault/unlock',{password:'antigravity-test-strong-pass'});assert.equal(r.status,200);
+  r=await app.request('POST','/api/antigravity/connect',{name:'Google personal'});assert.equal(r.status,200);const id=r.value.id;
+  r=await app.request('GET',`/api/antigravity/${id}/models`);assert.equal(r.status,500);
+  assert.ok(String(r.value.error||'').includes('flags provided but not defined'),'error must quote the CLI: '+(r.value.error||''));
+ }finally{if(app)await app.stop();fs.rmSync(root,{recursive:true,force:true})}
+});
+test('Antigravity verify: an ask failure surfaces the CLI stderr',async()=>{
+ const {root,data,bin}=fixtureSetup('ask-error');let app;
+ try{
+  app=await launch(data,bin);
+  let r=await app.request('POST','/api/vault/unlock',{password:'antigravity-test-strong-pass'});assert.equal(r.status,200);
+  r=await app.request('POST','/api/antigravity/connect',{name:'Google personal'});assert.equal(r.status,200);const id=r.value.id;
+  r=await app.request('GET',`/api/antigravity/${id}/models`);assert.equal(r.status,200);assert.deepEqual(r.value,['gemini-test-flash','gemini-test-pro']);
+  r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-flash'});assert.equal(r.status,500);
+  assert.ok(String(r.value.error||'').includes('quota exhausted'),'error must quote the CLI stderr: '+(r.value.error||''));
  }finally{if(app)await app.stop();fs.rmSync(root,{recursive:true,force:true})}
 });

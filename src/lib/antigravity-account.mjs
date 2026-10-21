@@ -92,15 +92,43 @@ export function antigravityStatus(id){
  let installed=false,probe='';try{antigravityLauncher();installed=true;}catch(e){probe=e.message;}
  return {installed,officialUrl:DOCS,mode:'google-account',availability:id?modelAvailability(id):undefined,message:installed?'Đã tìm thấy CLI. Chỉ model phản hồi thực tế mới được phân vai.':(probe||'Hãy cài CLI chính thức của Google.')};
 }
+// Surface the CLI's own words in failure errors: a bare generic message once
+// cost days of misdiagnosis — a CLI flags error ("flags provided but not
+// defined") was reported to the owner as "login incomplete" while the login
+// was fine, sending everyone to re-login instead of fixing the invocation.
+function cliFailure(lead,r){
+ const tail=String((r&&(r.stderr||r.stdout))||'').trim().slice(-300);
+ const why=r&&r.timedOut?'hết thời gian chờ (timeout)':`mã thoát ${r&&r.code!=null?r.code:'không rõ'}`;
+ return `${lead} Antigravity CLI không phản hồi — ${why}.${tail?' Chi tiết từ CLI: '+tail:''}`;
+}
+function stdoutSample(r){return String((r&&r.stdout)||'').trim().slice(0,200);}
 export async function listAntigravityModels(id,deps={}){
  const c=currentAccount(id);const bin=(deps.resolve||antigravityLauncher)();const {cwd,env}=(deps.profile||antigravityEnvironment)();
- const r=await (deps.invoke||run)(bin.command,[...bin.args,'models','--output-format','json'],{cwd,env,inheritEnv:false,timeoutMs:45000});
- if(r.code!==0||r.timedOut)throw new Error('Không đọc được model Antigravity. Hãy hoàn tất đăng nhập Google trên CLI trước.');
- let j;try{j=JSON.parse(r.stdout);}catch{throw new Error('CLI chưa trả danh mục model dạng JSON; cần nâng cấp Antigravity CLI.');}
- const entries=Array.isArray(j)?j:([j.models,j.data?.models,j.command?.data?.models,j.result?.models].find(Array.isArray));
- if(!Array.isArray(entries)||j.status&&j.status!=='SUCCESS'||j.command?.name&&j.command.name!=='models')throw new Error('Antigravity CLI không trả danh sách model hợp lệ.');
- const models=[...new Set(entries.map(m=>typeof m==='string'?m:m?.id||m?.slug).filter(m=>typeof m==='string'&&SAFE_NAME.test(m)))].slice(0,100);
- if(!models.length)throw new Error('Tài khoản Antigravity chưa có model khả dụng.');
+ // Antigravity CLI 1.4.0 (proven on the owner's machine): the `models`
+ // subcommand accepts NO flags besides -h/--help — passing
+ // `--output-format json` exits non-zero with "flags provided but not
+ // defined". Call it bare. Its output is a text table
+ // ("<model-id><spaces><display name>" per line); keep the JSON-envelope
+ // parse first so a future CLI that speaks JSON still works.
+ const r=await (deps.invoke||run)(bin.command,[...bin.args,'models'],{cwd,env,inheritEnv:false,timeoutMs:45000});
+ if(r.code!==0||r.timedOut)throw new Error(cliFailure('Không đọc được model Antigravity.',r));
+ let models=[];
+ let parsed;try{parsed=JSON.parse(r.stdout);}catch{parsed=undefined;}
+ if(parsed!==undefined){
+  const entries=Array.isArray(parsed)?parsed:([parsed.models,parsed.data?.models,parsed.command?.data?.models,parsed.result?.models].find(Array.isArray));
+  if(!Array.isArray(entries)||parsed.status&&parsed.status!=='SUCCESS'||parsed.command?.name&&parsed.command.name!=='models')throw new Error(`Antigravity CLI không trả danh sách model hợp lệ. Mẫu đầu ra: ${stdoutSample(r)}`);
+  models=entries.map(m=>typeof m==='string'?m:m?.id||m?.slug).filter(m=>typeof m==='string'&&SAFE_NAME.test(m));
+ }else{
+  // Text-table parse: first whitespace-delimited token of each line, kept
+  // only when it is a safe name with model-id shape (contains '-' or '.'),
+  // which rejects stray words from any header/footer noise.
+  for(const line of String(r.stdout||'').split(/\r?\n/)){
+   const token=line.trim().split(/\s+/)[0]||'';
+   if(SAFE_NAME.test(token)&&/[-.]/.test(token))models.push(token);
+  }
+ }
+ models=[...new Set(models)].slice(0,100);
+ if(!models.length)throw new Error(`Tài khoản Antigravity chưa có model khả dụng. Mẫu đầu ra CLI: ${stdoutSample(r)}`);
  requireVault();if(getConnection(id).credentialVersion!==c.credentialVersion)throw new Error('Tài khoản đã thay đổi khi tải model.');
  recordAccountCatalog(c,models);
  return models;
@@ -117,7 +145,7 @@ export async function askAntigravityAccount(connection,{system='',prompt=''}={},
  // Windows process command line or exposing the OS argument-length limit.
  const stdin=JSON.stringify({event:'user',message:{content:text}})+'\n';
  const r=await (deps.invoke||run)(bin.command,args,{cwd,env,inheritEnv:false,timeoutMs:90000,stdin});
- if(r.code!==0||r.timedOut)throw new Error('Antigravity chưa đăng nhập, model hết hạn mức hoặc CLI không hỗ trợ sandbox.');
+ if(r.code!==0||r.timedOut)throw new Error(cliFailure('Antigravity chưa đăng nhập, model hết hạn mức hoặc CLI không hỗ trợ sandbox.',r));
  let events;try{events=r.stdout.trim().split(/\r?\n/).map(line=>JSON.parse(line));}catch{throw new Error('Antigravity CLI không trả JSON sự kiện hợp lệ.');}
  const initial=events.find(e=>e.event==='init');
  const resultEvent=events.filter(e=>e.event==='result').at(-1);
