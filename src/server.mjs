@@ -47,7 +47,7 @@ import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, 
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.46';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.47';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -64,6 +64,34 @@ function send(res,status,data,type='application/json; charset=utf-8'){
 function readBody(req){return new Promise((resolve,reject)=>{let s='';req.on('data',d=>{s+=d;if(s.length>3_000_000){reject(new Error('Request quá lớn'));req.destroy();}});req.on('end',()=>{try{resolve(s?JSON.parse(s):{});}catch{reject(new Error('JSON không hợp lệ'));}});});}
 function readRawBody(req,max){return new Promise((resolve,reject)=>{const chunks=[];let total=0;req.on('data',d=>{total+=d.length;if(total>max){reject(Object.assign(new Error('File quá lớn'),{code:'OFFICE_MODEL_SIZE'}));req.destroy();return;}chunks.push(d);});req.on('end',()=>resolve(Buffer.concat(chunks)));req.on('error',reject);});}
 function routeProject(url){const m=url.match(/^\/api\/projects\/([^/]+)(?:\/(.+))?$/);return m?{id:decodeURIComponent(m[1]),action:m[2]||''}:null;}
+// --- Operator diagnosis projections (read-only, secret-free, size-capped) ---
+// The external coordinator reads run detail through these projections so it
+// can diagnose failures itself: per-step state and the ORIGINAL error are
+// kept, bulky payloads and anything secret-shaped are dropped.
+function diagnoseStepDetail(detail){
+  if(!detail||typeof detail!=='object'||Array.isArray(detail))return undefined;
+  const out={};
+  for(const [k,v] of Object.entries(detail)){
+    if(Object.keys(out).length>=16)break;
+    if(typeof v==='string')out[k]=v.slice(0,300);
+    else if(typeof v==='number'||typeof v==='boolean')out[k]=v;
+    else if(Array.isArray(v)&&v.every(x=>typeof x==='string'||typeof x==='number'))out[k]=v.slice(0,10).map(x=>String(x).slice(0,120));
+  }
+  return Object.keys(out).length?out:undefined;
+}
+function diagnoseRun(run){
+  const steps=(Array.isArray(run.steps)?run.steps:[]).map(s=>{const d=diagnoseStepDetail(s&&s.detail);return {name:s&&s.name,state:s&&s.state,at:(s&&s.at)||null,...(d?{detail:d}:{})};});
+  const failText=f=>{if(f&&typeof f==='object')return String(f.message||f.code||'');return f==null?'':String(f);};
+  const err=run.error&&typeof run.error==='object'?{code:run.error.code||null,message:String(run.error.message||'').slice(0,400)}:null;
+  if(err&&Array.isArray(run.error.failures))err.failures=run.error.failures.slice(0,10).map(f=>failText(f).slice(0,200));
+  return {id:run.id,pipeline:run.pipeline,state:run.state,title:run.title,createdAt:run.createdAt,completedAt:run.completedAt||null,error:err,steps};
+}
+function diagnoseConnections(){
+  let list;
+  try{list=listConnections();}catch{return {vaultLocked:true,connections:[]};}
+  const safe=(fn,id)=>{try{return fn(id);}catch{return undefined;}};
+  return {vaultLocked:false,connections:list.map(c=>({id:c.id,kind:c.kind,name:(c.meta&&(c.meta.accountLabel||c.meta.channelTitle||c.meta.username))||c.name||null,hasSecret:Boolean(c.hasSecret),verified:Boolean(c.meta&&c.meta.verifiedAt),authMode:(c.meta&&c.meta.authMode)||null,planType:(c.meta&&c.meta.planType)||null,availability:c.kind==='chatgpt_account'?safe(accountAvailability,c.id):AI_KINDS.includes(c.kind)?safe(modelAvailability,c.id):undefined,pool:AI_KINDS.includes(c.kind)?safe(poolInfoFor,c.id):undefined}))};
+}
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg','.woff2':'font/woff2'};
 
 function sameLocalOrigin(req){
@@ -79,7 +107,7 @@ const server=http.createServer(async(req,res)=>{try{
   // Reached through the owner's own private network (e.g. Tailscale Serve
   // proxies to this loopback port), so the Host is the tailnet name rather
   // than 127.0.0.1. The operator token — never the browser session — is the
-  // credential here, and only these four endpoints exist on this channel.
+  // credential here, and only these endpoints exist on this channel.
   if(u.pathname.startsWith('/api/operator/ext/')){
     const auth=verifyOperatorToken(req.headers['x-aios-operator']);
     if(!auth)return send(res,401,{error:'Operator token không hợp lệ hoặc đã bị thu hồi.'});
@@ -87,6 +115,18 @@ const server=http.createServer(async(req,res)=>{try{
       if(req.method==='GET'&&u.pathname==='/api/operator/ext/status'){
         const cfg=orchestrator.getConfig();
         return send(res,200,{ok:true,version:VERSION,stopAll:cfg.stopAll,pipelines:Object.fromEntries(Object.entries(cfg.pipelines).map(([k,v])=>[k,{enabled:v.enabled,aiMode:v.aiMode,dailyCap:v.dailyCap}])),runs:orchestrator.listRuns().slice(-15).map(r=>({id:r.id,pipeline:r.pipeline,state:r.state,title:r.title,createdAt:r.createdAt,steps:(r.steps||[]).length})),notes:listOperatorNotes(10)});
+      }
+      if(req.method==='GET'&&u.pathname.startsWith('/api/operator/ext/run/')){
+        const run=orchestrator.getRun(decodeURIComponent(u.pathname.slice('/api/operator/ext/run/'.length)));
+        if(!run)return send(res,404,{error:'Không tìm thấy lượt chạy này.'});
+        return send(res,200,{run:diagnoseRun(run)});
+      }
+      if(req.method==='GET'&&u.pathname==='/api/operator/ext/journal'){
+        const limit=Math.min(200,Math.max(1,Number(u.searchParams.get('limit'))||100));
+        return send(res,200,{feed:buildRunFeed(orchestrator.listRuns(),{limit}),notes:operatorNoteEvents(20)});
+      }
+      if(req.method==='GET'&&u.pathname==='/api/operator/ext/connections'){
+        return send(res,200,diagnoseConnections());
       }
       if(req.method==='POST'&&u.pathname==='/api/operator/ext/run'){
         if(!operatorCan(auth,'run'))return send(res,403,{error:'Token chưa được cấp quyền tạo lượt chạy (scope run).'});
