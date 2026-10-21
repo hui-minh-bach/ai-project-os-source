@@ -162,10 +162,14 @@ export async function installAntigravityWindows({platform=process.platform,invok
  }finally{installing=false;}
 }
 export async function openAntigravityLogin({platform=process.platform,launch=run}={}){
- antigravityLauncher();
+ const resolved=antigravityLauncher();
  if(platform!=='win32')throw new Error('Hãy mở ứng dụng Antigravity CLI chính thức và đăng nhập Google.');
  const script=path.join(ROOT,'LAUNCH-ANTIGRAVITY-WINDOWS.ps1');
- const r=await launch('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',script],{inheritEnv:false,timeoutMs:12000});
+ // Pass the path THIS resolver just found to the login window: the .cmd's own
+ // shorter search misses installs the resolver knows (e.g. WinGet package
+ // payloads), which made the window claim "not installed" on machines where
+ // the CLI is present and detected.
+ const r=await launch('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',script],{inheritEnv:false,timeoutMs:12000,env:{AIOS_AGY_EXE:resolved.command}});
  if(r.code!==0||r.timedOut)throw new Error('Không mở được cửa sổ đăng nhập. Hãy chạy LOGIN-ANTIGRAVITY-WINDOWS.cmd trong thư mục ứng dụng.');
  return {ok:true,message:'Đã yêu cầu mở Antigravity. Hoàn tất đăng nhập Google, trở lại bấm Tải model.'};
 }

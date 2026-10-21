@@ -1,4 +1,4 @@
-// Operator diagnosis door (v0.9.48): the external coordinator gets three
+// Operator diagnosis door (v0.9.49): the external coordinator gets three
 // read-only endpoints — full run detail with the original per-step errors,
 // the event journal, and a secret-free connection list — behind the SAME
 // operator token (no new scope, no token rotation). These tests boot the
