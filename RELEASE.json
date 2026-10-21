@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.49",
-  "channel": "v0.9.49-antigravity-login-fix",
+  "version": "0.9.50",
+  "channel": "v0.9.50-tam19-p16-office",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",

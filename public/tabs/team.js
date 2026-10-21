@@ -202,17 +202,17 @@ function officeFigure(a){
   </g></svg>`;
 }
 const OFFICE_STATIONS={
- boss:{x:50,y:10,label:'👔 Bàn Sếp Lâm'},
- intake:{x:63,y:12,label:'🤝 Nhận việc với Sếp'},
- news:{x:15,y:27,label:'📰 Tin tức'},
- script:{x:38,y:20,label:'✍️ Biên tập'},
- image:{x:62,y:20,label:'🎨 Hình ảnh'},
- media:{x:85,y:27,label:'🎬 Sản xuất'},
- pm:{x:50,y:47,label:'🎯 Điều phối'},
- review:{x:24,y:66,label:'🔍 Kiểm duyệt'},
- publish:{x:76,y:66,label:'🚀 Đăng bài'},
- lounge:{x:10,y:85,label:'🔋 Phòng nạp năng lượng'},
- cage:{x:90,y:83,label:'⚡ Phòng chích điện'},
+ boss:{x:50,y:8,label:'👔 Bàn Sếp Lâm'},
+ intake:{x:64,y:10,label:'🤝 Nhận việc với Sếp'},
+ news:{x:12,y:26,label:'📰 Tin tức'},
+ script:{x:36,y:18,label:'✍️ Biên tập'},
+ image:{x:64,y:18,label:'🎨 Hình ảnh'},
+ media:{x:88,y:26,label:'🎬 Sản xuất'},
+ pm:{x:50,y:46,label:'🎯 Điều phối'},
+ review:{x:20,y:68,label:'🔍 Kiểm duyệt'},
+ publish:{x:80,y:68,label:'🚀 Đăng bài'},
+ lounge:{x:8,y:86,label:'🔋 Phòng nạp năng lượng'},
+ cage:{x:92,y:84,label:'⚡ Phòng chích điện'},
 };
 /* Tọa độ 2D khớp phông phòng isometric mới (office-backdrop.jpg): chiếu từ
  * tọa độ thế giới của scene gốc qua đúng camera render, đã đối chiếu với
@@ -457,7 +457,7 @@ function office3DEnsure(){
  * Sếp là mô hình 3D — phải đi lại được trong phòng 3D). Ai đã chọn 2D thì
  * app nhớ lựa chọn đó; 3D lỗi/tải chậm thì tự giữ bản 2D như cũ. */
 try{if(localStorage.getItem('aios-office-view')!=='2d'){window.__office3DWanted=true;const t=$('#office3DToggle');if(t){t.disabled=true;t.textContent='🧊 Đang tải phòng 3D…';}office3DEnsure();}}catch{}
-function officeWorld(pct){return {x:(pct.x-50)/50*13,z:(pct.y-50)/50*8.0};}
+function officeWorld(pct){return {x:(pct.x-50)/50*17,z:(pct.y-50)/50*11};}
 let officeRoomDeckY=0; // 0 = phòng thủ tục; 0.18 = mặt boong của phòng GLB (nạp bất đồng bộ bên dưới)
 function officeYFor(stId){return (stId==='lounge'||stId==='cage')?0:officeRoomDeckY;}
 function office3DBuild(THREE,room){
@@ -473,7 +473,7 @@ function office3DBuild(THREE,room){
  const scene=new THREE.Scene();
  let officeComposer=null; // chuỗi hậu kỳ (bloom + chỉnh màu) — nạp lười bên dưới, lỗi thì render thường
  scene.background=new THREE.Color(0x0b0b13);
- scene.fog=new THREE.Fog(0x0b0b13,30,60);
+ scene.fog=new THREE.Fog(0x0b0b13,36,88);
  const camera=new THREE.PerspectiveCamera(42,W()/H(),0.1,120);
  // --- Hậu kỳ như bản dựng mẫu: bloom .34/.4/.8 + vignette + hơi lạnh màu, qua OutputPass (ACES).
  // Chỉ bật SAU KHI phòng GLB đã nạp xong (hoặc lỗi) — tránh tranh CPU với việc giải nén phòng trên máy yếu; quá 6 giây thì bật dù thế nào.
@@ -500,7 +500,7 @@ function office3DBuild(THREE,room){
   }).catch(()=>{});
  }
  setTimeout(officeEnablePost,6000);
- const orbit={theta:0,phi:1.23,radius:15.4,lookX:0,lookY:1.0,lookZ:0};
+ const orbit={theta:0,phi:1.16,radius:24,lookX:0,lookY:1.0,lookZ:0};
  scene.add(new THREE.HemisphereLight(0x9d8fff,0x0a0a10,1.15));
  const pmrem=new THREE.PMREMGenerator(renderer);
  const envC=document.createElement('canvas'); envC.width=512; envC.height=256;
@@ -513,7 +513,7 @@ function office3DBuild(THREE,room){
  scene.environment=pmrem.fromEquirectangular(envTex).texture;
  const rimL=new THREE.DirectionalLight(0x8b5cf6,1.1); rimL.position.set(-9,6,-8); scene.add(rimL);
  const rimR=new THREE.DirectionalLight(0x22d3ee,.9); rimR.position.set(9,5,-8); scene.add(rimR);
- const sun=new THREE.DirectionalLight(0xffffff,2.1); sun.position.set(7,14,7); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-18; sun.shadow.camera.right=18; sun.shadow.camera.top=18; sun.shadow.camera.bottom=-18; sun.shadow.camera.far=42; sun.shadow.bias=-0.0004; scene.add(sun);
+ const sun=new THREE.DirectionalLight(0xffffff,2.1); sun.position.set(7,14,7); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-23; sun.shadow.camera.right=23; sun.shadow.camera.top=23; sun.shadow.camera.bottom=-23; sun.shadow.camera.far=42; sun.shadow.bias=-0.0004; scene.add(sun);
  const purple=new THREE.PointLight(0x7c5cff,60,40); purple.position.set(0,6,-4); scene.add(purple);
  // --- textures vẽ bằng canvas (không file ngoài) ---
  function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);return t;}
@@ -554,7 +554,7 @@ function office3DBuild(THREE,room){
  floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping; floorTex.repeat.set(7,7);
  const floor=new THREE.Mesh(new THREE.CircleGeometry(30,48),new THREE.MeshStandardMaterial({map:floorTex,roughness:.34,metalness:.55,envMapIntensity:.75}));
  floor.rotation.x=-Math.PI/2; scene.add(floor);
- const grid=new THREE.GridHelper(34,34,0x2e2e46,0x1d1d2c); grid.position.y=.01; grid.material.transparent=true; grid.material.opacity=.55; scene.add(grid);
+ const grid=new THREE.GridHelper(46,46,0x2e2e46,0x1d1d2c); grid.position.y=.01; grid.material.transparent=true; grid.material.opacity=.55; scene.add(grid);
  const glowTex=canvasTex(512,512,(g,w,h)=>{g.clearRect(0,0,w,h);const blob=(x,y,r,col)=>{const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,col);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);};blob(150,300,190,'rgba(45,212,238,.20)');blob(370,190,200,'rgba(139,92,246,.17)');blob(256,256,150,'rgba(255,176,32,.07)');});
  const glow=new THREE.Mesh(new THREE.CircleGeometry(30,48),new THREE.MeshBasicMaterial({map:glowTex,transparent:true,depthWrite:false}));
  glow.rotation.x=-Math.PI/2; glow.position.y=.005; scene.add(glow);
@@ -566,9 +566,9 @@ function office3DBuild(THREE,room){
   for(const [lx,ly,lz,lr] of [[0,.85,0,.34],[-.2,.68,.08,.24],[.22,.72,-.06,.26]]){const leaf=new THREE.Mesh(new THREE.SphereGeometry(lr,12,10),leafMat); leaf.position.set(lx,ly,lz); grp.add(leaf);}
   grp.position.set(px,0,pz); scene.add(grp);
  }
- buildPlant(-14.6,-6.2); buildPlant(14.6,-6.2); buildPlant(-15,4.4); buildPlant(15,4.6);
+ buildPlant(-16.4,-6.4); buildPlant(16.4,-6.4); buildPlant(-16.6,5.2); buildPlant(16.6,5.4);
  const dustGeo=new THREE.BufferGeometry(); const dustCount=220; const dustArr=new Float32Array(dustCount*3);
- for(let i=0;i<dustCount;i++){dustArr[i*3]=(Math.random()-.5)*30; dustArr[i*3+1]=.3+Math.random()*6.5; dustArr[i*3+2]=(Math.random()-.5)*19;}
+ for(let i=0;i<dustCount;i++){dustArr[i*3]=(Math.random()-.5)*40; dustArr[i*3+1]=.3+Math.random()*6.5; dustArr[i*3+2]=(Math.random()-.5)*26;}
  dustGeo.setAttribute('position',new THREE.BufferAttribute(dustArr,3));
  const dust=new THREE.Points(dustGeo,new THREE.PointsMaterial({color:0x9fd8ff,size:.05,transparent:true,opacity:.5}));
  scene.add(dust);
@@ -583,7 +583,7 @@ function office3DBuild(THREE,room){
  }
  // màn hình tường lớn + tủ máy chủ + sofa góc nghỉ
  const wallScr=new THREE.Mesh(new THREE.PlaneGeometry(3.4,1.9),new THREE.MeshBasicMaterial({map:screenFor('boss')}));
- wallScr.position.set(-15.6,2.6,-4); wallScr.rotation.y=.62; scene.add(wallScr);
+ wallScr.position.set(-17.2,2.6,-4); wallScr.rotation.y=.62; scene.add(wallScr);
  const rackGroup=new THREE.Group();
  const rackFrame=new THREE.Mesh(new THREE.BoxGeometry(1.7,2.7,.7),new THREE.MeshStandardMaterial({color:0x161a24,roughness:.45,metalness:.5}));
  rackFrame.position.y=1.35; rackGroup.add(rackFrame);
@@ -605,7 +605,7 @@ function office3DBuild(THREE,room){
  rackStrip.position.set(-.8,1.35,.36); rackGroup.add(rackStrip);
  const rackTop=new THREE.Mesh(new THREE.BoxGeometry(1.5,.05,.5),new THREE.MeshBasicMaterial({color:0xbfe9ff}));
  rackTop.position.set(0,2.76,0); rackGroup.add(rackTop);
- rackGroup.position.set(15.4,0,-6.5); rackGroup.rotation.y=-.55; scene.add(rackGroup);
+ rackGroup.position.set(17.2,0,-6.8); rackGroup.rotation.y=-.55; scene.add(rackGroup);
  // tủ lưu trữ kính phát sáng ở tường trái
  const storageCab=new THREE.Group();
  const cabFrame=new THREE.Mesh(new THREE.BoxGeometry(2.7,1.7,.62),new THREE.MeshStandardMaterial({color:0x1a1f2c,roughness:.45,metalness:.45}));
@@ -623,9 +623,9 @@ function office3DBuild(THREE,room){
  }
  const cabTopPlant=new THREE.Mesh(new THREE.SphereGeometry(.16,10,8),new THREE.MeshStandardMaterial({color:0x2f9e5f,roughness:.7}));
  cabTopPlant.position.set(.9,1.95,0); storageCab.add(cabTopPlant);
- storageCab.position.set(-15.4,0,3.4); storageCab.rotation.y=.62; scene.add(storageCab);
+ storageCab.position.set(-17.2,0,3.8); storageCab.rotation.y=.62; scene.add(storageCab);
  // hai cột trụ có dải sáng đứng + đĩa đèn trần trên bệ điều phối
- for(const px of [-13.5,13.5]){
+ for(const px of [-15.5,15.5]){
   const pillar=new THREE.Mesh(new THREE.CylinderGeometry(.34,.46,9.5,14),new THREE.MeshStandardMaterial({color:0x232838,roughness:.4,metalness:.55}));
   pillar.position.set(px,4.75,-7.6); scene.add(pillar);
   const pStrip=new THREE.Mesh(new THREE.BoxGeometry(.07,8.6,.07),new THREE.MeshBasicMaterial({color:0x57e6ff}));
@@ -642,7 +642,7 @@ function office3DBuild(THREE,room){
  const sBase=new THREE.Mesh(new THREE.BoxGeometry(2.3,.42,.95),sofaMat); sBase.position.y=.3; sofa.add(sBase);
  const sBack=new THREE.Mesh(new THREE.BoxGeometry(2.3,.62,.24),sofaMat); sBack.position.set(0,.72,-.38); sofa.add(sBack);
  for(const sx of [-1.08,1.08]){const sArm=new THREE.Mesh(new THREE.BoxGeometry(.24,.55,.95),sofaMat); sArm.position.set(sx,.55,0); sofa.add(sArm);}
- sofa.position.set(-11.5,0,10.5); sofa.rotation.y=.55; scene.add(sofa);
+ sofa.position.set(-13.5,0,11.5); sofa.rotation.y=.55; scene.add(sofa);
  const backdrop=new THREE.Mesh(new THREE.CylinderGeometry(30,30,19,48,1,true,Math.PI-1.08,2.16),new THREE.MeshBasicMaterial({map:backdropTex,side:THREE.BackSide,fog:false}));
  backdrop.position.y=4.2; scene.add(backdrop);
  // --- bàn làm việc ---
@@ -652,6 +652,21 @@ function office3DBuild(THREE,room){
   const st=OFFICE_STATIONS[stId],pos=officeWorld(st),grp=new THREE.Group();
   const owner=OFFICE_CAST.find(a=>a.station===stId);
   const accentCol=new THREE.Color(owner?owner.color:0x888888);
+  if(stId!=='boss'){
+   /* TAM-19 P16 (0.9.50): robot làm việc tự mang theo bàn đứng + màn hình +
+    * bàn phím + tablet TRONG model GLB (hiện ra theo clip WorkCycle/Typing/
+    * Mouse/TabletTouch). Dựng thêm bàn của app ở các trạm này sẽ thành HAI
+    * cái bàn chồng nhau — nên app chỉ giữ biển tên trạm; vành sáng dưới sàn
+    * của trạm được dựng riêng bên dưới. Riêng bàn Sếp giữ nguyên: Sếp dùng
+    * thân thủ tục, không có bàn GLB đi kèm. */
+   const plate=new THREE.Mesh(new THREE.PlaneGeometry(2.35,.64),new THREE.MeshBasicMaterial({color:0x0a1220,transparent:true,opacity:.55}));
+   plate.position.set(0,2.62,-.14); grp.add(plate);
+   const plateEdge=new THREE.Mesh(new THREE.PlaneGeometry(2.35,.05),new THREE.MeshBasicMaterial({color:accentCol}));
+   plateEdge.position.set(0,2.32,-.14); grp.add(plateEdge);
+   const label=textSprite(st.label.replace(/^\S+\s/,''),{size:40,color:'#d7dcff',scale:[2.2,.55]}); label.position.set(0,2.62,-.1); grp.add(label);
+   grp.position.set(pos.x,0,pos.z); grp.rotation.y=Math.PI;
+   scene.add(grp); return grp;
+  }
   const shell=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.44,.74,24,1,false,Math.PI-.98,1.96),new THREE.MeshStandardMaterial({color:0x272b38,roughness:.45,metalness:.35}));
   shell.position.y=.37; grp.add(shell);
   const topD=new THREE.Mesh(new THREE.CylinderGeometry(1.46,1.46,.06,24,1,false,Math.PI-.98,1.96),new THREE.MeshStandardMaterial({color:0x171b26,roughness:.3,metalness:.4}));
@@ -719,14 +734,14 @@ function office3DBuild(THREE,room){
   g.fillStyle='rgba(87,230,255,.85)'; g.font='bold 92px system-ui'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('AI',256,262);
  });
  const medallion=new THREE.Mesh(new THREE.CircleGeometry(3.3,48),new THREE.MeshBasicMaterial({map:medallionTex,transparent:true,opacity:.85,side:THREE.DoubleSide}));
- medallion.rotation.x=-Math.PI/2; medallion.position.set(0,.014,-.5); scene.add(medallion);
+ medallion.rotation.x=-Math.PI/2; medallion.position.set(0,.014,-.88); scene.add(medallion);
  for(const stId of ['boss','news','script','image','media','review','publish']){
   const p3=officeWorld(OFFICE_STATIONS[stId]);
-  const dx=p3.x-0, dz=p3.z-(-.5), len=Math.hypot(dx,dz)-3.4;
+  const dx=p3.x-0, dz=p3.z-(-.88), len=Math.hypot(dx,dz)-3.4;
   if(len<1) continue;
   const stripGeo=new THREE.PlaneGeometry(.42,len); stripGeo.rotateX(-Math.PI/2);
   const strip=new THREE.Mesh(stripGeo,new THREE.MeshBasicMaterial({color:0x2dd4ee,transparent:true,opacity:.16,side:THREE.DoubleSide}));
-  strip.position.set(dx/2,.013,-.5+dz/2); strip.rotation.y=Math.atan2(dx,dz); scene.add(strip);
+  strip.position.set(dx/2,.013,-.88+dz/2); strip.rotation.y=Math.atan2(dx,dz); scene.add(strip);
  }
  const pmPos=officeWorld(OFFICE_STATIONS.pm);
  const podium=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.4,.12,40),new THREE.MeshStandardMaterial({color:0x1b2130,roughness:.4,metalness:.35}));
@@ -911,8 +926,13 @@ function office3DBuild(THREE,room){
    const names=(gltf.animations||[]).map(c=>c.name);
    const clips={};
    for(const want of clipLogic.OFFICE_CLIPS){const found=clipLogic.officeFindClip(names,want); if(found)clips[want]=gltf.animations.find(c=>c.name===found);}
+   // Sếp duyệt việc bằng InspectTablet như cũ — không dùng chu trình bàn
+   // đứng WorkCycle dù model có clip đó.
+   if(A.a.id==='boss'){const it=(gltf.animations||[]).find(c=>clipLogic.officeClipKey(c.name)==='inspecttablet'); if(it)clips.work=it;}
    A.mixer=new THREE.AnimationMixer(root);
    A.model={clips,current:null,action:null};
+   A.workClipName=clips.work?clips.work.name:null;
+   A.standingDesk=['WorkCycle','Typing','Mouse','TabletTouch'].includes(A.workClipName||'');
    if(A.procBody)A.procBody.visible=false;
   }catch(e){console.warn('Không nạp được model 3D cho',A.a.id,e);}
  }
@@ -932,7 +952,7 @@ function office3DBuild(THREE,room){
  let zapId=null,zapClock=0;
  // --- đồng bộ từ trạng thái thật ---
  window.__office3D=true; window.__office3DCamera=orbit;
- window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,sit:Math.round((A.sit||0)*100)/100,station:A.station||null,pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
+ window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,clipName:(A.model&&A.model.action&&A.model.action.getClip)?A.model.action.getClip().name:null,workClip:A.workClipName||null,standing:Boolean(A.standingDesk),sit:Math.round((A.sit||0)*100)/100,station:A.station||null,pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
  window.__office3DSync=(ctx)=>{
   office3DReconcile();
   const slotUse=new Map();
@@ -977,7 +997,7 @@ function office3DBuild(THREE,room){
   if(hits.length){let o=hits[0].object;while(o&&!Object.values(agents).some(A=>A.grp===o))o=o.parent;
    if(o){const A=Object.values(agents).find(x=>x.grp===o); if(A){if(A.a.fleet){toast(`🤖 ${A.a.name} (${A.a.fleet.provider}): ${A.a.role}`);}else{const next=prompt(`Đổi tên cho ${A.a.role}:`,officeAgentName(A.a)); if(next&&next.trim()){officeNames[A.a.id]=next.trim().slice(0,24);localStorage.setItem('aios-office-names',JSON.stringify(officeNames));officeRender();}}}}}
  });
- el.addEventListener('wheel',e=>{e.preventDefault();orbit.radius=Math.min(38,Math.max(15,orbit.radius+e.deltaY*.02));},{passive:false});
+ el.addEventListener('wheel',e=>{e.preventDefault();orbit.radius=Math.min(48,Math.max(15,orbit.radius+e.deltaY*.02));},{passive:false});
  addEventListener('resize',()=>{renderer.setSize(W(),H()); if(officeComposer)officeComposer.setSize(W(),H());});
  // --- vòng lặp chuyển động ---
  const clockT=new THREE.Clock();
@@ -994,7 +1014,7 @@ function office3DBuild(THREE,room){
     const targetRot=Math.atan2(dx,dz); let dr=targetRot-A.grp.rotation.y; while(dr>Math.PI)dr-=2*Math.PI; while(dr<-Math.PI)dr+=2*Math.PI; A.grp.rotation.y+=dr*Math.min(1,dt*10);
     const pos=A.path.geometry.attributes.position; pos.setXYZ(0,p.x,officeRoomDeckY>0?.25:.06,p.z); pos.setXYZ(1,A.target.x,officeRoomDeckY>0?.25:.06,A.target.z); pos.needsUpdate=true; A.path.computeLineDistances(); A.path.visible=true;
    } else { A.walking=false; A.path.visible=false; }
-   const sitT=(dist<=.05&&ownDesk)?1:0;
+   const sitT=(dist<=.05&&ownDesk&&!A.standingDesk)?1:0;
    if(dist<=.05)A.sit+=(sitT-A.sit)*Math.min(1,dt*3.2);
    const sit=A.sit, sw=Math.sin(t*11+A.phase);
    A.yCur+=((A.baseY||0)-A.yCur)*Math.min(1,dt*3);
@@ -1002,12 +1022,12 @@ function office3DBuild(THREE,room){
    A.wasBusy=A.busy;
    if(A.model){
     if(A.walking){p.y=A.yCur+Math.abs(Math.sin(t*9+A.phase))*.04;}
-    else{p.y=A.yCur-0.5*A.sit; let fd=0-A.grp.rotation.y; while(fd>Math.PI)fd-=2*Math.PI; while(fd<-Math.PI)fd+=2*Math.PI; A.grp.rotation.y+=fd*Math.min(1,dt*3.5);}
+    else{p.y=A.yCur-(A.standingDesk?0:0.5*A.sit); let fd=0-A.grp.rotation.y; while(fd>Math.PI)fd-=2*Math.PI; while(fd<-Math.PI)fd+=2*Math.PI; A.grp.rotation.y+=fd*Math.min(1,dt*3.5);}
     A.grp.rotation.x=0;
     const want=clipLogic?clipLogic.officeClipFor({walking:A.walking,faceMode:A.faceMode,cheer:A.cheerT>0}):(A.faceMode==='zap'?'fail':A.walking?'walk':A.cheerT>0?'cheer':A.faceMode==='work'?'work':'idle');
     officePlayClip(A,want);
     if(A.mixer)A.mixer.update(dt);
-    if(A.bend&&A.sit>0.01){const s=A.sit,B=A.bend;
+    if(A.bend&&A.sit>0.01&&!A.standingDesk){const s=A.sit,B=A.bend;
      if(B.hipL)B.hipL.rotation.x-=1.05*s; if(B.hipR)B.hipR.rotation.x-=1.05*s;
      if(B.kneeL)B.kneeL.rotation.x+=1.5*s; if(B.kneeR)B.kneeR.rotation.x+=1.5*s;
      if(B.ankleL)B.ankleL.rotation.x-=0.22*s; if(B.ankleR)B.ankleR.rotation.x-=0.22*s;}
@@ -1043,7 +1063,7 @@ function office3DBuild(THREE,room){
  // --- Phòng GLB theo ảnh mẫu (nạp bất đồng bộ): có file thì thay vỏ phòng thủ tục, robot + trạng thái thật giữ nguyên ---
  // --- Thân TAM01 cho đội bot tài khoản: nạp 1 lần, nhân bản theo xương cho từng bot ---
  let tamTemplate=null,tamClipList=null,tamCloneFn=null,tamBusy=false;
- const TAM_NATIVE_H=1.6004,TAM_TARGET_H=1.9;
+ const TAM_NATIVE_H=1.6137,TAM_TARGET_H=1.9;
  async function officeEnsureTam(){
   if(tamTemplate||tamBusy)return; tamBusy=true;
   try{
@@ -1075,7 +1095,7 @@ function office3DBuild(THREE,room){
    if(A.modelRoot)A.grp.remove(A.modelRoot);
    A.grp.add(grp); A.modelRoot=grp;
    const names=tamClipList.map(c=>c.name); const clips={};
-   const pref={idle:['Idle','Idle_Breathe'],work:['InspectTablet','Type_Keyboard','Review_Document'],walk:['Walk','Walk_Forward','Walk_Fast'],cheer:['Approve','Wave_Hello','Greeting'],fail:['Reject','Idle']};
+   const pref={idle:['Idle','Idle_Breathe'],work:['WorkCycle','Typing','Mouse','TabletTouch','InspectTablet','Type_Keyboard','Review_Document'],walk:['Walk','Walk_Forward','Walk_Fast'],cheer:['Approve','Wave_Hello','Greeting'],fail:['Reject','Idle']};
    for(const want of ['idle','work','walk','cheer','fail']){
     let c=null; for(const n of pref[want]){c=tamClipList.find(x=>x.name===n); if(c)break;}
     if(!c&&clipLogic){const f=clipLogic.officeFindClip(names,want); if(f)c=tamClipList.find(x=>x.name===f);}
@@ -1083,6 +1103,11 @@ function office3DBuild(THREE,room){
    }
    A.mixer=new THREE.AnimationMixer(inst);
    A.model={clips,current:null,action:null};
+   // Clip làm việc thuộc nhóm bàn đứng (P16) thì robot ĐỨNG ở bàn của chính
+   // nó: vòng lặp chuyển động không gập người (bend) và không hạ thân như
+   // thế ngồi cũ. Chỉ InspectTablet mới đi đường ngồi cũ.
+   A.workClipName=clips.work?clips.work.name:null;
+   A.standingDesk=['WorkCycle','Typing','Mouse','TabletTouch'].includes(A.workClipName||'');
    if(A.procBody)A.procBody.visible=false;
    window.__officeTamAttached=Object.values(agents).filter(x=>x.model&&x.a.fleet).length;
   }catch(e){console.warn('Gắn thân TAM01 lỗi cho',A.a.id,e);}

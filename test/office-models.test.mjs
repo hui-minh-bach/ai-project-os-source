@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, isGlbBuffer, OFFICE_MODEL_IDS } from '../src/lib/office-models.mjs';
-import { officeClipFor, officeFindClip, officeClipKey } from '../public/office-clip.mjs';
+import { officeClipFor, officeFindClip, officeClipKey, officeResolveClip, OFFICE_CLIP_PREFS, OFFICE_STANDING_WORK_CLIPS } from '../public/office-clip.mjs';
 
 function glb(extra = 16) {
   const b = Buffer.alloc(12 + extra);
@@ -48,6 +48,34 @@ test('office clips: state machine priority zap > walk > cheer > work > idle', ()
   assert.equal(officeClipFor({ faceMode: 'work' }), 'work');
   assert.equal(officeClipFor({ faceMode: 'sleep' }), 'idle');
   assert.equal(officeClipFor({}), 'idle');
+});
+
+test('office clips: P16 work preference resolves WorkCycle first (0.9.50)', () => {
+  const P16 = ['Idle', 'Walk', 'Greeting', 'Approve', 'InspectTablet', 'Typing', 'Mouse', 'TabletTouch', 'WorkCycle'];
+  // The full P16 set: the standing-desk cycle wins over every fallback.
+  assert.equal(officeResolveClip(P16, 'work'), 'WorkCycle');
+  // Without WorkCycle the other standing clips win in order, before InspectTablet.
+  assert.equal(officeResolveClip(P16.filter(n => n !== 'WorkCycle'), 'work'), 'Typing');
+  assert.equal(officeResolveClip(P16.filter(n => !['WorkCycle', 'Typing'].includes(n)), 'work'), 'Mouse');
+  assert.equal(officeResolveClip(P16.filter(n => !['WorkCycle', 'Typing', 'Mouse'].includes(n)), 'work'), 'TabletTouch');
+  // Legacy P13 set (no standing clips): the seated InspectTablet path is kept.
+  const P13 = ['Idle', 'Walk', 'Greeting', 'Approve', 'InspectTablet'];
+  assert.equal(officeResolveClip(P13, 'work'), 'InspectTablet');
+  // Other states are unchanged on the P16 set.
+  assert.equal(officeResolveClip(P16, 'idle'), 'Idle');
+  assert.equal(officeResolveClip(P16, 'walk'), 'Walk');
+  assert.equal(officeResolveClip(P16, 'cheer'), 'Approve');
+  // P16 has no Reject clip: fail falls back to Idle, never an invented clip.
+  assert.equal(officeResolveClip(P16, 'fail'), 'Idle');
+  assert.equal(OFFICE_CLIP_PREFS.fail.at(-1), 'Idle');
+  // The state machine still maps office states to clip intents.
+  assert.equal(officeClipFor({ faceMode: 'work' }), 'work');
+  assert.equal(officeClipFor({ faceMode: 'zap' }), 'fail');
+  assert.equal(officeClipFor({ walking: true, faceMode: 'work' }), 'walk');
+  // Standing-desk set: exactly the four P16 work clips; InspectTablet stays seated.
+  assert.deepEqual(OFFICE_STANDING_WORK_CLIPS, ['WorkCycle', 'Typing', 'Mouse', 'TabletTouch']);
+  assert.ok(OFFICE_STANDING_WORK_CLIPS.includes(officeResolveClip(P16, 'work')));
+  assert.ok(!OFFICE_STANDING_WORK_CLIPS.includes(officeResolveClip(P13, 'work')));
 });
 
 test('office clips: name matching strips prefixes and uses synonyms', () => {

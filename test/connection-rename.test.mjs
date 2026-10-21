@@ -1,4 +1,4 @@
-// Connection rename (v0.9.49): every connection — including account-login
+// Connection rename (v0.9.50): every connection — including account-login
 // connections (Codex/Claude/Gemini/Antigravity) whose dialogs previously made
 // the name read-only after creation — can be renamed via
 // POST /api/connections/:id/name, and the office fleet robot label follows

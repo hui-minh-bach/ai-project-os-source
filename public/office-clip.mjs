@@ -28,6 +28,39 @@ export function officeClipKey(name) {
     .replace(/[^a-z]/g, '');
 }
 
+/**
+ * Clip-name preference per office state for the TAM-19 body — mirrors the
+ * table used by officeAttachTam in public/tabs/team.js (kept in sync; the
+ * unit tests pin this copy). P16 (0.9.50) added standing-desk work clips:
+ * WorkCycle is the preferred work clip, ahead of the seated-era
+ * InspectTablet/Type_Keyboard/Review_Document fallbacks. There is still no
+ * Reject clip — fail falls back to Idle, never to an invented animation.
+ */
+export const OFFICE_CLIP_PREFS = {
+  idle: ['Idle', 'Idle_Breathe'],
+  work: ['WorkCycle', 'Typing', 'Mouse', 'TabletTouch', 'InspectTablet', 'Type_Keyboard', 'Review_Document'],
+  walk: ['Walk', 'Walk_Forward', 'Walk_Fast'],
+  cheer: ['Approve', 'Wave_Hello', 'Greeting'],
+  fail: ['Reject', 'Idle'],
+};
+
+/**
+ * Work clips during which the P16 robot stands at its own built-in desk:
+ * the renderer must NOT apply the legacy seated bend or the body drop.
+ * InspectTablet keeps the legacy seated path.
+ */
+export const OFFICE_STANDING_WORK_CLIPS = ['WorkCycle', 'Typing', 'Mouse', 'TabletTouch'];
+
+/** Resolve the clip name for `wanted`: preference list first, then officeFindClip. */
+export function officeResolveClip(clipNames, wanted) {
+  const names = Array.isArray(clipNames) ? clipNames : [];
+  for (const n of OFFICE_CLIP_PREFS[wanted] || []) {
+    const hit = names.find((x) => x === n);
+    if (hit) return hit;
+  }
+  return officeFindClip(names, wanted);
+}
+
 /** Find the best clip for `wanted` among available clip names. */
 export function officeFindClip(clipNames, wanted) {
   const names = Array.isArray(clipNames) ? clipNames : [];

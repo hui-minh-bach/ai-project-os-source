@@ -72,7 +72,7 @@ test('AI office room detail pass: medallion floor, desk plinths, detailed cabine
 });
 
 test('AI office: idle staff recharge in the energy pods, with the sleeping face on', () => {
-  assert.match(teamJs, /lounge:\{x:10,y:85,label:'🔋 Phòng nạp năng lượng'\}/);
+  assert.match(teamJs, /lounge:\{x:8,y:86,label:'🔋 Phòng nạp năng lượng'\}/);
   assert.match(teamJs, /PHÒNG NẠP NĂNG LƯỢNG/);
   assert.match(teamJs, /stId==='lounge'/, 'pod slot offsets in the 3D sync');
   assert.match(teamJs, /'sleep'/, 'sleeping face state');
@@ -81,7 +81,7 @@ test('AI office: idle staff recharge in the energy pods, with the sleeping face 
 
 test('AI office: the electric room only takes staff who really failed work', () => {
   assert.match(teamJs, /function officeCulprit\(runs\)/);
-  assert.match(teamJs, /cage:\{x:90/);
+  assert.match(teamJs, /cage:\{x:92/);
   // culprit mapping by failed step
   assert.match(teamJs, /stepName\.startsWith\('produce\.'\)\?'media'/);
   assert.match(teamJs, /stepName\.startsWith\('publish:'\)\?'publish'/);
