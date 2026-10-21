@@ -12,7 +12,7 @@ import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { redactVaultSecrets, vaultStatus, unlockVault, lockVault, listConnections, saveConnection, deleteConnection, findServiceCredential } from './lib/vault.mjs';
+import { redactVaultSecrets, vaultStatus, unlockVault, lockVault, listConnections, saveConnection, deleteConnection, renameConnection, findServiceCredential } from './lib/vault.mjs';
 import { testConnection, listModels } from './lib/providers.mjs';
 import { AI_KINDS, modelAvailability, verifiedBinding, invalidateModels } from './lib/model-bindings.mjs';
 import { updateProjectBrief, clearFounderChat, analyzeIdea, sendBriefToCouncil, saveProjectDomain, projectModelRoles, updateProjectModelRoles, listProjects, createProject, getProject, updateProjectSettings, founderChat, runCouncil, councilHistory, confirmCouncilSpecification, recoverInterruptedCouncils, analyzeStack, buildPlan, createTask, updateTask, archiveTask, runTask, runReadyBatch, readyTasks, recoverInterruptedTasks, recoverInterruptedFounderChats } from './lib/projects.mjs';
@@ -47,7 +47,7 @@ import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, 
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.47';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.48';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -488,6 +488,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='GET'&&u.pathname==='/api/supabase/password')return send(res,200,{password:generateDbPassword()});
   if(req.method==='DELETE'&&u.pathname.startsWith('/api/connections/')){const id=decodeURIComponent(u.pathname.split('/').pop());const kind=listConnections().find(c=>c.id===id)?.kind;if(kind==='chatgpt_account')await deleteAccountProfile(id);if(['claude_account','gemini_account'].includes(kind))removeCliAccount(id);if(kind==='antigravity_account')removeAntigravityAccount(id);deleteConnection(id);invalidateModels(id);return send(res,200,{ok:true});}
   if(req.method==='POST'&&u.pathname.match(/^\/api\/connections\/[^/]+\/model$/)){const id=decodeURIComponent(u.pathname.split('/')[3]),b=verifiedBinding({connectionId:id,model:(await readBody(req)).model});const c=listConnections().find(x=>x.id===id);return send(res,200,saveConnection({...c,model:b.model}));}
+  if(req.method==='POST'&&u.pathname.match(/^\/api\/connections\/[^/]+\/name$/)){const id=decodeURIComponent(u.pathname.split('/')[3]);const b=await readBody(req);return send(res,200,renameConnection(id,b.name));}
   if(req.method==='POST'&&u.pathname.match(/^\/api\/connections\/[^/]+\/effort$/)){const id=decodeURIComponent(u.pathname.split('/')[3]),b=await readBody(req);const c=listConnections().find(x=>x.id===id);if(!c)throw new Error('Không tìm thấy kết nối.');if(!['chatgpt_account','claude_account'].includes(c.kind))throw new Error('Loại tài khoản này chưa hỗ trợ chỉnh mức suy luận.');const eff=String(b.effort||'');const allowed=c.kind==='chatgpt_account'?['','minimal','low','medium','high','xhigh','max']:['','low','medium','high','xhigh','max'];if(!allowed.includes(eff))throw new Error('Mức suy luận không hợp lệ với tài khoản này.');const meta={...(c.meta||{})};if(eff)meta.reasoningEffort=eff;else delete meta.reasoningEffort;return send(res,200,saveConnection({...c,meta}));}
   if(req.method==='POST'&&u.pathname.match(/^\/api\/connections\/[^/]+\/test$/)){const id=u.pathname.split('/')[3];return send(res,200,await testConnection(id));}
   if(req.method==='GET'&&u.pathname.match(/^\/api\/connections\/[^/]+\/models$/)){const id=u.pathname.split('/')[3];return send(res,200,await listModels(id));}

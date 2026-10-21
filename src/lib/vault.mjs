@@ -218,6 +218,18 @@ export function saveConnection(input) {
   return summarize([item])[0];
 }
 
+export function renameConnection(id, name) {
+  if (!unlocked) throw new Error('Vault đang khóa.');
+  const c = (unlocked.connections || []).find(x => x.id === id);
+  if (!c) throw new Error('Không tìm thấy kết nối.');
+  const clean = String(name || '').trim().slice(0, 80);
+  if (!clean) throw new Error('Tên hiển thị không được trống.');
+  c.name = clean;
+  c.updatedAt = new Date().toISOString();
+  saveVault();
+  return summarize([c])[0];
+}
+
 export function deleteConnection(id) {
   if (!unlocked) throw new Error('Vault đang khóa.');
   unlocked.connections = (unlocked.connections || []).filter(x => x.id !== id);
