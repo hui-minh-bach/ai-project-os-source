@@ -31,14 +31,17 @@ export function officeClipKey(name) {
 /**
  * Clip-name preference per office state for the TAM-19 body — mirrors the
  * table used by officeAttachTam in public/tabs/team.js (kept in sync; the
- * unit tests pin this copy). P16 (0.9.50) added standing-desk work clips:
- * WorkCycle is the preferred work clip, ahead of the seated-era
- * InspectTablet/Type_Keyboard/Review_Document fallbacks. There is still no
- * Reject clip — fail falls back to Idle, never to an invented animation.
+ * unit tests pin this copy). 0.9.52 (owner's order): desk work is SEATED —
+ * InspectTablet (the pre-P16 seated clip) leads the work list again, then
+ * the other seated clips Type_Keyboard / Review_Document. The P16
+ * standing-desk clips (WorkCycle / Typing / Mouse / TabletTouch) remain
+ * only as last-resort fallbacks for models that carry no seated clip at
+ * all. There is still no Reject clip — fail falls back to Idle, never to
+ * an invented animation.
  */
 export const OFFICE_CLIP_PREFS = {
   idle: ['Idle', 'Idle_Breathe'],
-  work: ['WorkCycle', 'Typing', 'Mouse', 'TabletTouch', 'InspectTablet', 'Type_Keyboard', 'Review_Document'],
+  work: ['InspectTablet', 'Type_Keyboard', 'Review_Document', 'WorkCycle', 'Typing', 'Mouse', 'TabletTouch'],
   walk: ['Walk', 'Walk_Forward', 'Walk_Fast'],
   cheer: ['Approve', 'Wave_Hello', 'Greeting'],
   fail: ['Reject', 'Idle'],
@@ -46,8 +49,10 @@ export const OFFICE_CLIP_PREFS = {
 
 /**
  * Work clips during which the P16 robot stands at its own built-in desk:
- * the renderer must NOT apply the legacy seated bend or the body drop.
- * InspectTablet keeps the legacy seated path.
+ * the renderer must NOT apply the seated bend or the body drop for these.
+ * Since 0.9.52 they resolve only as fallbacks (models without a seated
+ * clip); the desk-work default InspectTablet keeps the seated path
+ * (bend + body drop onto the app-built chair).
  */
 export const OFFICE_STANDING_WORK_CLIPS = ['WorkCycle', 'Typing', 'Mouse', 'TabletTouch'];
 

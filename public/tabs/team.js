@@ -648,25 +648,19 @@ function office3DBuild(THREE,room){
  // --- bàn làm việc ---
  const deskMat=new THREE.MeshStandardMaterial({color:0x5a4630,roughness:.7});
  const deskHolos=[];
+ const deskGroups=[]; // mọi nhóm bàn+ghế: phòng GLB giữ lại + nâng lên mặt sàn .18
  function buildDesk(stId){
   const st=OFFICE_STATIONS[stId],pos=officeWorld(st),grp=new THREE.Group();
   const owner=OFFICE_CAST.find(a=>a.station===stId);
   const accentCol=new THREE.Color(owner?owner.color:0x888888);
-  if(stId!=='boss'){
-   /* TAM-19 P16 (0.9.50): robot làm việc tự mang theo bàn đứng + màn hình +
-    * bàn phím + tablet TRONG model GLB (hiện ra theo clip WorkCycle/Typing/
-    * Mouse/TabletTouch). Dựng thêm bàn của app ở các trạm này sẽ thành HAI
-    * cái bàn chồng nhau — nên app chỉ giữ biển tên trạm; vành sáng dưới sàn
-    * của trạm được dựng riêng bên dưới. Riêng bàn Sếp giữ nguyên: Sếp dùng
-    * thân thủ tục, không có bàn GLB đi kèm. */
-   const plate=new THREE.Mesh(new THREE.PlaneGeometry(2.35,.64),new THREE.MeshBasicMaterial({color:0x0a1220,transparent:true,opacity:.55}));
-   plate.position.set(0,2.62,-.14); grp.add(plate);
-   const plateEdge=new THREE.Mesh(new THREE.PlaneGeometry(2.35,.05),new THREE.MeshBasicMaterial({color:accentCol}));
-   plateEdge.position.set(0,2.32,-.14); grp.add(plateEdge);
-   const label=textSprite(st.label.replace(/^\S+\s/,''),{size:40,color:'#d7dcff',scale:[2.2,.55]}); label.position.set(0,2.62,-.1); grp.add(label);
-   grp.position.set(pos.x,0,pos.z); grp.rotation.y=Math.PI;
-   scene.add(grp); return grp;
-  }
+  /* 0.9.52 — lệnh của Sếp: robot làm việc phải NGỒI GHẾ ở bàn. Mọi trạm làm
+   * việc (kể cả 6 trạm đội) dùng chung bộ bàn cong + màn hình + GHẾ như bàn
+   * Sếp. Clip làm việc mặc định quay về InspectTablet (ngồi) nên bàn đứng
+   * tích hợp trong GLB P16 không hiện — không còn cảnh hai bàn chồng nhau
+   * như lý do gỡ bàn ở 0.9.50. Ghế được kéo lại gần (z .88 -> .28) để đệm
+   * ghế nằm ĐÚNG dưới hông robot khi thân hạ .5 theo thế ngồi; trước đây
+   * ghế lùi .88 nên robot "ngồi" lơ lửng trước ghế. */
+  const mainTex=stId==='boss'?screenFor(owner?owner.id:'pm'):screenFor(stId);
   const shell=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.44,.74,24,1,false,Math.PI-.98,1.96),new THREE.MeshStandardMaterial({color:0x272b38,roughness:.45,metalness:.35}));
   shell.position.y=.37; grp.add(shell);
   const topD=new THREE.Mesh(new THREE.CylinderGeometry(1.46,1.46,.06,24,1,false,Math.PI-.98,1.96),new THREE.MeshStandardMaterial({color:0x171b26,roughness:.3,metalness:.4}));
@@ -699,22 +693,23 @@ function office3DBuild(THREE,room){
    const pot=new THREE.Mesh(new THREE.CylinderGeometry(.055,.042,.09,10),new THREE.MeshStandardMaterial({color:0x8a5a34,roughness:.8})); pot.position.set(-.66,.885,.12); grp.add(pot);
    const leaf=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),new THREE.MeshStandardMaterial({color:0x2f9e5f,roughness:.7})); leaf.position.set(-.66,1.0,.12); grp.add(leaf);
   }
-  monitor(1.18,.7,screenFor(owner?owner.id:'pm'),0,1.42,-.62,0);
+  monitor(1.18,.7,mainTex,0,1.42,-.62,0);
   monitor(.82,.52,screenTex,-1.02,1.32,-.34,.5);
   monitor(.82,.52,screenTex,1.02,1.32,-.34,-.5);
-  const holo=new THREE.Mesh(new THREE.PlaneGeometry(.95,.52),new THREE.MeshBasicMaterial({map:screenFor(owner?owner.id:'pm'),transparent:true,opacity:.45,side:THREE.DoubleSide}));
+  const holo=new THREE.Mesh(new THREE.PlaneGeometry(.95,.52),new THREE.MeshBasicMaterial({map:mainTex,transparent:true,opacity:.45,side:THREE.DoubleSide}));
   holo.position.set(0,2.14,-.55); holo.rotation.x=-.18; holo.userData.baseY=2.14; holo.userData.phase=pos.x; deskHolos.push(holo); grp.add(holo);
   const kb=new THREE.Mesh(new THREE.BoxGeometry(.72,.03,.26),darkMat); kb.position.set(0,.83,.28); grp.add(kb);
   const mug=new THREE.Mesh(new THREE.CylinderGeometry(.05,.045,.1,12),new THREE.MeshStandardMaterial({color:0xe8e8f2,roughness:.4})); mug.position.set(.58,.88,.18); grp.add(mug);
-  const seat=new THREE.Mesh(new THREE.CylinderGeometry(.31,.31,.08,18),darkMat); seat.position.set(0,.48,.88); grp.add(seat);
-  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.44,8),darkMat); stem.position.set(0,.24,.88); grp.add(stem);
-  const backr=new THREE.Mesh(new THREE.BoxGeometry(.56,.62,.07),darkMat); backr.position.set(0,.92,1.08); backr.rotation.x=-.12; grp.add(backr);
+  const seat=new THREE.Mesh(new THREE.CylinderGeometry(.31,.31,.08,18),darkMat); seat.position.set(0,.48,.28); grp.add(seat);
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.44,8),darkMat); stem.position.set(0,.24,.28); grp.add(stem);
+  const backr=new THREE.Mesh(new THREE.BoxGeometry(.56,.62,.07),darkMat); backr.position.set(0,.92,.52); backr.rotation.x=-.12; grp.add(backr);
   const plate=new THREE.Mesh(new THREE.PlaneGeometry(2.35,.64),new THREE.MeshBasicMaterial({color:0x0a1220,transparent:true,opacity:.55}));
   plate.position.set(0,2.62,-.14); grp.add(plate);
   const plateEdge=new THREE.Mesh(new THREE.PlaneGeometry(2.35,.05),new THREE.MeshBasicMaterial({color:accentCol}));
   plateEdge.position.set(0,2.32,-.14); grp.add(plateEdge);
   const label=textSprite(st.label.replace(/^\S+\s/,''),{size:40,color:'#d7dcff',scale:[2.2,.55]}); label.position.set(0,2.62,-.1); grp.add(label);
   grp.position.set(pos.x,0,pos.z); grp.rotation.y=Math.PI;
+  deskGroups.push(grp);
   scene.add(grp); return grp;
  }
  ['boss','news','script','image','media','review','publish'].forEach(buildDesk);
@@ -925,7 +920,7 @@ function office3DBuild(THREE,room){
    if(!clipLogic)clipLogic=await import('/office-clip.mjs');
    const names=(gltf.animations||[]).map(c=>c.name);
    const clips={};
-   for(const want of clipLogic.OFFICE_CLIPS){const found=clipLogic.officeFindClip(names,want); if(found)clips[want]=gltf.animations.find(c=>c.name===found);}
+   for(const want of clipLogic.OFFICE_CLIPS){const found=clipLogic.officeResolveClip(names,want); if(found)clips[want]=gltf.animations.find(c=>c.name===found);}
    // Sếp duyệt việc bằng InspectTablet như cũ — không dùng chu trình bàn
    // đứng WorkCycle dù model có clip đó.
    if(A.a.id==='boss'){const it=(gltf.animations||[]).find(c=>clipLogic.officeClipKey(c.name)==='inspecttablet'); if(it)clips.work=it;}
@@ -952,7 +947,7 @@ function office3DBuild(THREE,room){
  let zapId=null,zapClock=0;
  // --- đồng bộ từ trạng thái thật ---
  window.__office3D=true; window.__office3DCamera=orbit;
- window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,clipName:(A.model&&A.model.action&&A.model.action.getClip)?A.model.action.getClip().name:null,workClip:A.workClipName||null,standing:Boolean(A.standingDesk),sit:Math.round((A.sit||0)*100)/100,station:A.station||null,pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
+ window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,clipName:(A.model&&A.model.action&&A.model.action.getClip)?A.model.action.getClip().name:null,workClip:A.workClipName||null,standing:Boolean(A.standingDesk),seated:(A.sit||0)>.5,sit:Math.round((A.sit||0)*100)/100,station:A.station||null,pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
  window.__office3DSync=(ctx)=>{
   office3DReconcile();
   const slotUse=new Map();
@@ -1095,7 +1090,7 @@ function office3DBuild(THREE,room){
    if(A.modelRoot)A.grp.remove(A.modelRoot);
    A.grp.add(grp); A.modelRoot=grp;
    const names=tamClipList.map(c=>c.name); const clips={};
-   const pref={idle:['Idle','Idle_Breathe'],work:['WorkCycle','Typing','Mouse','TabletTouch','InspectTablet','Type_Keyboard','Review_Document'],walk:['Walk','Walk_Forward','Walk_Fast'],cheer:['Approve','Wave_Hello','Greeting'],fail:['Reject','Idle']};
+   const pref={idle:['Idle','Idle_Breathe'],work:['InspectTablet','Type_Keyboard','Review_Document','WorkCycle','Typing','Mouse','TabletTouch'],walk:['Walk','Walk_Forward','Walk_Fast'],cheer:['Approve','Wave_Hello','Greeting'],fail:['Reject','Idle']};
    for(const want of ['idle','work','walk','cheer','fail']){
     let c=null; for(const n of pref[want]){c=tamClipList.find(x=>x.name===n); if(c)break;}
     if(!c&&clipLogic){const f=clipLogic.officeFindClip(names,want); if(f)c=tamClipList.find(x=>x.name===f);}
@@ -1103,9 +1098,11 @@ function office3DBuild(THREE,room){
    }
    A.mixer=new THREE.AnimationMixer(inst);
    A.model={clips,current:null,action:null};
-   // Clip làm việc thuộc nhóm bàn đứng (P16) thì robot ĐỨNG ở bàn của chính
-   // nó: vòng lặp chuyển động không gập người (bend) và không hạ thân như
-   // thế ngồi cũ. Chỉ InspectTablet mới đi đường ngồi cũ.
+   // 0.9.52: làm việc tại bàn là NGỒI ghế — clip mặc định InspectTablet
+   // không thuộc nhóm bàn đứng, nên vòng lặp chuyển động áp thế ngồi
+   // (bend + hạ thân lên ghế của app). Nhóm clip bàn đứng P16 chỉ còn là
+   // đường dự phòng cho model không có clip ngồi nào: khi đó robot đứng ở
+   // bàn đứng tích hợp của chính model và bend bị tắt như cũ.
    A.workClipName=clips.work?clips.work.name:null;
    A.standingDesk=['WorkCycle','Typing','Mouse','TabletTouch'].includes(A.workClipName||'');
    if(A.procBody)A.procBody.visible=false;
@@ -1116,7 +1113,11 @@ function office3DBuild(THREE,room){
  let rosterSig3D='';
  function office3DReconcile(){
   const roster=officeRosterCast(); const sig=roster.map(a=>a.id).join(',');
-  if(sig===rosterSig3D){for(const A of Object.values(agents))if(A.a.fleet&&!A.model)officeAttachTam(A); return;}
+  // Kể cả khi danh sách ID không đổi cũng phải làm mới A.a từ bản cast mới
+  // nhất: bot đổi TRẠM (sạc xong ra bàn, hoặc chuyển trạm) không làm thay
+  // chữ ký ID — nếu giữ A.a cũ, điều kiện ownDesk của vòng lặp chuyển động
+  // so theo trạm cũ nên robot tới bàn mới mà không bao giờ ngồi (0.9.52).
+  if(sig===rosterSig3D){for(const A of Object.values(agents)){const fresh=roster.find(x=>x.id===A.a.id); if(fresh)A.a=fresh; if(A.a.fleet&&!A.model)officeAttachTam(A);} return;}
   rosterSig3D=sig;
   const want=new Set(roster.map(a=>a.id));
   for(const id of Object.keys(agents))if(!want.has(id)){scene.remove(agents[id].grp); delete agents[id];}
@@ -1135,9 +1136,35 @@ function office3DBuild(THREE,room){
    const env=gltf.scene; env.name='OfficeRoomGLB';
    const bakedLights=[]; env.traverse(o=>{if(o.isLight)bakedLights.push(o);}); bakedLights.forEach(l=>l.removeFromParent());
    scene.add(env);
-   const keep=new Set(); Object.values(agents).forEach(A=>{keep.add(A.grp); if(A.path)keep.add(A.path);}); keep.add(parcel); bolts.forEach(b=>keep.add(b));
+   const keep=new Set(); Object.values(agents).forEach(A=>{keep.add(A.grp); if(A.path)keep.add(A.path);}); keep.add(parcel); bolts.forEach(b=>keep.add(b)); deskGroups.forEach(g=>keep.add(g));
    scene.children.slice().forEach(o=>{ if(keep.has(o)||o===env) return; if(o.isLight) return; o.visible=false; });
    officeRoomDeckY=.18; window.__officeRoomMode='glb';
+   // Bàn + ghế của app ở lại trong phòng GLB (0.9.52): nâng lên mặt sàn GLB
+   // cho khớp độ cao chân robot (baseY cũng dùng officeRoomDeckY).
+   for(const g of deskGroups)g.position.y=officeRoomDeckY;
+   /* Vòm đen "ShellFar" (0.9.52): node vỏ bao ngoài của bộ GLB — hộp
+    * 62x20x62 m, vật liệu KHÔNG sáng (MeshBasicMaterial) màu
+    * (0.003,0.0056,0.0137) ~ đen tuyệt đối, hai mặt. Camera mặc định ở
+    * trong vòm nên mặt trong đen của nó phủ mọi khoảng khung hình mà bộ
+    * phòng không che; lăn chuột ra xa quá bán kính ~31 (tối đa 48) thì
+    * camera ra NGOÀI vòm và mặt ngoài đen nuốt trọn khung hình — đúng
+    * "vòm đen" Sếp chụp được. Sửa: thay bằng phông gradient xanh đậm +
+    * sao vẽ bằng canvas, chỉ hiện MẶT TRONG (BackSide) nên không bao giờ
+    * che phòng, và phóng to vỏ (x1.8 ngang, x2.2 cao) để cả mức zoom xa
+    * nhất 48 vẫn nằm trong vòm. */
+   const shellFar=env.getObjectByName('ShellFar');
+   if(shellFar){
+    const domeTex=canvasTex(256,512,(g,w,h)=>{
+     const gr=g.createLinearGradient(0,0,0,h);
+     gr.addColorStop(0,'#05081a'); gr.addColorStop(.40,'#101f4e'); gr.addColorStop(.55,'#1d3474'); gr.addColorStop(.68,'#0c173c'); gr.addColorStop(1,'#04060f');
+     g.fillStyle=gr; g.fillRect(0,0,w,h);
+     g.fillStyle='rgba(120,190,255,.10)'; g.fillRect(0,h*.52,w,h*.05);
+     for(let i=0;i<170;i++){const sy=Math.pow(Math.random(),1.6)*h*.55; g.fillStyle=`rgba(255,255,255,${(.15+Math.random()*.55).toFixed(2)})`; g.beginPath(); g.arc(Math.random()*w,sy,Math.random()<.12?1.6:.8,0,7); g.fill();}
+    });
+    domeTex.colorSpace=THREE.SRGBColorSpace;
+    shellFar.material=new THREE.MeshBasicMaterial({map:domeTex,side:THREE.BackSide,fog:false});
+    shellFar.scale.set(1.8,2.2,1.8);
+   }
    officeEnablePost();
    if(gltf.animations&&gltf.animations.length){ const mx=new THREE.AnimationMixer(env); mx.clipAction(gltf.animations[0]).play(); const ck=new THREE.Clock(); (function tick(){ requestAnimationFrame(tick); mx.update(Math.min(ck.getDelta(),.05)); })(); }
   }catch(err){ console.warn('Không nạp được phòng GLB, dùng phòng thủ tục:',err); officeEnablePost(); }

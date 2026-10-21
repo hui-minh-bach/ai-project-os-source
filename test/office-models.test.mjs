@@ -50,15 +50,22 @@ test('office clips: state machine priority zap > walk > cheer > work > idle', ()
   assert.equal(officeClipFor({}), 'idle');
 });
 
-test('office clips: P16 work preference resolves WorkCycle first (0.9.50)', () => {
+test('office clips: seated work preference — InspectTablet first (0.9.52)', () => {
   const P16 = ['Idle', 'Walk', 'Greeting', 'Approve', 'InspectTablet', 'Typing', 'Mouse', 'TabletTouch', 'WorkCycle'];
-  // The full P16 set: the standing-desk cycle wins over every fallback.
-  assert.equal(officeResolveClip(P16, 'work'), 'WorkCycle');
-  // Without WorkCycle the other standing clips win in order, before InspectTablet.
-  assert.equal(officeResolveClip(P16.filter(n => n !== 'WorkCycle'), 'work'), 'Typing');
-  assert.equal(officeResolveClip(P16.filter(n => !['WorkCycle', 'Typing'].includes(n)), 'work'), 'Mouse');
-  assert.equal(officeResolveClip(P16.filter(n => !['WorkCycle', 'Typing', 'Mouse'].includes(n)), 'work'), 'TabletTouch');
-  // Legacy P13 set (no standing clips): the seated InspectTablet path is kept.
+  // Owner's order (0.9.52): desk work is SEATED. The full P16 set resolves
+  // to the seated InspectTablet, ahead of every standing-desk clip.
+  assert.equal(officeResolveClip(P16, 'work'), 'InspectTablet');
+  // Without InspectTablet the other seated clips win in order.
+  const SEATED = ['Idle', 'Walk', 'Type_Keyboard', 'Review_Document', 'Typing', 'WorkCycle'];
+  assert.equal(officeResolveClip(SEATED, 'work'), 'Type_Keyboard');
+  assert.equal(officeResolveClip(SEATED.filter(n => n !== 'Type_Keyboard'), 'work'), 'Review_Document');
+  // Only a model with NO seated clip at all falls back to the standing-desk
+  // clips, in their P16 order (WorkCycle, Typing, Mouse, TabletTouch).
+  assert.equal(officeResolveClip(P16.filter(n => n !== 'InspectTablet'), 'work'), 'WorkCycle');
+  assert.equal(officeResolveClip(P16.filter(n => !['InspectTablet', 'WorkCycle'].includes(n)), 'work'), 'Typing');
+  assert.equal(officeResolveClip(P16.filter(n => !['InspectTablet', 'WorkCycle', 'Typing'].includes(n)), 'work'), 'Mouse');
+  assert.equal(officeResolveClip(P16.filter(n => !['InspectTablet', 'WorkCycle', 'Typing', 'Mouse'].includes(n)), 'work'), 'TabletTouch');
+  // Legacy P13 set: the seated InspectTablet path, unchanged.
   const P13 = ['Idle', 'Walk', 'Greeting', 'Approve', 'InspectTablet'];
   assert.equal(officeResolveClip(P13, 'work'), 'InspectTablet');
   // Other states are unchanged on the P16 set.
@@ -68,13 +75,17 @@ test('office clips: P16 work preference resolves WorkCycle first (0.9.50)', () =
   // P16 has no Reject clip: fail falls back to Idle, never an invented clip.
   assert.equal(officeResolveClip(P16, 'fail'), 'Idle');
   assert.equal(OFFICE_CLIP_PREFS.fail.at(-1), 'Idle');
+  // The work preference list itself is pinned: seated clips first.
+  assert.deepEqual(OFFICE_CLIP_PREFS.work, ['InspectTablet', 'Type_Keyboard', 'Review_Document', 'WorkCycle', 'Typing', 'Mouse', 'TabletTouch']);
   // The state machine still maps office states to clip intents.
   assert.equal(officeClipFor({ faceMode: 'work' }), 'work');
   assert.equal(officeClipFor({ faceMode: 'zap' }), 'fail');
   assert.equal(officeClipFor({ walking: true, faceMode: 'work' }), 'walk');
-  // Standing-desk set: exactly the four P16 work clips; InspectTablet stays seated.
+  // Standing-desk set: exactly the four P16 work clips; the seated default
+  // is NOT one of them, while the no-seated-clip fallback IS.
   assert.deepEqual(OFFICE_STANDING_WORK_CLIPS, ['WorkCycle', 'Typing', 'Mouse', 'TabletTouch']);
-  assert.ok(OFFICE_STANDING_WORK_CLIPS.includes(officeResolveClip(P16, 'work')));
+  assert.ok(!OFFICE_STANDING_WORK_CLIPS.includes(officeResolveClip(P16, 'work')));
+  assert.ok(OFFICE_STANDING_WORK_CLIPS.includes(officeResolveClip(P16.filter(n => n !== 'InspectTablet'), 'work')));
   assert.ok(!OFFICE_STANDING_WORK_CLIPS.includes(officeResolveClip(P13, 'work')));
 });
 
