@@ -99,6 +99,8 @@ test('operator diagnosis endpoints: token-gated, read-only, secret-free', async 
     assert.equal(conns.connections.length, 1);
     const c0 = conns.connections[0];
     assert.equal(c0.kind, 'other');
+    assert.ok('area' in c0, 'projection carries the two-area field (0.9.53)');
+    assert.equal(c0.area, null, 'kind "other" belongs to neither area');
     assert.equal(c0.hasSecret, true);
     assert.ok(!('secret' in c0), 'projection has no secret field');
     assert.ok(!JSON.stringify(conns).includes('fixture-987'), 'no secret value anywhere in the payload');

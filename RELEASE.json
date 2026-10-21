@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.52",
-  "channel": "v0.9.52-office-dome-seated",
+  "version": "0.9.53",
+  "channel": "v0.9.53-two-areas-chatbox-codex",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -210,7 +210,8 @@
     "tam19_p13_office": "TAM-19 P13 office (0.9.45): the AI office is populated by the owner's own GuardianViet TAM-19 P13 model (GLB SHA-256 85a7e95d11b4000be2ba152f5c5bb446eaeb874fb4cdc7e7446a96b008ed1900, supplied by the owner 2026-10-20). All 2D office sprites (idle/walk/seated-typing sheets, 5 provider tints) were re-rendered from the P13 GLB; the 3D room loads the same P13 GLB with its 5 baked clips (Idle/Walk/Greeting/Approve/InspectTablet). The office always shows 10 robots: fleet bots with a connected account sit at their desks (seated typing sheet while working); the remaining robot slots stand in the energy room as honestly-labelled empty slots ('cho tai khoan') and move to a desk automatically when an account is linked. Errored bots still go to the electric cage. Office state remains real app state only.",
     "office_3d_motion": "3D office is the default office view (0.9.46): TAM-19 P13 robots visibly WALK between stations playing the GLB Walk clip and SIT at their desks (programmatic Hip/Knee/Ankle bend over the InspectTablet work clip; lounge grid 2 rows x 5 in 3D). Root-cause fix: the static server mime map lacked '.mjs', so /office-clip.mjs was served as application/octet-stream and browsers refused to execute it — the 3D clip-selection logic never loaded on any machine since 0.9.31 and GLB robots only ever played Idle. team.js also gained an inline fallback clip rule so a future module-load failure degrades honestly instead of freezing animation choice. The 2D office remains available via the toggle (choice remembered); 3D load failure still falls back to 2D.",
     "operator_diagnosis": "Read-only diagnosis door on the external operator channel (0.9.47): GET /api/operator/ext/run/:id returns one run in full — every step with its state and the ORIGINAL error, payloads projected to small scalar summaries; GET /api/operator/ext/journal returns the run feed plus operator notes; GET /api/operator/ext/connections returns a secret-free connection projection (kind, label, hasSecret, verified, availability/pool state; a locked vault answers {vaultLocked:true} instead of an error). Same operator token, no new scope: the owner's existing token works unchanged, so the outside coordinator can read failures directly instead of asking the owner to relay logs.",
-    "connection_rename": "Mọi kết nối — kể cả tài khoản đăng nhập Codex/Claude/Gemini/Antigravity — sửa được Tên hiển thị ngay trong hộp thoại (nút Lưu tên hiển thị, POST /api/connections/:id/name); tên robot trong văn phòng lấy theo tên kết nối nên đổi tên kết nối là robot đổi tên theo."
+    "connection_rename": "Mọi kết nối — kể cả tài khoản đăng nhập Codex/Claude/Gemini/Antigravity — sửa được Tên hiển thị ngay trong hộp thoại (nút Lưu tên hiển thị, POST /api/connections/:id/name); tên robot trong văn phòng lấy theo tên kết nối nên đổi tên kết nối là robot đổi tên theo.",
+    "two_area_assignment": "implemented_0.9.53_connections_grouped_into_khu_codex_chatgpt_codex_cli_accounts_and_khu_chatbox_antigravity_gemini_claude_chat_accounts_role_assignment_is_two_step_area_first_then_connection_and_model_inside_that_area_bindings_store_the_area_and_cross_area_bindings_are_rejected_at_save_and_at_run_time_quota_always_deducts_from_the_picked_areas_account_areas_are_an_organization_layer_over_the_existing_official_cli_login_routes_only_no_web_chat_automation"
   },
   "online_provider_apis": "separate user credentials and provider charges",
   "build": "Integration-ABC-v0.8.5-Recorded-Workflow-Fix-Internal-RC-2026-10-16",

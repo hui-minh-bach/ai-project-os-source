@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { redactVaultSecrets, vaultStatus, unlockVault, lockVault, listConnections, saveConnection, deleteConnection, renameConnection, findServiceCredential } from './lib/vault.mjs';
 import { testConnection, listModels } from './lib/providers.mjs';
 import { AI_KINDS, modelAvailability, verifiedBinding, invalidateModels } from './lib/model-bindings.mjs';
+import { connectionArea } from './lib/connection-areas.mjs';
 import { updateProjectBrief, clearFounderChat, analyzeIdea, sendBriefToCouncil, saveProjectDomain, projectModelRoles, updateProjectModelRoles, listProjects, createProject, getProject, updateProjectSettings, founderChat, runCouncil, councilHistory, confirmCouncilSpecification, recoverInterruptedCouncils, analyzeStack, buildPlan, createTask, updateTask, archiveTask, runTask, runReadyBatch, readyTasks, recoverInterruptedTasks, recoverInterruptedFounderChats } from './lib/projects.mjs';
 import { snapshot, workspaceSummary } from './lib/workspace.mjs';
 import { listSkills, saveCustomSkill, setSkillEnabled, deleteCustomSkill, sampleSkillMapping } from './lib/skills.mjs';
@@ -47,7 +48,7 @@ import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, 
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.52';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.53';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -90,7 +91,7 @@ function diagnoseConnections(){
   let list;
   try{list=listConnections();}catch{return {vaultLocked:true,connections:[]};}
   const safe=(fn,id)=>{try{return fn(id);}catch{return undefined;}};
-  return {vaultLocked:false,connections:list.map(c=>({id:c.id,kind:c.kind,name:(c.meta&&(c.meta.accountLabel||c.meta.channelTitle||c.meta.username))||c.name||null,hasSecret:Boolean(c.hasSecret),verified:Boolean(c.meta&&c.meta.verifiedAt),authMode:(c.meta&&c.meta.authMode)||null,planType:(c.meta&&c.meta.planType)||null,availability:c.kind==='chatgpt_account'?safe(accountAvailability,c.id):AI_KINDS.includes(c.kind)?safe(modelAvailability,c.id):undefined,pool:AI_KINDS.includes(c.kind)?safe(poolInfoFor,c.id):undefined}))};
+  return {vaultLocked:false,connections:list.map(c=>({id:c.id,kind:c.kind,area:connectionArea(c.kind),name:(c.meta&&(c.meta.accountLabel||c.meta.channelTitle||c.meta.username))||c.name||null,hasSecret:Boolean(c.hasSecret),verified:Boolean(c.meta&&c.meta.verifiedAt),authMode:(c.meta&&c.meta.authMode)||null,planType:(c.meta&&c.meta.planType)||null,availability:c.kind==='chatgpt_account'?safe(accountAvailability,c.id):AI_KINDS.includes(c.kind)?safe(modelAvailability,c.id):undefined,pool:AI_KINDS.includes(c.kind)?safe(poolInfoFor,c.id):undefined}))};
 }
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg','.woff2':'font/woff2'};
 

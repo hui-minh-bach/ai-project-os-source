@@ -13,6 +13,35 @@ const ccCompatPresets=[
  {name:'LM Studio (máy local — không cần key)',base:'http://127.0.0.1:1234/v1'},
 ];
 const ccRoles=[['founder','Chatbox / Founder','Lên ý tưởng, định hướng, phân tích.'],['council','AI Council','Phản biện, góp ý đa chiều.'],['worker','Worker / Builder','Thực thi, lập trình, xây dựng.'],['reviewer','Reviewer','Kiểm tra, đánh giá, tối ưu.']];
+// --- Hai khu tài khoản (0.9.53): Khu Codex vs Khu Chatbox ---
+// Mirror of src/lib/connection-areas.mjs CONNECTION_AREA_BY_KIND — kept in
+// sync by test/connection-areas.test.mjs. Chọn khu nào thì model và hạn
+// mức đi theo khu đó; khu chỉ là lớp tổ chức trên các đường đăng nhập
+// chính thức sẵn có, không phải đường thực thi mới.
+const CC_AREA_BY_KIND={chatgpt_account:'codex',openai:'codex',antigravity_account:'chatbox',gemini_account:'chatbox',gemini:'chatbox',claude_account:'chatbox',anthropic:'chatbox'};
+function ccAreaOf(kind){return CC_AREA_BY_KIND[kind]||null}
+const CC_AREA_GROUPS=[
+ {area:'codex',title:'Khu Codex — tài khoản Codex (làm code/dự án)',cards:['openai']},
+ {area:'chatbox',title:'Khu Chatbox — tài khoản chat (viết lách, phân tích, trò chuyện)',cards:['gemini','anthropic']},
+ {area:null,title:'API tùy chỉnh — key riêng của bạn (không thuộc khu nào)',cards:['openai_compatible']},
+];
+function ccAreaSummary(area){
+ const kinds=area?Object.keys(CC_AREA_BY_KIND).filter(k=>CC_AREA_BY_KIND[k]===area):['openai_compatible'];
+ const conns=state.connections.filter(c=>kinds.includes(c.kind));
+ if(!conns.length)return area?'Chưa có tài khoản nào trong khu này.':'Chưa cắm key tùy chỉnh nào.';
+ const verified=conns.filter(ccVerified).length;
+ const parts=[`${conns.length} ${area?'tài khoản':'key'} · ${verified} đã xác minh model`];
+ if(area==='codex'){
+  for(const c of conns.filter(x=>x.kind==='chatgpt_account'&&x.meta?.accountIdentity)){
+   const e=ccQuotaCache.get(c.id);if(!e||e.revision!==c.credentialVersion||!e.data)continue;
+   const groups=e.data.rateLimitsByLimitId?Object.values(e.data.rateLimitsByLimitId):(e.data.rateLimits?[e.data.rateLimits]:[]);
+   const w=groups.map(g=>g&&g.primary).find(w=>w&&Number.isFinite(w.usedPercent)&&w.windowDurationMins>0&&w.windowDurationMins<=360);
+   if(w)parts.push(`${c.name}: 5 giờ còn ${+(100-w.usedPercent).toFixed(1)}%`);
+  }
+ }
+ if(area==='chatbox'&&verified<conns.length)parts.push(`${conns.length-verified} đang chờ đăng nhập/xác minh`);
+ return parts.join(' · ');
+}
 const ccAccounts={};
 function ccSvg(body,cls=''){return `<svg class="${cls}" viewBox="0 0 32 32" aria-hidden="true" fill="none" xmlns="http://www.w3.org/2000/svg">${body}</svg>`}
 function ccLogo(kind){
@@ -48,22 +77,27 @@ const ccEffortLevels={
 function ccEffortSlider(c,title){const lv=ccEffortLevels[c.kind];if(!lv)return '';const cur=Math.max(0,lv.findIndex(([v])=>v===(c.meta?.reasoningEffort||'')));return `<label>Mức suy luận (tốc độ / token)</label><div class="cc-effort"><div class="cc-effort-read"><strong data-effort-read>${esc(lv[cur][1])}</strong><span data-effort-raw>${lv[cur][0]?esc(lv[cur][0]):'theo hãng'}</span></div><input type="range" class="cc-effort-slider" data-effort-slider="${esc(c.id)}" data-levels="${esc(lv.map(([v])=>v).join(','))}" data-labels="${esc(lv.map(([,l])=>l).join('|'))}" min="0" max="${lv.length-1}" step="1" value="${cur}" aria-label="Mức suy luận ${title}"><div class="cc-effort-ticks">${lv.map(([,l])=>`<span>${esc(l)}</span>`).join('')}</div></div>`}
 function ccConnected(){return state.connections.filter(ccVerified)}
 function ccBinding(role){return role==='council'?state.project?.modelRoles?.council?.[0]:state.project?.modelRoles?.[role]}
-function ccProviderOptions(value){return `<option value="">${state.vault?.unlocked?'Chọn provider':'Mở Vault để chọn'}</option>`+ccConnected().map(c=>`<option value="${esc(c.id)}" ${c.id===value?'selected':''}>${esc(c.name)}${c.kind==='chatgpt_account'?' · ChatGPT':c.kind==='antigravity_account'?' · Antigravity':c.kind==='gemini_account'?' · Gemini CLI':c.kind==='claude_account'?' · Claude CLI':''}</option>`).join('')}
-function renderConnections(){
- $('#connectionGrid').innerHTML=ccProviders.map(([kind,title])=>{
+function ccProviderOptions(value,area){return `<option value="">${state.vault?.unlocked?'Chọn provider':'Mở Vault để chọn'}</option>`+ccConnected().filter(c=>{if(!area)return true;const a=ccAreaOf(c.kind);return a===null||a===area}).map(c=>`<option value="${esc(c.id)}" ${c.id===value?'selected':''}>${esc(c.name)}${c.kind==='chatgpt_account'?' · ChatGPT':c.kind==='antigravity_account'?' · Antigravity':c.kind==='gemini_account'?' · Gemini CLI':c.kind==='claude_account'?' · Claude CLI':''}</option>`).join('')}
+// Khu hiện tại của một vai: ưu tiên khu đã lưu trong phân vai; phân vai cũ
+// chưa có khu thì suy ra từ kind của kết nối; mặc định Khu Codex.
+function ccRoleArea(role){const b=ccBinding(role);if(!b)return 'codex';if(b.area)return b.area;const c=state.connections.find(x=>x.id===b.connectionId);return (c&&ccAreaOf(c.kind))||'codex'}
+function ccProviderCard(kind){
+  const title=(ccProviders.find(p=>p[0]===kind)||[])[1]||kind;
   const c=ccCurrent(kind),status=ccStatus(c),models=ccVerified(c)?c.availability.models:[],accounts=state.connections.filter(x=>ccIsKind(x,kind));
   const isAccount=['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(c?.kind);const hint=!state.vault?.unlocked?'Mở Vault để xem kết nối.':c?.availability?.status==='verified'?`${c.name} · ${models.length} model ${isAccount?'đã phản hồi thật':'từ API'}`:isAccount?'Tài khoản CLI chưa xác minh model bằng phản hồi thực.':c?'Làm mới để xác minh Models API.':kind==='openai'?'API key hoặc tài khoản ChatGPT.':['gemini','anthropic'].includes(kind)?'API key hoặc đăng nhập qua CLI chính thức.':'API key chính thức của provider.';
   return `<article class="cc-card cc-provider ${kind==='openai_compatible'?'other':''}" data-provider="${kind}"><div class="cc-provider-top"><span class="cc-logo ${kind}">${ccLogo(kind)}</span><div class="cc-provider-title"><h3>${title}</h3>${ccBadge(status)}<p class="cc-model-description" title="${esc(hint)}">${esc(hint)}</p>${accounts.length>1?`<select class="cc-account-select" data-account="${kind}" aria-label="Tài khoản ${esc(title)}">${accounts.map(x=>`<option value="${esc(x.id)}" ${x.id===c.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select><p class="cc-model-description">${c?.pool?.cooldownUntil?`⏸ Tài khoản này đang nghỉ hạn mức đến ${new Date(c.pool.cooldownUntil).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})} — đội tự chạy bằng tài khoản khác trong bể.`:`🌀 Bể ${accounts.length} tài khoản: một tài khoản hết hạn mức là đội tự chuyển sang tài khoản kế tiếp.`}</p>`:''}</div><div class="cc-actions"><button class="cc-button ${c?'':'connect'}" data-connect="${kind}">${c?'Quản lý':kind==='openai_compatible'?'Thêm API key':'Kết nối'}</button><button class="cc-button cc-menu" data-manage="${kind}" aria-label="Thao tác ${title}">⋮</button></div></div><label for="cc-model-${kind}">Model khả dụng</label><select id="cc-model-${kind}" data-default-model="${esc(c?.id||'')}" ${models.length?'':'disabled'} aria-label="Model ${title}">${ccOptions(models,c?.model,!state.vault?.unlocked?'Vault đang khóa':!c?'Chưa kết nối tài khoản':!models.length?'Chưa có model khả dụng':'Chọn model mặc định')}</select>${c?ccEffortSlider(c,title):''}<label>Dùng cho vai trò</label><div class="cc-role-buttons">${ccRoles.map(([role])=>{const b=ccBinding(role),active=Boolean(c&&b&&b.connectionId===c.id);return `<button class="cc-button ${active?'active-'+role:''}" data-assign-role="${role}" data-kind="${kind}" ${ccVerified(c)&&state.project?'':'disabled'}>${{founder:'Founder',council:'Council',worker:'Worker',reviewer:'Reviewer'}[role]}</button>`}).join('')}</div>${ccQuotaPanel(c)}</article>`;
- }).join('');
+}
+function renderConnections(){
+ $('#connectionGrid').innerHTML=CC_AREA_GROUPS.map(g=>`<div class="cc-area-head" data-area-head="${g.area||'none'}"><h3>${esc(g.title)}</h3><p>${esc(ccAreaSummary(g.area))}</p></div>`+g.cards.map(kind=>ccProviderCard(kind)).join('')).join('');
  renderConnectionRoles();renderConnectionInfrastructure();renderConnectionPlatforms();ccRenderUsage();
  if(state.vault?.unlocked&&$('#page-connections')?.classList.contains('active'))ccFetchVisibleQuotas();
 }
 function renderConnectionRoles(){
  const enabled=Boolean(state.project&&state.vault?.unlocked&&ccConnected().length);
- $('#connectionRoleHint').textContent=state.project?`Thiết lập AI provider và model cho từng vai trò của ${state.project.name}. Có thể chọn nhiều thành viên cho AI Council.`:'Tạo hoặc chọn dự án để lưu phân vai model. Chỉ provider và model đã xác minh có thể được chọn.';
+ $('#connectionRoleHint').textContent=state.project?`Phân vai hai bước cho ${state.project.name}: chọn KHU trước (Codex/Chatbox), rồi chọn tài khoản + model trong khu đó — model và hạn mức đi theo khu đã chọn. Có thể chọn nhiều thành viên cho AI Council.`:'Tạo hoặc chọn dự án để lưu phân vai model. Chỉ provider và model đã xác minh có thể được chọn.';
  $('#connectionRoleGrid').innerHTML=ccRoles.map(([role,title,desc])=>{
-  const b=ccBinding(role),c=ccConnected().find(x=>x.id===b?.connectionId),models=c?.availability.models||[];
-  return `<article class="cc-card cc-role-card"><div class="cc-role-top"><span class="cc-role-icon ${role}">${ccLogo(role)}</span><div><h3>${title}</h3><p>${desc}</p></div>${role==='council'?`<button id="manageCouncil" aria-label="Quản lý thành viên AI Council" title="Quản lý nhiều thành viên" ${enabled?'':'disabled'}>⋮</button>`:''}</div><div class="cc-role-fields"><div><label for="cc-role-provider-${role}">AI provider</label><select id="cc-role-provider-${role}" data-role-provider="${role}" ${enabled?'':'disabled'}>${ccProviderOptions(c?.id)}</select></div><div><label for="cc-role-model-${role}">Model</label><select id="cc-role-model-${role}" data-role-model="${role}" ${enabled&&c?'':'disabled'}>${ccOptions(models,b?.model,!state.vault?.unlocked?'Vault đang khóa':!state.project?'Chọn dự án':b&&!c?'Cần xác minh lại':'Chọn model')}</select></div></div></article>`;
+  const b=ccBinding(role),c=ccConnected().find(x=>x.id===b?.connectionId),models=c?.availability.models||[],area=ccRoleArea(role);
+  return `<article class="cc-card cc-role-card"><div class="cc-role-top"><span class="cc-role-icon ${role}">${ccLogo(role)}</span><div><h3>${title}</h3><p>${desc}</p></div>${role==='council'?`<button id="manageCouncil" aria-label="Quản lý thành viên AI Council" title="Quản lý nhiều thành viên" ${enabled?'':'disabled'}>⋮</button>`:''}</div><div class="cc-role-fields"><div><label for="cc-role-area-${role}">Khu</label><select id="cc-role-area-${role}" data-role-area="${role}" ${enabled?'':'disabled'}><option value="codex" ${area==='codex'?'selected':''}>Codex</option><option value="chatbox" ${area==='chatbox'?'selected':''}>Chatbox</option></select></div><div><label for="cc-role-provider-${role}">AI provider</label><select id="cc-role-provider-${role}" data-role-provider="${role}" ${enabled?'':'disabled'}>${ccProviderOptions(c?.id,area)}</select></div><div><label for="cc-role-model-${role}">Model</label><select id="cc-role-model-${role}" data-role-model="${role}" ${enabled&&c?'':'disabled'}>${ccOptions(models,b?.model,!state.vault?.unlocked?'Vault đang khóa':!state.project?'Chọn dự án':b&&!c?'Cần xác minh lại':'Chọn model')}</select></div></div></article>`;
  }).join('');
 }
 function renderConnectionInfrastructure(){
@@ -111,10 +145,11 @@ function ccRoleDraft(){const roles=structuredClone(state.project?.modelRoles||{f
 function ccCouncilDialog(){
  if(ccNeedVault()||!state.project)return;
  let members=structuredClone(state.project.modelRoles?.council||[]);
- const draw=()=>{modal(`<h2>Thành viên AI Council</h2><p class="cc-dialog-note">Mỗi thành viên có thể dùng tài khoản và model riêng. Thành viên đầu tiên chủ trì tổng hợp. Tối đa 8 thành viên.</p><div id="ccCouncilRows">${members.map((b,i)=>{const c=ccConnected().find(c=>c.id===b.connectionId);return `<div class="cc-council-member"><select data-member-provider="${i}" aria-label="Provider thành viên ${i+1}">${ccProviderOptions(c?.id)}</select><select data-member-model="${i}" aria-label="Model thành viên ${i+1}">${ccOptions(c?.availability.models||[],b.model)}</select><button class="ghost" data-remove-member="${i}" aria-label="Xóa thành viên ${i+1}">×</button></div>`}).join('')||'<p class="cc-dialog-note">Chưa có thành viên.</p>'}</div><div id="ccDialogError" class="cc-dialog-error" role="status"></div><div class="cc-dialog-actions"><button id="ccAddMember" class="ghost" ${members.length<8?'':'disabled'}>+ Thêm thành viên</button><button id="ccSaveCouncil" class="primary">Lưu Council</button></div>`);
- $('#ccAddMember').onclick=()=>{members.push({connectionId:'',model:''});draw()};
+ const draw=()=>{modal(`<h2>Thành viên AI Council</h2><p class="cc-dialog-note">Mỗi thành viên chọn KHU trước, rồi tài khoản và model trong khu đó. Thành viên đầu tiên chủ trì tổng hợp. Tối đa 8 thành viên.</p><div id="ccCouncilRows">${members.map((b,i)=>{const c=ccConnected().find(c=>c.id===b.connectionId),mArea=b.area||(c?ccAreaOf(c.kind):null)||'codex';return `<div class="cc-council-member"><select data-member-area="${i}" aria-label="Khu thành viên ${i+1}"><option value="codex" ${mArea==='codex'?'selected':''}>Codex</option><option value="chatbox" ${mArea==='chatbox'?'selected':''}>Chatbox</option></select><select data-member-provider="${i}" aria-label="Provider thành viên ${i+1}">${ccProviderOptions(c?.id,mArea)}</select><select data-member-model="${i}" aria-label="Model thành viên ${i+1}">${ccOptions(c?.availability.models||[],b.model)}</select><button class="ghost" data-remove-member="${i}" aria-label="Xóa thành viên ${i+1}">×</button></div>`}).join('')||'<p class="cc-dialog-note">Chưa có thành viên.</p>'}</div><div id="ccDialogError" class="cc-dialog-error" role="status"></div><div class="cc-dialog-actions"><button id="ccAddMember" class="ghost" ${members.length<8?'':'disabled'}>+ Thêm thành viên</button><button id="ccSaveCouncil" class="primary">Lưu Council</button></div>`);
+ $('#ccAddMember').onclick=()=>{members.push({connectionId:'',model:'',area:'codex'});draw()};
  $$('[data-remove-member]').forEach(b=>b.onclick=()=>{members.splice(Number(b.dataset.removeMember),1);draw()});
- $$('[data-member-provider]').forEach(s=>s.onchange=()=>{members[Number(s.dataset.memberProvider)]={connectionId:s.value,model:''};draw()});
+ $$('[data-member-area]').forEach(s=>s.onchange=()=>{members[Number(s.dataset.memberArea)]={connectionId:'',model:'',area:s.value};draw()});
+ $$('[data-member-provider]').forEach(s=>s.onchange=()=>{const i=Number(s.dataset.memberProvider);members[i]={connectionId:s.value,model:'',area:members[i].area||ccAreaOf(ccConnected().find(x=>x.id===s.value)?.kind)||'codex'};draw()});
  $$('[data-member-model]').forEach(s=>s.onchange=()=>{members[Number(s.dataset.memberModel)].model=s.value});
  $('#ccSaveCouncil').onclick=async e=>{e.target.disabled=true;try{if(members.some(b=>!b.connectionId||!b.model))throw new Error('Chọn provider và model cho mỗi thành viên.');const roles=ccRoleDraft();roles.council=members;await ccSaveRoles(roles);$('#modal').classList.add('hidden')}catch(err){$('#ccDialogError').textContent=err.message}finally{e.target.disabled=false}};
  };draw();
@@ -136,7 +171,7 @@ $('#page-connections').addEventListener('click',async e=>{
   if(b.id==='manageCouncil')ccCouncilDialog();
   if(b.dataset.infraLink){ccInfraAccountDialog(b.dataset.infraLink)}
   if(b.dataset.cliConnect){if(ccNeedVault())return;b.disabled=true;try{const r=await api('/api/connections/cli/'+b.dataset.cliConnect,{method:'POST',body:'{}'});await loadConnections();toast('Đã xác minh phiên CLI: '+r.name)}finally{b.disabled=false}}
-  if(b.dataset.assignRole){const c=ccCurrent(b.dataset.kind),model=$('#cc-model-'+b.dataset.kind).value;if(!model)throw new Error('Chọn model khả dụng trước khi phân vai.');const roles=ccRoleDraft(),binding={connectionId:c.id,model};if(b.dataset.assignRole==='council'){const all=roles.council||[];if(!all.some(x=>x.connectionId===c.id&&x.model===model))all.push(binding);roles.council=all}else roles[b.dataset.assignRole]=binding;await ccSaveRoles(roles)}
+  if(b.dataset.assignRole){const c=ccCurrent(b.dataset.kind),model=$('#cc-model-'+b.dataset.kind).value;if(!model)throw new Error('Chọn model khả dụng trước khi phân vai.');const roles=ccRoleDraft(),binding={connectionId:c.id,model,area:ccAreaOf(c.kind)};if(b.dataset.assignRole==='council'){const all=roles.council||[];if(!all.some(x=>x.connectionId===c.id&&x.model===model))all.push(binding);roles.council=all}else roles[b.dataset.assignRole]=binding;await ccSaveRoles(roles)}
  }catch(err){toast(err.message)}
 });
 $('#page-connections').addEventListener('change',async e=>{
@@ -145,8 +180,9 @@ $('#page-connections').addEventListener('change',async e=>{
   if(s.dataset.account){ccAccounts[s.dataset.account]=s.value;renderConnections()}
   if(s.hasAttribute('data-default-model')){if(!s.value)return;await api(`/api/connections/${encodeURIComponent(s.dataset.defaultModel)}/model`,{method:'POST',body:JSON.stringify({model:s.value})});await loadConnections();toast('Đã lưu model mặc định của tài khoản')}
   if(s.hasAttribute('data-effort-slider')){const levels=s.dataset.levels.split(','),labels=s.dataset.labels.split('|'),i=Number(s.value),eff=levels[i]||'';await api(`/api/connections/${encodeURIComponent(s.dataset.effortSlider)}/effort`,{method:'POST',body:JSON.stringify({effort:eff})});await loadConnections();toast(eff?('Đã đặt mức suy luận: '+labels[i]+' ('+eff+')'):'Đã trả mức suy luận về mặc định của hãng')}
+  if(s.dataset.roleArea){const role=s.dataset.roleArea,providerSelect=$('#cc-role-provider-'+role),modelSelect=$('#cc-role-model-'+role);providerSelect.innerHTML=ccProviderOptions('',s.value);providerSelect.disabled=false;modelSelect.innerHTML=ccOptions([],'');modelSelect.disabled=true}
   if(s.dataset.roleProvider){const role=s.dataset.roleProvider,modelSelect=$('#cc-role-model-'+role),c=ccConnected().find(x=>x.id===s.value);modelSelect.innerHTML=ccOptions(c?.availability.models||[],'');modelSelect.disabled=!c;if(!c){const roles=ccRoleDraft();if(role==='council')roles.council=(roles.council||[]).slice(1);else roles[role]=null;await ccSaveRoles(roles)}}
-  if(s.dataset.roleModel&&s.value){const role=s.dataset.roleModel,connectionId=$('#cc-role-provider-'+role).value,roles=ccRoleDraft(),binding={connectionId,model:s.value};if(role==='council')roles.council=[binding,...(roles.council||[]).slice(1)];else roles[role]=binding;await ccSaveRoles(roles)}
+  if(s.dataset.roleModel&&s.value){const role=s.dataset.roleModel,connectionId=$('#cc-role-provider-'+role).value,roles=ccRoleDraft(),binding={connectionId,model:s.value,area:$('#cc-role-area-'+role)?.value||ccAreaOf(ccConnected().find(x=>x.id===connectionId)?.kind)};if(role==='council')roles.council=[binding,...(roles.council||[]).slice(1)];else roles[role]=binding;await ccSaveRoles(roles)}
  }catch(err){toast(err.message);renderConnections()}
 });
 $('#page-connections').addEventListener('input',e=>{
@@ -207,6 +243,9 @@ async function ccFetchQuota(c,{force=false}={}){
   if(!state.vault?.unlocked)return;
   if(!state.connections.some(x=>x.id===c.id&&x.credentialVersion===c.credentialVersion))return;
   ccQuotaCache.set(c.id,{revision:c.credentialVersion,at:Date.now(),data});
+  // Khu Codex header summary reads this cache — refresh the grid so the
+  // per-account 5h % lands in the summary line as soon as it exists.
+  if(typeof renderConnections==='function')renderConnections();
  }catch(e){ccQuotaCache.set(c.id,{revision:c.credentialVersion,at:Date.now(),error:e.message});}
  finally{ccQuotaPending.delete(c.id);const parent=$(`[data-quota-account="${CSS.escape(c.id)}"]`);if(parent&&state.vault?.unlocked){const current=state.connections.find(x=>x.id===c.id);if(current&&current.credentialVersion===c.credentialVersion)parent.outerHTML=ccQuotaPanel(current);}}
 }

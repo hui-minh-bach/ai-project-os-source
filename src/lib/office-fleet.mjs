@@ -13,6 +13,7 @@
  *             vault khóa / model chưa xác minh) — bot đứng tối ở khu sạc.
  * Hàm thuần, không I/O — server truyền dữ kiện vào, test kiểm độc lập.
  */
+import { connectionArea, areaLabel } from './connection-areas.mjs';
 
 export const FLEET_MAX_BOTS = 10;
 /** Thứ tự bàn làm việc trong văn phòng (trạm 3D/2D có sẵn). */
@@ -52,6 +53,8 @@ export function deriveFleet({ connections = [], runs = [], workerConnByProject =
   const bots = all.slice(0, FLEET_MAX_BOTS).map((c, i) => ({
     connectionId: String(c.id),
     kind: String(c.kind || ''),
+    area: connectionArea(c.kind),
+    areaLabel: areaLabel(connectionArea(c.kind)),
     provider: fleetProviderLabel(c.kind),
     color: fleetProviderColor(c.kind),
     label: String(c.name || '').trim() || fleetProviderLabel(c.kind),

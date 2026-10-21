@@ -1,6 +1,7 @@
 // Safe model registry and role descriptors. Credentials remain inside Vault.
 import { readJson, writeJson } from './store.mjs';
 import { getConnection, vaultStatus } from './vault.mjs';
+import { CONNECTION_AREAS, assertBindingArea } from './connection-areas.mjs';
 
 export const MODEL_ROLES = Object.freeze(['founder', 'council', 'worker', 'reviewer']);
 export const MODEL_REGISTRY_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -42,8 +43,14 @@ export function verifiedBinding(input) {
   const r = registryEntry(connectionId);
   if (!r.models.includes(model)) throw new Error('Model không còn khả dụng cho kết nối này.');
   const c=getConnection(connectionId);
-  if(['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(c.kind)){if(input.credentialVersion&&input.credentialVersion!==c.credentialVersion)throw new Error('Tài khoản đã thay đổi. Hãy phân vai lại.');return {connectionId,model,credentialVersion:c.credentialVersion};}
-  return { connectionId, model };
+  // Hai khu (0.9.53): phân vai mang theo khu đã chọn; khu của kết nối suy
+  // ra từ kind. Hai phía khác khu → từ chối ở cả lúc LƯU lẫn lúc CHẠY
+  // (hàm này là cổng chung của cả hai) — không bao giờ tự thay model
+  // của khu kia. Phân vai cũ chưa có `area` thì suy ra từ kind như cũ.
+  if (input.area != null && !CONNECTION_AREAS.includes(input.area)) throw new Error('Khu phân vai không hợp lệ.');
+  const area = assertBindingArea(input.area || null, c.kind);
+  if(['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(c.kind)){if(input.credentialVersion&&input.credentialVersion!==c.credentialVersion)throw new Error('Tài khoản đã thay đổi. Hãy phân vai lại.');return {connectionId,model,credentialVersion:c.credentialVersion,area};}
+  return { connectionId, model, area };
 }
 export function roleRef(projectId, role, member = 0) {
   if (!MODEL_ROLES.includes(role)) throw new Error('Vai trò model không hợp lệ.');
