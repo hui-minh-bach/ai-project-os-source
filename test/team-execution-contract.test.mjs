@@ -82,7 +82,7 @@ test('bindings freeze before first Worker await; repair retains both reviews/log
   try{
     const c=connection(mock.url),p=createProject({name:'Freeze and repair'});prepareTaskPlan(p.id,[task()]);roles(p.id,c);
     const pending=runTask(p.id,'T1');await first.arrival;roles(p.id,c,'worker-b','reviewer-b');first.release();const result=await pending;assert.equal(result.merged,true);
-    const t=getProject(p.id).tasks[0];assert.deepEqual(t.workerBinding,{connectionId:c.id,model:'worker-a',area:'codex'});assert.deepEqual(t.reviewerBinding,{connectionId:c.id,model:'reviewer-a',area:'codex'});
+    const t=getProject(p.id).tasks[0];assert.deepEqual(t.workerBinding,{connectionId:c.id,model:'worker-a'});assert.deepEqual(t.reviewerBinding,{connectionId:c.id,model:'reviewer-a'});
     assert.deepEqual(t.reviews.map(r=>r.status),['REJECTED','APPROVED']);assert.equal(t.commits.length,2);assert.equal(t.commitSha,t.commits.at(-1).sha);assert.notEqual(t.commitSha,t.commits[0].sha);
     assert.ok(t.agentLog.some(l=>l.pass===1&&l.tool==='write'));assert.ok(t.agentLog.some(l=>l.pass===2&&l.tool==='write'));assert.equal(t.executionRuns[0].commits.length,2);assert.equal(t.acceptanceCriteria[0].source,'reviewer');
     assert.equal(t.latestTestReceipt.status,'NOT_RUN');assert.equal(t.latestTestReceipt.exitCode,null);assert.equal(t.progress,null);assert.equal(t.cleanup.worktreeRemoved,true);assert.equal(t.cleanup.branchDeleted,true);assert.equal(t.worktreeState,'removed');

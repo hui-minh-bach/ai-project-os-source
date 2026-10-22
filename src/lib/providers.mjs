@@ -5,7 +5,8 @@ import { askCliAccount } from './cli-account.mjs';
 import { askAntigravityAccount, listAntigravityModels } from './antigravity-account.mjs';
 import { getConnection, saveConnection, createVaultSecretRedactor } from './vault.mjs';
 import { resolveModelConnection, recordModels, invalidateModels, modelAvailability } from './model-bindings.mjs';
-import { poolCandidates, isQuotaError, noteQuotaHit, noteSwitch, notePoolExhausted, poolKindLabel } from './account-pool.mjs';
+import { poolCandidates, isQuotaError, noteQuotaHit, noteSwitch, notePoolExhausted, poolKindLabel, cooldownUntilMs } from './account-pool.mjs';
+import { readJson } from './store.mjs';
 
 const DEFAULT_TIMEOUT_MS = 90000;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -57,38 +58,89 @@ function requireText(name, text) {
   return out;
 }
 
-function poolExhaustedError(primary, earliestResetMs) {
-  const when = earliestResetMs ? ` Sớm nhất mở lại lúc ${new Date(earliestResetMs).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}.` : '';
-  return new Error(`Tất cả tài khoản ${poolKindLabel(primary.kind)} trong bể đều đang nghỉ hạn mức.${when} Hãy chờ hạn mức đặt lại hoặc thêm tài khoản ${poolKindLabel(primary.kind)} khác ở tab Kết nối.`);
+const fmtReset = ms => ms ? new Date(ms).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '';
+
+/** All-candidates-blocked error: names every account that was tried or
+ * skipped, the model it was asked for, and when it rests until — so the
+ * owner sees exactly what the router did instead of a bare failure. */
+function allBlockedError(primary, entries) {
+  const seen = new Map();
+  for (const e of entries || []) if (e && e.id && !seen.has(e.id)) seen.set(e.id, e);
+  const list = [...seen.values()];
+  const earliest = list.reduce((m, e) => (e.until && (!m || e.until < m) ? e.until : m), null);
+  const detail = list.length ? ` Đã thử: ${list.map(e => `“${e.name}” (model ${e.model}) — đang nghỉ hạn mức đến ${fmtReset(e.until)}`).join('; ')}.` : '';
+  const when = earliest ? ` Sớm nhất mở lại lúc ${fmtReset(earliest)}.` : '';
+  return new Error(`Tất cả tài khoản ${poolKindLabel(primary.kind)} trong bể đều đang nghỉ hạn mức.${detail}${when} Hãy chờ hạn mức đặt lại hoặc thêm tài khoản ${poolKindLabel(primary.kind)} khác ở tab Kết nối.`);
 }
 
-export async function ask(connectionId, { system = '', prompt = '', usageContext = null }) {
+/** The role's stored backup binding (project.modelRoleBackups), if any.
+ * Located from a role-ref target or from the usage context callers pass. */
+function backupBindingFor(connectionId, primary) {
+  try {
+    let projectId = null, role = null, member = 0;
+    if (typeof connectionId === 'string' && connectionId.startsWith('role:')) {
+      const parts = connectionId.split(':'); projectId = parts[1]; role = parts[2]; member = Number(parts[3] || 0);
+    } else if (primary?.usageContext?.projectId && primary?.usageContext?.role) {
+      projectId = primary.usageContext.projectId; role = primary.usageContext.role; member = Number(primary.usageContext.member || 0);
+    }
+    if (!projectId || !role) return null;
+    const project = readJson('projects.json', []).find(p => p.id === projectId);
+    const backups = project?.modelRoleBackups;
+    if (!backups || typeof backups !== 'object') return null;
+    const b = role === 'council' ? (Array.isArray(backups.council) ? backups.council[member] : null) : backups[role];
+    if (!b?.connectionId || !b?.model) return null;
+    if (b.connectionId === primary.id && b.model === primary.model) return null;
+    return { connectionId: b.connectionId, model: b.model };
+  } catch { return null; }
+}
+
+export async function ask(connectionId, { system = '', prompt = '', usageContext = null, served = null }) {
   const redact = createVaultSecretRedactor();
   let c;
   try {
     const primary = resolveModelConnection(connectionId);
-    if(usageContext)primary.usageContext={...primary.usageContext,...usageContext};
+    if (usageContext) primary.usageContext = { ...primary.usageContext, ...usageContext };
     c = primary;
-    // Account pool (v0.9.44): same-kind verified accounts form a pool. A
-    // quota/rate-limit failure cools the account down and the SAME call is
-    // retried on the next pooled account; any other error keeps the legacy
-    // single-account behavior exactly.
-    const { candidates, earliestResetMs } = poolCandidates(primary);
-    if (!candidates.length) { notePoolExhausted(primary.kind, earliestResetMs); throw poolExhaustedError(primary, earliestResetMs); }
+    // Runtime routing (v0.9.55 — "điều hướng", the owner's order): an
+    // ORDERED candidate list per call — (a) the role's bound
+    // connection+model, (b) the same model on other accounts of the same
+    // kind (pool order; accounts resting on quota cooldown are skipped),
+    // (c) the role's stored backup binding. A quota failure cools that
+    // account, journals the rotation and CONTINUES inside the same step;
+    // a non-quota failure aborts immediately (real errors are never
+    // masked). No further implicit fallback exists.
+    const pool = poolCandidates(primary);
+    const chain = [...pool.candidates];
+    const blocked = [...(pool.cooling || [])];
+    const backup = backupBindingFor(connectionId, primary);
+    if (backup) {
+      try {
+        const bc = getConnection(backup.connectionId);
+        const cand = { ...bc, model: backup.model, usageContext: primary.usageContext };
+        if (!chain.some(x => x.id === cand.id && x.model === cand.model)) {
+          const until = cooldownUntilMs(cand.id);
+          if (until) blocked.push({ id: cand.id, name: String(cand.name || ''), model: cand.model, until });
+          else chain.push(cand);
+        }
+      } catch { /* the backup connection was removed after it was saved — skip it */ }
+    }
+    if (!chain.length) { notePoolExhausted(primary.kind, pool.earliestResetMs); throw allBlockedError(primary, blocked); }
+    const tried = [];
     let quotaErr = null;
-    for (const cand of candidates) {
+    for (const cand of chain) {
       c = cand;
       try {
         const out = await askConnection(cand, { system, prompt });
-        if (cand.id !== primary.id) noteSwitch(primary, cand, primary.model);
+        if (cand.id !== primary.id) noteSwitch(primary, cand, cand.model);
+        if (served && typeof served === 'object') { served.connectionId = cand.id; served.connectionName = cand.name; served.model = cand.model; }
         return redact(out);
       } catch (e) {
-        if (isQuotaError(e)) { noteQuotaHit(cand, e); quotaErr = e; continue; }
+        if (isQuotaError(e)) { const until = noteQuotaHit(cand, e); tried.push({ id: cand.id, name: String(cand.name || ''), model: cand.model, until }); quotaErr = e; continue; }
         throw e;
       }
     }
-    notePoolExhausted(primary.kind, earliestResetMs);
-    throw poolExhaustedError(primary, earliestResetMs);
+    notePoolExhausted(primary.kind, pool.earliestResetMs);
+    throw allBlockedError(primary, [...blocked, ...tried]);
   } catch (e) {
     if (c && [401,403,404].includes(e?.status)) invalidateModels(c.id);
     // Do not retain the original stack/cause/custom fields containing provider

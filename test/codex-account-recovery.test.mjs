@@ -72,17 +72,18 @@ test('two ChatGPT login profiles can read separate quotas before model verificat
   assert.equal((await refreshAccount(a.id)).state,'connected');assert.equal((await refreshAccount(b.id)).state,'connected');
   const aHome=path.join(DATA_DIR,'account-profiles',a.id),bHome=path.join(DATA_DIR,'account-profiles',b.id);
   fs.writeFileSync(path.join(aHome,'fake-limits.json'),JSON.stringify({usedPercent:100}));fs.writeFileSync(path.join(bHome,'fake-limits.json'),JSON.stringify({usedPercent:20}));
-  assert.equal(modelAvailability(a.id).status,'unverified');assert.equal(modelAvailability(b.id).status,'unverified');
+  assert.notEqual(modelAvailability(a.id).status,'verified','quota is readable before any model verification — the account is not verified yet');assert.notEqual(modelAvailability(b.id).status,'verified');
   assert.equal((await readAccountUsage(a.id)).rateLimits.primary.usedPercent,100);
   assert.equal((await readAccountUsage(b.id)).rateLimits.primary.usedPercent,20);
-  assert.equal(modelAvailability(a.id).status,'unverified');
+  assert.notEqual(modelAvailability(a.id).status,'verified');
   await listAccountModels(a.id);await listAccountModels(b.id);
   await assert.rejects(()=>verifyAccountModel(a.id,'quota-fixture'),e=>e.code==='CODEX_RATE_LIMIT'&&!e.message.includes('TOKEN_SUPER_SECRET'));
   await assert.rejects(()=>verifyAccountModel(a.id,'auth-fixture'),e=>e.code==='CODEX_AUTH_EXPIRED'&&!e.message.includes('TOKEN_SUPER_SECRET'));
   await assert.rejects(()=>verifyAccountModel(b.id,'silent-fixture'),/không trả nội dung văn bản/);
-  assert.equal(modelAvailability(a.id).status,'unverified');
+  assert.notEqual(modelAvailability(a.id).status,'verified','failed verifies never mark the account verified');
   await verifyAccountModel(b.id,'event-fixture');
-  assert.deepEqual(modelAvailability(b.id).models,['event-fixture']);
-  assert.equal(modelAvailability(a.id).status,'unverified');
+  assert.deepEqual(modelAvailability(b.id).models,['auth-fixture','event-fixture','quota-fixture','silent-fixture'],'models = the full catalog (0.9.55 ungated selection)');
+  assert.deepEqual(modelAvailability(b.id).verifiedModels,['event-fixture'],'only the probed model carries the verified badge');
+  assert.equal(modelAvailability(a.id).status,'catalog');assert.deepEqual(modelAvailability(a.id).verifiedModels,[]);
  }finally{closeAccountSessions();lockVault();process.env.PATH=oldPath;fs.rmSync(dir,{recursive:true,force:true});}
 });

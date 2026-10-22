@@ -16,7 +16,7 @@
 // connections the owner already added and verified.
 import { readJson, writeJson } from './store.mjs';
 import { listConnections, getConnection } from './vault.mjs';
-import { registryEntry } from './model-bindings.mjs';
+import { catalogModelsFor } from './model-bindings.mjs';
 
 const FILE = 'account-pool.json';
 const ACCOUNT_KINDS = new Set(['chatgpt_account', 'claude_account', 'gemini_account', 'antigravity_account']);
@@ -99,7 +99,7 @@ export const poolKindLabel = kind => KIND_LABEL[kind] || String(kind || '');
 export function poolFeedEvents(limit = 50) {
   return poolEvents(limit).map(ev => {
     if (ev.kind === 'pool.quota') return { id: `pool:${ev.id}`, at: ev.at, actor: 'Hệ thống', kind: 'pool.quota', state: 'warn', pipeline: null, text: `Tài khoản “${ev.name}” (${poolKindLabel(ev.connKind)}) chạm hạn mức — cho nghỉ đến ${fmtTime(ev.until)}.` };
-    if (ev.kind === 'pool.switch') return { id: `pool:${ev.id}`, at: ev.at, actor: 'Hệ thống', kind: 'pool.switch', state: 'info', pipeline: null, text: `Đội chuyển sang tài khoản “${ev.toName}” (${poolKindLabel(ev.connKind)}) để chạy tiếp model ${ev.model}.` };
+    if (ev.kind === 'pool.switch') return { id: `pool:${ev.id}`, at: ev.at, actor: 'Hệ thống', kind: 'pool.switch', state: 'info', pipeline: null, text: `Tài khoản “${ev.fromName}” chạm hạn mức — chuyển “${ev.toName}” (${poolKindLabel(ev.connKind)}) chạy tiếp model ${ev.model}.` };
     if (ev.kind === 'pool.exhausted') return { id: `pool:${ev.id}`, at: ev.at, actor: 'Hệ thống', kind: 'pool.exhausted', state: 'failed', pipeline: null, text: `Tất cả tài khoản ${poolKindLabel(ev.connKind)} đều đang nghỉ hạn mức${ev.until ? ` — sớm nhất mở lại ${fmtTime(ev.until)}` : ''}.` };
     return null;
   }).filter(Boolean);
@@ -108,11 +108,14 @@ export function poolFeedEvents(limit = 50) {
 /**
  * Ordered failover candidates for a resolved primary connection.
  * Peers must share the primary's kind AND have the primary's model in their
- * own verified registry — an account is never asked for a model it has not
- * verified. Cooling accounts are skipped; the primary leads when available.
+ * own catalog (v0.9.55: catalog membership is enough — an account is never
+ * asked for a model outside its catalog, but probe-verification is no
+ * longer required, matching the ungated selection rule). Cooling accounts
+ * are skipped and reported in `cooling` (with reset times) so the caller
+ * can journal exactly who was rested and when they return.
  */
 export function poolCandidates(primary, nowMs = Date.now()) {
-  const fallback = { candidates: [primary], earliestResetMs: null, poolSize: 1 };
+  const fallback = { candidates: [primary], cooling: [], earliestResetMs: null, poolSize: 1 };
   try {
     if (!primary?.id || !(ACCOUNT_KINDS.has(primary.kind) || API_KINDS.has(primary.kind))) return fallback;
     const peers = [];
@@ -121,16 +124,16 @@ export function poolCandidates(primary, nowMs = Date.now()) {
       if (c.id === primary.id || c.kind !== primary.kind) continue;
       poolSize++;
       try {
-        const r = registryEntry(c.id);
-        if (!r.models.includes(primary.model)) continue;
+        if (!catalogModelsFor(c.id).catalog.includes(primary.model)) continue;
         peers.push({ ...getConnection(c.id), model: primary.model, usageContext: primary.usageContext });
-      } catch { /* unverified peer — not eligible, never an error */ }
+      } catch { /* peer without a catalog — not eligible, never an error */ }
     }
     const eligible = [primary, ...peers];
     const ready = eligible.filter(c => !isCooling(c.id, nowMs));
-    const cooling = eligible.filter(c => isCooling(c.id, nowMs));
-    const earliestResetMs = cooling.length ? Math.min(...cooling.map(c => cooldownUntilMs(c.id, nowMs))) : null;
-    return { candidates: ready, earliestResetMs, poolSize };
+    const cooling = eligible.filter(c => isCooling(c.id, nowMs))
+      .map(c => ({ id: c.id, name: String(c.name || ''), model: c.model, until: cooldownUntilMs(c.id, nowMs) }));
+    const earliestResetMs = cooling.length ? Math.min(...cooling.map(c => c.until)) : null;
+    return { candidates: ready, cooling, earliestResetMs, poolSize };
   } catch { return fallback; }
 }
 

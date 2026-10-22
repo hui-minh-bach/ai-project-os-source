@@ -16,9 +16,9 @@
       <summary><strong>B. Kết nối tài khoản AI (bắt buộc để đội AI làm việc)</strong></summary>
       <ol>
         <li>Vào tab <strong>Kết nối</strong>. Với từng hãng bạn có tài khoản, bấm <strong>Kết nối</strong> và chọn cách đăng nhập qua CLI chính thức (ChatGPT bằng Codex CLI, Claude bằng Claude Code, Google bằng Antigravity) hoặc dán API key. Phần mềm không bao giờ hỏi mật khẩu trang web của bạn.</li>
-        <li>Sau khi đăng nhập, bấm <strong>Xác minh</strong> để phần mềm gọi thử model thật. Chỉ tài khoản "Đã kết nối" mới phân vai được.</li>
+        <li>Sau khi đăng nhập, danh mục model của tài khoản <strong>tự làm mới ở nền</strong> — không phải bấm gì thêm. Có danh mục là phân vai được ngay. Nút <strong>Xác minh</strong> chỉ để kiểm tra model có phản hồi hay không (nó gọi thử model thật nên tốn một ít hạn mức — xem hạn mức trong hộp thoại trước khi bấm); không xác minh vẫn chọn model và chạy bình thường.</li>
         <li>Thẻ tài khoản ChatGPT và Claude có thêm <strong>thanh trượt Mức suy luận (tốc độ / token)</strong> với đúng thang của hãng đó — ChatGPT: Mặc định · Tối thiểu · Thấp · Vừa · Cao · Rất cao · Tối đa (Max); Claude: Mặc định · Thấp · Vừa · Cao · Rất cao · Tối đa (Max). Nấc càng cao, model nghĩ càng sâu nhưng càng chậm và tốn token/hạn mức. Mức này áp dụng cho mọi vai trò đang dùng tài khoản đó — chỉnh một chỗ là đồng bộ hết. Để "Mặc định của hãng" nếu chưa cần chỉnh.</li>
-        <li>Ở mục <strong>Phân vai model cho dự án</strong>: phân vai đi hai bước — chọn <strong>khu</strong> trước (Khu Codex: tài khoản Codex/ChatGPT; Khu Chatbox: tài khoản Antigravity/Gemini/Claude), rồi chọn tài khoản + model trong khu đó cho Founder (lên ý tưởng), Council (phản biện), Worker (thực thi) và Reviewer (kiểm tra). Chọn khu nào thì model và hạn mức đi theo khu đó. Một tài khoản dùng cho nhiều vai cũng được.</li>
+        <li>Ở mục <strong>Phân vai model cho dự án</strong>: chọn thẳng tài khoản + model trong danh mục của tài khoản đó cho Founder (lên ý tưởng), Council (phản biện), Worker (thực thi) và Reviewer (kiểm tra). Mỗi tài khoản có một bình hạn mức riêng cho mọi model của nó. Một tài khoản dùng cho nhiều vai cũng được. Mỗi vai có thêm ô <strong>Model dự phòng</strong>: khi chạy, nếu tài khoản chính chạm hạn mức, phần mềm tự cho nó nghỉ sạc, chuyển sang tài khoản khác cùng model, rồi mới tới model dự phòng — nhật ký lượt chạy ghi rõ tài khoản nào đã phục vụ từng bước.</li>
         <li>Dịch vụ hạ tầng (GitHub, Vercel, Supabase): bấm <strong>Liên kết tài khoản…</strong> và làm 3 bước trong hộp thoại — 1 · Cài CLI (phần mềm tự tải CLI chính thức của hãng), 2 · Mở đăng nhập chính thức (một cửa sổ riêng mở ra, bạn đăng nhập ngay trên trang của hãng; Supabase sẽ cấp một mã để bạn dán vào cửa sổ đó), 3 · Kiểm tra &amp; tạo kết nối (phần mềm hỏi CLI xem ai đang đăng nhập rồi mới lưu kết nối). Phần mềm không bao giờ thấy mật khẩu của bạn. Chưa có tài khoản thì bấm link "Tạo tại…" trong hộp thoại để đăng ký miễn phí trước. Domain thì bấm Thiết lập như hướng dẫn riêng.</li>
       </ol>
     </details>
@@ -77,6 +77,16 @@
         <li>Tab <strong>Kỹ năng</strong> → <strong>Nhập skill / repo</strong>: chọn file <code>SKILL.md</code> bạn có, hoặc file .zip chứa nhiều SKILL.md — skill sẽ xuất hiện trong danh sách như skill tùy chỉnh, bật/tắt và gán role như bình thường.</li>
         <li>Nhập cả repo: tải file .zip của repo hoặc dán link Git công khai (ví dụ link GitHub). Repo được lưu trên máy bạn; phần mềm tự quét và nhập mọi SKILL.md trong repo. Repo không có SKILL.md vẫn được lưu và liệt kê ở mục "Repo đã nhập" để bạn biết nó đang ở đâu.</li>
         <li>Chỉ nhập skill/repo từ nguồn bạn tin cậy và đọc lướt nội dung hướng dẫn của skill trước khi bật — skill là chỉ dẫn cho AI làm theo.</li>
+      </ol>
+    </details>
+    <details>
+      <summary><strong>G. Thợ AI tại chỗ — nhạc và ảnh chạy ngay trên máy (tùy chọn)</strong></summary>
+      <ol>
+        <li>Ở tab <strong>Engine Hub → Thợ AI tại chỗ</strong> có hai “thợ” chạy hoàn toàn trên máy của bạn, không cần tài khoản AI và không tốn phí API: <strong>ACE-Step 1.5</strong> (sinh nhạc nền cho video) và <strong>FLUX.2 Klein 4B</strong> (sinh ảnh). Cả hai đều là phần mềm nguồn mở dùng được cho thương mại (MIT / Apache-2.0).</li>
+        <li><strong>Hoàn toàn tùy chọn:</strong> chúng không nằm trong bộ cài. Bấm <strong>Tải về &amp; cài</strong> khi cần — app tải đúng bản đã ghim danh, kiểm tra SHA-256 rồi mới cài vào thư mục dữ liệu; không cài thì app vẫn chạy như trước, chỉ là tác vụ tương ứng báo “bị chặn” khi bị gọi tới. Gỡ bất cứ lúc nào bằng nút <strong>Gỡ</strong>.</li>
+        <li><strong>ACE-Step (nhạc, chỉ Windows):</strong> gói tải ~2,4 GB; lần chạy đầu ACE-Step tự tải thêm model nhạc ~5 GB từ Hugging Face. Cần card NVIDIA hỗ trợ CUDA 12.8. Dùng cho video: vào tab <strong>Đăng bài → Vòng kín</strong>, ở pipeline Video tin tức / Phim từ ý tưởng chọn <strong>Nhạc nền: ACE-Step tại chỗ</strong>. Khi ACE-Step chưa sẵn sàng, pipeline dùng nhạc tổng hợp của app và <em>ghi rõ trong nhật ký lượt chạy</em> — không âm thầm thay thế.</li>
+        <li><strong>FLUX.2 (ảnh):</strong> tải ~5,3 GB. Máy có card ≥8 GB VRAM chạy thoải mái và worker mặc định bật. Máy dưới 8 GB VRAM (như card 4 GB) sẽ <strong>chạy chậm — vài chục giây đến 1 phút mỗi ảnh</strong> — nên worker mặc định tắt; chỉ bật khi bạn cần ảnh lẻ/thumbnail và chấp nhận chờ. Muốn dùng: gán nguồn sinh ảnh của một việc là “Thợ ảnh tại chỗ (FLUX.2)” — các nguồn ảnh bằng tài khoản vẫn là mặc định chính.</li>
+        <li>Đã tự cài ACE-Step ở nơi khác? Mở API server của bản đó (cổng 8001) rồi bấm <strong>Kiểm tra bản ngoài</strong> trên thẻ ACE-Step — app dùng luôn bản ngoài, không tải thêm gì.</li>
       </ol>
     </details>
   </div>

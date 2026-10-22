@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { DATA_DIR, atomicWriteText } from './store.mjs';
 import { resolveCli } from './managed-cli.mjs';
 import { getConnection, saveConnection, vaultStatus, onVaultLock } from './vault.mjs';
-import { invalidateModels, recordAccountCatalog, recordAccountModel, modelAvailability } from './model-bindings.mjs';
+import { invalidateModels, recordAccountCatalog, recordAccountModel, modelAvailability, catalogModelsFor } from './model-bindings.mjs';
 import { describeCodexTurnFailure, chooseCodexText } from './codex-turn-diagnostics.mjs';
 const VALIDATED_VERSIONS=new Set(['0.159.2','0.162.1']);
 export const ACCOUNT_INFERENCE_UNAVAILABLE='ChatGPT: chưa xác minh môi trường chạy chỉ-văn-bản an toàn. Chưa thể dùng tài khoản cho Chatbox/Worker; dùng API key trong thời gian này.';
@@ -53,7 +53,7 @@ async function session(id){
   sessions.set(id,s);
   s.ready=(async()=>{try{const init=await s.rpc.request('initialize',{clientInfo:{name:'ai_project_os',title:'AI Project OS',version:'0.9.41'},capabilities:{experimentalApi:true}});s.version=init?.userAgent?.match(/\/(\d+\.\d+\.\d+)/)?.[1]||'';s.rpc.write({method:'initialized'});if(version!==generation)throw new Error('Vault session đã thay đổi.');return s;}catch(e){s.rpc.close();if(sessions.get(id)===s)sessions.delete(id);throw e;}})();return s.ready;
 }
-function snapshot(s){return {state:s.state,account:s.account,error:s.error,inference:{available:VALIDATED_VERSIONS.has(s.version),reason:VALIDATED_VERSIONS.has(s.version)?'Chọn và xác minh model để phân vai Chatbox / Worker.':ACCOUNT_INFERENCE_UNAVAILABLE+' Phiên bản Codex được kiểm chứng: '+[...VALIDATED_VERSIONS].join(', ')}};}
+function snapshot(s){return {state:s.state,account:s.account,error:s.error,inference:{available:VALIDATED_VERSIONS.has(s.version),reason:VALIDATED_VERSIONS.has(s.version)?'Chọn model trong danh mục của tài khoản để phân vai — không cần xác minh trước.':ACCOUNT_INFERENCE_UNAVAILABLE+' Phiên bản Codex được kiểm chứng: '+[...VALIDATED_VERSIONS].join(', ')}};}
 function officialUrl(value){try{const u=new URL(value);if(u.protocol==='https:'&&['chatgpt.com','auth.openai.com','auth0.openai.com'].includes(u.hostname)&&!u.username&&!u.password)return u.href;}catch{}throw new Error('Codex không trả URL đăng nhập OpenAI hợp lệ.');}
 export async function startAccountLogin({id,name,type='chatgpt'}={}){
   assertOpen();if(!['chatgpt','chatgptDeviceCode'].includes(type))throw new Error('Kiểu đăng nhập không hợp lệ.');
@@ -74,7 +74,21 @@ export async function refreshAccount(id){
   if(s.account&&!identity){s.state='unavailable';s.error='Tài khoản không trả định danh ổn định; chưa thể phân vai an toàn.';}
   if(identity!==c.meta?.accountIdentity){invalidateModels(id);saveConnection({...c,meta:{authMode:'codex',accountIdentity:identity,planType:s.account?.planType||null}});}
   if(s.account){clearTimeout(s.expiry);s.loginId=null;}
+  // Một lượt đăng nhập trơn (v0.9.55): ngay khi phiên chuyển sang
+  // connected mà danh mục model còn thiếu hoặc đã cũ, tự làm mới danh
+  // mục ở nền — người dùng không phải bấm "Tải model" nữa. Danh mục cũ
+  // vẫn chọn được trong lúc chờ (badge "danh mục cũ"), không chặn gì.
+  if(s.state==='connected'){const {entry,stale}=catalogModelsFor(id);if(!entry||stale)refreshAccountCatalogInBackground(id);}
   return snapshot(s);
+}
+const catalogRefreshInFlight=new Set();
+/** Fire-and-forget catalog refresh; single-flight per account, errors
+ * swallowed (a failed refresh leaves the last-known catalog in place). */
+export function refreshAccountCatalogInBackground(id){
+  if(catalogRefreshInFlight.has(id))return false;
+  catalogRefreshInFlight.add(id);
+  void listAccountModels(id).catch(()=>{}).finally(()=>catalogRefreshInFlight.delete(id));
+  return true;
 }
 export async function cancelAccountLogin(id){const s=await session(id);if(s.loginId)await s.rpc.request('account/login/cancel',{loginId:s.loginId});s.loginId=null;s.state='disconnected';clearTimeout(s.expiry);s.rpc.close();return {ok:true};}
 export async function logoutAccount(id){const c=accountConnection(id),s=await session(id);try{await s.rpc.request('account/logout',{});assertOpen();saveConnection({...c,meta:{authMode:'codex',accountIdentity:null,planType:null}});invalidateModels(id);return {ok:true};}finally{clearTimeout(s.expiry);s.rpc.close();sessions.delete(id);if(s.rpc.child.exitCode===null)await new Promise(resolve=>{const timer=setTimeout(resolve,1500);s.rpc.child.once('exit',()=>{clearTimeout(timer);resolve()})});}}

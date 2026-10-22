@@ -1,7 +1,6 @@
 // Safe model registry and role descriptors. Credentials remain inside Vault.
 import { readJson, writeJson } from './store.mjs';
 import { getConnection, vaultStatus } from './vault.mjs';
-import { CONNECTION_AREAS, assertBindingArea } from './connection-areas.mjs';
 
 export const MODEL_ROLES = Object.freeze(['founder', 'council', 'worker', 'reviewer']);
 export const MODEL_REGISTRY_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -23,34 +22,72 @@ export function recordModels(connection, models) {
 export function invalidateModels(id) {
   const all = registry(); delete all[id]; writeJson(FILE, all);
 }
+export const ACCOUNT_KINDS = Object.freeze(['chatgpt_account', 'claude_account', 'gemini_account', 'antigravity_account']);
+export function connectionHasCredential(c) {
+  return c.kind === 'chatgpt_account' ? Boolean(c.meta?.accountIdentity) : ['claude_account', 'gemini_account'].includes(c.kind) ? c.meta?.authMode === 'cli-account' : c.kind === 'antigravity_account' ? c.meta?.authMode === 'antigravity-cli' : Boolean(c.secret);
+}
 export function registryEntry(id) {
   const c = getConnection(id), r = registry()[id];
-  const hasCredential=c.kind==='chatgpt_account'?Boolean(c.meta?.accountIdentity):['claude_account','gemini_account'].includes(c.kind)?c.meta?.authMode==='cli-account':c.kind==='antigravity_account'?c.meta?.authMode==='antigravity-cli':Boolean(c.secret);
-  if (!AI_KINDS.includes(c.kind)||!hasCredential) throw new Error('Kết nối không có AI credential.');
+  if (!AI_KINDS.includes(c.kind) || !connectionHasCredential(c)) throw new Error('Kết nối không có AI credential.');
   if (!r || r.revision !== (c.credentialVersion || '') || r.status !== 'verified') throw new Error('Chưa xác minh danh sách model. Hãy làm mới kết nối.');
   if (!Number.isFinite(Date.parse(r.verifiedAt)) || Date.now() - Date.parse(r.verifiedAt) > MODEL_REGISTRY_MAX_AGE_MS) throw new Error('Danh sách model đã cũ. Hãy làm mới kết nối.');
-  if(['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(c.kind)){const models=r.models.filter(m=>Number.isFinite(Date.parse(r.modelVerifiedAt?.[m]))&&Date.now()-Date.parse(r.modelVerifiedAt[m])<=MODEL_REGISTRY_MAX_AGE_MS);if(!models.length)throw new Error('Chưa có model tài khoản được xác minh phản hồi.');return {...r,models};}
+  if (ACCOUNT_KINDS.includes(c.kind)) { const models = r.models.filter(m => Number.isFinite(Date.parse(r.modelVerifiedAt?.[m])) && Date.now() - Date.parse(r.modelVerifiedAt[m]) <= MODEL_REGISTRY_MAX_AGE_MS); if (!models.length) throw new Error('Chưa có model tài khoản được xác minh phản hồi.'); return { ...r, models }; }
   return r;
 }
-export function modelAvailability(id) {
-  if (!vaultStatus().unlocked) return { status: 'locked', models: [], message: 'Vault đang khóa — trạng thái chưa xác định.' };
-  try { const r = registryEntry(id); return { status: 'verified', models: r.models, verifiedAt: r.verifiedAt,catalogModels:r.catalogModels||[] }; }
-  catch (e) { let c;try{c=getConnection(id)}catch{return {status:'unverified',models:[],message:e.message}}const r=registry()[id];return { status: 'unverified', models: [], catalogModels:['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(c.kind)&&r?.revision===c.credentialVersion?r.catalogModels||[]:[], message: e.message }; }
+/**
+ * The account's last-known model catalog (v0.9.55 — selection is ungated).
+ * A catalog is usable for binding as long as it belongs to the connection's
+ * CURRENT credential; its age never blocks (staleness is advisory only,
+ * surfaced as `stale`). `verified` lists the models that ALSO passed a
+ * probe response recently — a badge, never a gate. This is the fix for
+ * the owner's deadlock: verify burns quota, so an exhausted account could
+ * neither verify nor be selected; now the catalog alone authorizes
+ * selection and the runtime router handles quota at call time.
+ */
+export function catalogModelsFor(id) {
+  let c = null;
+  try { c = getConnection(id); } catch { return { catalog: [], verified: [], stale: false, entry: null, connection: null }; }
+  if (!AI_KINDS.includes(c.kind) || !connectionHasCredential(c)) return { catalog: [], verified: [], stale: false, entry: null, connection: c };
+  const r = registry()[id];
+  if (!r || r.revision !== (c.credentialVersion || '')) return { catalog: [], verified: [], stale: false, entry: null, connection: c };
+  const isAccount = ACCOUNT_KINDS.includes(c.kind);
+  const catalog = isAccount ? [...new Set([...(r.catalogModels || []), ...(r.models || [])])] : [...(r.models || [])];
+  const fresh = Number.isFinite(Date.parse(r.verifiedAt)) && Date.now() - Date.parse(r.verifiedAt) <= MODEL_REGISTRY_MAX_AGE_MS;
+  let verified = [];
+  if (isAccount) verified = (r.models || []).filter(m => Number.isFinite(Date.parse(r.modelVerifiedAt?.[m])) && Date.now() - Date.parse(r.modelVerifiedAt[m]) <= MODEL_REGISTRY_MAX_AGE_MS);
+  else if (r.status === 'verified' && fresh) verified = [...(r.models || [])];
+  return { catalog, verified, stale: !fresh, entry: r, connection: c };
 }
+export function modelAvailability(id) {
+  if (!vaultStatus().unlocked) return { status: 'locked', models: [], verifiedModels: [], catalogModels: [], catalogStale: false, message: 'Vault đang khóa — trạng thái chưa xác định.' };
+  let c; try { c = getConnection(id); } catch { return { status: 'unverified', models: [], verifiedModels: [], catalogModels: [], catalogStale: false, message: 'Không tìm thấy kết nối.' }; }
+  if (!AI_KINDS.includes(c.kind) || !connectionHasCredential(c)) return { status: 'unverified', models: [], verifiedModels: [], catalogModels: [], catalogStale: false, message: 'Kết nối không có AI credential.' };
+  const { catalog, verified, stale, entry } = catalogModelsFor(id);
+  if (!entry || !catalog.length) return { status: 'unverified', models: [], verifiedModels: [], catalogModels: [], catalogStale: false, verifiedAt: entry?.verifiedAt || null, message: 'Chưa có danh mục model. Hãy tải danh mục model của tài khoản.' };
+  const status = verified.length ? 'verified' : 'catalog';
+  const message = stale ? 'Danh mục model đã cũ — vẫn chọn và chạy được; bấm Làm mới khi tiện.' : verified.length >= catalog.length ? '' : 'Đã có danh mục model. Model chưa xác minh vẫn chọn và chạy được; bấm Xác minh nếu muốn kiểm tra phản hồi trước.';
+  return { status, models: catalog, verifiedModels: verified, catalogModels: catalog, catalogStale: stale, verifiedAt: entry.verifiedAt || null, message };
+}
+/**
+ * The single binding choke point (save + every runtime resolution).
+ * v0.9.55: validates against the account's CATALOG — any model in the
+ * catalog of a logged-in account binds and resolves, verified or not.
+ * Bindings stored by ≤0.9.53 may carry an `area` stamp; the areas layer
+ * is gone, so the stamp is ignored on read and never written again.
+ */
 export function verifiedBinding(input) {
   if (!input || typeof input !== 'object') throw new Error('Phân vai model không hợp lệ.');
   const connectionId = String(input.connectionId || ''), model = String(input.model || '');
-  const r = registryEntry(connectionId);
-  if (!r.models.includes(model)) throw new Error('Model không còn khả dụng cho kết nối này.');
-  const c=getConnection(connectionId);
-  // Hai khu (0.9.53): phân vai mang theo khu đã chọn; khu của kết nối suy
-  // ra từ kind. Hai phía khác khu → từ chối ở cả lúc LƯU lẫn lúc CHẠY
-  // (hàm này là cổng chung của cả hai) — không bao giờ tự thay model
-  // của khu kia. Phân vai cũ chưa có `area` thì suy ra từ kind như cũ.
-  if (input.area != null && !CONNECTION_AREAS.includes(input.area)) throw new Error('Khu phân vai không hợp lệ.');
-  const area = assertBindingArea(input.area || null, c.kind);
-  if(['chatgpt_account','claude_account','gemini_account','antigravity_account'].includes(c.kind)){if(input.credentialVersion&&input.credentialVersion!==c.credentialVersion)throw new Error('Tài khoản đã thay đổi. Hãy phân vai lại.');return {connectionId,model,credentialVersion:c.credentialVersion,area};}
-  return { connectionId, model, area };
+  const c = getConnection(connectionId);
+  if (!AI_KINDS.includes(c.kind) || !connectionHasCredential(c)) throw new Error('Kết nối không có AI credential.');
+  // An account-identity change invalidates a frozen binding outright,
+  // before any catalog question is asked.
+  if (ACCOUNT_KINDS.includes(c.kind) && input.credentialVersion && input.credentialVersion !== c.credentialVersion) throw new Error('Tài khoản đã thay đổi. Hãy phân vai lại.');
+  const { catalog, entry } = catalogModelsFor(connectionId);
+  if (!entry || !catalog.length) throw new Error('Chưa có danh mục model cho kết nối này. Hãy tải danh mục model của tài khoản trước.');
+  if (!catalog.includes(model)) throw new Error('Model không có trong danh mục của kết nối này.');
+  if (ACCOUNT_KINDS.includes(c.kind)) return { connectionId, model, credentialVersion: c.credentialVersion };
+  return { connectionId, model };
 }
 export function roleRef(projectId, role, member = 0) {
   if (!MODEL_ROLES.includes(role)) throw new Error('Vai trò model không hợp lệ.');
@@ -87,8 +124,9 @@ export function roleDescriptors(project) {
   for (const role of MODEL_ROLES) {
     const bindings = role === 'council' ? project.modelRoles?.council || [] : project.modelRoles?.[role] ? [project.modelRoles[role]] : [];
     out[role] = bindings.map((b, i) => {
-      let status = 'verified', message = '';
-      try { verifiedBinding(b); } catch (e) { status = vaultStatus().unlocked ? 'unavailable' : 'locked'; message = e.message; }
+      let status = 'ready', message = '';
+      try { verifiedBinding(b); status = catalogModelsFor(b.connectionId).verified.includes(b.model) ? 'verified' : 'ready'; }
+      catch (e) { status = vaultStatus().unlocked ? 'unavailable' : 'locked'; message = e.message; }
       return { ...b, ref: roleRef(project.id, role, i), status, message };
     });
   }

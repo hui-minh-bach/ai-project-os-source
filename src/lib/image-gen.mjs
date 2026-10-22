@@ -8,14 +8,19 @@
  *  - 'openai-api': an OpenAI API connection (Vault key) /images/generations.
  * Account kinds without a verified image mechanism (Claude, Gemini account,
  * Antigravity) are refused honestly; nothing is ever simulated.
+ *  - 'local-flux': the FLUX.2 [klein] 4B local worker (Engine Hub) — runs
+ *    on this machine, needs no connection and no Vault. Only reachable by
+ *    EXPLICIT binding; 'auto' never selects it (account routes stay the
+ *    default primary). Worker not READY -> BLOCKED_WORKER.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { listConnections, getConnection, vaultStatus } from './vault.mjs';
 import { generateAccountImage } from './account-auth.mjs';
+import { localWorkers } from './local-workers.mjs';
 
 function err(code, message) { const e = new Error(message); e.code = code; return e; }
-export const IMAGE_PROVIDERS = Object.freeze(['auto', 'chatgpt-account', 'gemini-api', 'openai-api']);
+export const IMAGE_PROVIDERS = Object.freeze(['auto', 'chatgpt-account', 'gemini-api', 'openai-api', 'local-flux']);
 const ACCOUNT_KINDS_WITHOUT_IMAGE = Object.freeze(['claude_account', 'gemini_account', 'antigravity_account']);
 
 export function imageProviderStatus() {
@@ -100,10 +105,19 @@ async function openaiApiImage(conn, { prompt, output, size, fetchImpl }) {
  * surfaces that route's errors; it never silently falls back to a billable
  * API after a route has been chosen.
  */
+async function localFluxImage({ prompt, output, size }) {
+  const m = /^(\d{3,4})x(\d{3,4})$/.exec(String(size || '1024x1024'));
+  const width = m ? Number(m[1]) : 1024;
+  const height = m ? Number(m[2]) : 1024;
+  const made = await localWorkers.generateImage({ prompt, width, height, outputBase: output });
+  return { provider: 'local-flux', model: made.provenance.model, file: made.file, bytes: made.bytes, revisedPrompt: null };
+}
+
 export async function generateImage({ provider = 'auto', prompt, output, size, fetchImpl = globalThis.fetch } = {}) {
   if (!IMAGE_PROVIDERS.includes(provider)) throw err('MEDIA_INPUT', 'Nguồn sinh ảnh không hợp lệ.');
   if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 4000) throw err('MEDIA_INPUT', 'Mô tả ảnh cần 1-4.000 ký tự.');
   if (typeof output !== 'string' || !output) throw err('MEDIA_INPUT', 'Thiếu đường dẫn tệp ảnh đầu ra.');
+  if (provider === 'local-flux') return localFluxImage({ prompt, output, size });
   if (!vaultStatus().unlocked) throw err('BLOCKED_PROVIDER', 'Vault đang khóa; chưa thể dùng kết nối sinh ảnh.');
   let route = provider;
   if (route === 'auto') {

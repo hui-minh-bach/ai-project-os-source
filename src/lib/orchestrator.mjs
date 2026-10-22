@@ -30,10 +30,10 @@ export function defaultOrchestratorConfig() {
     stopAll: false,
     ingestScanMinutes: 30,
     pipelines: {
-      'news-video': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 2, activeHours: [7, 21], targetLanguage: 'vi', fieldIds: [], perFieldDailyCap: 1 },
+      'news-video': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 2, activeHours: [7, 21], targetLanguage: 'vi', fieldIds: [], perFieldDailyCap: 1, musicSource: 'synthesized' },
       'news-article': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['facebook'], dailyCap: 2, activeHours: [7, 21], targetLanguage: 'vi', fieldIds: [], perFieldDailyCap: 1 },
       'dub-video': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 2, activeHours: [7, 21], sourceLanguage: 'en', targetLanguage: 'vi' },
-      'idea-film': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 1, activeHours: [7, 21], targetLanguage: 'vi' },
+      'idea-film': { enabled: false, aiMode: 'gateway', requireApproval: true, platforms: ['youtube'], dailyCap: 1, activeHours: [7, 21], targetLanguage: 'vi', musicSource: 'synthesized' },
     },
   };
 }
@@ -48,6 +48,7 @@ export const PIPELINE_LABELS = Object.freeze({ 'news-video': 'Tin → Video', 'n
 const FEED_STEP = Object.freeze({
   'project': ['Trưởng phòng tiếp nhận', 'lập hồ sơ dự án'],
   'ai.script': ['AI Biên kịch', 'viết kịch bản'],
+  'produce.music': ['AI Sản xuất', 'chuẩn bị nhạc nền'],
   'produce.story': ['AI Sản xuất', 'dựng video'],
   'produce.article': ['AI Sản xuất', 'soạn bài viết'],
   'produce.dub': ['AI Sản xuất', 'lồng tiếng'],
@@ -76,6 +77,7 @@ function feedStepText(step) {
     if (step.name === 'ai.script' || step.name === 'ai.translate') extra = d.aiMode === 'simulated' ? ' (AI mô phỏng)' : d.provider ? ` (model: ${d.provider})` : '';
     if (step.name === 'ai.translate' && Number.isFinite(d.segments)) extra += ` — ${d.segments} đoạn`;
     if (step.name === 'produce.article' && Number.isFinite(d.hashtags)) extra = ` — kèm ${d.hashtags} hashtag`;
+    if (step.name === 'produce.music') extra = d.source === 'ace-step' ? ' (ACE-Step tại chỗ)' : d.source === 'synthesized' ? (d.fallbackFrom ? ' (nhạc tổng hợp — ACE-Step chưa sẵn sàng, đã ghi rõ)' : ' (nhạc tổng hợp)') : ' (không có nhạc nền)';
     return [actor, `Đã xong bước ${work}${extra}.`];
   }
   if (step.state === 'failed') return [actor, `Lỗi ở bước ${work}${d.code ? ` (${d.code})` : ''}.`];
@@ -167,7 +169,7 @@ export function createGatewayAi({ writeTextWithModel, translateSegmentsWithModel
 
 /* -------- Orchestrator -------- */
 
-export function createOrchestrator({ file, ingest, host, createProject, aiAdapters, now = () => new Date(), idgen = () => crypto.randomUUID() }) {
+export function createOrchestrator({ file, ingest, host, createProject, aiAdapters, storyMusic = null, now = () => new Date(), idgen = () => crypto.randomUUID() }) {
   let state;
   function load() {
     try { state = JSON.parse(fs.readFileSync(file, 'utf8')); if (!state || typeof state !== 'object') throw 0; }
@@ -242,6 +244,16 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     save();
   }
 
+  /** Music for a story run, resolved by the host app (server): ACE-Step
+   * local worker when bound + READY, else the app's synthesized bed —
+   * always journaled with its source label, never silently swapped.
+   * Returns {file, detail} or null when no resolver is wired. */
+  async function resolveMusic(run, cfg, script) {
+    if (typeof storyMusic !== 'function') return null;
+    try { return await storyMusic({ run, cfg, script }); }
+    catch (e) { return { file: null, detail: { source: 'none', error: String(e.message || e).slice(0, 200) } }; }
+  }
+
   function materializeVideo(run, projectId, beforeIds) {
     const arts = host.listArtifacts(projectId).filter(a => !beforeIds.has(a.id) && /\.mp4$/i.test(a.name || ''));
     if (!arts.length) throw err('ORCHESTRATOR_ARTIFACT', 'Bước sản xuất không tạo được tệp video MP4.');
@@ -304,10 +316,12 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       if (!card) throw err('ORCHESTRATOR_INPUT', 'Thẻ tin không còn tồn tại.');
       const script = await ai.writeNewsScript({ projectId: project.id, card });
       meta = script;
-      step(run, 'ai.script', 'done', { provider: script.provider, aiMode: ai.mode });
+      step(run, 'ai.script', 'done', { provider: script.provider, model: script.model || null, aiMode: ai.mode });
       { const tags = hashtagsForField(run.fieldId || card.fieldId); if (tags.length) script.publishDescription = (String(script.publishDescription || '') + '\n\n' + tags.join(' ')).slice(0, 1000); }
+      const music = await resolveMusic(run, cfg, script);
+      if (music) step(run, 'produce.music', 'done', music.detail || { source: 'none' });
       const before = new Set(host.listArtifacts(project.id).map(a => a.id));
-      await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', rights: 'summarized-from-source-with-credit' });
+      await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', rights: 'summarized-from-source-with-credit', ...(music?.file ? { music: music.file } : {}) });
       step(run, 'produce.story', 'done');
       videoRel = materializeVideo(run, project.id, before);
       ingest.markCardUsed(card.id, project.id);
@@ -316,7 +330,7 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       if (!card) throw err('ORCHESTRATOR_INPUT', 'Thẻ tin không còn tồn tại.');
       const script = await ai.writeNewsScript({ projectId: project.id, card });
       meta = script;
-      step(run, 'ai.script', 'done', { provider: script.provider, aiMode: ai.mode });
+      step(run, 'ai.script', 'done', { provider: script.provider, model: script.model || null, aiMode: ai.mode });
       const tags = hashtagsForField(run.fieldId || card.fieldId);
       const caption = `${script.publishTitle}\n\n${script.publishDescription}\n\n${tags.join(' ')}`.trim();
       run.article = { title: script.publishTitle, body: script.text, description: script.publishDescription, caption, hashtags: tags, sourceUrl: card.link || null };
@@ -325,9 +339,11 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     } else if (run.pipeline === 'idea-film') {
       const script = await ai.writeIdeaScript({ projectId: project.id, idea: run.ideaText });
       meta = script;
-      step(run, 'ai.script', 'done', { provider: script.provider, aiMode: ai.mode });
+      step(run, 'ai.script', 'done', { provider: script.provider, model: script.model || null, aiMode: ai.mode });
+      const music = await resolveMusic(run, cfg, script);
+      if (music) step(run, 'produce.music', 'done', music.detail || { source: 'none' });
       const before = new Set(host.listArtifacts(project.id).map(a => a.id));
-      await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', rights: 'original' });
+      await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', rights: 'original', ...(music?.file ? { music: music.file } : {}) });
       step(run, 'produce.story', 'done');
       videoRel = materializeVideo(run, project.id, before);
     } else if (run.pipeline === 'dub-video') {
@@ -344,7 +360,7 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
         const srt = host.artifact(arts[0].id).bytes.toString('utf8');
         const segments = mediaSubtitles.parseSrt(srt);
         const tr = await ai.translateSegments({ projectId: project.id, segments, targetLanguage: params.targetLanguage });
-        step(run, 'ai.translate', 'done', { provider: tr.provider, aiMode: ai.mode, segments: segments.length });
+        step(run, 'ai.translate', 'done', { provider: tr.provider, model: tr.model || null, aiMode: ai.mode, segments: segments.length });
         params.translationSource = 'supplied';
         params.translatedTexts = tr.texts;
       } else {

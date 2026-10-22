@@ -51,7 +51,7 @@ test('Antigravity login is official, checks real model catalog, rejects tools, r
   const modelCalls=fixtureCalls(bin).filter(a=>a.includes('models'));assert.ok(modelCalls.length>=1,'fixture must record the models call');
   for(const a of modelCalls){assert.deepEqual(a,['models'],'models must be invoked bare');assert.ok(!a.includes('--output-format'),'--output-format must never be passed to the models call');}
   r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-pro'});assert.equal(r.status,500,'tool invocation must not verify AI');
-  r=await app.request('GET','/api/connections');assert.equal(r.value.find(c=>c.id===id).availability.status,'unverified');
+  r=await app.request('GET','/api/connections');assert.equal(r.value.find(c=>c.id===id).availability.status,'catalog','a failed verify must not mark the account verified — it has a catalog only (0.9.55)');
   r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-flash'});assert.equal(r.status,200);
   r=await app.request('POST',`/api/connections/${id}/model`,{model:'gemini-test-flash'});assert.equal(r.status,200);
   r=await app.request('GET','/api/connections');assert.equal(r.value.find(c=>c.id===id).availability.status,'verified');

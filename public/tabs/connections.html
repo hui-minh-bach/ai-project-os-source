@@ -1,6 +1,10 @@
 <section id="page-connections" class="page" aria-label="Connection Center">
+  <section class="cc-panel" aria-labelledby="teamSetupTitle">
+    <div class="cc-section-head"><div><h2 id="teamSetupTitle">Thiết lập đội</h2><p>Mỗi tài khoản một bình hạn mức riêng. Đăng nhập xong là danh mục model tự làm mới; chọn model cho vai nào thì dùng ngay — không cần xác minh trước. Khi một tài khoản chạm hạn mức, app tự cho nó nghỉ sạc và chuyển việc sang tài khoản kế tiếp.</p></div></div>
+    <div id="teamSetupPanel"></div>
+  </section>
   <section class="cc-panel" aria-labelledby="providersTitle">
-    <div class="cc-section-head"><div><h2 id="providersTitle">AI Providers</h2><p>Tài khoản AI được chia hai khu: <strong>Khu Codex</strong> (tài khoản Codex/ChatGPT — làm code/dự án) và <strong>Khu Chatbox</strong> (tài khoản chat Antigravity/Gemini/Claude — viết lách, phân tích). Chọn khu nào khi phân vai thì dùng model và hạn mức của khu đó. API key lưu trong Secret Vault; tài khoản đăng nhập qua CLI chính thức của hãng, xác minh phản hồi rồi mới dùng.</p></div><button id="addConnection" class="primary">+ Thêm kết nối</button></div>
+    <div class="cc-section-head"><div><h2 id="providersTitle">AI Providers</h2><p>Mọi tài khoản AI nằm trong một danh sách chung; phân vai chọn thẳng theo từng tài khoản + model. API key lưu trong Secret Vault; tài khoản đăng nhập qua CLI chính thức của hãng. Xác minh phản hồi chỉ là dấu kiểm tra thêm — không xác minh vẫn chọn model và chạy được.</p></div><button id="addConnection" class="primary">+ Thêm kết nối</button></div>
     <div id="connectionGrid" class="cc-grid"></div>
   </section>
   <section class="cc-panel cc-roles" aria-labelledby="modelRolesTitle">

@@ -8,12 +8,13 @@
  * - failed  : lượt chạy THẤT BẠI gần nhất trong 24 giờ thuộc về kết nối này và
  *             chưa có lượt hoàn thành nào của kết nối này sau đó (bot vào
  *             chuồng chích điện; bàn của nó được nhường cho bot khác đang chờ).
- * - charging: đã kết nối + đã xác minh model nhưng hiện không có việc.
- * - offline : kết nối tồn tại nhưng chưa xác minh được (chưa đăng nhập xong /
- *             vault khóa / model chưa xác minh) — bot đứng tối ở khu sạc.
+ * - charging: đã kết nối (đăng nhập + có danh mục model) nhưng hiện không
+ *             có việc — gồm cả bot đang NGHỈ SẠC vì chạm hạn mức (resting,
+ *             kèm giờ mở lại lấy từ trạng thái nguội của bể tài khoản).
+ * - offline : kết nối tồn tại nhưng chưa kết nối được (chưa đăng nhập xong /
+ *             vault khóa / chưa có danh mục model) — bot đứng tối ở khu sạc.
  * Hàm thuần, không I/O — server truyền dữ kiện vào, test kiểm độc lập.
  */
-import { connectionArea, areaLabel } from './connection-areas.mjs';
 
 export const FLEET_MAX_BOTS = 10;
 /** Thứ tự bàn làm việc trong văn phòng (trạm 3D/2D có sẵn). */
@@ -41,8 +42,9 @@ function runTime(run) {
 
 /**
  * @param {Object} input
- * @param {Array<{id:string, kind:string, name?:string, connected:boolean}>} input.connections
- *        Các kết nối AI theo thứ tự tạo; `connected` = đã xác minh được model.
+ * @param {Array<{id:string, kind:string, name?:string, connected:boolean, coolingUntil?:string|null}>} input.connections
+ *        Các kết nối AI theo thứ tự tạo; `connected` = đã đăng nhập + có
+ *        danh mục model; `coolingUntil` = mốc ISO tài khoản đang nghỉ hạn mức.
  * @param {Array<Object>} input.runs  Mọi lượt chạy gần đây (mảng thô của orchestrator).
  * @param {Object<string,string>} input.workerConnByProject  projectId -> connectionId (vai Worker).
  * @param {number} [input.nowMs]
@@ -53,12 +55,15 @@ export function deriveFleet({ connections = [], runs = [], workerConnByProject =
   const bots = all.slice(0, FLEET_MAX_BOTS).map((c, i) => ({
     connectionId: String(c.id),
     kind: String(c.kind || ''),
-    area: connectionArea(c.kind),
-    areaLabel: areaLabel(connectionArea(c.kind)),
     provider: fleetProviderLabel(c.kind),
     color: fleetProviderColor(c.kind),
     label: String(c.name || '').trim() || fleetProviderLabel(c.kind),
     connected: !!c.connected,
+    // Đang nghỉ sạc: tài khoản chạm hạn mức, bể đã cho nghỉ tới mốc này.
+    // Vẫn ở trạm sạc (state charging) — phân biệt bằng cờ resting để bảng
+    // tên/roster ghi rõ "đang nghỉ sạc · mở lại HH:MM".
+    resting: !!(c.connected && c.coolingUntil && Date.parse(c.coolingUntil) > nowMs),
+    coolingUntil: c.coolingUntil || null,
     state: c.connected ? 'charging' : 'offline',
     station: 'bay',
     baySlot: -1,

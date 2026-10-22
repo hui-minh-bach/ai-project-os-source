@@ -17,7 +17,7 @@ export function mediaPlannerStatus(projectId, role = 'worker'){
       const binding=verifiedBinding(project.modelRoles[role]);
       const c=listConnections().find(x=>x.id===binding.connectionId);
       return {available:true,mode:'ai',source:`project-${role}`,provider:c?.name||'AI',model:binding.model,target:roleRef(projectId,role)};
-    }catch(e){return {available:false,mode:'local',reason:`AI ${role} của dự án chưa được xác minh: `+e.message};}
+    }catch(e){return {available:false,mode:'local',reason:`AI ${role} của dự án chưa sẵn sàng: `+e.message};}
   }
   const candidates=listConnections().filter(x=>AI_KINDS.includes(x.kind)&&x.model)
     .sort((a,b)=>preferredKinds.indexOf(a.kind)-preferredKinds.indexOf(b.kind));
@@ -28,7 +28,7 @@ export function mediaPlannerStatus(projectId, role = 'worker'){
       return {available:true,mode:'ai',source:'verified-account',provider:c.name,model:binding.model,target:binding};
     }catch{}
   }
-  return {available:false,mode:'local',reason:'Chưa có model đã xác minh. Vào Kết nối, đăng nhập và bấm kiểm tra model; hoặc dùng dựng local.'};
+  return {available:false,mode:'local',reason:'Chưa có model nào trong danh mục của các tài khoản đã đăng nhập. Vào Kết nối, đăng nhập và tải danh mục model; hoặc dùng dựng local.'};
 }
 export async function mediaModelPlan(projectId,input){
   const selection=mediaPlannerStatus(projectId);
@@ -72,11 +72,14 @@ export async function translateSegmentsWithModel(projectId,segments,targetLangua
   const selection=mediaPlannerStatus(projectId,'worker');
   if(!selection.available)throw blocked(selection.reason);
   const system='Bạn là dịch giả phụ đề. Dịch từng đoạn sang ngôn ngữ đích được yêu cầu, giữ văn phong tự nhiên và ngắn gọn để đọc thành tiếng khớp thời lượng đoạn gốc. Trả CHỈ một mảng JSON các chuỗi, đúng thứ tự và đúng số lượng đoạn đầu vào, không thêm giải thích hay markdown.';
-  const text=await ask(selection.target,{system,prompt:JSON.stringify({targetLanguage,segments:segments.map(s=>s.text)}),usageContext:{role:'worker',projectId}});
+  const served={};
+  const text=await ask(selection.target,{system,prompt:JSON.stringify({targetLanguage,segments:segments.map(s=>s.text)}),usageContext:{role:'worker',projectId},served});
   const raw=text.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
   let parsed;try{parsed=JSON.parse(raw)}catch{throw new Error('AI dịch không trả mảng JSON hợp lệ. Không thay bằng bản dịch giả.');}
   if(!Array.isArray(parsed)||parsed.length!==segments.length||parsed.some(t=>typeof t!=='string'||!t.trim()||t.length>1000))throw new Error('Bản dịch không khớp số đoạn nguồn hoặc có đoạn rỗng/quá dài. Đã chặn.');
-  return {texts:parsed,provider:selection.provider,model:selection.model};
+  // Provenance (v0.9.55): the connection+model that ACTUALLY served —
+  // the router may have failed over inside the pool mid-step.
+  return {texts:parsed,provider:served.connectionName||selection.provider,model:served.model||selection.model,connectionId:served.connectionId||null};
 }
 
 /**
@@ -122,20 +125,22 @@ export async function writeRethemeScriptWithModel(projectId,segments,{topic,note
   if(!selection.available)throw blocked(selection.reason);
   const budgets=rethemeBudgets(segments,language);
   const system='Bạn là biên kịch thuyết minh video. Viết kịch bản thuyết minh MỚI hoàn toàn theo chủ đề được giao, mỗi đoạn khớp đúng một cửa sổ thời gian của video gốc. Văn nói tự nhiên, mạch lạc xuyên suốt các đoạn, mỗi đoạn không vượt quá ngân sách ký tự của cửa sổ đó. Trả CHỈ một mảng JSON các chuỗi, đúng thứ tự và đúng số lượng đoạn đầu vào, không thêm giải thích hay markdown.';
-  const text=await ask(selection.target,{system,prompt:JSON.stringify({topic:String(topic||'').slice(0,300),notes:String(notes||'').slice(0,800),language,windows:segments.map((s,i)=>({start:s.start,end:s.end,maxChars:budgets[i]}))}),usageContext:{role:'worker',projectId}});
+  const served={};
+  const text=await ask(selection.target,{system,prompt:JSON.stringify({topic:String(topic||'').slice(0,300),notes:String(notes||'').slice(0,800),language,windows:segments.map((s,i)=>({start:s.start,end:s.end,maxChars:budgets[i]}))}),usageContext:{role:'worker',projectId},served});
   const raw=text.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
   let parsed;try{parsed=JSON.parse(raw)}catch{throw new Error('AI viết kịch bản không trả mảng JSON hợp lệ. Không thay bằng kịch bản giả.');}
   if(!Array.isArray(parsed)||parsed.length!==segments.length||parsed.some(t=>typeof t!=='string'||!t.trim()||t.length>1000))throw new Error('Kịch bản AI không khớp số cửa sổ hoặc có đoạn rỗng/quá dài. Đã chặn.');
-  return {texts:parsed,budgets,provider:selection.provider,model:selection.model};
+  return {texts:parsed,budgets,provider:served.connectionName||selection.provider,model:served.model||selection.model,connectionId:served.connectionId||null};
 }
 
 export async function writeTextWithModel(projectId,{instructions,prompt,maxChars=4500}={}){
   const selection=mediaPlannerStatus(projectId,'worker');
   if(!selection.available)throw blocked(selection.reason);
-  const text=await ask(selection.target,{system:String(instructions||'').slice(0,2000),prompt:String(prompt||'').slice(0,12000),usageContext:{role:'worker',projectId}});
+  const served={};
+  const text=await ask(selection.target,{system:String(instructions||'').slice(0,2000),prompt:String(prompt||'').slice(0,12000),usageContext:{role:'worker',projectId},served});
   const out=String(text||'').trim().replace(/^```(?:\w+)?\s*/i,'').replace(/\\s*```$/,'');
   if(!out||out.length>maxChars)throw new Error('AI không trả văn bản hợp lệ hoặc văn bản quá dài. Đã chặn.');
-  return {text:out,provider:selection.provider,model:selection.model};
+  return {text:out,provider:served.connectionName||selection.provider,model:served.model||selection.model,connectionId:served.connectionId||null};
 }
 
 

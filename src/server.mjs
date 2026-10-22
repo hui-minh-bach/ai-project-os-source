@@ -15,7 +15,6 @@ import { fileURLToPath } from 'node:url';
 import { redactVaultSecrets, vaultStatus, unlockVault, lockVault, listConnections, saveConnection, deleteConnection, renameConnection, findServiceCredential } from './lib/vault.mjs';
 import { testConnection, listModels } from './lib/providers.mjs';
 import { AI_KINDS, modelAvailability, verifiedBinding, invalidateModels } from './lib/model-bindings.mjs';
-import { connectionArea } from './lib/connection-areas.mjs';
 import { updateProjectBrief, clearFounderChat, analyzeIdea, sendBriefToCouncil, saveProjectDomain, projectModelRoles, updateProjectModelRoles, listProjects, createProject, getProject, updateProjectSettings, founderChat, runCouncil, councilHistory, confirmCouncilSpecification, recoverInterruptedCouncils, analyzeStack, buildPlan, createTask, updateTask, archiveTask, runTask, runReadyBatch, readyTasks, recoverInterruptedTasks, recoverInterruptedFounderChats } from './lib/projects.mjs';
 import { snapshot, workspaceSummary } from './lib/workspace.mjs';
 import { listSkills, saveCustomSkill, setSkillEnabled, deleteCustomSkill, sampleSkillMapping } from './lib/skills.mjs';
@@ -45,17 +44,28 @@ import { writeTextWithModel, translateSegmentsWithModel } from './lib/media-ai.m
 import { oauthAuthorizeUrl, oauthExchangeCode, fetchPlatformIdentity, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
 import { createUpdater } from './lib/updater.mjs';
 import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, OFFICE_MODEL_MAX_BYTES } from './lib/office-models.mjs';
+import { localWorkers } from './lib/local-workers.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.53';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.55';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
 let installingConcat=false;
 const integrations=createIntegrationHost({root:ROOT});
 const ingestStore=createIngestStore({file:path.join(DATA_DIR,'ingest.json')});
-const orchestrator=createOrchestrator({file:path.join(DATA_DIR,'orchestrator.json'),ingest:ingestStore,host:integrations,createProject,aiAdapters:{simulated:createSimulatedAi(),gateway:createGatewayAi({writeTextWithModel,translateSegmentsWithModel})}});
+/* Story-run music: ACE-Step local worker when the pipeline binds it
+ * (musicSource:'ace-step') and the worker is READY; otherwise the app's
+ * synthesized bed. localWorkers.resolveStoryMusic always labels the source
+ * (incl. fallbackFrom + reason) — the orchestrator journals it verbatim. */
+const storyMusic=async({run,cfg})=>{
+  const dir=path.join(integrations.mediaWorkspace,'orchestrator');
+  fs.mkdirSync(dir,{recursive:true,mode:0o700});
+  const made=await localWorkers.resolveStoryMusic({musicSource:cfg.musicSource||'synthesized',title:run.title,outputBase:path.join(dir,`${run.id}-music`),seconds:75});
+  return {file:made.file?path.relative(integrations.mediaWorkspace,made.file):null,detail:made.detail};
+};
+const orchestrator=createOrchestrator({file:path.join(DATA_DIR,'orchestrator.json'),ingest:ingestStore,host:integrations,createProject,storyMusic,aiAdapters:{simulated:createSimulatedAi(),gateway:createGatewayAi({writeTextWithModel,translateSegmentsWithModel})}});
 const oauthPending=new Map();
 const updater=createUpdater({dataDir:DATA_DIR,currentVersion:VERSION});
 function send(res,status,data,type='application/json; charset=utf-8'){
@@ -91,7 +101,7 @@ function diagnoseConnections(){
   let list;
   try{list=listConnections();}catch{return {vaultLocked:true,connections:[]};}
   const safe=(fn,id)=>{try{return fn(id);}catch{return undefined;}};
-  return {vaultLocked:false,connections:list.map(c=>({id:c.id,kind:c.kind,area:connectionArea(c.kind),name:(c.meta&&(c.meta.accountLabel||c.meta.channelTitle||c.meta.username))||c.name||null,hasSecret:Boolean(c.hasSecret),verified:Boolean(c.meta&&c.meta.verifiedAt),authMode:(c.meta&&c.meta.authMode)||null,planType:(c.meta&&c.meta.planType)||null,availability:c.kind==='chatgpt_account'?safe(accountAvailability,c.id):AI_KINDS.includes(c.kind)?safe(modelAvailability,c.id):undefined,pool:AI_KINDS.includes(c.kind)?safe(poolInfoFor,c.id):undefined}))};
+  return {vaultLocked:false,connections:list.map(c=>({id:c.id,kind:c.kind,name:(c.meta&&(c.meta.accountLabel||c.meta.channelTitle||c.meta.username))||c.name||null,hasSecret:Boolean(c.hasSecret),verified:Boolean(c.meta&&c.meta.verifiedAt),authMode:(c.meta&&c.meta.authMode)||null,planType:(c.meta&&c.meta.planType)||null,availability:c.kind==='chatgpt_account'?safe(accountAvailability,c.id):AI_KINDS.includes(c.kind)?safe(modelAvailability,c.id):undefined,pool:AI_KINDS.includes(c.kind)?safe(poolInfoFor,c.id):undefined}))};
 }
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg','.jpeg':'image/jpeg','.woff2':'font/woff2'};
 
@@ -168,7 +178,11 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='GET'&&u.pathname==='/api/ingest/sources')return send(res,200,{sources:ingestStore.listSources(),counts:ingestStore.counts()});
   if(req.method==='POST'&&u.pathname==='/api/ingest/sources')return send(res,200,ingestStore.addSource(await readBody(req)));
   if(u.pathname==='/api/office/fleet'&&req.method==='GET'){
-    const conns=listConnections().filter(c=>AI_KINDS.includes(c.kind)).map(c=>{let connected=false;try{const a=modelAvailability(c.id);connected=a?.status==='verified'&&(a.models||[]).length>0;}catch{connected=false;}return {id:c.id,kind:c.kind,name:c.name||'',connected};});
+    // "Connected" (v0.9.55) = logged in + has a model catalog — probe
+    // verification is advisory now, so a bot is no longer dark just
+    // because its models were never probe-verified. The pool cooldown is
+    // passed through so a resting account shows at its charging pod.
+    const conns=listConnections().filter(c=>AI_KINDS.includes(c.kind)).map(c=>{let connected=false,coolingUntil=null;try{const a=modelAvailability(c.id);connected=(a?.models||[]).length>0;const pool=poolInfoFor(c.id);if(pool?.cooldownUntil)coolingUntil=pool.cooldownUntil;}catch{connected=false;}return {id:c.id,kind:c.kind,name:c.name||'',connected,coolingUntil};});
     const workerConnByProject={};
     for(const pr of listProjects()){try{const w=projectModelRoles(pr.id)?.roles?.worker;if(w?.connectionId)workerConnByProject[pr.id]=String(w.connectionId);}catch{}}
     const fleet=deriveFleet({connections:conns,runs:orchestrator.listRuns(),workerConnByProject,nowMs:Date.now()});
@@ -457,6 +471,11 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='GET'&&u.pathname==='/api/engines')return send(res,200,await engineStatuses());
   if(req.method==='POST'&&u.pathname==='/api/engines/opencode/install-runtime'){try{return send(res,200,{...await installOpencode(),installing:false});}catch(e){return send(res,409,{error:e.message,installing:opencodeInstalling()});}}
   if(req.method==='POST'&&u.pathname.match(/^\/api\/engines\/[^/]+\/install$/)){const id=decodeURIComponent(u.pathname.split('/')[3]);return send(res,200,await installEngineSource(id));}
+  if(req.method==='GET'&&u.pathname==='/api/local-workers')return send(res,200,await localWorkers.list());
+  if(req.method==='POST'&&u.pathname.match(/^\/api\/local-workers\/[^/]+\/install$/)){const id=decodeURIComponent(u.pathname.split('/')[3]);return send(res,200,await localWorkers.startInstall(id));}
+  if(req.method==='POST'&&u.pathname.match(/^\/api\/local-workers\/[^/]+\/remove$/)){const id=decodeURIComponent(u.pathname.split('/')[3]);return send(res,200,await localWorkers.remove(id));}
+  if(req.method==='POST'&&u.pathname.match(/^\/api\/local-workers\/[^/]+\/enabled$/)){const id=decodeURIComponent(u.pathname.split('/')[3]);const b=await readBody(req);return send(res,200,await localWorkers.setEnabled(id,Boolean(b.enabled)));}
+  if(req.method==='POST'&&u.pathname.match(/^\/api\/local-workers\/[^/]+\/adopt-external$/)){const id=decodeURIComponent(u.pathname.split('/')[3]);return send(res,200,await localWorkers.adoptExternal(id));}
 
   if(req.method==='GET'&&u.pathname==='/api/vault')return send(res,200,vaultStatus());
   if(req.method==='POST'&&u.pathname==='/api/vault/unlock')return send(res,200,unlockVault((await readBody(req)).password));

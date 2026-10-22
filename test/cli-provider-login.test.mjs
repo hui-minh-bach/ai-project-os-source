@@ -10,7 +10,7 @@ import { isolatedRuntime } from './helpers/isolated-runtime.mjs';
 
 function resetRuntime(label){return isolatedRuntime('cli-'+label)}
 
-test('Claude CLI account fails closed before actual response and can be role-bound only after verified inference',async()=>{
+test('Claude CLI account fails closed before it has any model catalog and can be role-bound after verified inference records one',async()=>{
  const f=resetRuntime('claude');
  try{
   const v=await f.import('src/lib/vault.mjs');const c=await f.import('src/lib/cli-account.mjs');const b=await f.import('src/lib/model-bindings.mjs');
@@ -18,7 +18,7 @@ test('Claude CLI account fails closed before actual response and can be role-bou
   const account=c.createCliAccount('claude','Claude on this PC');
   assert.equal(account.kind,'claude');
   assert.equal(b.modelAvailability(account.id).status,'unverified');
-  assert.throws(()=>b.verifiedBinding({connectionId:account.id,model:'sonnet'}),/xác minh/);
+  assert.throws(()=>b.verifiedBinding({connectionId:account.id,model:'sonnet'}),/danh mục/,'no catalog yet — binding fails closed (0.9.55: the catalog, not the probe, is the gate)');
   await assert.rejects(()=>c.verifyCliAccountModel(account.id,'sonnet',{
    resolve:()=>({command:process.execPath,args:['ignored']}),invoke:async()=>({code:1,stdout:'',stderr:'ERROR secret=local-fixture-token'})
   }),e=>!/local-fixture-token/.test(e.message));
@@ -43,7 +43,10 @@ test('Claude CLI account fails closed before actual response and can be role-bou
   assert.equal(stale.length,1);
   const reg=await f.import('src/lib/store.mjs');const r=reg.readJson('model-registry.json',{});
   r[account.id].modelVerifiedAt.sonnet='2001-01-01T00:00:00.000Z';reg.writeJson('model-registry.json',r);
-  assert.equal(b.modelAvailability(account.id).status,'unverified','stale verified model is not assignable');
+  assert.equal(b.modelAvailability(account.id).status,'catalog','an aged verification drops the badge, not the assignability (0.9.55)');
+  assert.deepEqual(b.modelAvailability(account.id).verifiedModels,[],'the verified badge lapses with age');
+  assert.equal(b.modelAvailability(account.id).catalogStale,false,'the catalog itself is fresh — only the per-model probe aged out');
+  assert.equal(b.verifiedBinding({connectionId:account.id,model:'sonnet'}).model,'sonnet','the catalog model stays assignable');
   v.lockVault();assert.equal(b.modelAvailability(account.id).status,'locked');
  }finally{f.cleanup()}
 });

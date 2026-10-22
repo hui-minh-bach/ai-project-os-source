@@ -28,6 +28,7 @@ function clRenderControls(){
    <div class="inline" style="justify-content:space-between"><strong>${name}</strong><span class="inline"><button class="ghost small" type="button" data-cl-run="${key}">Chạy ngay</button><label class="checkboxLine" style="margin:0"><input type="checkbox" data-cl-pipe-enabled="${key}" ${p.enabled?'checked':''}> Bật</label></span></div>
    <div class="inline" style="margin-top:8px;gap:14px">
      <label style="margin:0">Chế độ AI <select data-cl-pipe-mode="${key}" style="width:auto"><option value="gateway" ${p.aiMode!=='simulated'?'selected':''}>AI tài khoản</option><option value="simulated" ${p.aiMode==='simulated'?'selected':''}>Mô phỏng</option></select></label>
+     ${['news-video','idea-film'].includes(key)?`<label style="margin:0">Nhạc nền <select data-cl-pipe-music="${key}" style="width:auto"><option value="synthesized" ${p.musicSource!=='ace-step'?'selected':''}>Nhạc tổng hợp (mặc định)</option><option value="ace-step" ${p.musicSource==='ace-step'?'selected':''}>ACE-Step tại chỗ (khi sẵn sàng)</option></select></label>`:''}
      <label class="checkboxLine" style="margin:0"><input type="checkbox" data-cl-pipe-approval="${key}" ${p.requireApproval?'checked':''}> Duyệt trước khi đăng</label>
      <label style="margin:0">Tối đa/ngày <input type="number" min="0" max="100" data-cl-pipe-cap="${key}" value="${Number.isFinite(+p.dailyCap)?+p.dailyCap:2}" style="width:70px"></label>
      <label style="margin:0">Giờ chạy <input type="number" min="0" max="23" data-cl-pipe-from="${key}" value="${Number.isFinite(+hours[0])?+hours[0]:7}" style="width:60px"> – <input type="number" min="0" max="23" data-cl-pipe-to="${key}" value="${Number.isFinite(+hours[1])?+hours[1]:21}" style="width:60px"></label>
@@ -71,6 +72,7 @@ function clCollectConfig(){
   const p=cfg.pipelines[key]||(cfg.pipelines[key]={});
   p.enabled=$(`[data-cl-pipe-enabled="${key}"]`)?.checked||false;
   p.aiMode=$(`[data-cl-pipe-mode="${key}"]`)?.value||'gateway';
+  if(['news-video','idea-film'].includes(key))p.musicSource=$(`[data-cl-pipe-music="${key}"]`)?.value||'synthesized';
   p.requireApproval=$(`[data-cl-pipe-approval="${key}"]`)?.checked||false;
   p.dailyCap=Math.max(0,parseInt($(`[data-cl-pipe-cap="${key}"]`)?.value,10)||0);
   const from=parseInt($(`[data-cl-pipe-from="${key}"]`)?.value,10),to=parseInt($(`[data-cl-pipe-to="${key}"]`)?.value,10);

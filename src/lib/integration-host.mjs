@@ -28,6 +28,7 @@ import { createPublishRecords } from './publish-records.mjs';
 import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegmentsWithModel, writeRethemeScriptWithModel, splitScriptAcrossWindows, writeTextWithModel, buildDirectorModelCall, parseDirectorPlan, routeDirectorPlan, groupSpeechSegments } from './media-ai.mjs';
 import { EFFECT_IDS, buildEffectsGraph, buildEffectsAss } from './media-effects.mjs';
 import { generateImage, IMAGE_PROVIDERS } from './image-gen.mjs';
+import { localWorkers } from './local-workers.mjs';
 import { whisperStatus, transcribeLocal, transcribeWordsLocal } from './local-whisper.mjs';
 import { alignKaraokeWords, buildKaraokeAss, KARAOKE_PRESETS } from './karaoke-captions.mjs';
 
@@ -52,6 +53,8 @@ const ALLOWED_OPERATIONS=Object.freeze({
   'media.voiceover':'video_edit',
   'media.tts-video':'video_edit',
   'media.image':'video_edit',
+  'media.music':'video_edit',
+  'image.local':'video_edit',
   'media.concat-effects':'video_edit',
   'media.dub':'video_edit',
   'media.retheme':'video_edit',
@@ -372,6 +375,26 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         }
         await artifactPort.putJson({jobId,name:'images-report.json',data:report});
         return {count:scenes.length,provider:report.provider,model:report.model};
+      });
+      // Local music worker (ACE-Step 1.5 on this machine, via its own API).
+      // Worker not READY -> BLOCKED_WORKER propagates as-is; no substitute.
+      handlers.set('media.music',async({jobId,prompt,tags,durationSec=60,instrumental=true})=>{
+        const dir=path.join(mediaWorkspace,'.music-jobs',jobId);
+        fs.mkdirSync(dir,{recursive:true,mode:0o700});
+        const made=await localWorkers.generateMusic({prompt,tags,durationSec,instrumental:instrumental!==false,outputBase:path.join(dir,'music')});
+        await artifactPort.putFile({jobId,source:made.file,name:path.basename(made.file)});
+        await artifactPort.putJson({jobId,name:'music-report.json',data:made.provenance});
+        return {provider:'ace-step-local',model:made.provenance.model,bytes:made.bytes};
+      });
+      // Local image worker (FLUX.2 [klein] 4B via sd-cli): one image per task.
+      // Worker not READY -> BLOCKED_WORKER propagates as-is; no substitute.
+      handlers.set('image.local',async({jobId,prompt,width,height,seed})=>{
+        const dir=path.join(mediaWorkspace,'.image-local-jobs',jobId);
+        fs.mkdirSync(dir,{recursive:true,mode:0o700});
+        const made=await localWorkers.generateImage({prompt,width,height,seed,outputBase:path.join(dir,'image')});
+        await artifactPort.putFile({jobId,source:made.file,name:path.basename(made.file)});
+        await artifactPort.putJson({jobId,name:'image-local-report.json',data:made.provenance});
+        return {provider:'flux2-local',model:made.provenance.model,bytes:made.bytes};
       });
       // Post-production pass: a finished worker/local render goes through
       // Concat for titles, captions, music and transitions. The edit plan is
@@ -730,7 +753,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       handlers.set('media.publish-youtube',publishHandler('youtube',({connection,file,title,description,tags,privacyStatus})=>youtubeUpload({connection,file,title,description,tags,privacyStatus:privacyStatus||'unlisted'})));
       handlers.set('media.publish-facebook',publishHandler('facebook',({connection,file,title,description})=>facebookUpload({connection,file,title,description})));
       handlers.set('media.publish-tiktok',publishHandler('tiktok',({connection,file,title,privacyLevel})=>tiktokUpload({connection,file,title,privacyLevel:privacyLevel||'PUBLIC_TO_EVERYONE'})));
-      for(const [kind,allowed] of Object.entries({video_edit:['media.analyze','media.subtitle-edit','media.edit-plan','media.quick-edit','media.render','media.voiceover','media.tts-video','media.image','media.concat-effects','media.dub','media.retheme','media.effects'],story:['media.story','media.story-outline'],publish:['media.publish-draft','media.publish-youtube','media.publish-facebook','media.publish-tiktok']})){
+      for(const [kind,allowed] of Object.entries({video_edit:['media.analyze','media.subtitle-edit','media.edit-plan','media.quick-edit','media.render','media.voiceover','media.tts-video','media.image','media.music','image.local','media.concat-effects','media.dub','media.retheme','media.effects'],story:['media.story','media.story-outline'],publish:['media.publish-draft','media.publish-youtube','media.publish-facebook','media.publish-tiktok']})){
         core.queue.registerModule(kind,async({task,workspace})=>{
           const op=task.input?.operation;
           if(!allowed.includes(op))throw err('MEDIA_OPERATION','Loại tác vụ và công việc media không khớp hoặc chưa được phê duyệt.');
@@ -841,6 +864,16 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       }
       if(params.imageProvider!==undefined&&!IMAGE_PROVIDERS.includes(params.imageProvider))throw err('MEDIA_INPUT','Nguồn sinh ảnh không hợp lệ.');
       if(params.size!==undefined&&!['1024x1024','1536x1024','1024x1536'].includes(params.size))throw err('MEDIA_INPUT','Kích thước ảnh không được hỗ trợ.');
+    }
+    if(operation==='media.music'){
+      const p=typeof params.prompt==='string'?params.prompt:(typeof params.tags==='string'?params.tags:'');
+      if(!p.trim()||p.length>2000)throw err('MEDIA_INPUT','Mô tả/tags nhạc cần 1-2.000 ký tự.');
+      if(params.durationSec!==undefined&&!(Number.isFinite(+params.durationSec)&&+params.durationSec>=10&&+params.durationSec<=600))throw err('MEDIA_INPUT','Thời lượng nhạc phải trong khoảng 10-600 giây.');
+      if(params.instrumental!==undefined&&typeof params.instrumental!=='boolean')throw err('MEDIA_INPUT','instrumental phải là boolean.');
+    }
+    if(operation==='image.local'){
+      if(typeof params.prompt!=='string'||!params.prompt.trim()||params.prompt.length>4000)throw err('MEDIA_INPUT','Mô tả ảnh cần 1-4.000 ký tự.');
+      for(const k of ['width','height'])if(params[k]!==undefined&&!(Number.isFinite(+params[k])&&+params[k]>=256&&+params[k]<=2048))throw err('MEDIA_INPUT','Kích thước ảnh phải trong khoảng 256-2048.');
     }
     if(operation==='media.concat-effects'){
       if(!params.source)throw err('MEDIA_INPUT','Chọn video đã dựng để thêm hiệu ứng Concat.');

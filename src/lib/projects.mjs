@@ -50,11 +50,23 @@ export function updateProjectSettings(id,settings={}){return mutateProject(id,p=
 export function updateProjectModelRoles(id,input={}) {
   const roles={};
   for(const role of MODEL_ROLES) { const b=input[role]; if(role==='council'){if(b!==undefined&&!Array.isArray(b))throw new Error('Council cần danh sách thành viên.');if((b||[]).length>8)throw new Error('Council hỗ trợ tối đa 8 thành viên.');roles.council=(b||[]).map(verifiedBinding);}else roles[role]=b?verifiedBinding(b):null; }
-  return mutateProject(id,p=>{p.modelRoles=roles;p.activity.push({at:now(),text:'Cập nhật phân vai model'});});
+  // Backup bindings (v0.9.55): one optional dự phòng per role (per Council
+  // member), validated by the same catalog rule as primaries. The runtime
+  // router tries a backup only after the primary + its same-kind pool.
+  const backupsIn=input&&typeof input==='object'&&input.backups&&typeof input.backups==='object'?input.backups:null;
+  const backups={founder:null,council:[],worker:null,reviewer:null};
+  if(backupsIn){
+    for(const role of MODEL_ROLES){
+      const b=backupsIn[role];
+      if(role==='council'){if(b!==undefined&&b!==null&&!Array.isArray(b))throw new Error('Dự phòng Council cần danh sách theo từng thành viên.');backups.council=(b||[]).map(x=>x?verifiedBinding(x):null);}
+      else backups[role]=b?verifiedBinding(b):null;
+    }
+  }
+  return mutateProject(id,p=>{p.modelRoles=roles;p.modelRoleBackups=backups;p.activity.push({at:now(),text:'Cập nhật phân vai model'});});
 }
 export function saveProjectGithub(id,github){return mutateProject(id,p=>{p.settings={...p.settings,github:{...(p.settings?.github||{}),...github}};p.activity.push({at:now(),text:'Cập nhật liên kết repo GitHub'});});}
 export function saveProjectDomain(id,domain){return mutateProject(id,p=>{p.settings={...p.settings,domain:{domain:domain.domain,deploymentUrl:domain.deploymentUrl,configuredAt:now()}};});}
-export function projectModelRoles(id){const p=getProject(id);return {projectId:id,roles:p.modelRoles||{founder:null,council:[],worker:null,reviewer:null},descriptors:roleDescriptors(p)};}
+export function projectModelRoles(id){const p=getProject(id);return {projectId:id,roles:p.modelRoles||{founder:null,council:[],worker:null,reviewer:null},backups:p.modelRoleBackups||{founder:null,council:[],worker:null,reviewer:null},descriptors:roleDescriptors(p)};}
 
 const ideaPending=new Set();
 function ideaStart(id){if(ideaPending.has(id))throw new Error('Founder đang xử lý yêu cầu của dự án.');ideaPending.add(id);}
@@ -147,14 +159,14 @@ export async function runCouncil(id,memberIds=[],chairId){
     for(const member of members){
       assertCouncilCurrent(id,run);assertCouncilTarget(member);member.status='running';storeCouncilRun(id,run);
       try{
-        member.text=await ask(member.binding,{usageContext:{role:'council',projectId:id},system:`COUNCIL_MEMBER_V1. Bạn là ${member.role}. Phản biện độc lập cùng project brief đóng băng, không nhận ý kiến thành viên khác. Tìm điểm mạnh, rủi ro, chi phí, phụ thuộc và khuyến nghị cụ thể. Vote agree khi phù hợp để triển khai, consider khi còn vấn đề cần xử lý, oppose khi không nên triển khai. Trả JSON thuần đúng schema ${COUNCIL_MEMBER_SCHEMA}. Không tự thêm trường. Dùng tiếng Việt.`+skillPrompt(member.skills,{role:'planning'}),prompt:context});
+        member.text=await ask(member.binding,{usageContext:{role:'council',projectId:id,member:member.member-1},system:`COUNCIL_MEMBER_V1. Bạn là ${member.role}. Phản biện độc lập cùng project brief đóng băng, không nhận ý kiến thành viên khác. Tìm điểm mạnh, rủi ro, chi phí, phụ thuộc và khuyến nghị cụ thể. Vote agree khi phù hợp để triển khai, consider khi còn vấn đề cần xử lý, oppose khi không nên triển khai. Trả JSON thuần đúng schema ${COUNCIL_MEMBER_SCHEMA}. Không tự thêm trường. Dùng tiếng Việt.`+skillPrompt(member.skills,{role:'planning'}),prompt:context});
         member.review=normalizeCouncilMember(parseCouncilJson(member.text));member.status='completed';member.at=now();
       }catch(e){member.status='failed';member.error=redactVaultSecrets(e.message);member.at=now();throw e;}
       run.consensus=councilConsensus(members);storeCouncilRun(id,run);assertCouncilCurrent(id,run);
     }
     assertCouncilTarget(chair);chair.status='running';storeCouncilRun(id,run);
     try{
-      chair.text=await ask(chair.binding,{usageContext:{role:'council',projectId:id},system:`COUNCIL_CHAIR_V1. Bạn là Council Chair. Đọc toàn bộ phản biện độc lập, đánh giá bằng lập luận và bằng chứng thay vì chỉ majority vote. Giải quyết mâu thuẫn, nêu quyết định, lý do và các thành viên liên quan (members đánh số từ 1). Không bịa yêu cầu còn thiếu; thể hiện giới hạn trong scope hoặc ngoài phạm vi. Tạo structured final specification cho MVP. Trả JSON thuần đúng schema ${COUNCIL_CHAIR_SCHEMA}. Không tự thêm trường. Bản này cần người dùng chốt trước khi tạo task. Dùng tiếng Việt.`+skillPrompt(['product-strategy','system-architecture','security-review','ux-beginner'],{role:'planning'}),prompt:JSON.stringify({brief,reviews:members.map(m=>({member:m.member,provider:m.descriptor.provider,model:m.binding.model,role:m.role,review:m.review}))})});
+      chair.text=await ask(chair.binding,{usageContext:{role:'council',projectId:id,member:Math.max(0,memberIds.indexOf(chairId))},system:`COUNCIL_CHAIR_V1. Bạn là Council Chair. Đọc toàn bộ phản biện độc lập, đánh giá bằng lập luận và bằng chứng thay vì chỉ majority vote. Giải quyết mâu thuẫn, nêu quyết định, lý do và các thành viên liên quan (members đánh số từ 1). Không bịa yêu cầu còn thiếu; thể hiện giới hạn trong scope hoặc ngoài phạm vi. Tạo structured final specification cho MVP. Trả JSON thuần đúng schema ${COUNCIL_CHAIR_SCHEMA}. Không tự thêm trường. Bản này cần người dùng chốt trước khi tạo task. Dùng tiếng Việt.`+skillPrompt(['product-strategy','system-architecture','security-review','ux-beginner'],{role:'planning'}),prompt:JSON.stringify({brief,reviews:members.map(m=>({member:m.member,provider:m.descriptor.provider,model:m.binding.model,role:m.role,review:m.review}))})});
       chair.review=normalizeCouncilChair(parseCouncilJson(chair.text),members);chair.status='completed';chair.at=now();
     }catch(e){chair.status='failed';chair.error=redactVaultSecrets(e.message);chair.at=now();throw e;}
     assertCouncilCurrent(id,run);run.status='completed';run.completedAt=now();run.consensus=councilConsensus(members);

@@ -253,15 +253,11 @@ function officeDisplayName(a,roster){
  if(a.fleet&&a.fleet.standby)return officeAgentName(a);
  if(!a.fleet)return officeAgentName(a);
  const same=(roster||[]).filter(x=>x.fleet&&x.fleet.provider===a.fleet.provider);
- const base=same.length<2?a.fleet.provider:a.fleet.provider+' '+(same.findIndex(x=>x.id===a.id)+1);
- // Hai khu (0.9.53): bảng tên bot tài khoản ghi thêm khu để Sếp nhìn là
- // biết bot thuộc biên chế bên nào — "Tèo · Khu Codex", "Ngọc · Khu Chatbox".
- return a.fleet.areaLabel?base+' · '+a.fleet.areaLabel:base;
+ return same.length<2?a.fleet.provider:a.fleet.provider+' '+(same.findIndex(x=>x.id===a.id)+1);
 }
-// Tên trên bảng tên 3D: tên kết nối + khu (bot tài khoản); cast thường giữ nguyên.
+// Tên trên bảng tên 3D: tên kết nối (bot tài khoản); cast thường giữ nguyên.
 function officePlateName(a){
- const n=officeAgentName(a);
- return a.fleet&&a.fleet.areaLabel?n+' · '+a.fleet.areaLabel:n;
+ return officeAgentName(a);
 }
 // --- Đội bot theo tài khoản (0.9.33): mỗi kết nối AI là một bot TAM01 ---
 function officeFleetActive(){return Boolean(officeState.fleet&&Array.isArray(officeState.fleet.bots));}
@@ -271,7 +267,7 @@ function officeFleetBot(agentId){
  return officeState.fleet.bots.find(b=>b.connectionId===cid)||null;
 }
 function officeRosterCast(){
- const bots=officeFleetActive()?officeState.fleet.bots.map(b=>({id:'bot-'+b.connectionId,name:b.label,role:b.provider+' · '+(b.areaLabel?b.areaLabel+' · ':'')+(b.state==='working'?'đang làm việc':b.state==='failed'?'lượt gần nhất lỗi':b.state==='charging'?'đang sạc · chờ việc':'chưa kết nối'),icon:'🤖',station:b.station==='bay'?'lounge':b.station,color:b.color,fleet:b})):[];
+ const bots=officeFleetActive()?officeState.fleet.bots.map(b=>({id:'bot-'+b.connectionId,name:b.label,role:b.provider+' · '+(b.state==='working'?'đang làm việc':b.state==='failed'?'lượt gần nhất lỗi':b.state==='charging'?(b.resting?'đang nghỉ sạc · mở lại '+(b.coolingUntil?new Date(b.coolingUntil).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''):'đang sạc · chờ việc'):'chưa kết nối'),icon:'🤖',station:b.station==='bay'?'lounge':b.station,color:b.color,fleet:b})):[];
  const cast=[OFFICE_CAST[0],...bots];
  /* Phòng luôn đủ 10 robot TÂM-19 (chỉ đạo Sếp Lâm 20/10): robot đã có tài
   * khoản/bàn thì ngồi ở bàn; các ô robot còn trống đứng ở Phòng nạp năng
@@ -387,12 +383,13 @@ function officeRender(){
    if(awaiting)lines.push(`👔 Sản phẩm "${awaiting.title||awaiting.pipeline}" đang ở trên bàn Sếp Lâm chờ duyệt.`);
    if(justCompleted)lines.push(`🎉 Lượt "${justCompleted.title||justCompleted.pipeline}" vừa hoàn thành tốt.`);
    for(const b of officeState.fleet.bots){
-    const bn=b.areaLabel?`${b.label} · ${b.areaLabel}`:b.label;
+    const bn=b.label;
     if(b.state==='working')lines.push(`🤖 ${bn} (${b.provider}) đang làm việc ở ${(OFFICE_STATIONS[b.station]||{}).label||'bàn làm việc'} — lượt chạy thật đang chạy trên tài khoản này.`);
     else if(b.cage)lines.push(`⚡ ${bn} đang ở Phòng chích điện vì lượt chạy gần nhất trên tài khoản này bị lỗi — bot khác đã ra thay bàn của nó.`);
     else if(b.state==='failed')lines.push(`⚡ ${bn} vừa có lượt chạy lỗi — đang chờ ở khu sạc và nhường bàn cho bot khác.`);
+    else if(b.state==='charging'&&b.resting)lines.push(`🔋 ${bn} (${b.provider}) đang NGHỈ SẠC ở trạm sạc vì chạm hạn mức — mở lại lúc ${b.coolingUntil?new Date(b.coolingUntil).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):'?'}; việc của nó đã được đội chuyển sang tài khoản khác.`);
     else if(b.state==='charging')lines.push(`🔋 ${bn} (${b.provider}) đang ở trạm sạc — đã kết nối, chờ việc.`);
-    else lines.push(`🔌 ${bn} (${b.provider}) chưa xác minh được — bot đang tắt ở khu sạc. Vào tab Kết nối để đăng nhập/xác minh tài khoản này.`);
+    else lines.push(`🔌 ${bn} (${b.provider}) chưa kết nối được — bot đang tắt ở khu sạc. Vào tab Kết nối để đăng nhập và tải danh mục model cho tài khoản này.`);
    }
    if(officeState.fleet.overflow)lines.push(`… và ${officeState.fleet.overflow} tài khoản nữa chưa có bot (văn phòng tối đa 10 bot).`);
    if(officeState.fleet.bots.length<10)lines.push(`🔋 ${10-officeState.fleet.bots.length} robot TÂM-19 đang đứng ở Phòng nạp năng lượng — ô trống chờ tài khoản. Liên kết thêm tài khoản ở tab Kết nối, robot sẽ tự ra ngồi bàn.`);
