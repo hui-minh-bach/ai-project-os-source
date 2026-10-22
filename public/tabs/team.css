@@ -281,3 +281,35 @@
 .office-agent.office-face-left .office-bot-sprites{transform:scaleX(-1)}
 .office-agent[data-state="offline"] .bot-sprite,.office-agent[data-state="offline"] .bot-sit-sheet{filter:grayscale(.28) brightness(.86) drop-shadow(0 4px 4px rgba(0,0,0,.35))}
 .office-agent[data-state="failed"] .bot-pose-idle{filter:drop-shadow(0 0 7px rgba(255,84,60,.6))}
+
+/* ===== Văn phòng ISOMETRIC (0.9.58) — phông B2 + sprite TAM19 render từ GLB ===== */
+.office-room.office-iso{background:
+ linear-gradient(180deg,rgba(10,16,38,.06) 0%,rgba(10,16,38,.10) 100%),
+ url('/assets/office-iso-backdrop.jpg') center/cover no-repeat,
+ linear-gradient(180deg,#16224a 0%,#0d1734 100%)}
+.office-room.office-iso::before{display:none}
+.office-room.office-iso .office-agent{transform:translate(-50%,-88%)}
+.office-room.office-3d-on .office-bot-card,.office-room.office-3d-on .office-pod-hots{display:none}
+.office-room .office-bot-card{left:12px;right:auto}
+.bot-iso{position:relative;display:block;width:57px;height:84px}
+.bot-iso-img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:84px;width:auto;display:none;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35))}
+.bot-iso-win{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:84px;width:57px;overflow:hidden;display:none;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35))}
+.bot-iso-sheet4{height:100%;width:400%;max-width:none;display:block;animation:officeIsoSit 1.5s steps(4) infinite}
+.bot-iso-sheet3{height:100%;width:300%;max-width:none;display:block;animation:officeIsoWalk .54s steps(3) infinite}
+@keyframes officeIsoSit{from{transform:translateX(0)}to{transform:translateX(-75%)}}
+@keyframes officeIsoWalk{from{transform:translateX(0)}to{transform:translateX(-66.667%)}}
+.office-agent[data-isopose="stand"] .pose-idle{display:block}
+.office-agent[data-isopose="desk"] .pose-desk{display:block}
+.office-agent[data-isopose="walk"] .pose-walk{display:block}
+.office-agent[data-isopose="pod"] .pose-pod{display:block}
+.office-agent[data-isopose="pod"] .bot-iso{transform:scale(.78);transform-origin:50% 100%}
+.office-agent.office-face-left .bot-iso{transform:scaleX(-1)}
+.office-room.office-iso .office-agent[data-state="offline"] .bot-iso{filter:grayscale(.45) brightness(.55)}
+.office-room.office-iso .office-agent[data-state="failed"] .bot-iso{filter:drop-shadow(0 0 7px rgba(255,84,60,.65))}
+.office-agent.iso-selected .bot-iso{filter:drop-shadow(0 0 10px rgba(255,209,102,.95))}
+.office-agent.iso-selected .office-agent-name{border-color:#ffd166;color:#ffe9a8}
+.office-pod-hots{position:absolute;inset:0;z-index:5;pointer-events:none}
+.office-pod-hot{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:2px dashed #ffd166;background:rgba(255,209,102,.16);cursor:pointer;pointer-events:auto;padding:0;animation:officePodPulse 1.2s ease-in-out infinite}
+@keyframes officePodPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,209,102,.45)}50%{box-shadow:0 0 0 7px rgba(255,209,102,0)}}
+.office-room.office-has-selection .office-station{cursor:pointer}
+.office-room.office-has-selection .office-station:hover{border-color:#ffd166;color:#ffe9a8}

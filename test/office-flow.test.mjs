@@ -76,5 +76,6 @@ test('0.9.57: guide documents the curtain removal, post assignment and the overr
   assert.match(guide, /Hai vách tím đã được tháo \(0\.9\.57\)/);
   assert.match(guide, /trạng thái thật luôn thắng/);
   assert.match(guide, /Về tự động/);
-  assert.match(guide, /ghim vị trí là tính năng riêng của phòng 3D/);
+  // 0.9.58: pins now shared by BOTH views — the guide must say so.
+  assert.match(guide, /điểm ghim dùng chung cho cả văn phòng isometric \(mặc định\) và phòng 3D/);
 });
