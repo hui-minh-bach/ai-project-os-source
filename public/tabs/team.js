@@ -352,6 +352,38 @@ const OFFICE_ISO_PODS=[
  {x:57.5,y:38.5,lx:-12,ly:-68,bx:30,by:0},{x:60.5,y:41.5,lx:-22,ly:-62,bx:-30,by:0},
  {x:64.5,y:44.5,lx:26,ly:-74,bx:34,by:0},{x:69.5,y:46,lx:53,ly:-59,bx:-38,by:0},
  {x:74.5,y:47.5,lx:33,ly:-87,bx:38,by:0},{x:55.5,y:41,lx:-9,ly:-97,bx:-30,by:0}];
+/* Neo TÂM MÀN HÌNH vẽ sẵn của từng bàn (%, cùng hệ tọa độ phòng) — chỗ
+ * hiệu ứng "màn hình sáng lên" sẽ bám vào khi robot ở bàn đó ĐANG LÀM
+ * VIỆC THẬT. Đo trực tiếp trên ảnh render đúng tọa độ phòng (probe
+ * debug-glow): ở các bàn cubicle, màn hình nằm ở cánh TRÁI của bàn,
+ * xuôi xuống theo phép chiếu so với ghế ngồi (tin tức/biên tập là hàng
+ * trên cùng); bàn Đăng bài có màn hình ngay sau bàn; Tiếp nhận là
+ * laptop trên bàn tròn trong phòng kính. Trạm không có robot đang làm
+ * thì màn hình giữ nguyên như phông vẽ. */
+const OFFICE_ISO_MONITORS={
+ news:{x:33.0,y:42.5}, script:{x:19.5,y:45.5}, image:{x:28.0,y:61.0}, media:{x:11.0,y:47.0},
+ review:{x:17.0,y:55.5}, pm:{x:38.0,y:64.0}, publish:{x:51.0,y:52.0}, intake:{x:52.5,y:82.5},
+};
+/* TỈ LỆ sprite theo vùng (0.9.59, góp ý của Sếp về tỉ lệ): phông B2 vẽ
+ * các bàn ở lưới trái nhỏ hơn (xa hơn) so với sofa tiếp nhận ở tiền
+ * cảnh, buồng sạc và lồng có chiều cao riêng — sprite 84px đồng loạt
+ * như 0.9.58 làm robot ở bàn xa trông to như người khổng lồ cạnh bàn
+ * nhỏ. Mỗi vùng một hệ số; điểm neo (chân) không đổi nhờ
+ * transform-origin đặt đúng điểm neo của phần tử robot. */
+const OFFICE_ISO_SCALES={deskFar:0.84,deskNear:0.92,pod:0.94,cage:0.92,intake:1.0,boss:0.95};
+function officeIsoScaleFor(post,pt){
+ if(!post)return 1;
+ if(post.kind==='pod')return OFFICE_ISO_SCALES.pod;
+ if(post.kind==='cage')return OFFICE_ISO_SCALES.cage;
+ if(post.kind==='desk'||post.kind==='station'){
+  if(post.id==='intake')return OFFICE_ISO_SCALES.intake;
+  if(post.id==='boss')return OFFICE_ISO_SCALES.boss;
+  if(post.id==='pm'||post.id==='publish')return OFFICE_ISO_SCALES.deskNear;
+  return OFFICE_ISO_SCALES.deskFar;
+ }
+ if(post.kind==='floor'){const t=Math.max(0,Math.min(1,(((pt&&pt.y)||50)-20)/55)); return 0.84+0.24*t;}
+ return 1;
+}
 /* Sàn: ánh xạ hai chiều tọa độ thế giới 3D (x,z) <-> % isometric bằng nội
  * suy song tuyến tính trên hình thoi boong tàu trong phông B2 (điểm ghim
  * sàn tự chọn dùng chung được cho cả phòng 3D lẫn isometric). */
@@ -488,6 +520,144 @@ function officeIsoCardRefresh(){
  card.innerHTML=`<div class="obc-head"><strong data-obc-name>🤖 ${esc(officePlateName(a))}</strong><button type="button" class="obc-x" data-obc-act="close" aria-label="Đóng thẻ">✕</button></div><p data-obc-state>${esc(officeIsoStateText(a))}</p><p class="obc-pin" data-obc-pin>${esc(pinText)}</p><div class="obc-actions"><button type="button" data-obc-act="rename">Đổi tên</button>${a.id!=='boss'?'<button type="button" data-obc-act="auto">↩ Về tự động</button>':''}</div>${a.id!=='boss'?'<p class="obc-hint">Bấm vào nhãn một trạm, một vòng ô sạc hoặc một điểm trên sàn để điều robot này tới đó. Trạng thái thật (đang làm việc / lỗi / nghỉ sạc) luôn thắng điểm ghim — ghim tự áp dụng lại khi trạng thái qua đi.</p>':''}`;
  officeIsoHotspots(room,Boolean(a&&a.id!=='boss'));
 }
+/* --- 0.9.59 bổ sung: trực quan "đang làm việc" + luồng thông tin + nhãn ---
+ * Màn hình sáng ⟺ có robot fleet đang ở trạng thái working THẬT tại bàn
+ * đó (dữ liệu đội quét từ app, không trang trí). Tia luồng chỉ xuất hiện
+ * khi giữa hai lần quét liên tiếp quan sát thấy một robot NGỪNG làm việc
+ * và một robot khác BẮT ĐẦU làm việc — ưu tiên khớp đúng cùng runId (chuyển
+ * giao trong cùng một lượt chạy); dữ liệu không có runId thì một cặp
+ * ngừng/bắt đầu trong cùng lần quét cũng được tính là chuyển giao. Không
+ * có chuyển giao quan sát được thì không có tia nào cả. */
+let officeIsoPrevWorking=null, officeLabelPassTimer=0, officeLabelPassChain=0;
+function officeIsoUpdateGlow(room,litStations){
+ room.querySelectorAll('[data-glow]').forEach(g=>g.classList.toggle('on',litStations.has(g.dataset.glow)));
+ window.__officeIsoGlow=[...litStations];
+}
+function officeIsoFirePulse(room,from,to,runId){
+ const layer=room.querySelector('.office-flow-layer'); if(!layer)return;
+ if(layer.childElementCount>=4)return;
+ if(!Array.isArray(window.__officeIsoPulses))window.__officeIsoPulses=[];
+ window.__officeIsoPulses.push({from:{x:from.x,y:from.y},to:{x:to.x,y:to.y},runId:runId||'',at:Date.now()});
+ if(window.__officeIsoPulses.length>20)window.__officeIsoPulses.splice(0,window.__officeIsoPulses.length-20);
+ const dot=document.createElement('div'); dot.className='office-flow-pulse'; layer.appendChild(dot);
+ const W=room.clientWidth||626, H=room.clientHeight||417;
+ const x0=from.x/100*W, y0=from.y/100*H, x1=to.x/100*W, y1=to.y/100*H;
+ const cx=(x0+x1)/2, cy=Math.min(y0,y1)-H*0.09;
+ const t0=performance.now(), DUR=1400;
+ const step=t=>{
+  const k=Math.min(1,(t-t0)/DUR), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+  const x=(1-e)*(1-e)*x0+2*(1-e)*e*cx+e*e*x1, y=(1-e)*(1-e)*y0+2*(1-e)*e*cy+e*e*y1;
+  dot.style.left=x+'px'; dot.style.top=y+'px'; dot.style.opacity=String(Math.sin(Math.PI*k));
+  if(k<1)requestAnimationFrame(step); else dot.remove();
+ };
+ requestAnimationFrame(step);
+}
+function officeIsoDetectFlow(room,curWorking){
+ if(officeIsoPrevWorking){
+  const stopped=[...officeIsoPrevWorking.entries()].filter(([id])=>!curWorking.has(id));
+  const started=[...curWorking.entries()].filter(([id])=>!officeIsoPrevWorking.has(id));
+  const usedS=new Set(), usedT=new Set();
+  for(const [sid,s] of stopped)for(const [tid,t] of started){
+   if(usedS.has(sid)||usedT.has(tid))continue;
+   if(s.runId&&t.runId&&s.runId===t.runId){officeIsoFirePulse(room,s,t,s.runId); usedS.add(sid); usedT.add(tid);}
+  }
+  for(const [sid,s] of stopped)for(const [tid,t] of started){
+   if(usedS.has(sid)||usedT.has(tid))continue;
+   if(!s.runId||!t.runId){officeIsoFirePulse(room,s,t,s.runId||t.runId); usedS.add(sid); usedT.add(tid);}
+  }
+ }
+ officeIsoPrevWorking=curWorking;
+}
+/* Vòng nhãn tổng quát của bản isometric: với MỌI nhãn đang hiện (bảng tên,
+ * huy hiệu trạng thái, nhãn trạm) — (1) cặp nào chồng nhau thì nhãn dưới bị
+ * đẩy xuống dưới mép chồng +3px (nhãn trạm không bị đẩy, nhãn robot nhường
+ * đường), (2) nhãn nào tràn khỏi khung phòng thì bị kéo ngược vào trong.
+ * Offset phụ lưu ở dataset.gx/gy, cộng lên trên offset gốc của từng nhãn
+ * (tên: nlx/nly; huy hiệu: btx/bty) nên chạy lại nhiều lần vẫn ổn định. */
+function officeIsoLabelPass(room){
+ const rr=room.getBoundingClientRect(); if(!rr.width)return;
+ const items=[];
+ room.querySelectorAll('.office-station').forEach(el=>{el.dataset.gx='0'; el.dataset.gy='0'; items.push({el,kind:'station',fixed:true});});
+ room.querySelectorAll('[data-office-agent]').forEach(el=>{
+  const nm=el.querySelector('.office-agent-name');
+  if(nm){nm.dataset.gx='0'; nm.dataset.gy='0'; items.push({el:nm,kind:'name',fixed:false});}
+  const bd=el.querySelector('.office-agent-badge');
+  if(bd&&!bd.hidden){bd.dataset.gx='0'; bd.dataset.gy='0'; items.push({el:bd,kind:'badge',fixed:false});}
+ });
+ const apply=it=>{
+  const gx=parseFloat(it.el.dataset.gx)||0, gy=parseFloat(it.el.dataset.gy)||0;
+  if(it.kind==='name'){const bx=parseFloat(it.el.dataset.nlx)||0, by=parseFloat(it.el.dataset.nly)||0; it.el.style.transform=`translate(${Math.round(bx+gx)}px,${Math.round(by+gy)}px)`;}
+  else if(it.kind==='badge'){const bx=parseFloat(it.el.dataset.btx)||0, by=parseFloat(it.el.dataset.bty)||0; it.el.style.transform=`translateX(calc(-50% + ${Math.round(bx+gx)}px)) translateY(${Math.round(by+gy)}px)`;}
+  else it.el.style.transform=`translate(-50%,-50%) translate(${Math.round(gx)}px,${Math.round(gy)}px)`;
+ };
+ items.forEach(apply);
+ const overlapOf=(a,b)=>{
+  const ra=a.el.getBoundingClientRect(), rb=b.el.getBoundingClientRect();
+  return {ox:Math.min(ra.right,rb.right)-Math.max(ra.left,rb.left), oy:Math.min(ra.bottom,rb.bottom)-Math.max(ra.top,rb.top), ra, rb};
+ };
+ // Hạ dốc tham lam trên TỔNG diện tích chồng: với mỗi cặp đang chồng,
+ // thử dời nhãn (ưu tiên nhãn robot, nhãn trạm đứng yên) theo 4 hướng
+ // vừa đủ thoát cặp đó, chấm điểm mỗi hướng bằng tổng diện tích chồng
+ // còn lại của nhãn với MỌI nhãn khác, và chọn hướng tốt nhất. Cách này
+ // thoát được thế kẹt dao động dọc của "thang nhãn" cột bàn trái (khe
+ // giữa hai nhãn trạm hẹp hơn chiều cao nhãn — chỉ trượt ngang mới ra),
+ // vì hướng ngang thắng điểm khi nó xóa chồng thật sự. Lặp tới khi một
+ // vòng trọn không còn xê dịch nào (tối đa 8 vòng), kèm kẹp vào phòng.
+ const totalOverlap=(it,rect)=>{
+  let s=0;
+  for(const o of items){
+   if(o===it)continue;
+   const r=o.el.getBoundingClientRect();
+   const ox=Math.min(rect.right,r.right)-Math.max(rect.left,r.left);
+   const oy=Math.min(rect.bottom,r.bottom)-Math.max(rect.top,r.top);
+   if(ox>0&&oy>0)s+=ox*oy;
+  }
+  return s;
+ };
+ const tryMove=(mv,ox,oy,penalty)=>{
+  const mr=mv.el.getBoundingClientRect();
+  const base=totalOverlap(mv,mr);
+  if(base<=0)return false;
+  let best=null;
+  for(const [dx,dy] of [[0,oy+3],[0,-(oy+3)],[ox+3,0],[-(ox+3),0]]){
+   const cand={left:mr.left+dx,right:mr.right+dx,top:mr.top+dy,bottom:mr.bottom+dy};
+   if(cand.left<rr.left+1||cand.right>rr.right-1||cand.top<rr.top+1||cand.bottom>rr.bottom-1)continue;
+   const score=totalOverlap(mv,cand)+0.02*(Math.abs(dx)+Math.abs(dy))+(penalty||0);
+   if(!best||score<best.score)best={dx,dy,score};
+  }
+  if(!best||best.score>=(penalty||0)+base)return false;
+  if(best.dx)mv.el.dataset.gx=String((parseFloat(mv.el.dataset.gx)||0)+best.dx);
+  if(best.dy)mv.el.dataset.gy=String((parseFloat(mv.el.dataset.gy)||0)+best.dy);
+  apply(mv);
+  return true;
+ };
+ for(let round=0;round<8;round++){
+  let moved=false;
+  const pairs=[];
+  for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){
+   const {ox,oy}=overlapOf(items[i],items[j]);
+   if(ox>1&&oy>1)pairs.push({i,j,sum:ox+oy});
+  }
+  pairs.sort((a,b)=>a.sum-b.sum);
+  for(const {i,j} of pairs){
+   const {ox,oy}=overlapOf(items[i],items[j]);
+   if(ox<=1||oy<=1)continue;
+   let mv=items[j], ot=items[i];
+   if(mv.fixed&&!ot.fixed){const t=mv; mv=ot; ot=t;}
+   if(mv.fixed&&ot.fixed)continue;
+   if(tryMove(mv,ox,oy,0))moved=true;
+   else if(!ot.fixed&&tryMove(ot,ox,oy,0))moved=true;
+   else if(ot.fixed&&tryMove(ot,ox,oy,400))moved=true; // nhãn trạm chỉ nhích khi không còn lối nào khác
+  }
+  for(const it of items){
+   const r=it.el.getBoundingClientRect(); let dx=0, dy=0;
+   if(r.left<rr.left+2)dx=rr.left+2-r.left; else if(r.right>rr.right-2)dx=rr.right-2-r.right;
+   if(r.top<rr.top+2)dy=rr.top+2-r.top; else if(r.bottom>rr.bottom-2)dy=rr.bottom-2-r.bottom;
+   if(dx||dy){it.el.dataset.gx=String((parseFloat(it.el.dataset.gx)||0)+dx); it.el.dataset.gy=String((parseFloat(it.el.dataset.gy)||0)+dy); apply(it); moved=true;}
+  }
+  if(!moved)break;
+ }
+}
 function officeFleetBot(agentId){
  if(!officeFleetActive()||!String(agentId).startsWith('bot-'))return null;
  const cid=String(agentId).slice(4);
@@ -550,6 +720,7 @@ function officeRender(){
   room.dataset.built='1'; officeState.rosterSig=rosterSig;
   const cnv=room.querySelector('.office-3d-canvas'); if(cnv)cnv.remove();
   room.innerHTML=Object.entries(isoMode?OFFICE_ISO_STATIONS:OFFICE_STATIONS_2D).map(([id,st])=>`<div class="office-station" data-station="${id}" style="left:${st.lx??st.x}%;top:${st.ly??st.y}%">${st.label}</div>`).join('')
+   +(isoMode?'<div class="office-glow-layer">'+Object.entries(OFFICE_ISO_MONITORS).map(([id,m])=>`<div class="office-monitor-glow" data-glow="${id}" style="left:${m.x}%;top:${m.y}%"></div>`).join('')+'</div><div class="office-flow-layer"></div>':'')
    +roster.map(a=>`<button type="button" class="office-agent" id="officeAgent-${a.id}" data-office-agent="${a.id}" style="left:50%;top:50%" title="${esc(a.role)}${a.fleet?'':' — bấm để đổi tên'}"><span class="office-agent-shadow"></span>${isoMode&&a.fleet?officeFigureIso(a):officeFigure(a)}<span class="office-agent-name">${esc(officePlateName(a))}</span><span class="office-agent-badge" hidden></span></button>`).join('')
    +`<div class="office-package" id="officePackage" hidden>📦</div>`
    +(awaiting?'':'' );
@@ -570,6 +741,7 @@ function officeRender(){
  }
  const slotUse=new Map();
  const isoPosts=isoMode?officeResolvePosts(roster):null;
+ const isoLitStations=new Set(), isoCurWorking=new Map();
  if(isoMode)window.__officeIsoPosts={};
  for(const a of roster){
   const el=$('#officeAgent-'+a.id); if(!el)continue;
@@ -580,10 +752,15 @@ function officeRender(){
    else{const stId0=officeStationOf(a.id,ctx); pt=OFFICE_ISO_STATIONS[stId0]||OFFICE_ISO_STATIONS.lounge; pose=stId0==='lounge'?'pod':'stand';}
    pt=officeIsoClampToDeck(pt);
    el.style.zIndex=String(10+Math.round(pt.y));
+   el.style.setProperty('--isos',String(a.id==='boss'?OFFICE_ISO_SCALES.boss:officeIsoScaleFor(post,pt)));
+   if(a.fleet&&a.fleet.state==='working'){
+    isoCurWorking.set(a.id,{runId:a.fleet.runId||'',x:pt.x,y:pt.y});
+    if(post&&(post.kind==='desk'||post.kind==='station')&&OFFICE_ISO_MONITORS[post.id])isoLitStations.add(post.id);
+   }
    const pd=officeIsoLabelShift(post), lsc=(room.clientWidth||626)/626;
    const nmEl=el.querySelector('.office-agent-name'), bdEl=el.querySelector('.office-agent-badge');
-   if(nmEl)nmEl.style.transform=pd?`translate(${Math.round(pd.lx*lsc)}px,${Math.round(pd.ly*lsc)}px)`:'';
-   if(bdEl){const btx=pd?Math.round(pd.bx*lsc):0, bty=pd?Math.round(pd.by*lsc):0; bdEl.dataset.btx=String(btx); bdEl.dataset.bty=String(bty); bdEl.style.transform=pd?`translateX(calc(-50% + ${btx}px)) translateY(${bty}px)`:'';}
+   if(nmEl){const nlx=pd?Math.round(pd.lx*lsc):0, nly=pd?Math.round(pd.ly*lsc):0; nmEl.dataset.nlx=String(nlx); nmEl.dataset.nly=String(nly); nmEl.dataset.gx='0'; nmEl.dataset.gy='0'; nmEl.style.transform=`translate(${nlx}px,${nly}px)`;}
+   if(bdEl){const btx=pd?Math.round(pd.bx*lsc):0, bty=pd?Math.round(pd.by*lsc):0; bdEl.dataset.btx=String(btx); bdEl.dataset.bty=String(bty); bdEl.dataset.gx='0'; bdEl.dataset.gy='0'; bdEl.style.transform=`translateX(calc(-50% + ${btx}px)) translateY(${bty}px)`;}
    const postKey=post?(post.kind+':'+(post.id!==undefined?post.id:(post.slot!==undefined?post.slot:post.x+','+post.z))):'cast:'+pt.x+','+pt.y;
    const prev=officePrevPos[a.id];
    if(prev&&prev.station!==postKey){
@@ -644,30 +821,26 @@ function officeRender(){
   el.classList.toggle('office-busy',(Boolean(badgeText)&&(!a.fleet||a.fleet.state==='working'||a.fleet.cage))||(a.id==='pm'&&Boolean(activeRun)));
  }
  if(isoMode){
-  /* 0.9.59: gỡ chồng HUY HIỆU ở cụm sạc theo hình học thật — sau khi mọi
-   * robot đã yên vị, cặp huy hiệu nào còn chồng nhau thì huy hiệu của
-   * robot đứng thấp hơn bị đẩy xuống dưới mép chồng + 3px (tối đa 6 vòng).
-   * Bảng tên không qua đây: tên đã có lưới nhãn riêng theo từng ô sạc. */
-  const bdItems=[];
-  room.querySelectorAll('[data-office-agent]').forEach(el=>{
-   const bd=el.querySelector('.office-agent-badge');
-   if(bd&&!bd.hidden&&el.dataset.isopose==='pod')bdItems.push(bd);
-  });
-  for(let round=0;round<6;round++){
-   let moved=false;
-   for(let i=0;i<bdItems.length;i++)for(let j=i+1;j<bdItems.length;j++){
-    const ra=bdItems[i].getBoundingClientRect(), rb=bdItems[j].getBoundingClientRect();
-    const ox=Math.min(ra.right,rb.right)-Math.max(ra.left,rb.left);
-    const oy=Math.min(ra.bottom,rb.bottom)-Math.max(ra.top,rb.top);
-    if(ox>1&&oy>1){
-     const bd=bdItems[j], nty=(parseFloat(bd.dataset.bty)||0)+oy+3;
-     bd.dataset.bty=String(nty);
-     bd.style.transform=`translateX(calc(-50% + ${bd.dataset.btx||'0'}px)) translateY(${nty}px)`;
-     moved=true;
-    }
-   }
-   if(!moved)break;
-  }
+  /* 0.9.59 (bổ sung theo góp ý 14:43): màn hình bàn nào có robot ĐANG
+   * LÀM VIỆC THẬT thì sáng lên; tia luồng chỉ bắn khi quan sát thấy một
+   * chuyển giao thật giữa hai lần quét; và vòng nhãn tổng quát lo cả ba
+   * việc — gỡ chồng mọi nhãn (tên + huy hiệu + nhãn trạm), kẹp mọi nhãn
+   * vào trong khung phòng (không cắt mép như ảnh Sếp chụp), canh lại
+   * sau khi robot lướt xong. */
+  officeIsoUpdateGlow(room,isoLitStations);
+  officeIsoDetectFlow(room,isoCurWorking);
+  officeIsoLabelPass(room);
+  // Chạy lại theo chuỗi kiểm chứng: lần đo ngay lúc dựng có thể bắt hình
+  // học chưa yên (robot còn đang lướt 1,15s, phông chữ đổi nhịp nhãn) —
+  // đo lại ở 0,65s / 1,35s / 2,05s cho tới khi nhãn đứng yên hẳn.
+  clearTimeout(officeLabelPassTimer);
+  officeLabelPassChain=0;
+  const officeLabelSettle=()=>{
+   const r2=$('#officeRoom'); if(!r2||!r2.classList.contains('office-iso'))return;
+   officeIsoLabelPass(r2);
+   if(++officeLabelPassChain<3)officeLabelPassTimer=setTimeout(officeLabelSettle,700);
+  };
+  officeLabelPassTimer=setTimeout(officeLabelSettle,650);
  }
  const pkg=$('#officePackage');
  if(pkg){
@@ -982,6 +1155,8 @@ function office3DBuild(THREE,room){
  const deskMat=new THREE.MeshStandardMaterial({color:0x5a4630,roughness:.7});
  const deskHolos=[];
  const deskGroups=[]; // mọi nhóm bàn+ghế: phòng GLB giữ lại + nâng lên mặt sàn .18
+ const deskScreens={}; // màn hình của từng trạm (mesh có map canvas) — để sáng lên khi trạm đó đang làm việc thật
+ const deskLit=new Set(); // trạm đang có robot working (do __office3DSync cập nhật theo trạng thái thật)
  function buildDesk(stId){
   const st=OFFICE_STATIONS[stId],pos=officeWorld(st),grp=new THREE.Group();
   grp.userData.stationId=stId; // đích raycast cho thao tác điều robot (0.9.57)
@@ -1004,7 +1179,7 @@ function office3DBuild(THREE,room){
   function monitor(wd,ht,tex,x,y,z,ry){
    const mon=new THREE.Group();
    const body=new THREE.Mesh(new THREE.BoxGeometry(wd,ht,.05),darkMat); mon.add(body);
-   const scr=new THREE.Mesh(new THREE.PlaneGeometry(wd-.08,ht-.08),new THREE.MeshBasicMaterial({map:tex})); scr.position.z=.031; mon.add(scr);
+   const scr=new THREE.Mesh(new THREE.PlaneGeometry(wd-.08,ht-.08),new THREE.MeshBasicMaterial({map:tex})); scr.position.z=.031; mon.add(scr); (deskScreens[stId]||(deskScreens[stId]=[])).push(scr);
    const neck=new THREE.Mesh(new THREE.BoxGeometry(.07,.3,.05),darkMat); neck.position.set(0,-ht/2-.12,-.03); mon.add(neck);
    const armJoint=new THREE.Mesh(new THREE.SphereGeometry(.05,10,8),darkMat); armJoint.position.set(0,-ht/2-.02,-.06); mon.add(armJoint);
    mon.position.set(x,y,z); mon.rotation.y=ry; grp.add(mon); return mon;
@@ -1031,7 +1206,7 @@ function office3DBuild(THREE,room){
   monitor(.82,.52,screenTex,-1.02,1.32,-.34,.5);
   monitor(.82,.52,screenTex,1.02,1.32,-.34,-.5);
   const holo=new THREE.Mesh(new THREE.PlaneGeometry(.95,.52),new THREE.MeshBasicMaterial({map:mainTex,transparent:true,opacity:.45,side:THREE.DoubleSide}));
-  holo.position.set(0,2.14,-.55); holo.rotation.x=-.18; holo.userData.baseY=2.14; holo.userData.phase=pos.x; deskHolos.push(holo); grp.add(holo);
+  holo.position.set(0,2.14,-.55); holo.rotation.x=-.18; holo.userData.baseY=2.14; holo.userData.phase=pos.x; holo.userData.stationId=stId; deskHolos.push(holo); grp.add(holo);
   const kb=new THREE.Mesh(new THREE.BoxGeometry(.72,.03,.26),darkMat); kb.position.set(0,.83,.28); grp.add(kb);
   const mug=new THREE.Mesh(new THREE.CylinderGeometry(.05,.045,.1,12),new THREE.MeshStandardMaterial({color:0xe8e8f2,roughness:.4})); mug.position.set(.58,.88,.18); grp.add(mug);
   const seat=new THREE.Mesh(new THREE.CylinderGeometry(.31,.31,.08,18),darkMat); seat.position.set(0,.48,.28); grp.add(seat);
@@ -1325,6 +1500,7 @@ function office3DBuild(THREE,room){
   office3DReconcile();
   const roster=officeRosterCast();
   const posts=officeResolvePosts(roster);
+  deskLit.clear();
   for(const a of roster){
    const A=agents[a.id]; if(!A)continue;
    const post=posts.get(a.id)||{kind:'pod',slot:0};
@@ -1340,6 +1516,7 @@ function office3DBuild(THREE,room){
    A.pinned=Boolean(post.pinned); A.stateDriven=Boolean(post.stateDriven);
    if(A.selRing)A.selRing.visible=(officeSelectedId===a.id);
    A.busy=a.fleet?a.fleet.state==='working':((a.id==='boss'&&Boolean(ctx.awaiting))||(a.id==='media'&&ctx.stage==='produce')||(a.id==='script'&&ctx.stage==='script')||(a.id==='publish'&&ctx.stage==='publish')||(ctx.culprit&&ctx.culprit.agentId===a.id));
+   if((post.kind==='desk'||post.kind==='station')&&A.busy)deskLit.add(post.id);
    A.ring.visible=A.busy;
    if((ctx.culprit&&ctx.culprit.agentId===a.id)||(a.fleet&&a.fleet.cage))A.ring.material.color.set(0xff4545); else A.ring.material.color.set(a.color);
    const sleeping=stId==='lounge'&&!(ctx.culprit&&ctx.culprit.agentId===a.id);
@@ -1350,6 +1527,7 @@ function office3DBuild(THREE,room){
    const nm=officePlateName(a);
    if(nm!==A.name){A.name=nm; const parent=A.nameSp.parent; const idx=parent.children.indexOf(A.nameSp); const fresh=textSprite(nm,{size:46,scale:[2.3,.58]}); fresh.position.y=2.85; parent.remove(A.nameSp); parent.add(fresh); A.nameSp=fresh;}
   }
+  window.__office3DGlow=()=>[...deskLit];
   zapId=officeFleetActive()?(officeState.fleet.bots.find(b=>b.cage)?'bot-'+officeState.fleet.bots.find(b=>b.cage).connectionId:null):(ctx.culprit?ctx.culprit.agentId:null);
   const target=officeFleetActive()?(ctx.awaiting?'boss':(officeState.fleet.bots.find(b=>b.state==='working')?.station||null)):(ctx.awaiting?'boss':ctx.activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null);
   if(target){const w=officeWorld(OFFICE_STATIONS[target]); parcelTarget.set(w.x+.8,1.15,w.z-.4); parcel.visible=true;} else parcel.visible=false;
@@ -1481,6 +1659,10 @@ function office3DBuild(THREE,room){
   if(parcel.visible){parcel.position.lerp(parcelTarget,Math.min(1,dt*5)); parcel.position.y=1.15+Math.sin(t*2.4)*.07; parcel.rotation.y+=dt*.8;}
   holoGlobe.rotation.y+=dt*.4; holoRing1.rotation.z+=dt*.8; holoRing2.rotation.z-=dt*.6; holoGlobe.position.y=3.05+Math.sin(t*1.3)*.07;
   for(const h of deskHolos){h.position.y=h.userData.baseY+Math.sin(t*1.8+h.userData.phase)*.045; h.rotation.y=Math.sin(t*.7+h.userData.phase)*.25;}
+  // Màn hình của trạm đang làm việc THẬT sáng lên (màu vật liệu tiến về
+  // trắng = hình canvas hiển thị đầy đủ); trạm nghỉ giữ màn hình tối.
+  for(const sid in deskScreens){const lit=deskLit.has(sid); for(const scr of deskScreens[sid]){const m=scr.material, target=lit?1:0.42, cur=m.color.r, nv=cur+(target-cur)*Math.min(1,dt*5); m.color.setScalar(nv);}}
+  for(const h of deskHolos){const target=deskLit.has(h.userData.stationId)?0.85:0.45; h.material.opacity+=(target-h.material.opacity)*Math.min(1,dt*5);}
   dust.rotation.y=t*.008; dust.position.y=Math.sin(t*.3)*.15;
   camera.position.set(orbit.lookX+Math.sin(orbit.theta)*Math.sin(orbit.phi)*orbit.radius,orbit.lookY+Math.cos(orbit.phi)*orbit.radius,orbit.lookZ+Math.cos(orbit.theta)*Math.sin(orbit.phi)*orbit.radius);
   camera.lookAt(orbit.lookX,orbit.lookY,orbit.lookZ);

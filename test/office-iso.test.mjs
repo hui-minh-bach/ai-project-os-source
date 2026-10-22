@@ -25,7 +25,7 @@ function loadOfficeLogic(pins) {
   const factory = new Function(
     'officeLoadPins', 'localStorage',
     sliceA + '\n' + sliceB +
-    '\nreturn {officeResolvePosts, officeIsoPointForPost, officeIsoWorldToPct, officeIsoPctToWorld, officeIsoClampToDeck, officeIsoInDeck, officeIsoLabelShift, OFFICE_ISO_STATIONS, OFFICE_ISO_PODS, OFFICE_DESK_POOL};');
+    '\nreturn {officeResolvePosts, officeIsoPointForPost, officeIsoWorldToPct, officeIsoPctToWorld, officeIsoClampToDeck, officeIsoInDeck, officeIsoLabelShift, officeIsoScaleFor, OFFICE_ISO_STATIONS, OFFICE_ISO_PODS, OFFICE_ISO_MONITORS, OFFICE_ISO_SCALES, OFFICE_DESK_POOL};');
   return factory(() => pins || {}, { getItem: () => null });
 }
 
@@ -220,13 +220,64 @@ test('0.9.59: the cage post stands inside the drawn electric cage; pod labels st
     assert.deepEqual(L2.officeIsoLabelShift({ kind: 'pod', slot: i }), pd);
   }
   assert.equal(L2.officeIsoLabelShift({ kind: 'desk', id: 'news' }), null);
-  assert.match(team, /nmEl\.style\.transform=pd\?/);
+  assert.match(team, /const nlx=pd\?Math\.round\(pd\.lx\*lsc\):0/);
   assert.match(team, /pose==='pod'&&a\.fleet&&!a\.fleet\.resting/);
   assert.match(teamCss, /\[data-isopose="desk"\] \.office-agent-badge\{top:auto;bottom:100%/);
   assert.match(teamCss, /\.office-agent-badge\{position:absolute;top:100%/);
-  assert.match(team, /gỡ chồng HUY HIỆU/);
+  assert.match(team, /function officeIsoLabelPass\(room\)/);
   // Guide wording: the corner is the electric cage, not a rocket.
   const guide = fs.readFileSync(path.join(root, 'public/tabs/guide.html'), 'utf8');
   assert.ok(guide.includes('lồng chích điện'), 'guide names the electric cage corner');
   assert.ok(!guide.includes('tên lửa'), 'guide no longer mentions a rocket');
+});
+
+test('0.9.59: every working desk has a drawn-monitor glow anchor on the deck, near its seat', () => {
+  const L = loadOfficeLogic();
+  for (const id of ['news', 'script', 'image', 'media', 'review', 'pm', 'publish', 'intake']) {
+    const m = L.OFFICE_ISO_MONITORS[id];
+    assert.ok(m, 'monitor anchor for ' + id);
+    assert.ok(L.officeIsoInDeck(m.x, m.y), 'monitor anchor ' + id + ' sits on the drawn deck');
+    const st = L.OFFICE_ISO_STATIONS[id];
+    const d = Math.hypot(m.x - st.x, m.y - st.y);
+    assert.ok(d <= 13, `monitor anchor ${id} near its seat (${d.toFixed(1)}%)`);
+  }
+  // Glow is driven by the REAL working state only, in both views.
+  assert.match(team, /function officeIsoUpdateGlow\(room,litStations\)/);
+  assert.match(team, /a\.fleet\.state==='working'/);
+  assert.match(team, /window\.__officeIsoGlow=/);
+  assert.match(team, /deskScreens\[stId\]/);
+  assert.match(team, /window\.__office3DGlow=/);
+});
+
+test('0.9.59: sprite scale is matched per zone to the drawn furniture', () => {
+  const L = loadOfficeLogic();
+  // Far desk grid smaller than the near desks; intake (foreground) full size.
+  assert.equal(L.officeIsoScaleFor({ kind: 'desk', id: 'news' }), L.OFFICE_ISO_SCALES.deskFar);
+  assert.equal(L.officeIsoScaleFor({ kind: 'desk', id: 'publish' }), L.OFFICE_ISO_SCALES.deskNear);
+  assert.ok(L.OFFICE_ISO_SCALES.deskFar < L.OFFICE_ISO_SCALES.deskNear, 'far desks render smaller');
+  assert.equal(L.officeIsoScaleFor({ kind: 'station', id: 'intake' }), 1);
+  assert.equal(L.officeIsoScaleFor({ kind: 'pod', slot: 0 }), L.OFFICE_ISO_SCALES.pod);
+  assert.equal(L.officeIsoScaleFor({ kind: 'cage' }), L.OFFICE_ISO_SCALES.cage);
+  // Floor pins scale with depth (nearer the viewer = lower on screen = bigger).
+  const far = L.officeIsoScaleFor({ kind: 'floor' }, { x: 50, y: 20 });
+  const near = L.officeIsoScaleFor({ kind: 'floor' }, { x: 50, y: 85 });
+  assert.ok(near > far, 'floor scale grows toward the viewer');
+  // The scale is applied without moving the feet anchor.
+  assert.match(teamCss, /scale\(var\(--isos,1\)\);transform-origin:50% 88%/);
+  assert.match(team, /el\.style\.setProperty\('--isos'/);
+});
+
+test('0.9.59: flow pulses fire only on observed handoffs; guide explains glow, pulses, label clamping', () => {
+  assert.match(team, /function officeIsoDetectFlow\(room,curWorking\)/);
+  assert.match(team, /function officeIsoFirePulse\(room,from,to,runId\)/);
+  assert.match(team, /s\.runId&&t\.runId&&s\.runId===t\.runId/);
+  assert.match(team, /window\.__officeIsoPulses/);
+  // Label pass: de-overlap + clamp into the room, for names/badges/stations.
+  assert.match(team, /officeIsoLabelPass\(room\)/);
+  assert.match(teamCss, /\.office-monitor-glow\{/);
+  assert.match(teamCss, /\.office-flow-pulse\{/);
+  const guide = fs.readFileSync(path.join(root, 'public/tabs/guide.html'), 'utf8');
+  assert.ok(guide.includes('màn hình ở bàn của nó sáng lên'), 'guide explains the monitor glow');
+  assert.ok(guide.includes('tia sáng'), 'guide explains the handoff pulse');
+  assert.ok(guide.includes('tự kéo vào trong khung phòng'), 'guide explains label clamping');
 });

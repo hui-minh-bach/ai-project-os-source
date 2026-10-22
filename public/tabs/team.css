@@ -288,8 +288,20 @@
  url('/assets/office-iso-backdrop.jpg') center/cover no-repeat,
  linear-gradient(180deg,#16224a 0%,#0d1734 100%)}
 .office-room.office-iso::before{display:none}
-.office-room.office-iso .office-agent{transform:translate(-50%,-88%)}
+.office-room.office-iso .office-agent{transform:translate(-50%,-88%) scale(var(--isos,1));transform-origin:50% 88%}
 .office-room.office-3d-on .office-bot-card,.office-room.office-3d-on .office-pod-hots{display:none}
+.office-room.office-3d-on .office-glow-layer,.office-room.office-3d-on .office-flow-layer{display:none}
+/* 0.9.59 bổ sung: màn hình vẽ sẵn của bàn đang có robot LÀM VIỆC THẬT sẽ
+ * sáng lên (lớp phát sáng bám đúng neo màn hình của từng bàn trong JS,
+ * hòa trộn kiểu screen lên trên phông, nhịp sáng nhẹ). Bàn nghỉ/không có
+ * việc giữ nguyên tối. Tia luồng là chấm sáng chạy giữa hai bàn khi app
+ * quan sát thấy một chuyển giao thật giữa hai lần quét đội. */
+.office-glow-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
+.office-monitor-glow{position:absolute;width:11%;height:10.5%;transform:translate(-50%,-50%);border-radius:8px;background:radial-gradient(ellipse at center,rgba(205,242,255,1) 0%,rgba(140,215,255,.62) 42%,rgba(110,200,255,0) 72%);mix-blend-mode:screen;opacity:0;transition:opacity .6s ease}
+.office-monitor-glow.on{opacity:.9;animation:officeGlowPulse 2.4s ease-in-out infinite}
+@keyframes officeGlowPulse{0%,100%{opacity:.62}50%{opacity:1}}
+.office-flow-layer{position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+.office-flow-pulse{position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:radial-gradient(circle,#ffffff 0%,#9be3ff 35%,rgba(80,190,255,0) 75%);box-shadow:0 0 14px 4px rgba(110,210,255,.75);opacity:0}
 .office-room .office-bot-card{left:12px;right:auto}
 .bot-iso{position:relative;display:block;width:57px;height:84px}
 .bot-iso-img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:84px;width:auto;display:none;filter:drop-shadow(0 4px 4px rgba(0,0,0,.35))}
