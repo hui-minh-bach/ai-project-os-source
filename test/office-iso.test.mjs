@@ -8,7 +8,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const team = fs.readFileSync(path.join(root, 'public/tabs/team.js'), 'utf8');
 const teamCss = fs.readFileSync(path.join(root, 'public/tabs/team.css'), 'utf8');
 
-/* v0.9.58 — Văn phòng isometric (concept B2) làm mặc định + beauty pass 3D. */
+/* v0.9.58 — Văn phòng isometric (concept B2) làm mặc định + beauty pass 3D.
+ * v0.9.59 — neo đo trên đồ vẽ sẵn trong phông, kẹp điểm sàn vào đa giác
+ * boong, nhãn ô sạc so le, góc tên lửa thành lồng chích điện. */
 
 // Evaluate the REAL resolver + ISO mapping code out of team.js (the same
 // approach as office-flow: the app file is the contract). officeLoadPins and
@@ -23,7 +25,7 @@ function loadOfficeLogic(pins) {
   const factory = new Function(
     'officeLoadPins', 'localStorage',
     sliceA + '\n' + sliceB +
-    '\nreturn {officeResolvePosts, officeIsoPointForPost, officeIsoWorldToPct, officeIsoPctToWorld, OFFICE_ISO_STATIONS, OFFICE_ISO_PODS, OFFICE_DESK_POOL};');
+    '\nreturn {officeResolvePosts, officeIsoPointForPost, officeIsoWorldToPct, officeIsoPctToWorld, officeIsoClampToDeck, officeIsoInDeck, officeIsoLabelShift, OFFICE_ISO_STATIONS, OFFICE_ISO_PODS, OFFICE_DESK_POOL};');
   return factory(() => pins || {}, { getItem: () => null });
 }
 
@@ -45,7 +47,7 @@ function fixtureRoster() {
   ];
 }
 
-test('0.9.58: isometric backdrop ships and the ISO anchors sit inside the room', () => {
+test('0.9.59: isometric backdrop ships and the ISO anchors sit on the drawn deck', () => {
   const p = path.join(root, 'public/assets/office-iso-backdrop.jpg');
   assert.ok(fs.existsSync(p), 'backdrop asset ships');
   assert.ok(fs.statSync(p).size > 100000, 'backdrop is a real high-res image');
@@ -59,9 +61,20 @@ test('0.9.58: isometric backdrop ships and the ISO anchors sit inside the room',
   assert.equal(OFFICE_ISO_PODS.length, 10, '10 pod anchors (4 glass pods + waiting row)');
   const seen = new Set(OFFICE_ISO_PODS.map(p => p.x + ',' + p.y));
   assert.equal(seen.size, 10, 'pod anchors are unique');
+  // 0.9.59: EVERY anchor (stations + pods) must sit inside the drawn deck
+  // polygon — a point outside it renders over the starfield (the 0.9.58
+  // "floaters" the owner flagged from the zoomed screenshot).
+  const L = loadOfficeLogic();
+  for (const [id, st] of Object.entries(OFFICE_ISO_STATIONS)) assert.ok(L.officeIsoInDeck(st.x, st.y), 'station ' + id + ' inside the deck polygon');
+  for (const [i, pd] of OFFICE_ISO_PODS.entries()) assert.ok(L.officeIsoInDeck(pd.x, pd.y), 'pod ' + i + ' inside the deck polygon');
+  // Pod anchors are spread far enough apart for name labels to stagger.
+  for (let i = 0; i < OFFICE_ISO_PODS.length; i++) for (let j = i + 1; j < OFFICE_ISO_PODS.length; j++) {
+    const d = Math.hypot(OFFICE_ISO_PODS[i].x - OFFICE_ISO_PODS[j].x, OFFICE_ISO_PODS[i].y - OFFICE_ISO_PODS[j].y);
+    assert.ok(d >= 3, `pod anchors ${i}/${j} too close (${d})`);
+  }
 });
 
-test('0.9.58: fleet fixture maps to the expected ISO stations (position-mapping)', () => {
+test('0.9.59: fleet fixture maps to the expected ISO stations (position-mapping)', () => {
   const L = loadOfficeLogic();
   const posts = L.officeResolvePosts(fixtureRoster());
   const at = id => L.officeIsoPointForPost(posts.get(id));
@@ -171,4 +184,49 @@ test('0.9.58: third-party notices file ships with every license recorded', () =>
   for (const s of ['CC0', 'MIT', 'Poly Haven', 'Kenney', 'RoomEnvironment', 'blue_photo_studio', 'blue_floor_tiles_01', 'Furniture Kit']) {
     assert.ok(n.includes(s), 'notices mention ' + s);
   }
+});
+
+test('0.9.59: floor pins are clamped into the drawn deck polygon', () => {
+  const L = loadOfficeLogic();
+  // World corners project onto the deck diamond corners — on the rim.
+  for (const post of [{ kind: 'floor', x: -16, z: -10.5 }, { kind: 'floor', x: 16, z: 10.5 }, { kind: 'floor', x: 16, z: 0.9 }, { kind: 'floor', x: -16, z: 10.5 }]) {
+    const p = L.officeIsoPointForPost(post);
+    assert.ok(L.officeIsoInDeck(p.x, p.y), `floor post ${post.x},${post.z} -> ${p.x},${p.y} must render on the deck`);
+  }
+  // A point projected outside the deck is pulled to the rim, not left in space.
+  const c = L.officeIsoClampToDeck({ x: 1, y: 20 });
+  assert.ok(L.officeIsoInDeck(c.x, c.y), 'clamped point lands inside the deck');
+  assert.ok(c.x > 4 && c.x < 30, 'clamped point stays near the left rim it fell off');
+  // Points already inside pass through untouched.
+  assert.deepEqual(L.officeIsoClampToDeck({ x: 50, y: 50 }), { x: 50, y: 50 });
+  // Desk/pod/cage posts are NOT clamped away from their measured anchors.
+  assert.deepEqual(L.officeIsoPointForPost({ kind: 'cage' }), L.OFFICE_ISO_STATIONS.cage);
+  assert.deepEqual(L.officeIsoPointForPost({ kind: 'pod', slot: 3 }), L.OFFICE_ISO_PODS[3]);
+});
+
+test('0.9.59: the cage post stands inside the drawn electric cage; pod labels stagger', () => {
+  const { OFFICE_ISO_STATIONS, OFFICE_ISO_PODS } = loadOfficeLogic();
+  const cage = OFFICE_ISO_STATIONS.cage;
+  // The cage drawn in the 0.9.59 backdrop occupies the right corner
+  // (x 79–94%, y 30–56%); the post must land inside it, label below it.
+  assert.ok(cage.x >= 79 && cage.x <= 94 && cage.y >= 45 && cage.y <= 58, 'cage post inside the drawn cage');
+  assert.ok(cage.ly > cage.y, 'cage station label sits below the cage base');
+  // Label de-pile-up: every pod slot carries its own label-lattice offset
+  // (lx/ly for the name, bx/by for the badge), applied as a transform; and
+  // plain charging/offline pod bots show the name only (badge muted).
+  const L2 = loadOfficeLogic();
+  for (const [i, pd] of OFFICE_ISO_PODS.entries()) {
+    for (const k of ['lx', 'ly', 'bx', 'by']) assert.ok(Number.isFinite(pd[k]), `pod ${i} carries label offset ${k}`);
+    assert.deepEqual(L2.officeIsoLabelShift({ kind: 'pod', slot: i }), pd);
+  }
+  assert.equal(L2.officeIsoLabelShift({ kind: 'desk', id: 'news' }), null);
+  assert.match(team, /nmEl\.style\.transform=pd\?/);
+  assert.match(team, /pose==='pod'&&a\.fleet&&!a\.fleet\.resting/);
+  assert.match(teamCss, /\[data-isopose="desk"\] \.office-agent-badge\{top:auto;bottom:100%/);
+  assert.match(teamCss, /\.office-agent-badge\{position:absolute;top:100%/);
+  assert.match(team, /gỡ chồng HUY HIỆU/);
+  // Guide wording: the corner is the electric cage, not a rocket.
+  const guide = fs.readFileSync(path.join(root, 'public/tabs/guide.html'), 'utf8');
+  assert.ok(guide.includes('lồng chích điện'), 'guide names the electric cage corner');
+  assert.ok(!guide.includes('tên lửa'), 'guide no longer mentions a rocket');
 });

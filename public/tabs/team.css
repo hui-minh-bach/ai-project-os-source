@@ -245,7 +245,7 @@
 .office-room.office-3d-on{background:#0b0b13}
 .office-room.office-3d-on .office-station,.office-room.office-3d-on .office-agent,.office-room.office-3d-on .office-package{display:none}
 .office-3d-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:14px;cursor:grab}
-.office-bot-card{position:absolute;right:12px;bottom:12px;z-index:6;width:280px;max-width:calc(100% - 24px);background:rgba(10,14,24,.93);border:1px solid #35507a;border-radius:12px;padding:10px 12px;color:#dbe7ff;font-size:13px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.office-bot-card{position:absolute;right:12px;bottom:12px;z-index:200;width:280px;max-width:calc(100% - 24px);background:rgba(10,14,24,.93);border:1px solid #35507a;border-radius:12px;padding:10px 12px;color:#dbe7ff;font-size:13px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
 .office-bot-card .obc-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .office-bot-card .obc-head strong{font-size:14px}
 .office-bot-card .obc-x{background:none;border:0;color:#9fb6cc;cursor:pointer;font-size:14px;line-height:1}
@@ -307,8 +307,16 @@
 .office-room.office-iso .office-agent[data-state="offline"] .bot-iso{filter:grayscale(.45) brightness(.55)}
 .office-room.office-iso .office-agent[data-state="failed"] .bot-iso{filter:drop-shadow(0 0 7px rgba(255,84,60,.65))}
 .office-agent.iso-selected .bot-iso{filter:drop-shadow(0 0 10px rgba(255,209,102,.95))}
+/* 0.9.59: huy hiệu trạng thái ở bản isometric treo TUYỆT ĐỐI dưới khung
+ * robot (không nằm trong luồng dọc nữa) — nhờ vậy khung robot cao bằng
+ * nhau dù có huy hiệu hay không, và bảng tên không bị đội lên/xuống theo
+ * trạng thái. Huy hiệu của robot NGỒI BÀN treo lên TRÊN đầu: treo dưới
+ * chân từng làm hai robot làm việc kề nhau chồng chữ (bản 0.9.58). Nhãn
+ * ở cụm sạc được JS dời theo lưới riêng của từng ô (OFFICE_ISO_PODS). */
+.office-room.office-iso .office-agent-badge{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;white-space:nowrap;z-index:2}
+.office-room.office-iso .office-agent[data-isopose="desk"] .office-agent-badge{top:auto;bottom:100%;margin:0 0 2px}
 .office-agent.iso-selected .office-agent-name{border-color:#ffd166;color:#ffe9a8}
-.office-pod-hots{position:absolute;inset:0;z-index:5;pointer-events:none}
+.office-pod-hots{position:absolute;inset:0;z-index:120;pointer-events:none}
 .office-pod-hot{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:2px dashed #ffd166;background:rgba(255,209,102,.16);cursor:pointer;pointer-events:auto;padding:0;animation:officePodPulse 1.2s ease-in-out infinite}
 @keyframes officePodPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,209,102,.45)}50%{box-shadow:0 0 0 7px rgba(255,209,102,0)}}
 .office-room.office-has-selection .office-station{cursor:pointer}

@@ -324,15 +324,34 @@ function officeResolvePosts(roster){
  * điểm Sếp sửa ở concept B. Vị trí lấy từ CÙNG officeResolvePosts như
  * phòng 3D (trạng thái thật thắng ghim tay; ghim dùng chung khóa
  * localStorage 'aios-office-pins' ở cả hai chế độ xem). */
+/* 0.9.59: neo isometric đo TRỰC TIẾP trên đồ nội thất VẼ SẴN trong phông
+ * (ghế của từng bàn trong lưới, 4 buồng sạc kính, ghế sofa tiếp nhận) —
+ * bản 0.9.58 neo theo lưới tọa độ thế giới nên robot lệch khỏi bàn/ghế vẽ
+ * sẵn và cụm ô sạc chồng nhãn. Góc phải của phông từ 0.9.59 là LỒNG CHÍCH
+ * ĐIỆN (bản cũ vẽ tên lửa — đã thay bằng lồng kính có hồ quang điện, đúng
+ * mô tả "robot lỗi vào chuồng chích điện"); neo cage đứng TRONG lồng,
+ * nhãn của trạm cage (ly) hạ xuống dưới đế lồng cho khỏi bị sprite che. */
 const OFFICE_ISO_STATIONS={
- boss:{x:46,y:27.5,label:'👔 Sếp Lâm'},
- news:{x:18,y:46,label:'📰 Tin tức'}, script:{x:27,y:39,label:'✍️ Biên tập'},
- image:{x:28,y:54,label:'🎨 Hình ảnh'}, media:{x:36.5,y:49,label:'🎬 Sản xuất'},
- review:{x:37.5,y:60,label:'🔎 Kiểm duyệt'}, pm:{x:46,y:53.5,label:'🧭 Điều phối'},
- publish:{x:56,y:57,label:'🚀 Đăng bài'}, intake:{x:48,y:77,label:'🛋️ Tiếp nhận'},
- lounge:{x:72,y:24,label:'🔋 Phòng nạp năng lượng'}, cage:{x:85,y:64,label:'⚡ Phòng chích điện'},
+ boss:{x:46,y:26.5,label:'👔 Sếp Lâm'},
+ news:{x:32.6,y:38.3,label:'📰 Tin tức'}, script:{x:24.3,y:44.8,label:'✍️ Biên tập'},
+ image:{x:34,y:51.9,label:'🎨 Hình ảnh'}, media:{x:14.6,y:51.8,label:'🎬 Sản xuất'},
+ review:{x:24.4,y:59.3,label:'🔎 Kiểm duyệt'}, pm:{x:43.1,y:60.8,label:'🧭 Điều phối'},
+ publish:{x:51.2,y:52.6,label:'🚀 Đăng bài'}, intake:{x:48.5,y:78.5,label:'🛋️ Tiếp nhận'},
+ lounge:{x:66,y:31,label:'🔋 Phòng nạp năng lượng'}, cage:{x:85,y:52.5,ly:58.5,label:'⚡ Phòng chích điện'},
 };
-const OFFICE_ISO_PODS=[{x:66.5,y:30.5},{x:70.5,y:32},{x:74,y:33.5},{x:77.5,y:35},{x:62,y:37.5},{x:65.5,y:39.5},{x:69,y:41.5},{x:72.5,y:43.5},{x:59.5,y:41.5},{x:63,y:44.5}];
+/* Ô sạc: 4 ô đầu = đúng 4 buồng kính vẽ sẵn (chân robot ở đế buồng); 6 ô
+ * sau = hàng chờ trên sàn trống cạnh khu buồng kính. lx/ly = độ lệch (px,
+ * ở bề rộng phòng 626) đưa BẢNG TÊN của ô đó tới ô lưới nhãn riêng phía
+ * trên cụm sạc; bx/by = độ lệch của HUY HIỆU trạng thái (nằm dưới chân).
+ * Cụm sạc chật mà bảng tên rộng gần bằng khoảng cách hai ô — xếp tên
+ * theo lưới lệch sẵn này thì 10 robot đứng cùng lúc tên vẫn không chồng
+ * (bản 0.9.58 xếp tên ngay dưới chân từng robot nên chồng thành một đám). */
+const OFFICE_ISO_PODS=[
+ {x:63.5,y:38.7,lx:16,ly:-69,bx:34,by:0},{x:67.4,y:39.9,lx:-6,ly:-33,bx:-34,by:0},
+ {x:71,y:41,lx:8,ly:-97,bx:38,by:0},{x:74.4,y:42.2,lx:15,ly:-84,bx:-38,by:0},
+ {x:57.5,y:38.5,lx:-12,ly:-68,bx:30,by:0},{x:60.5,y:41.5,lx:-22,ly:-62,bx:-30,by:0},
+ {x:64.5,y:44.5,lx:26,ly:-74,bx:34,by:0},{x:69.5,y:46,lx:53,ly:-59,bx:-38,by:0},
+ {x:74.5,y:47.5,lx:33,ly:-87,bx:38,by:0},{x:55.5,y:41,lx:-9,ly:-97,bx:-30,by:0}];
 /* Sàn: ánh xạ hai chiều tọa độ thế giới 3D (x,z) <-> % isometric bằng nội
  * suy song tuyến tính trên hình thoi boong tàu trong phông B2 (điểm ghim
  * sàn tự chọn dùng chung được cho cả phòng 3D lẫn isometric). */
@@ -354,13 +373,45 @@ function officeIsoPctToWorld(px,py){
  }
  return {x:Math.max(-16,Math.min(16,(u*2-1)*17)), z:Math.max(-10.5,Math.min(10.5,(v*2-1)*11))};
 }
+/* Đa giác sàn boong trong phông B2 (4 góc hình thoi của mặt sàn vẽ sẵn).
+ * Mọi điểm hiển thị isometric đều bị KẸP vào trong đa giác này: phông vẽ
+ * sàn không lấp đầy cả khung hình (xung quanh là nền sao), nên một điểm
+ * ghim sàn ở sát rìa thế giới 3D có thể chiếu ra ngoài mặt sàn — robot
+ * khi đó trông như lơ lửng giữa sao. Phòng 3D giữ nguyên tọa độ thế giới
+ * của điểm ghim dùng chung; chỉ bản isometric kẹp điểm chiếu của nó vào
+ * sàn (điểm ghim lưu trong localStorage không đổi). */
+const OFFICE_ISO_DECK_POLY=[{x:50,y:15},{x:95,y:47},{x:48,y:91},{x:4,y:50}];
+function officeIsoInDeck(px,py){
+ let inside=false; const P=OFFICE_ISO_DECK_POLY;
+ for(let i=0,j=P.length-1;i<P.length;j=i++){
+  const a=P[i],b=P[j];
+  if(((a.y>py)!==(b.y>py))&&(px<(b.x-a.x)*(py-a.y)/(b.y-a.y)+a.x))inside=!inside;
+ }
+ return inside;
+}
+function officeIsoClampToDeck(p){
+ if(officeIsoInDeck(p.x,p.y))return p;
+ let best=null,bd=1e9; const P=OFFICE_ISO_DECK_POLY;
+ for(let i=0,j=P.length-1;i<P.length;j=i++){
+  const a=P[j],b=P[i],vx=b.x-a.x,vy=b.y-a.y,L=vx*vx+vy*vy||1e-9;
+  let t=((p.x-a.x)*vx+(p.y-a.y)*vy)/L; t=Math.max(0,Math.min(1,t));
+  const qx=a.x+vx*t,qy=a.y+vy*t,d=(p.x-qx)*(p.x-qx)+(p.y-qy)*(p.y-qy);
+  if(d<bd){bd=d;best={x:qx,y:qy};}
+ }
+ // Hích nhẹ về phía tâm sàn để chân robot nằm hẳn trên mặt sàn vẽ sẵn.
+ return {x:best.x+(49.25-best.x)*0.02,y:best.y+(50.75-best.y)*0.02};
+}
 function officeIsoPointForPost(post){
  if(!post)return OFFICE_ISO_STATIONS.lounge;
  if(post.kind==='desk'||post.kind==='station')return OFFICE_ISO_STATIONS[post.id]||OFFICE_ISO_STATIONS.pm;
  if(post.kind==='pod')return OFFICE_ISO_PODS[Math.max(0,Math.min(9,post.slot||0))];
  if(post.kind==='cage')return OFFICE_ISO_STATIONS.cage;
- if(post.kind==='floor')return officeIsoWorldToPct(post.x,post.z);
+ if(post.kind==='floor')return officeIsoClampToDeck(officeIsoWorldToPct(post.x,post.z));
  return OFFICE_ISO_STATIONS.lounge;
+}
+function officeIsoLabelShift(post){
+ if(!post||post.kind!=='pod')return null;
+ return OFFICE_ISO_PODS[Math.max(0,Math.min(9,post.slot||0))];
 }
 function officeIsoSpriteKey(a){
  const kind=a&&a.fleet?a.fleet.kind:'';
@@ -401,7 +452,10 @@ function officeIsoDispatchPod(slot){
 }
 function officeIsoDispatchFloor(px,py){
  const a=officeIsoSelectedAgent(); if(!a||a.id==='boss')return;
- const w=officeIsoPctToWorld(px,py);
+ // Bấm ra ngoài mặt sàn vẽ sẵn (nền sao) → kẹp vào điểm sàn gần nhất rồi
+ // mới đổi sang tọa độ thế giới, để điểm ghim dùng chung vẫn nằm trên sàn.
+ const cp=officeIsoClampToDeck({x:px,y:py});
+ const w=officeIsoPctToWorld(cp.x,cp.y);
  const pins=officeLoadPins(); pins[a.id]={kind:'floor',x:Math.round(w.x*10)/10,z:Math.round(w.z*10)/10}; officeSavePins(pins);
  toast(`📌 Đã ghim ${officePlateName(a)} tới điểm sàn đã chọn — trạng thái thật vẫn thắng khi có việc.`);
  officeRender();
@@ -495,7 +549,7 @@ function officeRender(){
  if(!room.dataset.built||officeState.rosterSig!==rosterSig){
   room.dataset.built='1'; officeState.rosterSig=rosterSig;
   const cnv=room.querySelector('.office-3d-canvas'); if(cnv)cnv.remove();
-  room.innerHTML=Object.entries(isoMode?OFFICE_ISO_STATIONS:OFFICE_STATIONS_2D).map(([id,st])=>`<div class="office-station" data-station="${id}" style="left:${st.x}%;top:${st.y}%">${st.label}</div>`).join('')
+  room.innerHTML=Object.entries(isoMode?OFFICE_ISO_STATIONS:OFFICE_STATIONS_2D).map(([id,st])=>`<div class="office-station" data-station="${id}" style="left:${st.lx??st.x}%;top:${st.ly??st.y}%">${st.label}</div>`).join('')
    +roster.map(a=>`<button type="button" class="office-agent" id="officeAgent-${a.id}" data-office-agent="${a.id}" style="left:50%;top:50%" title="${esc(a.role)}${a.fleet?'':' — bấm để đổi tên'}"><span class="office-agent-shadow"></span>${isoMode&&a.fleet?officeFigureIso(a):officeFigure(a)}<span class="office-agent-name">${esc(officePlateName(a))}</span><span class="office-agent-badge" hidden></span></button>`).join('')
    +`<div class="office-package" id="officePackage" hidden>📦</div>`
    +(awaiting?'':'' );
@@ -524,6 +578,12 @@ function officeRender(){
    let pt,pose;
    if(post){pt=officeIsoPointForPost(post); pose=post.kind==='pod'?'pod':((post.kind==='desk'||post.kind==='station')&&post.id!=='boss'?'desk':'stand');}
    else{const stId0=officeStationOf(a.id,ctx); pt=OFFICE_ISO_STATIONS[stId0]||OFFICE_ISO_STATIONS.lounge; pose=stId0==='lounge'?'pod':'stand';}
+   pt=officeIsoClampToDeck(pt);
+   el.style.zIndex=String(10+Math.round(pt.y));
+   const pd=officeIsoLabelShift(post), lsc=(room.clientWidth||626)/626;
+   const nmEl=el.querySelector('.office-agent-name'), bdEl=el.querySelector('.office-agent-badge');
+   if(nmEl)nmEl.style.transform=pd?`translate(${Math.round(pd.lx*lsc)}px,${Math.round(pd.ly*lsc)}px)`:'';
+   if(bdEl){const btx=pd?Math.round(pd.bx*lsc):0, bty=pd?Math.round(pd.by*lsc):0; bdEl.dataset.btx=String(btx); bdEl.dataset.bty=String(bty); bdEl.style.transform=pd?`translateX(calc(-50% + ${btx}px)) translateY(${bty}px)`:'';}
    const postKey=post?(post.kind+':'+(post.id!==undefined?post.id:(post.slot!==undefined?post.slot:post.x+','+post.z))):'cast:'+pt.x+','+pt.y;
    const prev=officePrevPos[a.id];
    if(prev&&prev.station!==postKey){
@@ -540,10 +600,16 @@ function officeRender(){
    el.classList.toggle('iso-selected',officeIsoSelectedId===a.id);
    const badge=el.querySelector('.office-agent-badge');
    let badgeText='';
-   if(a.fleet){const b=a.fleet; badgeText=b.cage?'⚡ đang bị chích điện':b.state==='working'?'đang làm việc…':b.state==='failed'?'⚡ vừa lỗi — chờ thay ca':b.resting?'🔋 đang nghỉ sạc · mở lại '+(b.coolingUntil?new Date(b.coolingUntil).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''):''; el.dataset.state=b.cage?'failed':b.state;}
+   if(a.fleet){const b=a.fleet; badgeText=b.cage?'⚡ đang bị chích điện':b.state==='working'?'đang làm việc…':b.state==='failed'?'⚡ vừa lỗi':b.resting?'🔋 nghỉ sạc · '+(b.coolingUntil?new Date(b.coolingUntil).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}):''):''; el.dataset.state=b.cage?'failed':b.state;}
    else if(a.id==='boss'&&awaiting)badgeText='✋ chờ duyệt';
    if(culprit&&culprit.agentId===a.id)badgeText='⚡ đang bị chích điện';
    if(!a.fleet&&officeStationOf(a.id,ctx)==='lounge'&&!(culprit&&culprit.agentId===a.id))badgeText='💤 đang nạp năng lượng';
+   /* 0.9.59: robot ở ô sạc mà không có trạng thái đáng chú ý (chỉ đang
+    * sạc chờ việc / chưa kết nối / ô trống) thì CHỈ hiện bảng tên — dòng
+    * trạng thái đã có ở mục tin dưới phòng; bớt một lớp chữ là cụm ô sạc
+    * hết cảnh nhãn chồng nhãn (0.9.58). Nghỉ sạc (có giờ mở lại), vừa lỗi
+    * và chích điện vẫn giữ huy hiệu. */
+   if(pose==='pod'&&a.fleet&&!a.fleet.resting&&a.fleet.state!=='failed'&&!a.fleet.cage)badgeText='';
    badge.hidden=!badgeText; badge.textContent=badgeText;
    el.classList.toggle('office-busy',Boolean(a.fleet&&(a.fleet.state==='working'||a.fleet.cage)));
    window.__officeIsoPosts[a.id]={kind:post?post.kind:'cast',id:post&&post.id!==undefined?post.id:null,slot:post&&post.kind==='pod'?post.slot:null,x:pt.x,y:pt.y,pose:el.dataset.isopose,pinned:Boolean(post&&post.pinned),stateDriven:Boolean(post&&post.stateDriven),sprite:a.fleet?officeIsoSpriteKey(a):null};
@@ -576,6 +642,32 @@ function officeRender(){
   if(!a.fleet&&officeStationOf(a.id,ctx)==='lounge'&&!(culprit&&culprit.agentId===a.id))badgeText='💤 đang nạp năng lượng';
   badge.hidden=!badgeText; badge.textContent=badgeText;
   el.classList.toggle('office-busy',(Boolean(badgeText)&&(!a.fleet||a.fleet.state==='working'||a.fleet.cage))||(a.id==='pm'&&Boolean(activeRun)));
+ }
+ if(isoMode){
+  /* 0.9.59: gỡ chồng HUY HIỆU ở cụm sạc theo hình học thật — sau khi mọi
+   * robot đã yên vị, cặp huy hiệu nào còn chồng nhau thì huy hiệu của
+   * robot đứng thấp hơn bị đẩy xuống dưới mép chồng + 3px (tối đa 6 vòng).
+   * Bảng tên không qua đây: tên đã có lưới nhãn riêng theo từng ô sạc. */
+  const bdItems=[];
+  room.querySelectorAll('[data-office-agent]').forEach(el=>{
+   const bd=el.querySelector('.office-agent-badge');
+   if(bd&&!bd.hidden&&el.dataset.isopose==='pod')bdItems.push(bd);
+  });
+  for(let round=0;round<6;round++){
+   let moved=false;
+   for(let i=0;i<bdItems.length;i++)for(let j=i+1;j<bdItems.length;j++){
+    const ra=bdItems[i].getBoundingClientRect(), rb=bdItems[j].getBoundingClientRect();
+    const ox=Math.min(ra.right,rb.right)-Math.max(ra.left,rb.left);
+    const oy=Math.min(ra.bottom,rb.bottom)-Math.max(ra.top,rb.top);
+    if(ox>1&&oy>1){
+     const bd=bdItems[j], nty=(parseFloat(bd.dataset.bty)||0)+oy+3;
+     bd.dataset.bty=String(nty);
+     bd.style.transform=`translateX(calc(-50% + ${bd.dataset.btx||'0'}px)) translateY(${nty}px)`;
+     moved=true;
+    }
+   }
+   if(!moved)break;
+  }
  }
  const pkg=$('#officePackage');
  if(pkg){
