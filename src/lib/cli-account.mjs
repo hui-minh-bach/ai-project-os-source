@@ -4,7 +4,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { run } from './shell.mjs';
-import { resolveCli, cliRuntime } from './managed-cli.mjs';
+import { resolveCli, cliProfileDir, cliRuntimeForHome } from './managed-cli.mjs';
 import { getConnection, saveConnection, listConnections, vaultStatus } from './vault.mjs';
 import { recordAccountCatalog, recordAccountModel, invalidateModels, modelAvailability } from './model-bindings.mjs';
 import { atomicWriteText } from './store.mjs';
@@ -19,24 +19,58 @@ function assertVault(){if(!vaultStatus().unlocked)throw new Error('Cần mở Va
 function account(c){const kind=Object.keys(MAP).find(k=>MAP[k]===c.kind);if(!kind)throw new Error('Không phải kết nối CLI account.');return kind;}
 export function createCliAccount(kind,name){
  assertVault();kind=validateKind(kind);
- // Each CLI provider has one isolated login profile per Windows user.
- // A second alias would share credentials and silently misidentify the account.
- if((listConnections()).some(c=>c.kind===MAP[kind]))throw new Error('Mỗi provider CLI hiện hỗ trợ một tài khoản trên máy. Dùng kết nối API key để thêm tài khoản khác.');
+ // Multi-account (v0.9.56): any number of accounts per CLI provider,
+ // like ChatGPT — each connection gets its OWN isolated login profile
+ // (see cliAccountProfileDir), so a second account can never share or
+ // silently replace the first account's vendor session.
  const c=saveConnection({kind:MAP[kind],name:String(name||nameOf[kind]).slice(0,80),meta:{authMode:'cli-account'}});
  return {id:c.id,kind,loginScript:kind==='claude'?'LOGIN-CLAUDE-WINDOWS.cmd':'LOGIN-GEMINI-WINDOWS.cmd',message:'Cài CLI, mở cửa sổ đăng nhập chính thức; sau đó nhập model và bấm Xác minh model.'};
+}
+// Deterministic per-connection profile resolution (v0.9.56), derived
+// from the vault's connection list and never stored: peers of the kind
+// ordered by (createdAt, id); the earliest-created connection adopts the
+// LEGACY per-kind folder (an existing Claude/Gemini login survives the
+// upgrade untouched — no migration, no re-login), later connections get
+// cli-profiles/<kind>-accounts/<connectionId>.
+const byCreation=(a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))||String(a.id).localeCompare(String(b.id));
+export function cliAccountProfileDir(c){
+ const kind=account(c);
+ if(!c?.id)return cliProfileDir(kind);
+ let peers=[];try{peers=listConnections().filter(x=>x.kind===MAP[kind]).sort(byCreation);}catch{peers=[];}
+ // No readable vault context (plan-shape callers only — every real
+ // inference path asserts the vault before planning): keep the legacy
+ // per-kind shape. With the vault open the resolution above is exact.
+ if(!peers.length)return cliProfileDir(kind);
+ return cliProfileDir(kind,peers[0].id===c.id?null:c.id);
 }
 export function cliAccountStatus(id){
  assertVault();const c=getConnection(id),kind=account(c),availability=modelAvailability(id);
  let ready=false;try{resolveCli(kind);ready=true;}catch{}
  return {kind,installed:ready,availability,verifiedModels:availability.models||[],message:ready?'Chỉ model đã phản hồi thực sự mới có thể phân vai.':'Chưa cài CLI. Bấm Cài công cụ AI.'};
 }
-export function removeCliAccount(id){assertVault();const c=getConnection(id);account(c);invalidateModels(id);return {ok:true};}
+export function removeCliAccount(id){
+ assertVault();const c=getConnection(id);const kind=account(c);invalidateModels(id);
+ // Delete isolation (v0.9.56), same rule as Antigravity: only this
+ // connection's affordances are touched. If it is the connection
+ // adopting the LEGACY folder while siblings remain, park the legacy
+ // folder under its own per-id slot (renamed, never deleted) so the
+ // promoted sibling never inherits this account's vendor session.
+ try{
+  const siblings=listConnections().filter(x=>x.kind===MAP[kind]&&x.id!==id);
+  const legacy=cliProfileDir(kind);
+  if(siblings.length&&cliAccountProfileDir(c)===legacy&&fs.existsSync(legacy)){
+   const parked=cliProfileDir(kind,id);
+   if(!fs.existsSync(parked)){fs.mkdirSync(path.dirname(parked),{recursive:true,mode:0o700});fs.renameSync(legacy,parked);}
+  }
+ }catch{/* parking is best-effort hygiene; the vault removal stands */}
+ return {ok:true};
+}
 export function cliInferencePlan(c,{system='',prompt=''}={}){
  const kind=account(c);
  if(typeof c.model!=='string'||!c.model.trim()||c.model.length>120||/[\x00-\x1f]/.test(c.model))throw new Error('Model CLI không hợp lệ.');
  const whole=(String(system||'')+'\n\nUSER:\n'+String(prompt||'')).trim();
  if(!whole||whole.length>120000)throw new Error('Prompt CLI quá dài hoặc trống.');
- const {cwd,env}=cliRuntime(kind);
+ const {cwd,env}=cliRuntimeForHome(cliAccountProfileDir(c));
  if(kind==='gemini'){
   // Google Gemini CLI: tools.core set explicitly to an empty allowlist.
   // Home & working directory are both private and contain no extensions/MCP.
@@ -82,13 +116,19 @@ export async function verifyCliAccountModel(id,model,deps={}){
  saveConnection({...current,meta:{...current.meta,authMode:'cli-account',verifiedAt:new Date().toISOString()}});
  return {ok:true,model,kind,message:'Model đã phản hồi. Có thể dùng trong các vai trò AI.'};
 }
-export async function startCliLoginWindow(kind,{platform=process.platform,exec=run}={}){
+export async function startCliLoginWindow(kind,{id,platform=process.platform,exec=run}={}){
  kind=validateKind(kind);
  if(platform!=='win32')throw new Error('Trên Windows dùng nút Mở đăng nhập; trên máy khác chạy CLI chính thức trong Terminal.');
  resolveCli(kind); // Fail immediately if CLI is not installed; never claim a login window opened.
+ // Per-connection login (v0.9.56): with a connection id, the login
+ // window runs against THAT connection's profile folder (passed through
+ // the environment to tools/cli-login.mjs) and names the account, so
+ // each account's vendor session lands in its own folder.
+ let env;
+ if(id){assertVault();const c=getConnection(id);if(account(c)!==kind)throw new Error('Kết nối không thuộc provider CLI này.');env={AIOS_CLI_PROFILE_DIR:cliAccountProfileDir(c),AIOS_CLI_ACCOUNT_NAME:c.name};}
  // This is a fixed PS1 from our release, not untrusted text from the browser.
  const script=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../LAUNCH-AI-LOGIN-WINDOWS.ps1');
- const r=await exec('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',script,'-Kind',kind],{timeoutMs:15000,inheritEnv:false});
+ const r=await exec('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',script,'-Kind',kind],{timeoutMs:15000,inheritEnv:false,...(env?{env}:{})});
  if(r.code!==0)throw new Error('Không mở được cửa sổ đăng nhập. Hãy chạy LOGIN-CLAUDE-WINDOWS.cmd hoặc LOGIN-GEMINI-WINDOWS.cmd trong thư mục ứng dụng.');
- return {ok:true,message:'Cửa sổ đăng nhập chính thức đã được mở. Hoàn tất đăng nhập rồi xác minh model.'};
+ return {ok:true,message:env?`Cửa sổ đăng nhập chính thức đã được mở cho tài khoản “${env.AIOS_CLI_ACCOUNT_NAME}” (hồ sơ riêng của tài khoản này). Hoàn tất đăng nhập rồi xác minh model.`:'Cửa sổ đăng nhập chính thức đã được mở. Hoàn tất đăng nhập rồi xác minh model.'};
 }

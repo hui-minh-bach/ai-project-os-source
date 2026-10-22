@@ -101,9 +101,21 @@ export async function installManagedCli(kind,{invoke=run,npmPath}={}){
  }finally{installing=false;}
 }
 export function cliToolsStatus(){return Object.keys(CLI_TOOLS).map(kind=>({kind,installed:(()=>{try{return Boolean(resolveCli(kind));}catch{return false;}})(),managed:!!managedEntry(kind),officialUrl:CLI_TOOLS[kind].url}));}
-export function cliProfileDir(kind){cleanKind(kind);return path.join(DATA_DIR,'cli-profiles',kind);}
-export function cliRuntime(kind){
- const home=cliProfileDir(kind),cwd=path.join(home,'empty');fs.mkdirSync(cwd,{recursive:true,mode:0o700});
+// Per-connection CLI profiles (v0.9.56): with no connectionId this is the
+// LEGACY per-kind folder (the first-created connection of the kind adopts
+// it — see cli-account.mjs); with a connectionId it is that connection's
+// own folder, cli-profiles/<kind>-accounts/<connectionId>, so multiple
+// Claude/Gemini accounts never share a vendor session. The id is a vault
+// UUID; anything else is rejected before it can become a path.
+export function cliProfileDir(kind,connectionId=null){
+ cleanKind(kind);
+ if(!connectionId)return path.join(DATA_DIR,'cli-profiles',kind);
+ if(!/^[a-f0-9-]{36}$/i.test(String(connectionId)))throw new Error('ID tài khoản không hợp lệ.');
+ return path.join(DATA_DIR,'cli-profiles',`${kind}-accounts`,String(connectionId));
+}
+export function cliRuntime(kind,connectionId=null){return cliRuntimeForHome(cliProfileDir(kind,connectionId));}
+export function cliRuntimeForHome(home){
+ const cwd=path.join(home,'empty');fs.mkdirSync(cwd,{recursive:true,mode:0o700});
  for(const p of [home,cwd])try{fs.chmodSync(p,0o700);}catch{}
  const base={PATH:process.env.PATH||process.env.Path||'',HOME:home,USERPROFILE:home};
  for(const k of ['SystemRoot','WINDIR','COMSPEC','TEMP','TMP','PATHEXT','LANG','APPDATA','LOCALAPPDATA'])if(process.env[k])base[k]=process.env[k];

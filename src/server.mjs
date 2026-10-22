@@ -48,7 +48,7 @@ import { localWorkers } from './lib/local-workers.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.55';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.56';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -482,7 +482,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='POST'&&u.pathname==='/api/vault/lock'){lockVault();return send(res,200,{ok:true});}
   if(req.method==='GET'&&u.pathname==='/api/antigravity/status')return send(res,200,antigravityStatus());
   if(req.method==='POST'&&u.pathname==='/api/antigravity/install')return send(res,200,await installAntigravityWindows());
-  if(req.method==='POST'&&u.pathname==='/api/antigravity/login')return send(res,200,await openAntigravityLogin());
+  if(req.method==='POST'&&u.pathname==='/api/antigravity/login')return send(res,200,await openAntigravityLogin({id:(await readBody(req)).id}));
   if(req.method==='POST'&&u.pathname==='/api/antigravity/connect')return send(res,200,createAntigravityAccount((await readBody(req)).name));
   if(req.method==='GET'&&/^\/api\/antigravity\/[a-f0-9-]{36}\/models$/.test(u.pathname))return send(res,200,await listAntigravityModels(u.pathname.split('/')[3]));
   if(req.method==='POST'&&/^\/api\/antigravity\/[a-f0-9-]{36}\/verify$/.test(u.pathname))return send(res,200,await verifyAntigravityModel(u.pathname.split('/')[3],(await readBody(req)).model));
@@ -491,7 +491,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='GET'&&u.pathname==='/api/media/kokoro')return send(res,200,{...kokoroStatus(),installing:kokoroInstalling()});
   if(req.method==='POST'&&u.pathname==='/api/media/kokoro/install'){try{return send(res,200,{...await kokoroInstall(),installing:false});}catch(e){return send(res,409,{error:e.message,installing:kokoroInstalling()});}}
   if(req.method==='POST'&&/^\/api\/cli-accounts\/(claude|gemini)\/connect$/.test(u.pathname)){const kind=u.pathname.split('/')[3];return send(res,200,createCliAccount(kind,(await readBody(req)).name));}
-  if(req.method==='POST'&&/^\/api\/cli-accounts\/(claude|gemini)\/login$/.test(u.pathname))return send(res,200,await startCliLoginWindow(u.pathname.split('/')[3]));
+  if(req.method==='POST'&&/^\/api\/cli-accounts\/(claude|gemini)\/login$/.test(u.pathname))return send(res,200,await startCliLoginWindow(u.pathname.split('/')[3],{id:(await readBody(req)).id}));
   if(req.method==='GET'&&u.pathname==='/api/infra-accounts/status')return send(res,200,{tools:infraToolsStatus()});
   if(req.method==='POST'&&/^\/api\/infra-accounts\/(github|vercel|supabase)\/install$/.test(u.pathname))return send(res,200,await installInfraTool(u.pathname.split('/')[3]));
   if(req.method==='POST'&&/^\/api\/infra-accounts\/(github|vercel|supabase)\/login$/.test(u.pathname))return send(res,200,await startInfraLoginWindow(u.pathname.split('/')[3]));

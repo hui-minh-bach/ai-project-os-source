@@ -38,7 +38,15 @@ test('Claude CLI account fails closed before it has any model catalog and can be
   assert.equal(captured.options.env.ANTHROPIC_API_KEY,undefined);
   assert.equal(captured.options.env.GOOGLE_API_KEY,undefined);
   assert.equal(v.getConnection(account.id).model,'','verified model selection is a separate explicit operation');
-  assert.throws(()=>c.createCliAccount('claude','Wrong alias'),/một tài khoản/);
+  // v0.9.56: a second account of the same provider is no longer blocked —
+  // it is created with its OWN isolated CLI profile (the first account
+  // keeps the legacy per-kind folder; see multi-account-profiles tests).
+  const store=await f.import('src/lib/store.mjs');
+  await new Promise(r=>setTimeout(r,5)); // distinct createdAt, like real sequential adds
+  const second=c.createCliAccount('claude','Second Claude account');
+  assert.notEqual(second.id,account.id);
+  assert.equal(c.cliAccountProfileDir(v.getConnection(account.id)),path.join(store.DATA_DIR,'cli-profiles','claude'),'first-created account adopts the legacy profile');
+  assert.equal(c.cliAccountProfileDir(v.getConnection(second.id)),path.join(store.DATA_DIR,'cli-profiles','claude-accounts',second.id),'second account gets its own profile folder');
   const stale=b.modelAvailability(account.id).models;
   assert.equal(stale.length,1);
   const reg=await f.import('src/lib/store.mjs');const r=reg.readJson('model-registry.json',{});

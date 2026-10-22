@@ -12,9 +12,29 @@ import { recordAccountCatalog, recordAccountModel, invalidateModels, modelAvaila
 import { recordUsage } from './usage.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const PROFILE=path.join(DATA_DIR,'cli-profiles','antigravity');
 const DOCS='https://www.antigravity.google/docs/cli/install/';
 const KIND='antigravity_account';
+// Per-connection CLI profiles (v0.9.56 — multi-account Antigravity, the
+// owner's "giống chatgpt ấy" order). Until 0.9.55 this module had ONE fixed
+// session folder for the whole kind, so every Antigravity login shared and
+// replaced a single Google session and a second account could not exist.
+// Now — exactly like ChatGPT/Codex (account-profiles/<connectionId>) —
+// every connection gets its OWN session folder and its own environment.
+// Resolution is deterministic and derived from the vault's connection
+// list, never stored: peers ordered by (createdAt, id); the earliest
+// created connection adopts the LEGACY folder (no migration — the
+// owner's existing verified "Ngọc" session survives the upgrade
+// untouched, no re-login), later connections get
+// cli-profiles/antigravity-accounts/<connectionId>.
+const LEGACY_PROFILE=path.join(DATA_DIR,'cli-profiles','antigravity');
+const ACCOUNTS_DIR=path.join(DATA_DIR,'cli-profiles','antigravity-accounts');
+const byCreation=(a,b)=>String(a.createdAt||'').localeCompare(String(b.createdAt||''))||String(a.id).localeCompare(String(b.id));
+export function antigravityProfileDir(id){
+ if(!id)return LEGACY_PROFILE;
+ let peers=[];try{peers=listConnections().filter(c=>c.kind===KIND).sort(byCreation);}catch{peers=[];}
+ if(peers.length&&peers[0].id===id)return LEGACY_PROFILE;
+ return path.join(ACCOUNTS_DIR,String(id));
+}
 const SAFE_NAME=/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$/;
 const VALID_STATUS=new Set(['SUCCESS']);
 const safeExecutable=(p)=>{try{return fs.statSync(p).isFile()?p:null;}catch{return null;}};
@@ -55,8 +75,11 @@ export function antigravityLauncher({platform=process.platform,env=process.env}=
  if(ideFound)throw new Error('Đã thấy ứng dụng Antigravity (IDE) trên máy, nhưng chưa có Antigravity CLI (lệnh agy) — IDE và CLI là hai bản cài khác nhau. Bấm nút 1 để cài CLI bằng WinGet, rồi bấm Kiểm tra lại.');
  throw new Error('Chưa tìm thấy Antigravity CLI. Cài từ trang chính thức của Google, sau đó bấm Kiểm tra lại.');
 }
-export function antigravityEnvironment({env=process.env}={}){
- const home=PROFILE,cwd=path.join(home,'empty');fs.mkdirSync(cwd,{recursive:true,mode:0o700});
+export function antigravityEnvironment(id,{env=process.env}={}){
+ // Back-compat: a bare {env} first argument (pre-0.9.56 call shape) means
+ // "no specific connection" and resolves to the legacy profile.
+ if(id&&typeof id==='object'){env=id.env||process.env;id=null;}
+ const home=antigravityProfileDir(id),cwd=path.join(home,'empty');fs.mkdirSync(cwd,{recursive:true,mode:0o700});
  const vars={HOME:home,USERPROFILE:home,PATH:env.PATH||env.Path||''};
  for(const k of ['SystemRoot','WINDIR','COMSPEC','TEMP','TMP','PATHEXT','LANG','APPDATA','LOCALAPPDATA'])if(env[k])vars[k]=env[k];
  // Do not inherit any provider API secrets, custom MCP URLs, or billing overrides.
@@ -81,7 +104,10 @@ export function antigravityEnvironment({env=process.env}={}){
 function requireVault(){if(!vaultStatus().unlocked)throw new Error('Hãy mở Secret Vault trước.');}
 function currentAccount(id){requireVault();const c=getConnection(id);if(c.kind!==KIND||c.meta?.authMode!=='antigravity-cli')throw new Error('Đây không phải tài khoản Antigravity.');return c;}
 export function createAntigravityAccount(name='Google Antigravity'){
- requireVault();if(listConnections().some(c=>c.kind===KIND))throw new Error('Đã có kết nối Antigravity. Quản lý kết nối hiện có thay vì tạo trùng.');
+ requireVault();
+ // Multi-account (v0.9.56): any number of Antigravity connections, like
+ // ChatGPT — each one gets its own Google session folder (see
+ // antigravityProfileDir), so accounts never share or replace sessions.
  // Probe before persisting: a real CLI must already be installed.
  antigravityLauncher();
  const c=saveConnection({kind:KIND,name:String(name||'Google Antigravity').slice(0,80),meta:{authMode:'antigravity-cli'}});
@@ -103,7 +129,7 @@ function cliFailure(lead,r){
 }
 function stdoutSample(r){return String((r&&r.stdout)||'').trim().slice(0,200);}
 export async function listAntigravityModels(id,deps={}){
- const c=currentAccount(id);const bin=(deps.resolve||antigravityLauncher)();const {cwd,env}=(deps.profile||antigravityEnvironment)();
+ const c=currentAccount(id);const bin=(deps.resolve||antigravityLauncher)();const {cwd,env}=(deps.profile||antigravityEnvironment)(id);
  // Antigravity CLI 1.4.0 (proven on the owner's machine): the `models`
  // subcommand accepts NO flags besides -h/--help — passing
  // `--output-format json` exits non-zero with "flags provided but not
@@ -139,7 +165,7 @@ export async function askAntigravityAccount(connection,{system='',prompt=''}={},
  if(!SAFE_NAME.test(connection.model||''))throw new Error('Model Antigravity không hợp lệ.');
  const text=(String(system||'')+'\n\nYêu cầu:\n'+String(prompt||'')).trim();
  if(!text||text.length>120000)throw new Error('Prompt rỗng hoặc quá dài.');
- const bin=(deps.resolve||antigravityLauncher)();const {cwd,env}=(deps.profile||antigravityEnvironment)();
+ const bin=(deps.resolve||antigravityLauncher)();const {cwd,env}=(deps.profile||antigravityEnvironment)(connection.id);
  const args=[...bin.args,'--input-format','stream-json','--output-format','stream-json','--sandbox','--mode=plan','--model',connection.model];
  // Feed the prompt through stdin rather than placing private user data in the
  // Windows process command line or exposing the OS argument-length limit.
@@ -172,7 +198,24 @@ export async function verifyAntigravityModel(id,model,deps={}){
  saveConnection({...fresh,meta:{...fresh.meta,verifiedAt:new Date().toISOString()}});
  return {ok:true,model,message:'Model Antigravity đã phản hồi thật và sẵn sàng phân vai.'};
 }
-export function removeAntigravityAccount(id){currentAccount(id);invalidateModels(id);return {ok:true,message:'Đã xóa kết nối trong Vault. Dùng /logout trong Antigravity để hủy phiên Google trên máy.'};}
+export function removeAntigravityAccount(id){
+ const c=currentAccount(id);invalidateModels(id);
+ // Delete isolation (v0.9.56): only THIS connection's affordances are
+ // touched — its model registry entry above, and (below) its own session
+ // folder. If the removed connection is the one adopting the LEGACY
+ // folder while siblings remain, park the legacy folder under the
+ // removed account's own per-id slot (renamed, never deleted): the next
+ // account in creation order would otherwise resolve to the legacy
+ // folder and silently inherit this account's Google session.
+ try{
+  const siblings=listConnections().filter(x=>x.kind===KIND&&x.id!==id);
+  if(siblings.length&&antigravityProfileDir(id)===LEGACY_PROFILE&&fs.existsSync(LEGACY_PROFILE)){
+   const parked=path.join(ACCOUNTS_DIR,String(id));
+   if(!fs.existsSync(parked)){fs.mkdirSync(ACCOUNTS_DIR,{recursive:true,mode:0o700});fs.renameSync(LEGACY_PROFILE,parked);}
+  }
+ }catch{/* parking is best-effort hygiene; the vault removal stands */}
+ return {ok:true,message:`Đã xóa kết nối “${c.name}” trong Vault. Phiên Google của riêng tài khoản này vẫn nằm trong hồ sơ của nó trên máy — mở Antigravity bằng hồ sơ đó và gõ /logout nếu muốn hủy hẳn. Các tài khoản Antigravity khác không bị ảnh hưởng.`};
+}
 let installing=false;
 export async function installAntigravityWindows({platform=process.platform,invoke=run,resolve=antigravityLauncher}={}){
  if(platform!=='win32')throw new Error('Nút cài tự động chỉ dành cho Windows. Vui lòng xem trang hướng dẫn của Google.');
@@ -189,15 +232,22 @@ export async function installAntigravityWindows({platform=process.platform,invok
   catch{return {ok:true,installed:false,message:'WinGet đã hoàn tất, nhưng ứng dụng chưa thấy lệnh Antigravity. Đóng và mở lại AI Project OS rồi kiểm tra.'};}
  }finally{installing=false;}
 }
-export async function openAntigravityLogin({platform=process.platform,launch=run}={}){
+export async function openAntigravityLogin({id,platform=process.platform,launch=run}={}){
  const resolved=antigravityLauncher();
  if(platform!=='win32')throw new Error('Hãy mở ứng dụng Antigravity CLI chính thức và đăng nhập Google.');
+ // Per-connection login (v0.9.56): when a connection id is given, the
+ // login window runs with THAT connection's profile folder as HOME, so
+ // the Google session lands in its own folder — the window title names
+ // the account so the owner always knows which one they are signing in.
+ const c=id?currentAccount(id):null;
  const script=path.join(ROOT,'LAUNCH-ANTIGRAVITY-WINDOWS.ps1');
  // Pass the path THIS resolver just found to the login window: the .cmd's own
  // shorter search misses installs the resolver knows (e.g. WinGet package
  // payloads), which made the window claim "not installed" on machines where
  // the CLI is present and detected.
- const r=await launch('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',script],{inheritEnv:false,timeoutMs:12000,env:{AIOS_AGY_EXE:resolved.command}});
+ const env={AIOS_AGY_EXE:resolved.command};
+ if(c){env.AIOS_AGY_PROFILE=antigravityProfileDir(c.id);env.AIOS_AGY_ACCOUNT=c.name;}
+ const r=await launch('powershell.exe',['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',script],{inheritEnv:false,timeoutMs:12000,env});
  if(r.code!==0||r.timedOut)throw new Error('Không mở được cửa sổ đăng nhập. Hãy chạy LOGIN-ANTIGRAVITY-WINDOWS.cmd trong thư mục ứng dụng.');
- return {ok:true,message:'Đã yêu cầu mở Antigravity. Hoàn tất đăng nhập Google, trở lại bấm Tải model.'};
+ return {ok:true,message:c?`Đã mở cửa sổ Antigravity cho tài khoản “${c.name}”. Hoàn tất đăng nhập Google trong cửa sổ đó (phiên nằm trong hồ sơ riêng của tài khoản này), trở lại bấm Tải model.`:'Đã yêu cầu mở Antigravity. Hoàn tất đăng nhập Google, trở lại bấm Tải model.'};
 }
