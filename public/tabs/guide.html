@@ -89,6 +89,20 @@
         <li>Đã tự cài ACE-Step ở nơi khác? Mở API server của bản đó (cổng 8001) rồi bấm <strong>Kiểm tra bản ngoài</strong> trên thẻ ACE-Step — app dùng luôn bản ngoài, không tải thêm gì.</li>
       </ol>
     </details>
+    <details>
+      <summary><strong>H. Văn phòng AI 3D — chỗ đứng của robot &amp; điều robot bằng cách chạm</strong></summary>
+      <p><strong>Hai vách tím đã được tháo (0.9.57):</strong> hai vách trang trí lớn trong mẫu phòng 3D từng dựng thành mảng màu tím đặc che gần hết khung hình — bản này đã gỡ đúng hai vách đó; vỏ phòng, tường kính và vòm sao vẫn nguyên.</p>
+      <p><strong>Chỗ đứng của robot được phân thế này — mỗi robot một vị trí riêng, không đứng chồng nhau:</strong></p>
+      <ul>
+        <li>Robot <strong>đang làm việc</strong> → ngồi ở bàn của lượt chạy đó.</li>
+        <li>Robot <strong>lỗi mới nhất</strong> → vào chuồng chích điện.</li>
+        <li>Robot <strong>nghỉ sạc</strong> vì chạm hạn mức → đứng ở một ô sạc trong phòng nạp năng lượng (có 10 ô, đánh dấu bằng vòng tròn xanh trên sàn).</li>
+        <li>Robot <strong>đã kết nối, đang rảnh</strong> → tự ngồi vào một bàn còn trống; hết bàn trống thì về ô sạc.</li>
+        <li>Robot <strong>chưa kết nối</strong> và các ô robot trống → đứng tối ở các ô sạc còn lại.</li>
+      </ul>
+      <p><strong>Điều robot bằng cách chạm (chỉ ở phòng 3D):</strong> bấm vào một robot để chọn (hiện vòng vàng dưới chân và một thẻ nhỏ ở góc dưới phải) → bấm tiếp vào <strong>một cái bàn</strong> (robot đi tới và ngồi vào máy tính), <strong>một vòng ô sạc</strong> (robot về đứng sạc ở ô đó) hoặc <strong>một điểm bất kỳ trên sàn</strong> (robot đi tới đứng ở đó). Điểm đã chọn được nhớ lại kể cả khi tắt mở app. Trong thẻ robot có nút <strong>Đổi tên</strong> (đổi tên dời về đây — không còn bấm-là-đổi như trước) và <strong>↩ Về tự động</strong> để bỏ điểm đã ghim.</p>
+      <p><strong>Quy tắc thắng/thua cần nhớ:</strong> vị trí theo <strong>trạng thái thật luôn thắng</strong> điểm Sếp ghim — robot đang chạy một lượt thì về bàn của lượt đó, robot lỗi thì vào chuồng, robot chạm hạn mức thì về ô sạc; điểm ghim của Sếp <strong>tự áp dụng lại</strong> ngay khi trạng thái đó qua đi, không phải chọn lại. Sếp Lâm chọn và đổi tên được nhưng không bị điều đi nơi khác. Ở bản đồ 2D, robot vẫn đứng theo trạng thái như cũ — ghim vị trí là tính năng riêng của phòng 3D.</p>
+    </details>
   </div>
   <div class="panel az-help">
     <h3>Khi gặp lỗi — tự xử lý trong 3 bước</h3>

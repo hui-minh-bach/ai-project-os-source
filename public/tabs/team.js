@@ -246,6 +246,15 @@ function officeCulprit(runs){
  return {agentId,run:failed,step:stepName};
 }
 let officeNames={}; try{officeNames=JSON.parse(localStorage.getItem('aios-office-names')||'{}')}catch{officeNames={}}
+/* Ghim vị trí thủ công của robot trong phòng 3D (0.9.57): Sếp bấm chọn
+ * một robot rồi bấm vào bàn / ô sạc / điểm sàn để điều nó tới đó. Ghim
+ * lưu ở localStorage 'aios-office-pins' theo id nhân viên. QUY TẮC ƯU
+ * TIÊN: vị trí theo trạng thái thật (đang chạy → bàn của lượt chạy, lỗi
+ * → chuồng chích điện, nghỉ sạc vì hạn mức → ô sạc) LUÔN thắng ghim;
+ * ghim tự áp dụng lại khi trạng thái đó qua đi. Chỉ phòng 3D dùng ghim —
+ * bản 2D giữ cách điều khiển như cũ. */
+function officeLoadPins(){try{return JSON.parse(localStorage.getItem('aios-office-pins')||'{}')}catch{return{}}}
+function officeSavePins(p){try{localStorage.setItem('aios-office-pins',JSON.stringify(p))}catch{}}
 let officeState={runs:[],cards:[],tasks:[],loaded:false,lastFeed:[],fleet:null,rosterSig:''};
 const officePrevPos={},officeWalkTimers={};
 function officeAgentName(a){return officeNames[a.id]||a.name}
@@ -455,7 +464,7 @@ function office3DEnsure(){
 }
 {const tgl=$('#office3DToggle');if(tgl)tgl.onclick=()=>{
  const roomEl=$('#officeRoom');
- if(window.__office3DReady&&roomEl&&roomEl.classList.contains('office-3d-on')){window.__office3DOff=true;roomEl.classList.remove('office-3d-on');tgl.textContent='🧊 Xem phòng 3D';try{localStorage.setItem('aios-office-view','2d');}catch{} return;}
+ if(window.__office3DReady&&roomEl&&roomEl.classList.contains('office-3d-on')){window.__office3DOff=true;roomEl.classList.remove('office-3d-on');if(window.__office3DSelect)window.__office3DSelect(null);tgl.textContent='🧊 Xem phòng 3D';try{localStorage.setItem('aios-office-view','2d');}catch{} return;}
  if(window.__office3DReady&&window.__office3DOff){window.__office3DOff=false;if(roomEl)roomEl.classList.add('office-3d-on');tgl.textContent='🧊 Phòng 3D đang bật — bấm để về 2D';try{localStorage.setItem('aios-office-view','3d');}catch{} return;}
  window.__office3DWanted=true;tgl.disabled=true;tgl.textContent='🧊 Đang tải phòng 3D…';try{localStorage.setItem('aios-office-view','3d');}catch{} office3DEnsure();};}
 /* Phòng 3D là chế độ mở đầu của Văn phòng AI từ 0.9.46 (robot TAM-19 của
@@ -656,6 +665,7 @@ function office3DBuild(THREE,room){
  const deskGroups=[]; // mọi nhóm bàn+ghế: phòng GLB giữ lại + nâng lên mặt sàn .18
  function buildDesk(stId){
   const st=OFFICE_STATIONS[stId],pos=officeWorld(st),grp=new THREE.Group();
+  grp.userData.stationId=stId; // đích raycast cho thao tác điều robot (0.9.57)
   const owner=OFFICE_CAST.find(a=>a.station===stId);
   const accentCol=new THREE.Color(owner?owner.color:0x888888);
   /* 0.9.52 — lệnh của Sếp: robot làm việc phải NGỒI GHẾ ở bàn. Mọi trạm làm
@@ -770,6 +780,25 @@ function office3DBuild(THREE,room){
   const podSign=textSprite('🔋 PHÒNG NẠP NĂNG LƯỢNG',{size:36,color:'#7df0c8',scale:[3.8,.82]}); podSign.position.set(0,2.95,0); podGroup.add(podSign);
   podGroup.position.set(podPos.x,0,podPos.z); scene.add(podGroup);
  }
+ /* 10 ô sạc theo lưới 2 hàng × 5 cột quanh điểm neo phòng nạp (0.9.57):
+  * trường baySlot của đội bot (office-fleet) cuối cùng cũng lái vị trí —
+ * mỗi robot một ô riêng, không còn đứng chồng lên nhau ở một điểm neo. */
+ function officePodSlotPos(slot){
+  const s=Math.max(0,Math.min(9,slot|0));
+  return {x:podPos.x+(s%5-2)*1.15, z:podPos.z+(Math.floor(s/5)===0?-0.9:0.9)};
+ }
+ const podSlotGroup=new THREE.Group(); podSlotGroup.userData.keepInGlb=true; // giữ lại khi phòng GLB ẩn đồ thủ tục
+ const podSlotMeshes=[];
+ {
+  const ringMat=new THREE.MeshBasicMaterial({color:0x2dd4ee,transparent:true,opacity:.45,side:THREE.DoubleSide});
+  for(let s=0;s<10;s++){
+   const p=officePodSlotPos(s);
+   const ring=new THREE.Mesh(new THREE.RingGeometry(.34,.44,28),ringMat);
+   ring.rotation.x=-Math.PI/2; ring.position.set(p.x,.03,p.z); ring.userData.slot=s; ring.name='OfficePodSlot'+s;
+   podSlotGroup.add(ring); podSlotMeshes.push(ring);
+  }
+ }
+ scene.add(podSlotGroup);
  // --- Phòng chích điện: chuồng sắt ở góc phòng ---
  const cagePos=officeWorld(OFFICE_STATIONS.cage);
  const cage=new THREE.Group();
@@ -883,14 +912,17 @@ function office3DBuild(THREE,room){
   }
   const ring=new THREE.Mesh(new THREE.RingGeometry(.44,.58,40),new THREE.MeshBasicMaterial({color:new THREE.Color(a.color),transparent:true,opacity:.95,side:THREE.DoubleSide}));
   ring.rotation.x=-Math.PI/2; ring.position.y=.02; ring.visible=false; grp.add(ring);
+  // Vòng chọn màu vàng (0.9.57): robot đang được Sếp chọn để điều đi nơi khác.
+  const selRing=new THREE.Mesh(new THREE.RingGeometry(.56,.68,40),new THREE.MeshBasicMaterial({color:0xffcf4d,transparent:true,opacity:.95,side:THREE.DoubleSide}));
+  selRing.rotation.x=-Math.PI/2; selRing.position.y=.035; selRing.visible=false; grp.add(selRing);
   const nameSp=textSprite(officePlateName(a),{size:46,scale:[2.3,.58]}); nameSp.position.y=2.98; grp.add(nameSp);
   const zzz=textSprite('💤',{size:52,bg:'rgba(0,0,0,0)',scale:[.7,.45]}); zzz.position.set(.66,2.66,0); zzz.visible=false; grp.add(zzz);
   scene.add(grp);
-  return {a,grp,legL,legR,shinL,shinR,armL,armR,ring,nameSp,zzz,faceMat,faceMode:'idle',name:officePlateName(a),target:new THREE.Vector3(),walking:false,busy:false,phase:Math.random()*7,sit:0};
+  return {a,grp,legL,legR,shinL,shinR,armL,armR,ring,selRing,nameSp,zzz,faceMat,faceMode:'idle',name:officePlateName(a),target:new THREE.Vector3(),walking:false,busy:false,phase:Math.random()*7,sit:0,postKind:null,postId:null,pinned:false,stateDriven:false};
  }
  const agents={}; for(const a of officeRosterCast()){const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]); built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); built.baseY=0; built.yCur=0; agents[a.id]=built;}
  // --- Model 3D GLB do người dùng nạp (0.9.31): có file thì thay robot mặc định ---
- for(const id in agents){const A=agents[id];const keep=new Set([A.nameSp,A.zzz,A.ring]);const proc=new THREE.Group();proc.name='ProceduralBody';
+ for(const id in agents){const A=agents[id];const keep=new Set([A.nameSp,A.zzz,A.ring,A.selRing]);const proc=new THREE.Group();proc.name='ProceduralBody';
   [...A.grp.children].forEach(ch=>{if(!keep.has(ch))proc.add(ch);});
   A.grp.add(proc);A.procBody=proc;}
  let clipLogic=null; import('/office-clip.mjs').then(m=>{clipLogic=m;}).catch(e=>{console.warn('Không nạp được logic clip phòng 3D — dùng quy tắc dự phòng:',e);});
@@ -952,35 +984,121 @@ function office3DBuild(THREE,room){
  let zapId=null,zapClock=0;
  // --- đồng bộ từ trạng thái thật ---
  window.__office3D=true; window.__office3DCamera=orbit;
- window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,clipName:(A.model&&A.model.action&&A.model.action.getClip)?A.model.action.getClip().name:null,workClip:A.workClipName||null,standing:Boolean(A.standingDesk),seated:(A.sit||0)>.5,sit:Math.round((A.sit||0)*100)/100,station:A.station||null,pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
+ window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,clipName:(A.model&&A.model.action&&A.model.action.getClip)?A.model.action.getClip().name:null,workClip:A.workClipName||null,standing:Boolean(A.standingDesk),seated:(A.sit||0)>.5,sit:Math.round((A.sit||0)*100)/100,station:A.station||null,post:A.postKind||null,postId:A.postId||null,pinned:Boolean(A.pinned),stateDriven:Boolean(A.stateDriven),pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
+ /* Phân vị trí cho cả đội (0.9.57) — mỗi robot MỘT vị trí riêng, thứ tự
+  * ưu tiên đúng lệnh của Sếp:
+  * 1) VỊ TRÍ THEO TRẠNG THÁI THẬT luôn thắng: bot đang chạy → bàn của lượt
+  *    chạy (trạm fleet), bot lỗi mới nhất → chuồng chích điện, bot nghỉ sạc
+  *    vì chạm hạn mức → ô sạc (ưu tiên đúng baySlot của nó), trưởng phòng
+  *    đang nhận việc → trạm intake, Sếp → bàn Sếp.
+  * 2) GHIM THỦ CÔNG của Sếp (officeLoadPins) — chỉ áp dụng khi robot
+  *    không có vị trí trạng thái; ghim tự quay lại khi trạng thái qua đi.
+  * 3) MẶC ĐỊNH: bot đã kết nối đang rảnh → NGỒI vào một bàn trống (mỗi
+  *    bot một bàn); hết bàn thì về ô sạc. Bot lỗi (không vào chuồng), bot
+  *    chưa kết nối và robot ô trống → ô sạc còn trống, mỗi bot một ô. */
+ const OFFICE_DESK_POOL=['news','script','image','media','review','publish','pm'];
+ function officeResolvePosts(roster){
+  const pins=officeLoadPins();
+  const posts=new Map(), takenDesks=new Set(), takenPods=new Set();
+  const podFree=()=>{for(let s=0;s<10;s++)if(!takenPods.has(s))return s; return 9;};
+  const setPod=(a,slot,pinned,stateDriven)=>{const s=(Number.isInteger(slot)&&slot>=0&&slot<10&&!takenPods.has(slot))?slot:podFree(); takenPods.add(s); posts.set(a.id,{kind:'pod',slot:s,pinned:!!pinned,stateDriven:!!stateDriven});};
+  const setDesk=(a,id,pinned,stateDriven)=>{takenDesks.add(id); posts.set(a.id,{kind:id==='pm'?'station':'desk',id,pinned:!!pinned,stateDriven:!!stateDriven});};
+  for(const a of roster){
+   if(a.id==='boss'){setDesk(a,'boss',false,true); continue;}
+   if(!a.fleet||a.fleet.standby)continue;
+   const b=a.fleet;
+   let intake=false; try{const ink=JSON.parse(localStorage.getItem('aios-intake')||'null'); intake=Boolean(ink&&Date.now()-ink.ts<180000&&(!ink.lead||ink.lead===b.connectionId));}catch{}
+   if(intake){posts.set(a.id,{kind:'station',id:'intake',stateDriven:true}); continue;}
+   if(b.cage||b.station==='cage'){posts.set(a.id,{kind:'cage',stateDriven:true}); continue;}
+   if(b.state==='working'&&b.station&&b.station!=='bay'){setDesk(a,b.station,false,true); continue;}
+   if(b.state==='charging'&&b.resting){setPod(a,typeof b.baySlot==='number'?b.baySlot:-1,false,true); continue;}
+  }
+  for(const a of roster){
+   if(posts.has(a.id))continue;
+   const pin=pins[a.id]; if(!pin)continue;
+   if(pin.kind==='desk'&&OFFICE_DESK_POOL.includes(pin.id)&&!takenDesks.has(pin.id))setDesk(a,pin.id,true,false);
+   else if(pin.kind==='pod')setPod(a,typeof pin.slot==='number'?pin.slot:-1,true,false);
+   else if(pin.kind==='floor'&&Number.isFinite(pin.x)&&Number.isFinite(pin.z))posts.set(a.id,{kind:'floor',x:Math.max(-16,Math.min(16,pin.x)),z:Math.max(-10.5,Math.min(10.5,pin.z)),pinned:true,stateDriven:false});
+  }
+  for(const a of roster){
+   if(posts.has(a.id))continue;
+   if(a.fleet&&!a.fleet.standby&&a.fleet.connected&&a.fleet.state==='charging'&&!a.fleet.resting){
+    const free=OFFICE_DESK_POOL.find(d=>!takenDesks.has(d));
+    if(free){setDesk(a,free,false,false); continue;}
+   }
+   setPod(a,-1,false,false);
+  }
+  return posts;
+ }
  window.__office3DSync=(ctx)=>{
   office3DReconcile();
-  const slotUse=new Map();
-  for(const a of officeRosterCast()){
+  const roster=officeRosterCast();
+  const posts=officeResolvePosts(roster);
+  for(const a of roster){
    const A=agents[a.id]; if(!A)continue;
-   const stId=officeStationOf(a.id,ctx);
-   const st=OFFICE_STATIONS[stId]||OFFICE_STATIONS.lounge;
-   const slot=slotUse.get(stId)||0; slotUse.set(stId,slot+1);
-   const dx=slot===0?0:slot===1?9:-9;
-   const w=officeWorld(st); let tx=w.x+dx*.22, tz=w.z;
-   if(stId==='lounge'){const col=slot%5,row=Math.floor(slot/5)%2; tx=w.x+[-2.2,-1.1,0,1.1,2.2][col]; tz=w.z+(row===0?-.85:.85);}
-   else if(stId==='cage')tx=w.x+[-1.15,0,1.15][slot%3];
-   A.target.set(tx,0,tz); A.baseY=officeYFor(stId); A.station=stId;
+   const post=posts.get(a.id)||{kind:'pod',slot:0};
+   const stId=post.kind==='desk'||post.kind==='station'?post.id:post.kind==='cage'?'cage':post.kind==='floor'?'floor':'lounge';
+   let tx,tz;
+   if(post.kind==='desk'||post.kind==='station'){const w=officeWorld(OFFICE_STATIONS[post.id]||OFFICE_STATIONS.lounge); tx=w.x; tz=w.z;}
+   else if(post.kind==='cage'){const w=officeWorld(OFFICE_STATIONS.cage); tx=w.x; tz=w.z;}
+   else if(post.kind==='floor'){tx=post.x; tz=post.z;}
+   else {const s=officePodSlotPos(post.slot||0); tx=s.x; tz=s.z;}
+   A.target.set(tx,0,tz);
+   A.baseY=(post.kind==='desk'||post.kind==='station')?officeYFor(post.id):post.kind==='floor'?((Math.abs(tx)<=12.6&&Math.abs(tz)<=12.6)?officeRoomDeckY:0):0;
+   A.station=stId; A.postKind=post.kind; A.postId=post.kind==='desk'||post.kind==='station'?post.id:post.kind==='pod'?('pod'+(post.slot||0)):post.kind;
+   A.pinned=Boolean(post.pinned); A.stateDriven=Boolean(post.stateDriven);
+   if(A.selRing)A.selRing.visible=(officeSelectedId===a.id);
    A.busy=a.fleet?a.fleet.state==='working':((a.id==='boss'&&Boolean(ctx.awaiting))||(a.id==='media'&&ctx.stage==='produce')||(a.id==='script'&&ctx.stage==='script')||(a.id==='publish'&&ctx.stage==='publish')||(ctx.culprit&&ctx.culprit.agentId===a.id));
    A.ring.visible=A.busy;
    if((ctx.culprit&&ctx.culprit.agentId===a.id)||(a.fleet&&a.fleet.cage))A.ring.material.color.set(0xff4545); else A.ring.material.color.set(a.color);
    const sleeping=stId==='lounge'&&!(ctx.culprit&&ctx.culprit.agentId===a.id);
    if(A.zzz)A.zzz.visible=sleeping;
-   const fm=a.fleet?((a.fleet.cage||a.fleet.state==='failed')?'zap':a.fleet.state==='working'?'work':'sleep'):((ctx.culprit&&ctx.culprit.agentId===a.id)?'zap':sleeping?'sleep':A.busy?'work':'idle');
+   const fm=(a.fleet&&!a.fleet.standby)?((a.fleet.cage||a.fleet.state==='failed')?'zap':a.fleet.state==='working'?'work':post.kind==='desk'?'idle':post.kind==='pod'?'sleep':'idle'):((ctx.culprit&&ctx.culprit.agentId===a.id)?'zap':sleeping?'sleep':A.busy?'work':'idle');
+   if(A.faceMat&&A.faceMode!==fm){A.faceMat.map=faceTexCache[fm];A.faceMat.needsUpdate=true;}
    A.faceMode=fm;
-   if(A.faceMat&&A.faceMode!==fm){A.faceMat.map=faceTexCache[fm];A.faceMat.needsUpdate=true;A.faceMode=fm;}
    const nm=officePlateName(a);
    if(nm!==A.name){A.name=nm; const parent=A.nameSp.parent; const idx=parent.children.indexOf(A.nameSp); const fresh=textSprite(nm,{size:46,scale:[2.3,.58]}); fresh.position.y=2.85; parent.remove(A.nameSp); parent.add(fresh); A.nameSp=fresh;}
   }
   zapId=officeFleetActive()?(officeState.fleet.bots.find(b=>b.cage)?'bot-'+officeState.fleet.bots.find(b=>b.cage).connectionId:null):(ctx.culprit?ctx.culprit.agentId:null);
   const target=officeFleetActive()?(ctx.awaiting?'boss':(officeState.fleet.bots.find(b=>b.state==='working')?.station||null)):(ctx.awaiting?'boss':ctx.activeRun?(ctx.stage==='produce'?'media':ctx.stage==='publish'?'publish':ctx.stage==='script'?'script':'pm'):null);
   if(target){const w=officeWorld(OFFICE_STATIONS[target]); parcelTarget.set(w.x+.8,1.15,w.z-.4); parcel.visible=true;} else parcel.visible=false;
+  officeBotCardRefresh();
  };
+ /* Thẻ robot đang chọn (0.9.57): bấm vào một robot → hiện thẻ này với
+  * tên, trạng thái và các nút [Đổi tên] [↩ Về tự động] [✕]. Đổi tên dời
+  * về đây (trước đây bấm vào robot là đổi tên ngay). Sếp Lâm chọn/đổi tên
+  * được nhưng KHÔNG bị điều đi — chỗ của Sếp do trạng thái quyết định. */
+ let officeSelectedId=null;
+ const botCard=document.createElement('div');
+ botCard.className='office-bot-card'; botCard.hidden=true;
+ botCard.innerHTML=`<div class="obc-head"><strong data-obc-name></strong><button type="button" class="obc-x" data-obc-act="close" aria-label="Đóng thẻ">✕</button></div><p data-obc-state></p><p class="obc-pin" data-obc-pin></p><div class="obc-actions"><button type="button" data-obc-act="rename">Đổi tên</button><button type="button" data-obc-act="auto">↩ Về tự động</button></div><p class="obc-hint">Bấm vào một bàn, một vòng ô sạc hoặc một điểm trên sàn để điều robot này tới đó. Trạng thái thật (đang làm việc / lỗi / nghỉ sạc) luôn thắng điểm ghim — ghim tự áp dụng lại khi trạng thái qua đi.</p>`;
+ room.appendChild(botCard);
+ function officeSelectedAgent(){return officeSelectedId?agents[officeSelectedId]||null:null;}
+ function officeSelectBot(id){officeSelectedId=id||null; for(const k in agents)if(agents[k].selRing)agents[k].selRing.visible=(k===officeSelectedId); officeBotCardRefresh();}
+ window.__office3DSelect=officeSelectBot;
+ function officeBotCardRefresh(){
+  const A=officeSelectedAgent(); if(!A){botCard.hidden=true; return;}
+  const a=A.a; botCard.hidden=false;
+  botCard.querySelector('[data-obc-name]').textContent='🤖 '+officePlateName(a);
+  botCard.querySelector('[data-obc-state]').textContent=a.role||'';
+  const pinEl=botCard.querySelector('[data-obc-pin]');
+  const autoBtn=botCard.querySelector('[data-obc-act="auto"]');
+  const pin=officeLoadPins()[a.id];
+  if(a.id==='boss')pinEl.textContent='Sếp Lâm luôn ở bàn của Sếp — chỉ đổi tên được, không điều đi nơi khác.';
+  else if(A.stateDriven)pinEl.textContent='Vị trí hiện tại do trạng thái thật quyết định (đang làm việc / lỗi / nghỉ sạc) — điểm ghim sẽ tự áp dụng khi trạng thái đó qua đi.';
+  else if(pin)pinEl.textContent='📌 Đang ghim ở '+(pin.kind==='desk'?('bàn '+pin.id):pin.kind==='pod'?('ô sạc số '+(pin.slot+1)):'một điểm trên sàn')+' theo lệnh của Sếp.';
+  else pinEl.textContent='Đang ở vị trí tự động theo trạng thái.';
+  autoBtn.disabled=!pin||a.id==='boss';
+  botCard.querySelector('.obc-hint').style.display=(a.id==='boss')?'none':'';
+ }
+ botCard.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-obc-act]'); if(!btn)return;
+  const A=officeSelectedAgent(); if(!A)return;
+  const a=A.a;
+  if(btn.dataset.obcAct==='close'){officeSelectBot(null); return;}
+  if(btn.dataset.obcAct==='auto'){const pins=officeLoadPins(); delete pins[a.id]; officeSavePins(pins); toast('↩ '+officePlateName(a)+' đã về chế độ tự động.'); officeBotCardRefresh(); return;}
+  if(btn.dataset.obcAct==='rename'){const next=prompt(`Đổi tên cho ${a.role}:`,officeAgentName(a)); if(next&&next.trim()){officeNames[a.id]=next.trim().slice(0,24); localStorage.setItem('aios-office-names',JSON.stringify(officeNames)); officeRender(); officeBotCardRefresh();}}
+ });
  // --- điều khiển camera: kéo để xoay, lăn chuột để zoom, bấm nhẹ để đổi tên ---
  let dragging=false,dragMoved=0,px=0,py=0;
  const el=renderer.domElement;
@@ -993,9 +1111,27 @@ function office3DBuild(THREE,room){
   const rect=el.getBoundingClientRect();
   const mouse=new THREE.Vector2(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);
   const ray=new THREE.Raycaster(); ray.setFromCamera(mouse,camera);
+  /* Bấm vào một robot → CHỌN nó (0.9.57; đổi tên dời vào thẻ chọn).
+   * Bấm lại chính robot đang chọn → bỏ chọn. */
   const hits=ray.intersectObjects(Object.values(agents).map(A=>A.grp),true);
   if(hits.length){let o=hits[0].object;while(o&&!Object.values(agents).some(A=>A.grp===o))o=o.parent;
-   if(o){const A=Object.values(agents).find(x=>x.grp===o); if(A){if(A.a.fleet){toast(`🤖 ${A.a.name} (${A.a.fleet.provider}): ${A.a.role}`);}else{const next=prompt(`Đổi tên cho ${A.a.role}:`,officeAgentName(A.a)); if(next&&next.trim()){officeNames[A.a.id]=next.trim().slice(0,24);localStorage.setItem('aios-office-names',JSON.stringify(officeNames));officeRender();}}}}}
+   if(o){const A=Object.values(agents).find(x=>x.grp===o); if(A)officeSelectBot(officeSelectedId===A.a.id?null:A.a.id); return;}}
+  /* Có robot đang chọn → bấm vào bàn / vòng ô sạc / điểm sàn là ĐIỀU nó
+   * tới đó (ghim lưu ở localStorage 'aios-office-pins'). Sếp Lâm không
+   * bị điều đi. Vị trí theo trạng thái thật vẫn thắng ghim (xem
+   * officeResolvePosts). */
+  const sel=officeSelectedAgent();
+  if(sel&&sel.a.id!=='boss'){
+   const dh=ray.intersectObjects(deskGroups,true);
+   if(dh.length){let g=dh[0].object; while(g&&!deskGroups.includes(g))g=g.parent;
+    if(g&&g.userData.stationId&&OFFICE_DESK_POOL.includes(g.userData.stationId)){const pins=officeLoadPins(); pins[sel.a.id]={kind:'desk',id:g.userData.stationId}; officeSavePins(pins); toast(`📌 ${officePlateName(sel.a)} sẽ tới ngồi ở bàn ${g.userData.stationId} — nút "↩ Về tự động" trong thẻ robot thả nó về tự động.`); officeBotCardRefresh(); return;}}
+   const ph=ray.intersectObjects(podSlotMeshes,false);
+   if(ph.length){const pins=officeLoadPins(); pins[sel.a.id]={kind:'pod',slot:ph[0].object.userData.slot}; officeSavePins(pins); toast(`📌 ${officePlateName(sel.a)} sẽ về ô sạc số ${ph[0].object.userData.slot+1}.`); officeBotCardRefresh(); return;}
+   const v=new THREE.Vector3();
+   if(ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),-officeRoomDeckY),v)){
+    const pins=officeLoadPins(); pins[sel.a.id]={kind:'floor',x:Math.max(-16,Math.min(16,v.x)),z:Math.max(-10.5,Math.min(10.5,v.z))}; officeSavePins(pins); toast(`📌 ${officePlateName(sel.a)} sẽ đi tới điểm Sếp vừa chọn trên sàn.`); officeBotCardRefresh(); return;}
+  }
+  officeSelectBot(null);
  });
  el.addEventListener('wheel',e=>{e.preventDefault();orbit.radius=Math.min(48,Math.max(15,orbit.radius+e.deltaY*.02));},{passive:false});
  addEventListener('resize',()=>{renderer.setSize(W(),H()); if(officeComposer)officeComposer.setSize(W(),H());});
@@ -1007,7 +1143,7 @@ function office3DBuild(THREE,room){
   for(const id in agents){
    const A=agents[id],p=A.grp.position;
    const dx=A.target.x-p.x,dz=A.target.z-p.z,dist=Math.hypot(dx,dz);
-   const ownDesk=['boss','news','script','image','media','review','publish'].includes(A.a.station)&&A.station===A.a.station;
+   const ownDesk=A.postKind==='desk'; // ngồi ghế khi vị trí của nó là một BÀN (0.9.57: theo officeResolvePosts, không còn suy đoán theo trạm của lượt chạy)
    if(dist>.05&&A.sit>.12){ A.sit=Math.max(0,A.sit-dt*3.4); A.walking=false; A.path.visible=false; }
    else if(dist>.05){
     const step=Math.min(dist,4.4*dt); p.x+=dx/dist*step; p.z+=dz/dist*step; A.walking=true;
@@ -1141,7 +1277,15 @@ function office3DBuild(THREE,room){
    const env=gltf.scene; env.name='OfficeRoomGLB';
    const bakedLights=[]; env.traverse(o=>{if(o.isLight)bakedLights.push(o);}); bakedLights.forEach(l=>l.removeFromParent());
    scene.add(env);
-   const keep=new Set(); Object.values(agents).forEach(A=>{keep.add(A.grp); if(A.path)keep.add(A.path);}); keep.add(parcel); bolts.forEach(b=>keep.add(b)); deskGroups.forEach(g=>keep.add(g));
+   /* THÁO RÈM (0.9.57): hai vách trang trí WallPanel_L / WallPanel_R
+    * trong GLB phòng (mỗi vách ~3,3 × 12,5 × 26,9 m, dựng hai bên
+    * phòng) thành hai mảng màu tím đặc che gần hết khung hình ở góc
+    * camera mặc định — chính là "cái rèm" Sếp chụp. Nhận diện bằng
+    * render đối chứng (thư mục probe của bản 0.9.57): ẩn đúng hai node
+    * này thì mảng tím biến mất, vỏ phòng / tường kính / vòm nguyên vẹn. */
+   const OFFICE_GLB_CURTAIN=['WallPanel_L','WallPanel_R'];
+   env.traverse(o=>{if(OFFICE_GLB_CURTAIN.includes(o.name))o.visible=false;});
+   const keep=new Set(); Object.values(agents).forEach(A=>{keep.add(A.grp); if(A.path)keep.add(A.path);}); keep.add(parcel); bolts.forEach(b=>keep.add(b)); deskGroups.forEach(g=>keep.add(g)); keep.add(podSlotGroup);
    scene.children.slice().forEach(o=>{ if(keep.has(o)||o===env) return; if(o.isLight) return; o.visible=false; });
    officeRoomDeckY=.18; window.__officeRoomMode='glb';
    // Bàn + ghế của app ở lại trong phòng GLB (0.9.52): nâng lên mặt sàn GLB

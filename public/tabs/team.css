@@ -245,6 +245,16 @@
 .office-room.office-3d-on{background:#0b0b13}
 .office-room.office-3d-on .office-station,.office-room.office-3d-on .office-agent,.office-room.office-3d-on .office-package{display:none}
 .office-3d-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:14px;cursor:grab}
+.office-bot-card{position:absolute;right:12px;bottom:12px;z-index:6;width:280px;max-width:calc(100% - 24px);background:rgba(10,14,24,.93);border:1px solid #35507a;border-radius:12px;padding:10px 12px;color:#dbe7ff;font-size:13px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+.office-bot-card .obc-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.office-bot-card .obc-head strong{font-size:14px}
+.office-bot-card .obc-x{background:none;border:0;color:#9fb6cc;cursor:pointer;font-size:14px;line-height:1}
+.office-bot-card p{margin:6px 0 0;line-height:1.45}
+.office-bot-card .obc-pin{color:#ffd97a}
+.office-bot-card .obc-hint{color:#8fa8c8;font-size:12px}
+.office-bot-card .obc-actions{display:flex;gap:8px;margin-top:9px}
+.office-bot-card .obc-actions button{flex:1;padding:6px 8px;border-radius:8px;border:1px solid #35507a;background:#16233c;color:#dbe7ff;font-size:13px}
+.office-bot-card .obc-actions button:disabled{opacity:.45;cursor:default}
 .office-3d-canvas:active{cursor:grabbing}
 
 .office-models-panel{margin:10px 0;padding:10px 14px;border:1px solid var(--border,#2a3350);border-radius:12px;background:rgba(255,255,255,.03)}
