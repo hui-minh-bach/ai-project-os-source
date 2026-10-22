@@ -338,10 +338,14 @@ function officeResolvePosts(roster){
  * NHÃN TRẠM (đặt trên thân bàn, dưới mặt trước bàn — không nằm trên robot). */
 const OFFICE_ISO_STATIONS={
  boss:{x:46.4,y:29.2,label:'👔 Sếp Lâm'},
- news:{x:33.8,y:43.9,lx:33.8,ly:41.5,label:'📰 Tin tức'}, script:{x:24.5,y:50.5,lx:24.5,ly:47.9,label:'✍️ Biên tập'},
- image:{x:34.5,y:57.5,lx:34.5,ly:56.3,label:'🎨 Hình ảnh'}, media:{x:15.5,y:55.6,lx:15.5,ly:52.9,label:'🎬 Sản xuất'},
- review:{x:24.6,y:64.3,lx:24.6,ly:62.6,label:'🔎 Kiểm duyệt'}, pm:{x:43.7,y:66.9,lx:43.7,ly:67.8,label:'🧭 Điều phối'},
- publish:{x:52.3,y:58.2,lx:52.3,ly:55.6,label:'🚀 Đăng bài'}, intake:{x:48.5,y:78.5,lx:48.5,ly:84.5,label:'🛋️ Tiếp nhận'},
+ /* 0.9.61: neo bàn HẠ ~2.1–2.2% so với 0.9.60 — đường hông của sprite
+  * ngồi đáp đúng đường đệm ghế vẽ sẵn (hông = điểm đáp trong ghế − 0.7)
+  * để tư thế đọc là NGỒI; x của bàn Đăng bài khớp tâm ghế vẽ (51.8)
+  * thay vì lệch phải trên sàn trống. Nhãn trạm (lx/ly) giữ nguyên. */
+ news:{x:33.8,y:46.0,lx:33.8,ly:38.6,label:'📰 Tin tức'}, script:{x:24.5,y:52.6,lx:24.5,ly:47.9,label:'✍️ Biên tập'},
+ image:{x:34.5,y:59.6,lx:34.5,ly:56.3,label:'🎨 Hình ảnh'}, media:{x:15,y:57.7,lx:15.5,ly:52.9,label:'🎬 Sản xuất'},
+ review:{x:24.6,y:66.4,lx:24.6,ly:62.6,label:'🔎 Kiểm duyệt'}, pm:{x:43.7,y:69.1,lx:43.7,ly:67.8,label:'🧭 Điều phối'},
+ publish:{x:51.55,y:60.4,lx:52.3,ly:55.6,label:'🚀 Đăng bài'}, intake:{x:48.5,y:78.5,lx:48.5,ly:84.5,label:'🛋️ Tiếp nhận'},
  lounge:{x:66,y:31,lx:52,ly:10.2,label:'🔋 Phòng nạp năng lượng'}, cage:{x:82.6,y:49.3,lx:83.5,ly:57.5,label:'⚡ Phòng chích điện'},
 };
 /* Ô sạc: 4 ô đầu = đúng 4 buồng kính vẽ sẵn (chân robot ở đế buồng); 6 ô
@@ -357,11 +361,14 @@ const OFFICE_ISO_STATIONS={
  * các robot kề nhau không chạm nhau. lx/ly vẫn là lưới bảng tên phía trên
  * cụm buồng, tính lại theo neo mới. */
 const OFFICE_ISO_PODS=[
- {x:65,y:36.4,lx:3,ly:-84,bx:10,by:8},{x:69.35,y:37.4,lx:2,ly:-104,bx:-12,by:8},
- {x:73.4,y:38.4,lx:3,ly:-92,bx:12,by:8},{x:77.5,y:39.6,lx:3,ly:-113,bx:-10,by:8},
+ /* 0.9.61: huy hiệu của robot trong buồng (ô 0–3) căn GIỮA lòng buồng
+  * của nó (bx −1 ≈ tâm buồng) và vòng nhãn khóa tâm-x trong lòng buồng —
+  * bản 0.9.60 để huy hiệu ô 3 trôi sang dưới buồng kề. */
+ {x:65,y:36.4,lx:3,ly:-84,bx:-12,by:8},{x:69.35,y:37.4,lx:2,ly:-104,bx:-8,by:8},
+ {x:73.4,y:38.4,lx:3,ly:-92,bx:-6,by:8},{x:77.5,y:39.6,lx:3,ly:-113,bx:-1,by:8},
  {x:55,y:43.2,lx:1,ly:-13,bx:8,by:0},{x:58.3,y:44.9,lx:1,ly:2,bx:-8,by:0},
- {x:61.6,y:46.6,lx:1,ly:18,bx:10,by:0},{x:66,y:43.9,lx:1,ly:18,bx:-10,by:0},
- {x:70.5,y:45.6,lx:1,ly:-13,bx:8,by:0},{x:75.5,y:47.1,lx:1,ly:2,bx:-8,by:0}];
+ {x:61.6,y:46.6,lx:1,ly:18,bx:10,by:0},{x:66,y:43.9,lx:1,ly:30,bx:-10,by:0},
+ {x:70.5,y:45.6,lx:1,ly:-4,bx:8,by:0},{x:75.5,y:47.1,lx:1,ly:2,bx:-8,by:0}];
 /* Neo TÂM MÀN HÌNH vẽ sẵn của từng bàn (%, cùng hệ tọa độ phòng) — chỗ
  * hiệu ứng "màn hình sáng lên" sẽ bám vào khi robot ở bàn đó ĐANG LÀM
  * VIỆC THẬT. Đo trực tiếp trên ảnh render đúng tọa độ phòng (probe
@@ -385,7 +392,10 @@ const OFFICE_ISO_MONITORS={
 /* 0.9.60: pod 0.94 -> 0.70 — thân robot (phần nhìn thấy ≈2,4% bề ngang
  * phòng) phải lọt hẳn vào lòng buồng kính vẽ sẵn (≈2,5–2,7%); tỉ lệ cũ làm
  * robot to hơn buồng nên không thể "ở trong" buồng được. */
-const OFFICE_ISO_SCALES={deskFar:0.84,deskNear:0.92,pod:0.67,cage:0.86,intake:1.0,boss:0.95};
+/* 0.9.61: robot ngồi bàn thu nhỏ đồng nhất ~0.92 (xa 0.84→0.78, gần
+ * 0.92→0.85) — cùng với neo hạ, chiều cao nhìn thấy của robot ngồi còn
+ * ≤ 85% robot đứng cùng vùng sàn: tư thế đọc là NGỒI, không phải đứng. */
+const OFFICE_ISO_SCALES={deskFar:0.78,deskNear:0.85,pod:0.67,cage:0.86,intake:1.0,boss:0.95};
 /* ===== 0.9.60: LỚP MẶT TRƯỚC (compositing) =====
  * Sprite dán lên phông phẳng thì không bao giờ đọc là "ở trong" nội thất.
  * Các file PNG trong assets/office-iso-fg/ được CẮT TỪ CHÍNH PHÔNG (cùng
@@ -415,13 +425,27 @@ const OFFICE_ISO_POD_INTERIORS=[
  {x0:63.5,y0:25.6,x1:66.2,y1:34.3},{x0:67.9,y0:26.6,x1:70.5,y1:35.2},
  {x0:72,y0:27.6,x1:74.5,y1:36.2},{x0:76.1,y0:28.6,x1:78.6,y1:37.4}];
 const OFFICE_ISO_CAGE_INTERIOR={x0:79.4,y0:30.4,x1:85.5,y1:45.9};
-/* Vùng mặt ghế của từng bàn (%, [x0,y0,x1,y1]): đáy thân nhìn thấy của
- * robot ngồi phải đáp vào vùng này (điểm đáp = tâm-x, mép dưới thân). */
+/* Vùng GHẾ của từng bàn (%, [x0,y0,x1,y1]): đáy thân nhìn thấy của
+ * robot ngồi phải đáp vào vùng này (điểm đáp = tâm-x, mép dưới thân).
+ * 0.9.61: vùng nới ra TOÀN BỘ chiếc ghế vẽ sẵn (lưng + đệm + đế, ≈5.8×6.7%
+ * phòng) quanh cùng tâm ghế; tâm-x ghế bàn Đăng bài hiệu chỉnh theo ghế
+ * vẽ thật (51.8). Điểm đáp giữ ở vị trí cũ trong ghế. */
 const OFFICE_ISO_CHAIRS={
- news:{x0:31.6,y0:37.4,x1:36,y1:39.8}, script:{x0:22.3,y0:44,x1:26.7,y1:46.4},
- media:{x0:13.3,y0:49.1,x1:17.7,y1:51.5}, image:{x0:32.3,y0:51,x1:36.7,y1:53.4},
- review:{x0:22.4,y0:57.8,x1:26.8,y1:60.2}, pm:{x0:41.5,y0:59.8,x1:45.9,y1:62.2},
- publish:{x0:50.1,y0:51.1,x1:54.5,y1:53.5}, boss:{x0:44.2,y0:26.2,x1:48.6,y1:28.6},
+ news:{x0:30.9,y0:34.9,x1:36.7,y1:41.6}, script:{x0:21.6,y0:41.5,x1:27.4,y1:48.2},
+ media:{x0:12.6,y0:46.6,x1:18.4,y1:53.3}, image:{x0:31.6,y0:48.5,x1:37.4,y1:55.2},
+ review:{x0:21.7,y0:55.3,x1:27.5,y1:62}, pm:{x0:40.8,y0:57.3,x1:46.6,y1:64},
+ publish:{x0:48.9,y0:48.6,x1:54.7,y1:55.3}, boss:{x0:44.2,y0:26.2,x1:48.6,y1:28.6},
+};
+/* 0.9.61 — Vùng BÀN VẼ SẴN của từng trạm (%, hợp nhất của mặt bàn + mặt
+ * trước bàn cắt FG + ghế + màn hình vẽ sẵn, đo trên phông): neo robot
+ * ngồi bàn phải đáp TRÊN footprint này và thân nhìn thấy phải giao với
+ * nó ≥ 50% diện tích — điều kiện "ở đúng bàn của trạm" mà QA đo trên DOM
+ * (bản 0.9.60: neo bàn Đăng bài nằm trên sàn trống ngoài footprint). */
+const OFFICE_ISO_DESK_ZONES={
+ news:{x0:27.6,y0:31.2,x1:36.7,y1:44}, script:{x0:17.1,y0:38.3,x1:27.4,y1:50.5},
+ media:{x0:8.1,y0:46.4,x1:18.4,y1:55}, image:{x0:30.1,y0:47.6,x1:39.7,y1:60.5},
+ review:{x0:17.1,y0:53.6,x1:27.5,y1:63.5}, pm:{x0:32.6,y0:55.7,x1:46.6,y1:70.5},
+ publish:{x0:44.8,y0:47.9,x1:54.7,y1:58.1}, boss:{x0:42.9,y0:22.9,x1:54.6,y1:35.6},
 };
 /* Khung thân NHÌN THẤY của sprite theo tư thế — tỉ lệ [trái, trên, phải,
  * dưới] của hộp phần tử .bot-iso ứng với vùng có điểm ảnh (đo alpha>24
@@ -512,7 +536,10 @@ function officeIsoLabelShift(post){
   // tên + huy hiệu xếp chồng TRÊN ĐẦU robot ngồi bàn: dưới bàn là nhãn
   // trạm (tấm biển trên mặt bàn) và thân robot bàn kề — để tên dưới bàn là
   // bị thân robot kề che chữ (bài học zoom 0.9.60 vòng đầu).
-  return {lx:0,ly:-93,bx:0,by:-14};
+  // 0.9.61: huy hiệu khít xuống (by −14 → −12) — bản cũ để huy hiệu của
+  // robot lỗi treo lơ lửng ~38px khỏi thân, sát bàn Sếp; giữ vừa đủ hở
+  // để chồng tên–huy hiệu không đẩy tên xuống đè đầu robot.
+  return {lx:0,ly:-97,bx:0,by:-12};
  }
  if(post.kind==='cage')return {lx:0,ly:8,bx:0,by:0};
  return null;
@@ -678,20 +705,21 @@ function officeIsoLabelPass(room){
   const az=parseInt(el.style.zIndex||'10',10)||10;
   for(const f of fgRects){ if(f.z<=az)continue; const fr3=f.rect;
    if(fr3.left<=rect.left+2&&fr3.right>=rect.right-2&&fr3.top>rect.top&&fr3.top<rect.bottom) rect={...rect,bottom:Math.min(rect.bottom,fr3.top)}; }
-  obstacles.push({rect});
+  obstacles.push({rect,agent:el.getAttribute('data-office-agent'),postkind:el.dataset.postkind||''});
  });
  room.querySelectorAll('.office-fg').forEach(el=>{
   const r=el.getBoundingClientRect(), ix=rr.width*0.003, iy=rr.height*0.004; // lề trong suốt của mảng cắt không phải chướng ngại thật
-  obstacles.push({rect:{left:r.left+ix,top:r.top+iy,right:r.right-ix,bottom:r.bottom-iy},z:parseInt(el.style.zIndex||'0',10)||0,fg:true});
+  obstacles.push({rect:{left:r.left+ix,top:r.top+iy,right:r.right-ix,bottom:r.bottom-iy},z:parseInt(el.style.zIndex||'0',10)||0,fg:true,fgid:el.dataset.fg||''});
  });
  const items=[];
  room.querySelectorAll('.office-station').forEach(el=>{el.dataset.gx='0'; el.dataset.gy='0'; items.push({el,kind:'station',fixed:true,z:110});});
  room.querySelectorAll('[data-office-agent]').forEach(el=>{
   const az=parseInt(el.style.zIndex||'10',10)||10;
+  const aid=el.getAttribute('data-office-agent'), pk=el.dataset.postkind||'', slot=parseInt(el.dataset.postslot||'-1',10);
   const nm=el.querySelector('.office-agent-name');
-  if(nm){nm.dataset.gx='0'; nm.dataset.gy='0'; items.push({el:nm,kind:'name',fixed:false,z:az});}
+  if(nm){nm.dataset.gx='0'; nm.dataset.gy='0'; items.push({el:nm,kind:'name',fixed:false,z:az,agent:aid});}
   const bd=el.querySelector('.office-agent-badge');
-  if(bd&&!bd.hidden){bd.dataset.gx='0'; bd.dataset.gy='0'; items.push({el:bd,kind:'badge',fixed:false,z:az});}
+  if(bd&&!bd.hidden){bd.dataset.gx='0'; bd.dataset.gy='0'; items.push({el:bd,kind:'badge',fixed:false,z:az,agent:aid,postkind:pk,slot});}
  });
  const apply=it=>{
   const gx=parseFloat(it.el.dataset.gx)||0, gy=parseFloat(it.el.dataset.gy)||0;
@@ -700,14 +728,32 @@ function officeIsoLabelPass(room){
   else it.el.style.transform=`translate(-50%,-50%) translate(${Math.round(gx)}px,${Math.round(gy)}px)`;
  };
  items.forEach(apply);
+ /* 0.9.61: BONG BÓNG ⚡ của robot trong LỒNG là chướng ngại (phồng 4×3px)
+  * cho tên + nhãn trạm của robot khác — bản 0.9.60 để tên ô sạc 3 áp sát
+  * bong bóng này. (Chỉ bong bóng lồng: nó lớn và treo đúng vùng lưới tên
+  * của cụm sạc; huy hiệu thường đã được tính trực tiếp trong điểm chồng
+  * nhãn-nhãn.) Huy hiệu buồng sạc (ô 0–3) bị phạt nặng nếu tâm-x rời
+  * lòng buồng của nó (khoá mềm: góc sạc quá tải vẫn được thoát ra chỗ
+  * trống, còn bình thường huy hiệu nằm đúng buồng) và được miễn chướng
+  * ngại mảng lồng + thân robot lồng: phần đuôi huy hiệu khuất sau khung
+  * lồng là đúng phép xếp lớp, không phải lỗi trôi huy hiệu. */
+ const bubbleObs=[];
+ for(const it of items){ if(it.kind!=='badge'||it.postkind!=='cage')continue;
+  const r=it.el.getBoundingClientRect();
+  bubbleObs.push({rect:{left:r.left-4,top:r.top-3,right:r.right+4,bottom:r.bottom+3},agent:it.agent});
+ }
+ const isChamberBadge=it=>it.kind==='badge'&&it.postkind==='pod'&&it.slot>=0&&it.slot<=3;
  const ovArea=(rect,r)=>{const ox=Math.min(rect.right,r.right)-Math.max(rect.left,r.left); const oy=Math.min(rect.bottom,r.bottom)-Math.max(rect.top,r.top); return ox>0&&oy>0?ox*oy:0;};
  const scoreOf=(it,rect)=>{
   let s=0;
   for(const o of items){if(o===it)continue; s+=ovArea(rect,o.el.getBoundingClientRect());}
   for(const ob of obstacles){
    if(ob.fg&&(ob.z||0)<=it.z)continue; // mảng mặt trước vẽ DƯỚI chữ này thì không phải chướng ngại
+   if(ob.fg&&it.kind==='badge'&&it.postkind==='pod'&&ob.fgid==='cage')continue;
+   if(ob.postkind==='cage'&&it.kind==='badge'&&it.postkind==='pod')continue;
    s+=4*ovArea(rect,ob.rect);
   }
+  if(it.kind!=='badge')for(const bo of bubbleObs){ if(bo.agent===it.agent)continue; s+=4*ovArea(rect,bo.rect); }
   return s;
  };
  const tryMove=(mv,penalty)=>{
@@ -721,13 +767,20 @@ function officeIsoLabelPass(room){
   const push=(r)=>{const ox=Math.min(mr.right,r.right)-Math.max(mr.left,r.left), oy=Math.min(mr.bottom,r.bottom)-Math.max(mr.top,r.top); if(ox>0&&oy>0){steps.add(`0,${oy+3}`);steps.add(`0,${-(oy+3)}`);steps.add(`${ox+3},0`);steps.add(`${-(ox+3)},0`);}};
   for(const o of items){if(o!==mv)push(o.el.getBoundingClientRect());}
   for(const ob of obstacles){if(ob.fg&&(ob.z||0)<=mv.z)continue; push(ob.rect);}
+  if(mv.kind!=='badge')for(const bo of bubbleObs){ if(bo.agent===mv.agent)continue; push(bo.rect); }
   let best=null;
   for(const s of steps){
    const [dx,dy]=s.split(',').map(Number);
    if(Math.abs(gx0+dx)>cl.x||Math.abs(gy0+dy)>cl.y)continue;
    const cand={left:mr.left+dx,right:mr.right+dx,top:mr.top+dy,bottom:mr.bottom+dy};
    if(cand.left<rr.left+1||cand.right>rr.right-1||cand.top<rr.top+1||cand.bottom>rr.bottom-1)continue;
-   const score=scoreOf(mv,cand)+0.02*(Math.abs(dx)+Math.abs(dy))+(penalty||0);
+   let chamberPen=0;
+   if(isChamberBadge(mv)){ // huy hiệu buồng: phạt nặng nếu tâm-x rời lòng buồng của nó
+    const inr=OFFICE_ISO_POD_INTERIORS[mv.slot];
+    const cxPct=((cand.left+cand.right)/2-rr.left)/rr.width*100;
+    if(cxPct<inr.x0-0.2||cxPct>inr.x1+0.2)chamberPen=150;
+   }
+   const score=scoreOf(mv,cand)+0.02*(Math.abs(dx)+Math.abs(dy))+(penalty||0)+chamberPen;
    if(!best||score<best.score)best={dx,dy,score};
   }
   if(!best||best.score>=(penalty||0)+base)return false;
@@ -876,6 +929,7 @@ function officeRender(){
    if(nmEl){const nlx=pd?Math.round(pd.lx*lsc):0, nly=pd?Math.round(pd.ly*lsc):0; nmEl.dataset.nlx=String(nlx); nmEl.dataset.nly=String(nly); nmEl.dataset.gx='0'; nmEl.dataset.gy='0'; nmEl.style.transform=`translate(${nlx}px,${nly}px)`;}
    if(bdEl){const btx=pd?Math.round(pd.bx*lsc):0, bty=pd?Math.round(pd.by*lsc):0; bdEl.dataset.btx=String(btx); bdEl.dataset.bty=String(bty); bdEl.dataset.gx='0'; bdEl.dataset.gy='0'; bdEl.style.transform=`translateX(calc(-50% + ${btx}px)) translateY(${bty}px)`;}
    el.dataset.postkind=post?post.kind:'';
+   el.dataset.postslot=(post&&post.kind==='pod')?String(post.slot||0):'';
    const postKey=post?(post.kind+':'+(post.id!==undefined?post.id:(post.slot!==undefined?post.slot:post.x+','+post.z))):'cast:'+pt.x+','+pt.y;
    const prev=officePrevPos[a.id];
    if(prev&&prev.station!==postKey){
