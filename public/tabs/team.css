@@ -327,6 +327,16 @@
  * ở cụm sạc được JS dời theo lưới riêng của từng ô (OFFICE_ISO_PODS). */
 .office-room.office-iso .office-agent-badge{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;white-space:nowrap;z-index:2}
 .office-room.office-iso .office-agent[data-isopose="desk"] .office-agent-badge{top:auto;bottom:100%;margin:0 0 2px}
+/* 0.9.60: lớp MẶT TRƯỚC nội thất cắt từ chính phông (mặt bàn / kính buồng
+ * sạc / khung lồng điện) vẽ PHÍA TRÊN sprite của trạm đó — robot đọc là
+ * NGỒI TRONG ghế, Ở TRONG buồng kính, Ở TRONG lồng. z-index từng mảng
+ * khai inline theo neo của trạm (z robot + 1). */
+.office-fg-layer{position:absolute;inset:0;pointer-events:none}
+.office-fg{position:absolute;display:block;pointer-events:none}
+.office-room.office-iso .office-station{z-index:105}
+/* robot bị chích điện: bong bóng trạng thái treo NGAY TRÊN lồng (như robot
+ * ngồi bàn), không rớt xuống chân rồi bị vòng nhãn đẩy trôi lên tường */
+.office-room.office-iso .office-agent[data-postkind="cage"] .office-agent-badge{top:auto;bottom:100%;margin:0 0 2px}
 .office-agent.iso-selected .office-agent-name{border-color:#ffd166;color:#ffe9a8}
 .office-pod-hots{position:absolute;inset:0;z-index:120;pointer-events:none}
 .office-pod-hot{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:2px dashed #ffd166;background:rgba(255,209,102,.16);cursor:pointer;pointer-events:auto;padding:0;animation:officePodPulse 1.2s ease-in-out infinite}

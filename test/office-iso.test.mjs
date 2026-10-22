@@ -25,7 +25,7 @@ function loadOfficeLogic(pins) {
   const factory = new Function(
     'officeLoadPins', 'localStorage',
     sliceA + '\n' + sliceB +
-    '\nreturn {officeResolvePosts, officeIsoPointForPost, officeIsoWorldToPct, officeIsoPctToWorld, officeIsoClampToDeck, officeIsoInDeck, officeIsoLabelShift, officeIsoScaleFor, OFFICE_ISO_STATIONS, OFFICE_ISO_PODS, OFFICE_ISO_MONITORS, OFFICE_ISO_SCALES, OFFICE_DESK_POOL};');
+    '\nreturn {officeResolvePosts, officeIsoPointForPost, officeIsoWorldToPct, officeIsoPctToWorld, officeIsoClampToDeck, officeIsoInDeck, officeIsoLabelShift, officeIsoScaleFor, OFFICE_ISO_STATIONS, OFFICE_ISO_PODS, OFFICE_ISO_MONITORS, OFFICE_ISO_SCALES, OFFICE_DESK_POOL, OFFICE_ISO_FG, OFFICE_ISO_POD_INTERIORS, OFFICE_ISO_CAGE_INTERIOR, OFFICE_ISO_CHAIRS, OFFICE_ISO_VIS_FRAC};');
   return factory(() => pins || {}, { getItem: () => null });
 }
 
@@ -219,7 +219,9 @@ test('0.9.59: the cage post stands inside the drawn electric cage; pod labels st
     for (const k of ['lx', 'ly', 'bx', 'by']) assert.ok(Number.isFinite(pd[k]), `pod ${i} carries label offset ${k}`);
     assert.deepEqual(L2.officeIsoLabelShift({ kind: 'pod', slot: i }), pd);
   }
-  assert.equal(L2.officeIsoLabelShift({ kind: 'desk', id: 'news' }), null);
+  assert.deepEqual(L2.officeIsoLabelShift({ kind: 'desk', id: 'news' }), { lx: 0, ly: -93, bx: 0, by: -14 });
+  assert.deepEqual(L2.officeIsoLabelShift({ kind: 'desk', id: 'image' }), { lx: 0, ly: -93, bx: 0, by: -14 });
+  assert.deepEqual(L2.officeIsoLabelShift({ kind: 'station', id: 'boss' }), { lx: 0, ly: 22, bx: 0, by: 0 });
   assert.match(team, /const nlx=pd\?Math\.round\(pd\.lx\*lsc\):0/);
   assert.match(team, /pose==='pod'&&a\.fleet&&!a\.fleet\.resting/);
   assert.match(teamCss, /\[data-isopose="desk"\] \.office-agent-badge\{top:auto;bottom:100%/);
@@ -237,7 +239,10 @@ test('0.9.59: every working desk has a drawn-monitor glow anchor on the deck, ne
     const m = L.OFFICE_ISO_MONITORS[id];
     assert.ok(m, 'monitor anchor for ' + id);
     assert.ok(L.officeIsoInDeck(m.x, m.y), 'monitor anchor ' + id + ' sits on the drawn deck');
-    const st = L.OFFICE_ISO_STATIONS[id];
+    // 0.9.60: the station anchor is the sprite FRAME anchor (seat +
+    // measured sprite offset); the invariant is monitor <-> CHAIR.
+    const ch = L.OFFICE_ISO_CHAIRS[id];
+    const st = ch ? { x: (ch.x0 + ch.x1) / 2, y: (ch.y0 + ch.y1) / 2 } : L.OFFICE_ISO_STATIONS[id];
     const d = Math.hypot(m.x - st.x, m.y - st.y);
     assert.ok(d <= 13, `monitor anchor ${id} near its seat (${d.toFixed(1)}%)`);
   }
@@ -280,4 +285,41 @@ test('0.9.59: flow pulses fire only on observed handoffs; guide explains glow, p
   assert.ok(guide.includes('màn hình ở bàn của nó sáng lên'), 'guide explains the monitor glow');
   assert.ok(guide.includes('tia sáng'), 'guide explains the handoff pulse');
   assert.ok(guide.includes('tự kéo vào trong khung phòng'), 'guide explains label clamping');
+});
+
+test('0.9.60: compositing — foreground cut-outs ship and the geometry puts sprites INSIDE the furniture', () => {
+  const L = loadOfficeLogic();
+  // Every foreground cut-out ships as a real PNG cut from the backdrop.
+  assert.equal(L.OFFICE_ISO_FG.length, 13, '8 desk fronts + 4 pod glass fronts + cage front');
+  for (const f of L.OFFICE_ISO_FG) {
+    const p = path.join(root, 'public/assets/office-iso-fg', f.img);
+    assert.ok(fs.existsSync(p), 'fg asset ' + f.img + ' ships');
+    assert.ok(fs.statSync(p).size > 3000, 'fg asset ' + f.img + ' is a real cut-out');
+  }
+  assert.match(team, /office-fg-layer/, 'fg layer renders in the ISO room');
+  assert.match(team, /office-iso-fg\//, 'fg layer loads the cut-outs');
+  // The boss gets NO station label in ISO (his name plate is the one label).
+  assert.match(team, /isoMode&&id==='boss'/, 'boss station label skipped in ISO');
+  // Pod bots scaled to fit the drawn chambers; cage bot to the cage height.
+  assert.ok(L.OFFICE_ISO_SCALES.pod <= 0.72, 'pod sprite small enough for the chamber interior');
+  assert.ok(L.OFFICE_ISO_SCALES.cage <= 0.88, 'cage sprite small enough for the cage interior');
+  // Seat geometry: the chair zone of every desk is declared, and the desk
+  // anchor's visible-sprite bottom (anchor + measured sit offset) must
+  // land in it horizontally centred on the chair.
+  for (const id of ['news', 'script', 'image', 'media', 'review', 'pm', 'publish', 'boss']) {
+    assert.ok(L.OFFICE_ISO_CHAIRS[id], 'chair zone for ' + id);
+  }
+  // Pod interiors + cage interior are declared inside the drawn furniture.
+  assert.equal(L.OFFICE_ISO_POD_INTERIORS.length, 4);
+  for (const [i, inr] of L.OFFICE_ISO_POD_INTERIORS.entries()) {
+    const pd = L.OFFICE_ISO_PODS[i];
+    assert.ok(pd.x > inr.x0 - 2 && pd.x < inr.x1 + 2, 'pod ' + i + ' anchor over its chamber');
+  }
+  const ci = L.OFFICE_ISO_CAGE_INTERIOR;
+  assert.ok(L.OFFICE_ISO_STATIONS.cage.x > ci.x0 && L.OFFICE_ISO_STATIONS.cage.x < ci.x1 + 2, 'cage anchor over the cage interior');
+  // The label pass now treats sprite bodies + foreground layers as obstacles.
+  assert.match(team, /OFFICE_ISO_VIS_FRAC/, 'label pass uses visible-sprite boxes');
+  assert.match(team, /el\.dataset\.postkind=post\?post\.kind:''/, 'render tags each bot with its post kind');
+  assert.match(teamCss, /\[data-postkind="cage"\] \.office-agent-badge\{top:auto;bottom:100%/, 'cage badge hangs above the cage');
+  assert.match(teamCss, /office-fg\{/, 'fg layer styled');
 });
