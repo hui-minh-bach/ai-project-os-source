@@ -163,31 +163,60 @@ export async function askAntigravityAccount(connection,{system='',prompt=''}={},
  const current=currentAccount(connection.id);
  if(current.credentialVersion!==connection.credentialVersion)throw new Error('Tài khoản Antigravity đã thay đổi.');
  if(!SAFE_NAME.test(connection.model||''))throw new Error('Model Antigravity không hợp lệ.');
- const text=(String(system||'')+'\n\nYêu cầu:\n'+String(prompt||'')).trim();
- if(!text||text.length>120000)throw new Error('Prompt rỗng hoặc quá dài.');
+ const baseText=(String(system||'')+'\n\nYêu cầu:\n'+String(prompt||'')).trim();
+ if(!baseText||baseText.length>120000)throw new Error('Prompt rỗng hoặc quá dài.');
  const bin=(deps.resolve||antigravityLauncher)();const {cwd,env}=(deps.profile||antigravityEnvironment)(connection.id);
- const args=[...bin.args,'--input-format','stream-json','--output-format','stream-json','--sandbox','--mode=plan','--model',connection.model];
- // Feed the prompt through stdin rather than placing private user data in the
- // Windows process command line or exposing the OS argument-length limit.
- const stdin=JSON.stringify({event:'user',message:{content:text}})+'\n';
- const r=await (deps.invoke||run)(bin.command,args,{cwd,env,inheritEnv:false,timeoutMs:90000,stdin});
- if(r.code!==0||r.timedOut)throw new Error(cliFailure('Antigravity chưa đăng nhập, model hết hạn mức hoặc CLI không hỗ trợ sandbox.',r));
- let events;try{events=r.stdout.trim().split(/\r?\n/).map(line=>JSON.parse(line));}catch{throw new Error('Antigravity CLI không trả JSON sự kiện hợp lệ.');}
- const initial=events.find(e=>e.event==='init');
- const resultEvent=events.filter(e=>e.event==='result').at(-1);
- // Google documents `result` nested inside the terminal event.
- const terminal=resultEvent?.result;
- if(!initial||!terminal||!VALID_STATUS.has(terminal.status))throw new Error('Antigravity CLI không trả kết quả thành công.');
- if(initial.init?.permission_mode==='always-proceed')throw new Error('Antigravity đang bật tự động phê duyệt công cụ. Đã chặn phản hồi.');
- const allowed=new Set(['user_input','agent_response','checkpoint','reasoning']);
- if(events.some(e=>e.event==='step_update'&&(!allowed.has(e.step_update?.step_type)||e.step_update?.tool_info||e.step_update?.tool_name))||
-    terminal.denied_actions?.length||terminal.tool_calls?.length||Number(terminal.tool_calls)>0)
-   throw new Error('Antigravity yêu cầu hoặc thực hiện công cụ. Chế độ trả lời văn bản của AI Project OS đã chặn kết quả.');
- const j=terminal;
- if(typeof j.response!=='string'||!j.response.trim()||j.response.length>240000)throw new Error('Antigravity không trả nội dung văn bản hợp lệ.');
- requireVault();if(getConnection(connection.id).credentialVersion!==current.credentialVersion)throw new Error('Tài khoản đã thay đổi trong khi xử lý.');
- recordUsage(connection,{usage:j.usage||{}},crypto.randomUUID());
- return j.response.trim();
+ const invoke=deps.invoke||run;
+ // One CLI attempt through the same stdin channel as always (the prompt is
+ // never placed in the Windows process command line). Hard failures (CLI
+ // down, bad JSON, no terminal result, always-proceed mode) throw the
+ // existing errors unchanged.
+ async function attempt(extra){
+  const text=extra?baseText+'\n\n'+extra:baseText;
+  const args=[...bin.args,'--input-format','stream-json','--output-format','stream-json','--sandbox','--mode=plan','--model',connection.model];
+  const stdin=JSON.stringify({event:'user',message:{content:text}})+'\n';
+  const r=await invoke(bin.command,args,{cwd,env,inheritEnv:false,timeoutMs:90000,stdin});
+  if(r.code!==0||r.timedOut)throw new Error(cliFailure('Antigravity chưa đăng nhập, model hết hạn mức hoặc CLI không hỗ trợ sandbox.',r));
+  let events;try{events=r.stdout.trim().split(/\r?\n/).map(line=>JSON.parse(line));}catch{throw new Error('Antigravity CLI không trả JSON sự kiện hợp lệ.');}
+  const initial=events.find(e=>e.event==='init');
+  const resultEvent=events.filter(e=>e.event==='result').at(-1);
+  // Google documents `result` nested inside the terminal event.
+  const terminal=resultEvent?.result;
+  if(!initial||!terminal||!VALID_STATUS.has(terminal.status))throw new Error('Antigravity CLI không trả kết quả thành công.');
+  if(initial.init?.permission_mode==='always-proceed')throw new Error('Antigravity đang bật tự động phê duyệt công cụ. Đã chặn phản hồi.');
+  return {events,terminal};
+ }
+ const allowedSteps=new Set(['user_input','agent_response','checkpoint','reasoning']);
+ const toolIntent=({events,terminal})=>events.some(e=>e.event==='step_update'&&(!allowedSteps.has(e.step_update?.step_type)||e.step_update?.tool_info||e.step_update?.tool_name))||
+  Boolean(terminal.denied_actions?.length||terminal.tool_calls?.length||Number(terminal.tool_calls)>0);
+ const usableText=terminal=>typeof terminal.response==='string'&&Boolean(terminal.response.trim())&&terminal.response.length<=240000;
+ function finish({terminal}){
+  const j=terminal;
+  if(typeof j.response!=='string'||!j.response.trim()||j.response.length>240000)throw new Error('Antigravity không trả nội dung văn bản hợp lệ.');
+  requireVault();if(getConnection(connection.id).credentialVersion!==current.credentialVersion)throw new Error('Tài khoản đã thay đổi trong khi xử lý.');
+  recordUsage(connection,{usage:j.usage||{}},crypto.randomUUID());
+  return j.response.trim();
+ }
+ // v0.9.62 — an agentic CLI asked to "find news" naturally reaches for
+ // tools. The old code threw on ANY tool intent and killed the whole
+ // step/run (owner hit this twice in the intake chat on 23/10), even when
+ // the CLI had also produced a usable text answer. New order:
+ // (a) usable text wins — the tool intent is ignored in text mode (the
+ //     CLI runs with --mode=plan + --sandbox and a deny-all tool profile,
+ //     so an intent cannot mutate anything);
+ // (b) tool-only result → ONE retry with a strengthened text-only
+ //     instruction appended to the same prompt;
+ // (c) still tool-only → a TYPED candidate failure
+ //     (code ANTIGRAVITY_TOOL_ONLY) which the model router treats like a
+ //     quota failure for ROTATION (next account/model candidate), minus
+ //     the cooldown — this account is not out of quota.
+ let got=await attempt('');
+ if(!toolIntent(got)||usableText(got.terminal))return finish(got);
+ got=await attempt('LƯU Ý BẮT BUỘC: Không được yêu cầu hay sử dụng bất kỳ công cụ (tool) nào, không chạy lệnh, không mở tệp, không truy cập mạng. Chỉ trả lời trực tiếp bằng văn bản thuần cho yêu cầu ở trên.');
+ if(!toolIntent(got)||usableText(got.terminal))return finish(got);
+ const e=new Error(`Model ${connection.model} của tài khoản Antigravity “${connection.name}” không trả lời bằng văn bản — model chỉ muốn dùng công cụ thay vì trả lời. Ứng dụng đã nhắc lại yêu cầu “chỉ trả lời bằng chữ, không dùng công cụ” và thử lại một lần nhưng vẫn không nhận được nội dung.`);
+ e.code='ANTIGRAVITY_TOOL_ONLY';
+ throw e;
 }
 export async function verifyAntigravityModel(id,model,deps={}){
  const c=currentAccount(id);

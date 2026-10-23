@@ -28,12 +28,19 @@ if(a.includes('models')) {
  if(a.some(x=>x.startsWith('-'))){process.stderr.write('Error: flags provided but not defined: -output-format');process.exit(1)}
  if(mode==='json'){console.log(JSON.stringify({status:'SUCCESS',command:{name:'models',data:{models:[{id:'gemini-test-flash'},{id:'gemini-test-pro'},{id:'../../bad'}]}}}));process.exit(0)}
  console.log('Available models');console.log('gemini-test-flash      Gemini Test Flash (High)');console.log('gemini-test-pro        Gemini Test Pro (Thinking)');console.log('internal');process.exit(0)}
-if(a.includes('--model')) {if(mode==='ask-error'){process.stderr.write('quota exhausted: model unavailable');process.exit(1)}const body=fs.readFileSync(0,'utf8');const message=JSON.parse(body.trim());if(message.event!=='user'||!message.message.content.includes('Yêu cầu:'))process.exit(2);if(a.includes('-p'))process.exit(3);const model=a[a.indexOf('--model')+1];const bad=model==='gemini-test-pro';console.log(JSON.stringify({event:'init',init:{permission_mode:'request-review',tools:[],cwd:process.cwd()}}));if(bad)console.log(JSON.stringify({event:'step_update',step_update:{step_type:'tool',tool_name:'run_command'}}));console.log(JSON.stringify({event:'result',result:{status:'SUCCESS',response:'OK from '+model,usage:{input_tokens:8,output_tokens:3}}}));process.exit(0)}
+if(a.includes('--model')) {if(mode==='ask-error'){process.stderr.write('quota exhausted: model unavailable');process.exit(1)}const body=fs.readFileSync(0,'utf8');const message=JSON.parse(body.trim());if(message.event!=='user'||!message.message.content.includes('Yêu cầu:'))process.exit(2);if(a.includes('-p'))process.exit(3);const model=a[a.indexOf('--model')+1];const init=JSON.stringify({event:'init',init:{permission_mode:'request-review',tools:[],cwd:process.cwd()}});const toolOnly=JSON.stringify({event:'result',result:{status:'SUCCESS',tool_calls:[{name:'google_search'}],usage:{input_tokens:8,output_tokens:3}}});
+ // 0.9.62 fixtures: 'tool-only' never answers with text; 'tool-retry'
+ // answers with text only once the prompt carries the strengthened
+ // text-only instruction (marker: 'bất kỳ công cụ').
+ if(mode==='tool-only'){console.log(init);console.log(toolOnly);process.exit(0)}
+ if(mode==='tool-retry'&&!message.message.content.includes('bất kỳ công cụ')){console.log(init);console.log(toolOnly);process.exit(0)}
+ if(mode==='tool-retry'){console.log(init);console.log(JSON.stringify({event:'result',result:{status:'SUCCESS',response:'Văn bản sau khi nhắc lại',usage:{input_tokens:8,output_tokens:3}}}));process.exit(0)}
+ const bad=model==='gemini-test-pro';console.log(init);if(bad)console.log(JSON.stringify({event:'step_update',step_update:{step_type:'tool',tool_name:'run_command'}}));console.log(JSON.stringify({event:'result',result:{status:'SUCCESS',response:'OK from '+model,usage:{input_tokens:8,output_tokens:3}}}));process.exit(0)}
 process.stderr.write('invalid args');process.exit(1);
 `;fs.writeFileSync(file,content,{mode:0o755});fs.chmodSync(file,0o755);}
 function fixtureCalls(bin){try{return fs.readFileSync(path.join(bin,'agy-calls.log'),'utf8').trim().split('\n').filter(Boolean).map(l=>JSON.parse(l));}catch{return[];}}
 function fixtureSetup(mode){const root=fs.mkdtempSync(path.join(os.tmpdir(),'aios-agy-')),data=path.join(root,'data'),bin=path.join(root,'bin');fs.mkdirSync(bin,{recursive:true});fixtureCommand(bin);if(mode)fs.writeFileSync(path.join(bin,'agy-mode'),mode);return {root,data,bin};}
-test('Antigravity login is official, checks real model catalog, rejects tools, reuses user data across application replacement',async()=>{
+test('Antigravity login is official, checks real model catalog, text answer wins over tool steps, reuses user data across application replacement',async()=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'aios-agy-')),data=path.join(root,'data'),bin=path.join(root,'bin');fs.mkdirSync(bin,{recursive:true});fixtureCommand(bin);let app;
  try{
   app=await launch(data,bin);
@@ -50,8 +57,12 @@ test('Antigravity login is official, checks real model catalog, rejects tools, r
   // which the app once misreported as an incomplete Google login.
   const modelCalls=fixtureCalls(bin).filter(a=>a.includes('models'));assert.ok(modelCalls.length>=1,'fixture must record the models call');
   for(const a of modelCalls){assert.deepEqual(a,['models'],'models must be invoked bare');assert.ok(!a.includes('--output-format'),'--output-format must never be passed to the models call');}
-  r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-pro'});assert.equal(r.status,500,'tool invocation must not verify AI');
-  r=await app.request('GET','/api/connections');assert.equal(r.value.find(c=>c.id===id).availability.status,'catalog','a failed verify must not mark the account verified — it has a catalog only (0.9.55)');
+  // v0.9.62: a tool STEP next to a usable text answer no longer fails the
+  // ask — in text mode the text IS the answer (the CLI runs --mode=plan +
+  // --sandbox behind a deny-all tool profile, so an intent cannot mutate
+  // anything). Before 0.9.62 this verify died with "Antigravity yêu cầu
+  // hoặc thực hiện công cụ…" — the owner's real 23/10 failure.
+  r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-pro'});assert.equal(r.status,200,'tool step + usable text → text wins (0.9.62)');
   r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-flash'});assert.equal(r.status,200);
   r=await app.request('POST',`/api/connections/${id}/model`,{model:'gemini-test-flash'});assert.equal(r.status,200);
   r=await app.request('GET','/api/connections');assert.equal(r.value.find(c=>c.id===id).availability.status,'verified');
@@ -91,5 +102,46 @@ test('Antigravity verify: an ask failure surfaces the CLI stderr',async()=>{
   r=await app.request('GET',`/api/antigravity/${id}/models`);assert.equal(r.status,200);assert.deepEqual(r.value,['gemini-test-flash','gemini-test-pro']);
   r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-flash'});assert.equal(r.status,500);
   assert.ok(String(r.value.error||'').includes('quota exhausted'),'error must quote the CLI stderr: '+(r.value.error||''));
+ }finally{if(app)await app.stop();fs.rmSync(root,{recursive:true,force:true})}
+});
+test('Antigravity ask: a tool-only result is retried once with a strengthened text-only instruction, then succeeds (0.9.62)',async()=>{
+ const {root,data,bin}=fixtureSetup('tool-retry');let app;
+ try{
+  app=await launch(data,bin);
+  let r=await app.request('POST','/api/vault/unlock',{password:'antigravity-test-strong-pass'});assert.equal(r.status,200);
+  r=await app.request('POST','/api/antigravity/connect',{name:'Google personal'});assert.equal(r.status,200);const id=r.value.id;
+  r=await app.request('GET',`/api/antigravity/${id}/models`);assert.equal(r.status,200);
+  r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-flash'});assert.equal(r.status,200);
+  const asks=fixtureCalls(bin).filter(a=>a.includes('--model'));assert.equal(asks.length,2,'exactly one retry after the tool-only result');
+ }finally{if(app)await app.stop();fs.rmSync(root,{recursive:true,force:true})}
+});
+test('Antigravity ask: a persistent tool-only result fails with a readable explanation after one retry (0.9.62)',async()=>{
+ const {root,data,bin}=fixtureSetup('tool-only');let app;
+ try{
+  app=await launch(data,bin);
+  let r=await app.request('POST','/api/vault/unlock',{password:'antigravity-test-strong-pass'});assert.equal(r.status,200);
+  r=await app.request('POST','/api/antigravity/connect',{name:'Google personal'});assert.equal(r.status,200);const id=r.value.id;
+  r=await app.request('GET',`/api/antigravity/${id}/models`);assert.equal(r.status,200);
+  r=await app.request('POST',`/api/antigravity/${id}/verify`,{model:'gemini-test-flash'});assert.equal(r.status,500);
+  const msg=String(r.value.error||'');assert.ok(msg.includes('không trả lời bằng văn bản')&&msg.includes('thử lại một lần'),'readable explanation required, got: '+msg);
+  const asks=fixtureCalls(bin).filter(a=>a.includes('--model'));assert.equal(asks.length,2,'one retry before failing');
+ }finally{if(app)await app.stop();fs.rmSync(root,{recursive:true,force:true})}
+});
+test('Founder chat: a provider failure keeps the user message as sent and stores the real reason (0.9.62)',async()=>{
+ const {root,data,bin}=fixtureSetup('ask-error');let app;
+ try{
+  app=await launch(data,bin);
+  let r=await app.request('POST','/api/vault/unlock',{password:'antigravity-test-strong-pass'});assert.equal(r.status,200);
+  r=await app.request('POST','/api/antigravity/connect',{name:'Google personal'});assert.equal(r.status,200);const id=r.value.id;
+  r=await app.request('GET',`/api/antigravity/${id}/models`);assert.equal(r.status,200);
+  r=await app.request('POST',`/api/connections/${id}/model`,{model:'gemini-test-flash'});assert.equal(r.status,200);
+  r=await app.request('POST','/api/projects',{name:'Chat giữ tin',idea:'Thử chat'});assert.equal(r.status,200);const project=r.value;
+  r=await app.request('POST',`/api/projects/${project.id}/chat`,{connectionId:id,message:'tìm tin tức về vàng sáng nay'});assert.equal(r.status,500,'the lead reply itself failed');
+  r=await app.request('GET',`/api/projects/${project.id}`);assert.equal(r.status,200);
+  const msgs=(r.value.messages||[]).filter(m=>m.role==='user');
+  assert.equal(msgs.length,1,'the user message must stay in the thread');
+  assert.equal(msgs[0].content,'tìm tin tức về vàng sáng nay');
+  assert.equal(msgs[0].status,'sent','a stored message must not be marked as a failed SEND');
+  assert.ok(String(msgs[0].replyError||'').includes('hạn mức'),'the real reason (router exhaustion after the CLI quota failure) must be stored on the message: '+JSON.stringify(msgs[0]));
  }finally{if(app)await app.stop();fs.rmSync(root,{recursive:true,force:true})}
 });

@@ -302,6 +302,21 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     catch (e) { step(run, 'metrics', 'skipped', { error: e.code || 'METRICS_FAILED' }); }
   }
 
+  /** v0.9.62 — resolve the run's news card. Cards vanish when their source
+   * is removed or the store is cleaned; a run created from a card carries a
+   * snapshot of the card's essential content (taken in startRun) and falls
+   * back to it silently instead of dying at ORCHESTRATOR_INPUT. Returns
+   * {card:null} only when neither the live card nor a snapshot exists. */
+  function resolveRunCard(run) {
+    const live = run.cardId ? ingest.listCards().find(c => c.id === run.cardId) : null;
+    if (live) return { card: live, fromSnapshot: false };
+    if (run.cardSnapshot) {
+      step(run, 'input', 'done', { fromSnapshot: true, note: 'Thẻ tin gốc đã bị xóa — dùng bản chụp đã lưu khi tạo lượt chạy.' });
+      return { card: { ...run.cardSnapshot }, fromSnapshot: true };
+    }
+    return { card: null, fromSnapshot: false };
+  }
+
   async function executeRun(run) {
     const cfg = state.config.pipelines[run.pipeline];
     const ai = aiFor(cfg);
@@ -312,8 +327,9 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     let videoRel, meta;
 
     if (run.pipeline === 'news-video') {
-      const card = ingest.listCards().find(c => c.id === run.cardId);
-      if (!card) throw err('ORCHESTRATOR_INPUT', 'Thẻ tin không còn tồn tại.');
+      const resolved = resolveRunCard(run);
+      const card = resolved.card;
+      if (!card) throw err('ORCHESTRATOR_INPUT', 'Thẻ tin gốc đã bị xóa và lượt chạy này không có bản chụp nội dung lưu kèm, nên không có dữ kiện để làm. Hãy tạo lượt chạy mới từ một thẻ tin còn tồn tại.');
       const script = await ai.writeNewsScript({ projectId: project.id, card });
       meta = script;
       step(run, 'ai.script', 'done', { provider: script.provider, model: script.model || null, aiMode: ai.mode });
@@ -324,10 +340,11 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', rights: 'summarized-from-source-with-credit', ...(music?.file ? { music: music.file } : {}) });
       step(run, 'produce.story', 'done');
       videoRel = materializeVideo(run, project.id, before);
-      ingest.markCardUsed(card.id, project.id);
+      if (!resolved.fromSnapshot) ingest.markCardUsed(card.id, project.id);
     } else if (run.pipeline === 'news-article') {
-      const card = ingest.listCards().find(c => c.id === run.cardId);
-      if (!card) throw err('ORCHESTRATOR_INPUT', 'Thẻ tin không còn tồn tại.');
+      const resolved = resolveRunCard(run);
+      const card = resolved.card;
+      if (!card) throw err('ORCHESTRATOR_INPUT', 'Thẻ tin gốc đã bị xóa và lượt chạy này không có bản chụp nội dung lưu kèm, nên không có dữ kiện để làm. Hãy tạo lượt chạy mới từ một thẻ tin còn tồn tại.');
       const script = await ai.writeNewsScript({ projectId: project.id, card });
       meta = script;
       step(run, 'ai.script', 'done', { provider: script.provider, model: script.model || null, aiMode: ai.mode });
@@ -335,7 +352,7 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       const caption = `${script.publishTitle}\n\n${script.publishDescription}\n\n${tags.join(' ')}`.trim();
       run.article = { title: script.publishTitle, body: script.text, description: script.publishDescription, caption, hashtags: tags, sourceUrl: card.link || null };
       step(run, 'produce.article', 'done', { hashtags: tags.length });
-      ingest.markCardUsed(card.id, project.id);
+      if (!resolved.fromSnapshot) ingest.markCardUsed(card.id, project.id);
     } else if (run.pipeline === 'idea-film') {
       const script = await ai.writeIdeaScript({ projectId: project.id, idea: run.ideaText });
       meta = script;
@@ -395,9 +412,19 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
     if (activeRun(pipelineId)) throw err('ORCHESTRATOR_BUSY', `Quy trình ${pipelineId} đang có một lượt chạy chưa kết thúc. Hãy chờ hoặc duyệt lượt đó trước.`);
     if (runsToday(pipelineId) >= (cfg.dailyCap || 1)) throw err('ORCHESTRATOR_CAP', `Đã đạt trần ${cfg.dailyCap} sản phẩm hôm nay cho quy trình ${pipelineId}.`);
     const inputCard = (pipelineId === 'news-video' || pipelineId === 'news-article') && input.cardId ? ingest.listCards().find(c => c.id === input.cardId) : null;
+    // v0.9.62: snapshot the card's essential content INTO the run at
+    // creation — if the card is later deleted (its source removed, store
+    // cleaned), the run falls back to this snapshot instead of dying.
+    const cardSnapshot = inputCard ? {
+      id: inputCard.id, title: inputCard.title || '', summary: inputCard.summary || '',
+      fullText: inputCard.fullText ? String(inputCard.fullText).slice(0, 6000) : null,
+      link: inputCard.link || '', publisher: inputCard.publisher || null,
+      publishedAt: inputCard.publishedAt || null, fieldId: inputCard.fieldId || null,
+      sourceId: inputCard.sourceId || null,
+    } : null;
     const run = {
       id: idgen(), pipeline: pipelineId, state: 'running', createdAt: now().toISOString(),
-      cardId: input.cardId || null, fieldId: inputCard?.fieldId || null, sourceVideo: input.sourceVideo || null,
+      cardId: input.cardId || null, cardSnapshot, fieldId: inputCard?.fieldId || null, sourceVideo: input.sourceVideo || null,
       title: String(input.title || (pipelineId === 'news-video' ? 'Bản tin tự động' : pipelineId === 'dub-video' ? 'Video lồng tiếng tự động' : 'Phim từ ý tưởng')).slice(0, 160),
       ideaText: input.ideaText ? String(input.ideaText).slice(0, 4000) : null,
       steps: [], projectId: null, publish: [], error: null,

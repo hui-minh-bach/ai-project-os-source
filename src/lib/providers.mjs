@@ -127,20 +127,30 @@ export async function ask(connectionId, { system = '', prompt = '', usageContext
     if (!chain.length) { notePoolExhausted(primary.kind, pool.earliestResetMs); throw allBlockedError(primary, blocked); }
     const tried = [];
     let quotaErr = null;
+    let toolErr = null;
+    let failReason = null;
     for (const cand of chain) {
       c = cand;
       try {
         const out = await askConnection(cand, { system, prompt });
-        if (cand.id !== primary.id) noteSwitch(primary, cand, cand.model);
+        if (cand.id !== primary.id) noteSwitch(primary, cand, cand.model, failReason);
         if (served && typeof served === 'object') { served.connectionId = cand.id; served.connectionName = cand.name; served.model = cand.model; }
         return redact(out);
       } catch (e) {
-        if (isQuotaError(e)) { const until = noteQuotaHit(cand, e); tried.push({ id: cand.id, name: String(cand.name || ''), model: cand.model, until }); quotaErr = e; continue; }
+        if (isQuotaError(e)) { const until = noteQuotaHit(cand, e); tried.push({ id: cand.id, name: String(cand.name || ''), model: cand.model, until }); quotaErr = e; failReason = 'quota'; continue; }
+        // v0.9.62 — typed candidate failure (Antigravity tool-only): the
+        // candidate cannot serve THIS call shape, but it is not out of
+        // quota — rotate to the next candidate WITHOUT a cooldown, the
+        // same rotation contract as quota, minus the rest.
+        if (e?.code === 'ANTIGRAVITY_TOOL_ONLY') { tried.push({ id: cand.id, name: String(cand.name || ''), model: cand.model, until: null, toolOnly: true }); toolErr = e; failReason = 'tool-only'; continue; }
         throw e;
       }
     }
+    if (toolErr && !quotaErr && !blocked.length) throw toolErr;
     notePoolExhausted(primary.kind, pool.earliestResetMs);
-    throw allBlockedError(primary, [...blocked, ...tried]);
+    const blockedErr = allBlockedError(primary, [...blocked, ...tried.filter(t => !t.toolOnly)]);
+    if (toolErr) blockedErr.message += ` Ngoài ra: ${toolErr.message}`;
+    throw blockedErr;
   } catch (e) {
     if (c && [401,403,404].includes(e?.status)) invalidateModels(c.id);
     // Do not retain the original stack/cause/custom fields containing provider

@@ -1101,11 +1101,16 @@ officeRender();officePoll();officeModelsRender();
  * Nếu WebGL/import lỗi, phòng 2D vẫn chạy như cũ — không giấu lỗi. */
 var office3DVisible=true;
 document.addEventListener('page-change',e=>{office3DVisible=e.detail.page==='idea';});
+function office3DShowError(err){window.__office3DError=String((err&&err.message)||err||'không rõ').slice(0,90);console.warn('Văn phòng 3D lỗi, dùng bản isometric:',err);const t=$('#office3DToggle');if(t&&window.__office3DWanted&&!window.__office3DReady){t.disabled=false;t.textContent='🧊 Phòng 3D chưa tải được ('+window.__office3DError+') — đang dùng bản isometric';}}
 function office3DEnsure(){
  if(window.__office3DEnsureStarted)return; window.__office3DEnsureStarted=true;
  const room=$('#officeRoom'); if(!room)return;
- setTimeout(()=>{if(window.__office3DWanted&&!window.__office3DReady){const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D chưa tải được — đang dùng bản isometric';}console.warn('Phòng 3D không sẵn sàng sau 9 giây — giữ bản isometric.');}},9000);
- import('/vendor/three.module.min.js').then(THREE=>{try{office3DBuild(THREE,room);}catch(err){console.warn('Văn phòng 3D lỗi, dùng bản 2D:',err);}}).catch(()=>{});
+ setTimeout(()=>{if(window.__office3DWanted&&!window.__office3DReady){const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D chưa tải được'+(window.__office3DError?' ('+window.__office3DError+')':' (quá 9 giây chưa sẵn sàng)')+' — đang dùng bản isometric';}console.warn('Phòng 3D không sẵn sàng sau 9 giây — giữ bản isometric.');}},9000);
+ // v0.9.62: mọi lỗi nạp 3D trước đây bị nuốt vào console nên trên máy Sếp
+ // chỉ thấy câu chung chung "chưa tải được" mà không ai biết lý do. Nay lý
+ // do thật (ngắn) được ghi vào window.__office3DError và hiện ngay trên
+ // nhãn nút 3D để chẩn đoán được (WebGL bị chặn / thiếu file / lỗi dựng).
+ import('/vendor/three.module.min.js').then(THREE=>{try{office3DBuild(THREE,room);}catch(err){office3DShowError(err);}}).catch(err=>{office3DShowError(new Error('không nạp được thư viện 3D: '+String((err&&err.message)||err||'')));});
 }
 {const tgl=$('#office3DToggle');if(tgl)tgl.onclick=()=>{
  const roomEl=$('#officeRoom');
@@ -1841,7 +1846,7 @@ function office3DBuild(THREE,room){
   camera.lookAt(orbit.lookX,orbit.lookY,orbit.lookZ);
   if(!window.__office3DReady){window.__office3DReady=true;room.classList.remove('office-iso');room.classList.add('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🗺️ Đang ở phòng 3D — bấm để về isometric';}}
   if(officeComposer)officeComposer.render(); else renderer.render(scene,camera);
- }catch(err){console.warn('Khung hình 3D lỗi — quay về phòng isometric:',err);try{renderer.setAnimationLoop(null);}catch{} window.__office3D=false;window.__office3DReady=false;const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');room.classList.add('office-iso');officeRender();} });
+ }catch(err){window.__office3DError=String((err&&err.message)||err||'không rõ').slice(0,90);console.warn('Khung hình 3D lỗi — quay về phòng isometric:',err);try{renderer.setAnimationLoop(null);}catch{} window.__office3D=false;window.__office3DReady=false;const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');room.classList.add('office-iso');officeRender();const t2=$('#office3DToggle');if(t2){t2.disabled=false;t2.textContent='🧊 Phòng 3D lỗi ('+window.__office3DError+') — đang dùng bản isometric';}} });
  // --- Phòng GLB theo ảnh mẫu (nạp bất đồng bộ): có file thì thay vỏ phòng thủ tục, robot + trạng thái thật giữ nguyên ---
  // --- Thân TAM01 cho đội bot tài khoản: nạp 1 lần, nhân bản theo xương cho từng bot ---
  let tamTemplate=null,tamClipList=null,tamCloneFn=null,tamBusy=false;

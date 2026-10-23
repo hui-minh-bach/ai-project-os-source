@@ -5,14 +5,20 @@ import os from 'node:os';
 import path from 'node:path';
 import { createOrchestrator, createSimulatedAi, defaultOrchestratorConfig } from '../src/lib/orchestrator.mjs';
 
-function fakeWorld() {
+function fakeWorld(opts = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aios-orch-'));
   const cards = [{ id: 'card-1', title: 'Tin nóng buổi sáng', summary: 'Tóm tắt nội dung tin.', link: 'https://example.com/tin-1', usedByProjectId: null }];
+  let listCalls = 0;
+  const markUsedCalls = [];
   const ingest = {
-    listCards: ({ unusedOnly } = {}) => cards.filter(c => !unusedOnly || !c.usedByProjectId),
+    // vanishAfterFirstList simulates the owner's real failure: the card
+    // exists when the run is created (snapshot taken) and is deleted
+    // before the input step looks it up again (source removed / cleaned).
+    listCards: ({ unusedOnly } = {}) => { listCalls++; if (opts.vanishAfterFirstList && listCalls > 1) return []; return cards.filter(c => !unusedOnly || !c.usedByProjectId); },
     listSources: () => [],
     scanSource: async () => ({ added: 0 }),
-    markCardUsed: (id, projectId) => { const c = cards.find(x => x.id === id); if (c) c.usedByProjectId = projectId; },
+    // Mirrors the real ingest: marking a deleted card throws INGEST_NOT_FOUND.
+    markCardUsed: (id, projectId) => { markUsedCalls.push(id); const c = cards.find(x => x.id === id); if (!c) { const e = new Error('Không tìm thấy thẻ tin.'); e.code = 'INGEST_NOT_FOUND'; throw e; } c.usedByProjectId = projectId; },
   };
   const artifacts = new Map();
   const records = [];
@@ -55,7 +61,7 @@ function fakeWorld() {
     now: () => new Date('2026-10-17T09:00:00+07:00'),
     idgen: () => 'run-' + (++seq),
   });
-  return { dir, cards, records, orch, host };
+  return { dir, cards, records, orch, host, markUsedCalls };
 }
 
 function enableNews(orch, extra = {}) {
@@ -148,6 +154,42 @@ test('orchestrator: gateway mode fails the run honestly when no model is availab
   const run = await w.orch.startRun('news-video', { cardId: 'card-1', title: 'Tin gateway' });
   assert.equal(run.state, 'failed');
   assert.equal(run.error.code, 'BLOCKED_PROVIDER');
+});
+
+test('orchestrator: run snapshots its card at creation and falls back to the snapshot when the card is deleted (0.9.62)', async () => {
+  const w = fakeWorld({ vanishAfterFirstList: true });
+  enableNews(w.orch);
+  const run = await w.orch.startRun('news-video', { cardId: 'card-1', title: 'Tin nóng buổi sáng' });
+  assert.equal(run.state, 'awaiting-approval', 'run must survive the card being deleted after creation');
+  assert.equal(run.cardSnapshot?.title, 'Tin nóng buổi sáng');
+  assert.equal(run.cardSnapshot?.summary, 'Tóm tắt nội dung tin.');
+  assert.equal(run.cardSnapshot?.link, 'https://example.com/tin-1');
+  const note = run.steps.find(s => s.name === 'input');
+  assert.ok(note && note.detail?.fromSnapshot === true, 'an input step must record the snapshot fallback');
+  assert.ok(String(note.detail?.note || '').includes('bản chụp'), 'the activity note must say the snapshot was used');
+  assert.ok(run.steps.some(s => s.name === 'ai.script' && s.state === 'done'), 'the script step must run from the snapshot content');
+  assert.deepEqual(w.markUsedCalls, [], 'markCardUsed must not be called for a deleted card (real ingest throws)');
+});
+
+test('orchestrator: news-article run also falls back to the snapshot (0.9.62)', async () => {
+  const w = fakeWorld({ vanishAfterFirstList: true });
+  const cfg = defaultOrchestratorConfig();
+  cfg.enabled = true;
+  cfg.pipelines['news-article'] = { ...cfg.pipelines['news-article'], enabled: true, aiMode: 'simulated', requireApproval: true, dailyCap: 2, activeHours: [0, 24] };
+  w.orch.setConfig(cfg);
+  const run = await w.orch.startRun('news-article', { cardId: 'card-1', title: 'Bài phân tích' });
+  assert.equal(run.state, 'awaiting-approval');
+  assert.equal(run.article?.sourceUrl, 'https://example.com/tin-1');
+  assert.ok(run.steps.some(s => s.name === 'input' && s.detail?.fromSnapshot === true));
+});
+
+test('orchestrator: a run whose card is gone AND has no snapshot fails with a clear message (0.9.62)', async () => {
+  const w = fakeWorld();
+  enableNews(w.orch);
+  const run = await w.orch.startRun('news-video', { cardId: 'card-da-xoa', title: 'Tin ma' });
+  assert.equal(run.state, 'failed');
+  assert.equal(run.error.code, 'ORCHESTRATOR_INPUT');
+  assert.ok(run.error.message.includes('bản chụp'), 'message must explain the snapshot situation: ' + run.error.message);
 });
 
 test('orchestrator: tick scans and starts a news run from the oldest unused card', async () => {

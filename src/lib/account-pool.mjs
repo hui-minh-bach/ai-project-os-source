@@ -82,8 +82,8 @@ export function noteQuotaHit(connection, err, nowMs = Date.now()) {
   return until;
 }
 
-export function noteSwitch(fromConn, toConn, model) {
-  recordEvent('pool.switch', { fromId: fromConn.id, fromName: String(fromConn.name || '').slice(0, 120), toId: toConn.id, toName: String(toConn.name || '').slice(0, 120), connKind: toConn.kind, model: String(model || '').slice(0, 120) });
+export function noteSwitch(fromConn, toConn, model, reason) {
+  recordEvent('pool.switch', { fromId: fromConn.id, fromName: String(fromConn.name || '').slice(0, 120), toId: toConn.id, toName: String(toConn.name || '').slice(0, 120), connKind: toConn.kind, model: String(model || '').slice(0, 120), ...(reason ? { reason } : {}) });
 }
 
 export function notePoolExhausted(connKind, earliestMs) {
@@ -99,7 +99,7 @@ export const poolKindLabel = kind => KIND_LABEL[kind] || String(kind || '');
 export function poolFeedEvents(limit = 50) {
   return poolEvents(limit).map(ev => {
     if (ev.kind === 'pool.quota') return { id: `pool:${ev.id}`, at: ev.at, actor: 'Hệ thống', kind: 'pool.quota', state: 'warn', pipeline: null, text: `Tài khoản “${ev.name}” (${poolKindLabel(ev.connKind)}) chạm hạn mức — cho nghỉ đến ${fmtTime(ev.until)}.` };
-    if (ev.kind === 'pool.switch') return { id: `pool:${ev.id}`, at: ev.at, actor: 'Hệ thống', kind: 'pool.switch', state: 'info', pipeline: null, text: `Tài khoản “${ev.fromName}” chạm hạn mức — chuyển “${ev.toName}” (${poolKindLabel(ev.connKind)}) chạy tiếp model ${ev.model}.` };
+    if (ev.kind === 'pool.switch') return { id: `pool:${ev.id}`, at: ev.at, actor: 'Hệ thống', kind: 'pool.switch', state: 'info', pipeline: null, text: ev.reason === 'tool-only' ? `Model ở tài khoản “${ev.fromName}” không trả lời bằng văn bản được — chuyển “${ev.toName}” (${poolKindLabel(ev.connKind)}) chạy tiếp model ${ev.model}.` : `Tài khoản “${ev.fromName}” chạm hạn mức — chuyển “${ev.toName}” (${poolKindLabel(ev.connKind)}) chạy tiếp model ${ev.model}.` };
     if (ev.kind === 'pool.exhausted') return { id: `pool:${ev.id}`, at: ev.at, actor: 'Hệ thống', kind: 'pool.exhausted', state: 'failed', pipeline: null, text: `Tất cả tài khoản ${poolKindLabel(ev.connKind)} đều đang nghỉ hạn mức${ev.until ? ` — sớm nhất mở lại ${fmtTime(ev.until)}` : ''}.` };
     return null;
   }).filter(Boolean);

@@ -102,7 +102,11 @@ export async function founderChat(id,connectionId,message){
     const snap=getProject(id);
     const reply=await ask(connectionId,{system:'Bạn là AI Founder/Project Manager cho người không chuyên kỹ thuật. Hãy biến ý tưởng mơ hồ thành sản phẩm rõ ràng, hỏi ít nhưng đúng trọng tâm, phát hiện login/data/payment/integration/cost/risk. Dùng thông tin dự án và toàn bộ trao đổi được cung cấp. Trả lời tiếng Việt dễ hiểu.'+skillPrompt(['founder-discovery','ux-beginner'],{role:'founder'}),prompt:briefContext(snap)});
     mutateProject(id,p=>{const user=p.messages.find(m=>m.id===messageId);if(user)user.status='sent';p.messages.push({id:crypto.randomUUID(),role:'assistant',content:reply,at:now(),status:'sent'});});return reply;
-  }catch(e){mutateProject(id,p=>{const user=p.messages.find(m=>m.id===messageId);if(user)user.status='failed';});throw e;}
+  // v0.9.62: the user's message WAS accepted and stored above — a failure
+  // after that is the LEAD's reply failing, not the send failing. Keep the
+  // message as 'sent' and attach the real (redacted) reason as replyError
+  // so the thread never shows a bare "Gửi thất bại" for a stored message.
+  }catch(e){mutateProject(id,p=>{const user=p.messages.find(m=>m.id===messageId);if(user){user.status='sent';user.replyError=redactVaultSecrets(String(e?.message||e)).slice(0,300);}});throw e;}
   finally{ideaPending.delete(id);}
 }
 export async function analyzeIdea(id){
