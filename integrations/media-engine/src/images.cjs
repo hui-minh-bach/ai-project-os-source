@@ -1,5 +1,6 @@
 'use strict';
 const zlib=require('node:zlib');
+const path=require('node:path');
 const {fs,sha,mkdir}=require('./utils.cjs');
 // Deterministic procedural art, NOT an AI-generated image. Offline fallback only.
 function crc32(b){let c=0xffffffff;for(const v of b){c^=v;for(let j=0;j<8;j++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;}return (c^0xffffffff)>>>0;}
@@ -61,13 +62,32 @@ function createPng(file,{width=1280,height=720,seed='village',scene=0}={}){
  const head=Buffer.alloc(13);head.writeUInt32BE(width,0);head.writeUInt32BE(height,4);head[8]=8;head[9]=2;
  mkdir(require('node:path').dirname(file));fs.writeFileSync(file,Buffer.concat([Buffer.from('89504e470d0a1a0a','hex'),chunk('IHDR',head),chunk('IDAT',zlib.deflateSync(raw,{level:6})),chunk('IEND',Buffer.alloc(0))]));return file;
 }
-async function illustration({gateway,description,characterSheet,output,offline=true,scene=0}){
- if(!offline&&gateway?.invoke){
-   try{
-     const result=await gateway.invoke({capability:'image.generate',input:{description,characterSheet,output}});
-     if(result?.path&&fs.existsSync(result.path))return {path:result.path,origin:'provider'};
-   }catch{/* provider unavailable: fall through to the procedural fallback */}
+async function illustration({gateway,description,characterSheet,output,offline=true,scene=0,provider='local-flux',strict=false,workspace=null}){
+ if(!offline){
+  try{
+   insist(gateway&&typeof gateway.invoke==='function','Image generator is not connected','BLOCKED_PROVIDER');
+   const prompt=[characterSheet,description].filter(Boolean).join('\nScene: ');
+   const result=await gateway.invoke({capability:'image.generate',input:{prompt,provider,size:'1280x720'}});
+   const source=typeof result?.path==='string'?result.path:null;
+   insist(source&&fs.existsSync(source)&&fs.statSync(source).isFile(),'Image provider did not return a readable file','BLOCKED_PROVIDER');
+   const root=workspace&&fs.realpathSync(workspace);
+   const real=fs.realpathSync(source);
+   insist(!root||(real.startsWith(root+path.sep)),'Image provider returned a path outside the media workspace','BLOCKED_PROVIDER');
+   const ext=path.extname(real).toLowerCase();
+   insist(['.png','.jpg','.jpeg','.webp'].includes(ext),'Image provider returned unsupported format','BLOCKED_PROVIDER');
+   const fd=fs.openSync(real,'r'),head=Buffer.alloc(12);try{fs.readSync(fd,head,0,12,0);}finally{fs.closeSync(fd);}
+   const valid=ext==='.png'?head.subarray(0,8).equals(Buffer.from('89504e470d0a1a0a','hex'))
+    :ext==='.jpg'||ext==='.jpeg'?head[0]===255&&head[1]===216
+    :head.toString('ascii',0,4)==='RIFF'&&head.toString('ascii',8,12)==='WEBP';
+   insist(valid&&fs.statSync(real).size>100,'Image provider returned invalid image bytes','BLOCKED_PROVIDER');
+   const target=output.replace(/\.[a-z0-9]+$/i,'')+ext;
+   mkdir(path.dirname(target));fs.copyFileSync(real,target);
+   return {path:target,origin:'provider:'+String(result?.provider||provider),model:result?.model||null};
+  }catch(e){
+   if(strict)throw e;
+  }
  }
+ if(strict)insist(false,'AI image requested but no real image provider available','BLOCKED_PROVIDER');
  return {path:createPng(output,{seed:characterSheet||description,scene}),origin:'procedural-offline-non-ai'};
 }
 module.exports={createPng,illustration};
