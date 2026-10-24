@@ -1,7 +1,7 @@
 'use strict';
 const zlib=require('node:zlib');
 const path=require('node:path');
-const {fs,sha,mkdir}=require('./utils.cjs');
+const {fs,sha,mkdir,insist}=require('./utils.cjs');
 // Deterministic procedural art, NOT an AI-generated image. Offline fallback only.
 function crc32(b){let c=0xffffffff;for(const v of b){c^=v;for(let j=0;j<8;j++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;}return (c^0xffffffff)>>>0;}
 function chunk(type,body){const tag=Buffer.from(type),len=Buffer.alloc(4),crc=Buffer.alloc(4);len.writeUInt32BE(body.length);crc.writeUInt32BE(crc32(Buffer.concat([tag,body])));return Buffer.concat([len,tag,body,crc]);}
