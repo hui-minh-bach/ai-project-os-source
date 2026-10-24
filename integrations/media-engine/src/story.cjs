@@ -31,7 +31,7 @@ async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxCh
   insist(typeof r?.text==='string'&&r.text.trim(),'Adaptation provider returned no story');body=r.text;
  }
  const ch=chapters(body),storyboard=[],subtitles=[],subtitleAudio=[];let cursor=0;
- const style='Vietnamese countryside at sunrise; repeating silhouette character designs; flat cinematic poster style';
+ const style='Photorealistic editorial cinematography, coherent character and environment continuity, natural lighting, physically plausible detail. Match the visual subject and locations explicitly described in the script; no unrelated default countryside backdrop.';
  for(const chapter of ch){
   const parts=scenes(chapter.text,maxChars);
   for(let j=0;j<parts.length;j++){
