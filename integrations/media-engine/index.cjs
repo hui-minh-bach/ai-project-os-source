@@ -97,8 +97,8 @@ function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeB
   const saved=await save(jobId,{edit,preview,final,qa},[['preview.mp4',preview.file],['final.mp4',final.file],['timeline.json',timelineFile],['captions.srt',subtitle]]);
   return {preview,final,qa,saved};
  });
- task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition,transitionSeconds,quality:qualityProfile,karaokeCaptions=true,captionPreset='sweep'},dir)=>{
-  const made=await story.buildStory({workspace:root,text,source,jobDir:dir,gateway:ProviderGateway,voice,mode,allowProviderImages,ffprobeBin,ffmpegBin,python:pythonBin,maxChars,resolution,rights,rate,volume,emotion,transition,transitionSeconds,karaokeCaptions,captionPreset});
+ task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,requireRealImages=false,imageProvider='local-flux',music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition,transitionSeconds,quality:qualityProfile,karaokeCaptions=true,captionPreset='sweep'},dir)=>{
+  const made=await story.buildStory({workspace:root,text,source,jobDir:dir,gateway:ProviderGateway,voice,mode,allowProviderImages,requireRealImages,imageProvider,ffprobeBin,ffmpegBin,python:pythonBin,maxChars,resolution,rights,rate,volume,emotion,transition,transitionSeconds,karaokeCaptions,captionPreset});
   const onProgress=p=>EventBus.publish('media.progress',{jobId,operation:'story',...p});
   const sound=music?within(root,music):null,subtitle=(made.karaokeFile&&fs.existsSync(made.karaokeFile))?made.karaokeFile:path.join(dir,'captions.srt');
   const preview=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,preview:true,subtitle,music:sound,onProgress});
