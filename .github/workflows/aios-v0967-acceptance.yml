@@ -1,0 +1,54 @@
+name: AIOS v0.9.67 staging acceptance
+on:
+  push:
+    branches: [feat/aios-factory-skills-gates-20261024]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    name: Source and FFmpeg
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Probe binary dependencies
+        shell: pwsh
+        run: |
+          node --version
+          git --version
+          if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
+            if ($IsWindows) { choco install ffmpeg -y --no-progress } else { sudo apt-get update && sudo apt-get install -y ffmpeg }
+          }
+          ffmpeg -version
+          ffprobe -version
+      - name: Node syntax and source contracts
+        run: npm run check
+      - name: Factory, roles and real-image routing
+        run: node --test --test-concurrency=1 test/skills-contract.test.mjs test/model-routing.test.mjs test/media-real-image-contract.test.mjs
+      - name: Create actual demo video fixture (not AI-generation test)
+        shell: pwsh
+        run: |
+          $p = "integrations/media-engine/artifacts/samples/source.mp4"
+          ffmpeg -hide_banner -loglevel error -y -f lavfi -i "testsrc2=size=480x270:rate=25" -f lavfi -i "sine=frequency=440:sample_rate=48000" -t 6 -c:v libx264 -pix_fmt yuv420p -preset ultrafast -c:a aac -shortest "$p"
+          if ($LASTEXITCODE -ne 0) { throw "Fixture generation failed" }
+          ffprobe -v error -show_entries stream=codec_type -of csv=p=0 "$p"
+      - name: Real FFmpeg media bridge
+        run: npm run verify:media-e2e
+      - name: Local HTTP media user flow
+        run: npm run verify:media-user-flow
+      - name: Commercial release must remain blocked without live attestations
+        shell: pwsh
+        run: |
+          node scripts/release-readiness.mjs --enforce
+          if ($LASTEXITCODE -eq 0) { throw "Unexpected commercial readiness claim" }
+          Write-Host "Correctly blocked: runner tests do not certify production."
