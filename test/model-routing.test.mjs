@@ -86,6 +86,10 @@ test('stored 0.9.53 binding with an area stamp still loads and resolves; saves n
     assert.equal(projects.projectModelRoles(p.id).roles.worker.connectionId, ca.id, 'stamped binding loads');
     projects.updateProjectModelRoles(p.id, { worker: { connectionId: ca.id, model: 'm1', area: 'chatbox' } });
     assert.ok(!('area' in projects.getProject(p.id).modelRoles.worker), 'area is never written again');
+    projects.updateProjectModelRoles(p.id,{reviewer:{connectionId:ca.id,model:'m1'}});
+    assert.equal(projects.getProject(p.id).modelRoles.worker.model,'m1','adding reviewer retains worker');
+    projects.updateProjectModelRoles(p.id,{reviewer:null});
+    assert.equal(projects.getProject(p.id).modelRoles.worker.model,'m1','clearing reviewer retains worker');
   } finally { A.s.close(); f.cleanup(); }
 });
 
