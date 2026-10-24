@@ -24,12 +24,14 @@
       ]
     },
     "demonstrate": {
-      "status": "not_tested",
-      "evidence": []
+      "status": "in_progress",
+      "evidence": [
+        "Windows and Ubuntu GitHub Actions CI run 40063796873; synthetic media fixture verified; not production"
+      ]
     },
     "integrate": {
       "status": "blocked",
-      "evidence": []
+      "reason": "v0.9.66 ZIP cannot be programmatically inspected in current environment; code executor container error"
     }
   },
   "checks": {
@@ -39,6 +41,21 @@
     "browserE2E": "NOT_TESTED",
     "sourceZip": "NOT_BUILT"
   },
-  "next_action": "Restore code execution. Inspect v0.9.66 ZIP, apply/rebase v0.9.67 changes onto verified baseline; run Node tests and produce video/site actual; then release single full ZIP.",
-  "warning": "No main merge or release: staging code is based on old v0.9.62 GitHub source."
+  "next_action": "Verify ZIP v0.9.66 against branch and run Media/Software factory end-to-end on real machine before tagging 0.9.67; keep PR draft",
+  "warning": "No main merge or release: staging code is based on old v0.9.62 GitHub source.",
+  "ci": {
+    "workflow": "AIOS v0.9.67 staging acceptance",
+    "run_id": 40063796873,
+    "reference_commit": "1510de0fb3b250e40cf1cb19e0478064217fcd1a",
+    "windows": "PASS",
+    "ubuntu": "PASS",
+    "scope": "Node syntax, real-image adapter unit contract, FFmpeg synthetic sample, media HTTP user flow, commercial release fail-closed gate",
+    "does_not_certify": [
+      "real FLUX output",
+      "HoaiMy Vietnamese TTS",
+      "installed Windows 10/11 desktop",
+      "software factory from natural-language idea",
+      "source baseline v0.9.66 reconciled"
+    ]
+  }
 }
