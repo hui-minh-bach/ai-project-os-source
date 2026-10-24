@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "goal": "AI Project OS v0.9.67: real Media and Software Factory with Windows worker and truthful QA",
+  "baseline": {
+    "branch": "main",
+    "version": "0.9.62",
+    "zipVersion": "0.9.66",
+    "zipMaterialized": "/mnt/data/aios_v0966_recovered/AI_Project_OS_v0.9.66_FREE_STACK_STABILIZED_FULL_SOURCE.zip",
+    "zipInspected": false,
+    "reason": "Container execution unavailable"
+  },
+  "stages": {
+    "specify": {
+      "status": "done",
+      "evidence": [
+        "issues #2-7",
+        "GitHub source inspection"
+      ]
+    },
+    "build": {
+      "status": "in_progress",
+      "evidence": [
+        "PR #8: media real-image path and six skills"
+      ]
+    },
+    "demonstrate": {
+      "status": "not_tested",
+      "evidence": []
+    },
+    "integrate": {
+      "status": "blocked",
+      "evidence": []
+    }
+  },
+  "checks": {
+    "nodeSyntax": "NOT_TESTED",
+    "unitTests": "NOT_TESTED",
+    "MP4Windows": "NOT_TESTED",
+    "browserE2E": "NOT_TESTED",
+    "sourceZip": "NOT_BUILT"
+  },
+  "next_action": "Restore code execution. Inspect v0.9.66 ZIP, apply/rebase v0.9.67 changes onto verified baseline; run Node tests and produce video/site actual; then release single full ZIP.",
+  "warning": "No main merge or release: staging code is based on old v0.9.62 GitHub source."
+}
