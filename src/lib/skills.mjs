@@ -47,6 +47,15 @@ const display=[
 ];
 BUILTIN.push({id:WORKFLOW_SKILL_ID,name:'AI Project OS Workflow',icon:'⇄',category:'ops',roles:SKILL_ROLES,prompt:workflowPrompt,rolePrompts:workflowRoles});
 display.push(['AI Project OS Workflow','ops',['workflow','checkpoint','review'],'Giao việc gọn theo vai trò, kiểm chứng thật và tiếp tục từ checkpoint; giữ model đã chọn.']);
+const FACTORY=[
+{"id":"project-manager","name":"Project Manager","cat":"ops","roles":["founder","product","manager"],"desc":"Điều phối một task graph, giữ các vai trò và chỉ công nhận receipts thật."},
+{"id":"requirements-to-spec","name":"Requirements to Spec","cat":"planning","roles":["founder","product","research","architecture","design"],"desc":"Biến ý tưởng bất kỳ thành đặc tả và tiêu chí có thể kiểm chứng."},
+{"id":"task-dispatcher","name":"Task Dispatcher","cat":"ops","roles":["manager","architecture","frontend","backend","database","devops"],"desc":"Phân công đúng capability thực, chuyển việc an toàn và giữ vai trò khác."},
+{"id":"checkpoint-resume","name":"Checkpoint Resume","cat":"ops","roles":["manager","backend","devops","qa","release"],"desc":"Lưu tiến độ và artifact có SHA để resume mà không tạo trùng."},
+{"id":"quality-gate","name":"Quality Gate","cat":"ops","roles":["qa","reviewer","security","release"],"desc":"Tách mock và native, xác minh video, website, source theo tiêu chí thật."},
+{"id":"delivery-manager","name":"Delivery Manager","cat":"deploy","roles":["manager","release","devops","reviewer"],"desc":"Chỉ bàn giao sản phẩm thực có bằng chứng kiểm thử và sự phê duyệt."}
+];
+for (const s of FACTORY) { BUILTIN.push({id:s.id,name:s.name,icon:'🧩',category:s.cat,roles:s.roles,description:s.desc,prompt:s.desc+' Không tự nhận PASS nếu chưa có artifact, tool probe và bằng chứng runtime.'});display.push([s.name,s.cat,['factory',s.id],s.desc]);}
 const builtinIds=new Set(BUILTIN.map(s=>s.id));
 const SETTINGS_FILE='skill-settings.json';
 const aliases={product:'planning',engineering:'build',data:'other',quality:'ops',delivery:'deploy',custom:'other'};
