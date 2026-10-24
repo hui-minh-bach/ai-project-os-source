@@ -68,7 +68,8 @@ async function illustration({gateway,description,characterSheet,output,offline=t
    insist(gateway&&typeof gateway.invoke==='function','Image generator is not connected','BLOCKED_PROVIDER');
    const prompt=[characterSheet,description].filter(Boolean).join('\nScene: ');
    const result=await gateway.invoke({capability:'image.generate',input:{prompt,provider,size:'1280x720'}});
-   const source=typeof result?.path==='string'?result.path:null;
+   const supplied=typeof result?.path==='string'?result.path:typeof result?.file==='string'?result.file:null;
+   const source=supplied?(path.isAbsolute(supplied)?supplied:workspace?path.resolve(workspace,supplied):null):null;
    insist(source&&fs.existsSync(source)&&fs.statSync(source).isFile(),'Image provider did not return a readable file','BLOCKED_PROVIDER');
    const root=workspace&&fs.realpathSync(workspace);
    const real=fs.realpathSync(source);
