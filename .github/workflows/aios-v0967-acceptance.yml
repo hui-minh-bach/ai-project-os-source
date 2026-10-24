@@ -55,5 +55,6 @@ jobs:
         shell: pwsh
         run: |
           node scripts/release-readiness.mjs --enforce
-          if ($LASTEXITCODE -eq 0) { throw "Unexpected commercial readiness claim" }
+          if ($LASTEXITCODE -ne 2) { throw "Commercial release gate must return blocked exit code 2, got $LASTEXITCODE" }
           Write-Host "Correctly blocked: runner tests do not certify production."
+          exit 0
