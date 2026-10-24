@@ -21,7 +21,7 @@ async function loadText({workspace,source,text,python='python3',pdftotext='pdfto
  const py='import zipfile,sys,xml.etree.ElementTree as E\nf=zipfile.ZipFile(sys.argv[1]);t=E.fromstring(f.read("word/document.xml"));ns={"w":"http://schemas.openxmlformats.org/wordprocessingml/2006/main"};print("\\n".join("".join(n.text or "" for n in p.findall(".//w:t",ns)) for p in t.findall(".//w:p",ns)))';
  const r=await run(python,['-c',py,file],{timeoutMs:30000,maxOutput:12e6});insist(r.stdout.trim(),'Empty DOCX');return {text:r.stdout.trim(),source:file};
 }
-async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxChars=420,mode='verbatim',allowProviderImages=false,ffprobeBin='ffprobe',ffmpegBin='ffmpeg',python='python3',resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition='cut',transitionSeconds=0.4,karaokeCaptions=true,captionPreset='sweep'}){
+async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxChars=420,mode='verbatim',allowProviderImages=false,requireRealImages=false,imageProvider='local-flux',ffprobeBin='ffprobe',ffmpegBin='ffmpeg',python='python3',resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition='cut',transitionSeconds=0.4,karaokeCaptions=true,captionPreset='sweep'}){
  insist(mode==='verbatim'||mode==='adapted','Unknown story mode');
  insist(Number.isFinite(rate)&&rate>=0.65&&rate<=1.5,'Unsupported narration rate');
  insist(Number.isFinite(volume)&&volume>=0.1&&volume<=1,'Unsupported narration volume');
@@ -60,7 +60,7 @@ async function buildStory({workspace,text,source,gateway,jobDir,voice='vi',maxCh
     const end=k===units.length-1?cursor+measured:t+units[k].seconds;
     subtitles.push({id:String(subtitles.length+1),start:t,end,text:units[k].text,sceneIndex:index});subtitleAudio.push(units[k].file);t=end;
    }
-   const pic=fs.existsSync(imgPath)?{path:imgPath,origin:'checkpoint'}:await illustration({gateway,description:parts[j],characterSheet:style,output:imgPath,offline:!allowProviderImages,scene:index});
+   const pic=fs.existsSync(imgPath)&&!requireRealImages?{path:imgPath,origin:'checkpoint'}:await illustration({gateway,description:parts[j],characterSheet:style,output:imgPath,offline:!allowProviderImages,scene:index,provider:imageProvider,strict:requireRealImages,workspace});
    const scene={index,chapter:chapter.number,sourceText:parts[j],title:`Scene ${index+1}`,image:pic.path,imageOrigin:pic.origin,audio:voicePath,duration:measured,voice,characterSheet:style,cacheKey:key,start:cursor,end:cursor+measured};
    storyboard.push(scene);cursor+=measured;
   }
