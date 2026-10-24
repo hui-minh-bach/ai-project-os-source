@@ -48,21 +48,41 @@ export function createProject(input={}){
 export function updateProjectSettings(id,settings={}){return mutateProject(id,p=>{p.settings=settingsInput(settings,p.settings||{});p.activity.push({at:now(),text:'Cập nhật cấu hình dự án'});});}
 
 export function updateProjectModelRoles(id,input={}) {
-  const roles={};
-  for(const role of MODEL_ROLES) { const b=input[role]; if(role==='council'){if(b!==undefined&&!Array.isArray(b))throw new Error('Council cần danh sách thành viên.');if((b||[]).length>8)throw new Error('Council hỗ trợ tối đa 8 thành viên.');roles.council=(b||[]).map(verifiedBinding);}else roles[role]=b?verifiedBinding(b):null; }
-  // Backup bindings (v0.9.55): one optional dự phòng per role (per Council
-  // member), validated by the same catalog rule as primaries. The runtime
-  // router tries a backup only after the primary + its same-kind pool.
-  const backupsIn=input&&typeof input==='object'&&input.backups&&typeof input.backups==='object'?input.backups:null;
-  const backups={founder:null,council:[],worker:null,reviewer:null};
-  if(backupsIn){
+  if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Phân vai model không hợp lệ.');
+  // v0.9.67: a partial role update must preserve all other AI roles. In older
+  // builds, selecting one Worker sent only {worker} and silently reset Founder,
+  // Council and Reviewer. Explicit null/[] still clears an individual role.
+  const current=getProject(id);
+  const previous=current.modelRoles||{founder:null,council:[],worker:null,reviewer:null};
+  const roles={...previous,council:[...(previous.council||[])]};
+  for(const role of MODEL_ROLES){
+    if(!Object.hasOwn(input,role))continue;
+    const binding=input[role];
+    if(role==='council'){
+      if(!Array.isArray(binding))throw new Error('Council cần danh sách thành viên.');
+      if(binding.length>8)throw new Error('Council hỗ trợ tối đa 8 thành viên.');
+      roles.council=binding.map(verifiedBinding);
+    }else roles[role]=binding?verifiedBinding(binding):null;
+  }
+  const previousBackups=current.modelRoleBackups||{founder:null,council:[],worker:null,reviewer:null};
+  const backups={...previousBackups,council:[...(previousBackups.council||[])]};
+  if(Object.hasOwn(input,'backups')){
+    const b=input.backups;
+    if(!b||typeof b!=='object'||Array.isArray(b))throw new Error('Dự phòng model không hợp lệ.');
     for(const role of MODEL_ROLES){
-      const b=backupsIn[role];
-      if(role==='council'){if(b!==undefined&&b!==null&&!Array.isArray(b))throw new Error('Dự phòng Council cần danh sách theo từng thành viên.');backups.council=(b||[]).map(x=>x?verifiedBinding(x):null);}
-      else backups[role]=b?verifiedBinding(b):null;
+      if(!Object.hasOwn(b,role))continue;
+      const binding=b[role];
+      if(role==='council'){
+        if(!Array.isArray(binding)||binding.length>8)throw new Error('Dự phòng Council cần danh sách tối đa 8 thành viên.');
+        backups.council=binding.map(x=>x?verifiedBinding(x):null);
+      }else backups[role]=binding?verifiedBinding(binding):null;
     }
   }
-  return mutateProject(id,p=>{p.modelRoles=roles;p.modelRoleBackups=backups;p.activity.push({at:now(),text:'Cập nhật phân vai model'});});
+  return mutateProject(id,p=>{
+    p.modelRoles=roles;
+    p.modelRoleBackups=backups;
+    p.activity.push({at:now(),text:'Cập nhật phân vai model (giữ nguyên các vai trò khác)'});
+  });
 }
 export function saveProjectGithub(id,github){return mutateProject(id,p=>{p.settings={...p.settings,github:{...(p.settings?.github||{}),...github}};p.activity.push({at:now(),text:'Cập nhật liên kết repo GitHub'});});}
 export function saveProjectDomain(id,domain){return mutateProject(id,p=>{p.settings={...p.settings,domain:{domain:domain.domain,deploymentUrl:domain.deploymentUrl,configuredAt:now()}};});}
