@@ -144,7 +144,11 @@ async function ccSaveRoles(roles){
  const projectId=state.project.id;const result=await api(`/api/projects/${encodeURIComponent(projectId)}/model-roles`,{method:'POST',body:JSON.stringify(roles)});
  if(state.project?.id===projectId){state.project=result;const i=state.projects.findIndex(p=>p.id===projectId);if(i>=0)state.projects[i]=result;renderConnections();renderSelectors();document.dispatchEvent(new CustomEvent('connections-change'));toast('Đã lưu phân vai cho dự án')}
 }
-function ccRoleDraft(){const roles=structuredClone(state.project?.modelRoles||{founder:null,council:[],worker:null,reviewer:null});const backups=structuredClone(state.project?.modelRoleBackups||{founder:null,council:[],worker:null,reviewer:null});const available=b=>Boolean(b&&ccConnected().some(c=>c.id===b.connectionId&&(c.availability.models||[]).includes(b.model)));for(const [role] of ccRoles){if(role==='council'){roles.council=(roles.council||[]).filter(available);backups.council=(backups.council||[]).filter(available);}else{if(!available(roles[role]))roles[role]=null;if(!available(backups[role]))backups[role]=null;}}return {...roles,backups}}
+function ccRoleDraft(){// v0.9.67: retain bindings even if their account is offline, Vault is locked or catalog is stale. Only user-selected changes may clear a role.
+ const roles=structuredClone(state.project?.modelRoles||{founder:null,council:[],worker:null,reviewer:null});
+ const backups=structuredClone(state.project?.modelRoleBackups||{founder:null,council:[],worker:null,reviewer:null});
+ return {...roles,backups};
+}
 function ccCouncilDialog(){
  if(ccNeedVault()||!state.project)return;
  const draft=ccRoleDraft();

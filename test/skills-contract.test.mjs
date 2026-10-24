@@ -18,7 +18,7 @@ function reset(){for(const f of files)for(const suffix of ['','.bak'])fs.rmSync(
 const custom={name:'Contract skill',category:'build',roles:['frontend'],description:'A contract fixture',prompt:'SKILL_CUSTOM_MARKER'};
 
 test('skill registry preserves stable IDs and custom CRUD validates identity, schema and built-in protection',()=>{reset();try{
- const builtin=listSkills();assert.equal(builtin.length,14);assert.equal(new Set(builtin.map(s=>s.id)).size,14);assert.ok(builtin.every(s=>s.enabled&&s.builtin));
+ const builtin=listSkills();assert.equal(builtin.length,20);assert.equal(new Set(builtin.map(s=>s.id)).size,20);assert.ok(builtin.every(s=>s.enabled&&s.builtin));
  for(const id of ['founder-discovery','ux-beginner','system-architecture','frontend-web','database-postgres','security-review','qa-test','git-release','vercel-deploy','supabase-setup'])assert.ok(getSkill(id));
  for(const input of [{...custom,id:'frontend-web'},{...custom,id:'../../evil'},{...custom,name:''},{...custom,prompt:'x'.repeat(5001)},{...custom,category:'bad'},{...custom,roles:['invalid']},{...custom,roles:[]},{...custom,roles:'frontend'},{...custom,enabled:'false'}])assert.throws(()=>saveCustomSkill(input));
  const s=saveCustomSkill({...custom,id:'custom-contract'});assert.equal(s.builtin,false);assert.equal(s.enabled,true);assert.throws(()=>saveCustomSkill({...custom,id:s.id}),/tồn tại/);assert.throws(()=>saveCustomSkill({...custom,id:'custom-different'},{updateId:s.id}),/đổi ID/);
@@ -65,3 +65,14 @@ test('workflow reserves mapping slot, persists toggle and reaches real Founder/p
  }
  }finally{server.closeAllConnections();server.close();reset();fs.rmSync(root,{recursive:true,force:true});}
 });
+
+
+test('Factory skill instructions have registry entries and can be disabled',()=>{reset();try{
+ const ids=['project-manager','requirements-to-spec','task-dispatcher','checkpoint-resume','quality-gate','delivery-manager'];
+ for(const id of ids){assert.ok(getSkill(id));assert.equal(getSkill(id).builtin,true);assert.ok(getSkill(id).enabled);assert.throws(()=>saveCustomSkill({...custom,id}),/built-in/);}
+ assert.ok(suggestSkillsForRole('manager').includes('project-manager'));
+ assert.ok(suggestSkillsForRole('qa').includes('quality-gate'));
+ setSkillEnabled('quality-gate',false);
+ assert.ok(!suggestSkillsForRole('qa').includes('quality-gate'));
+ setSkillEnabled('quality-gate',true);
+}finally{reset();}});

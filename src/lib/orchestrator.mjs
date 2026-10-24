@@ -337,7 +337,7 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       const music = await resolveMusic(run, cfg, script);
       if (music) step(run, 'produce.music', 'done', music.detail || { source: 'none' });
       const before = new Set(host.listArtifacts(project.id).map(a => a.id));
-      await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', rights: 'summarized-from-source-with-credit', ...(music?.file ? { music: music.file } : {}) });
+      await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', allowProviderImages: true, requireRealImages: true, imageProvider: 'local-flux', rights: 'summarized-from-source-with-credit', ...(music?.file ? { music: music.file } : {}) });
       step(run, 'produce.story', 'done');
       videoRel = materializeVideo(run, project.id, before);
       if (!resolved.fromSnapshot) ingest.markCardUsed(card.id, project.id);
@@ -360,7 +360,7 @@ export function createOrchestrator({ file, ingest, host, createProject, aiAdapte
       const music = await resolveMusic(run, cfg, script);
       if (music) step(run, 'produce.music', 'done', music.detail || { source: 'none' });
       const before = new Set(host.listArtifacts(project.id).map(a => a.id));
-      await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', rights: 'original', ...(music?.file ? { music: music.file } : {}) });
+      await runTask(project.id, 'media.story', { text: script.text, voice: cfg.targetLanguage || 'vi', allowProviderImages: true, requireRealImages: true, imageProvider: 'local-flux', rights: 'original', ...(music?.file ? { music: music.file } : {}) });
       step(run, 'produce.story', 'done');
       videoRel = materializeVideo(run, project.id, before);
     } else if (run.pipeline === 'dub-video') {
