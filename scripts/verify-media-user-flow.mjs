@@ -46,8 +46,10 @@ async function run(){
   assert(completed?.state==='completed',`Quick edit failed: ${JSON.stringify(completed?.error||completed?.state)}`);
   r=await request('/api/integrations/media/artifacts?projectId='+project.id);const artifacts=await r.json();
   const final=artifacts.find(x=>x.name==='final.mp4');const manifest=artifacts.find(x=>x.name==='manifest.json');assert(final&&manifest,'Missing preview/final manifest');
-  r=await request('/api/integrations/media/artifacts/'+manifest.id);const j=await r.json();
-  assert(j.qa?.passed===true&&j.timeline?.ratio==='9:16','Video QA or aspect ratio failed');
+  r=await request('/api/integrations/media/artifacts/'+manifest.id);assert(r.status===423,'Private artifacts must remain blocked while Vault is locked');
+  r=await request('/api/vault/unlock','POST',{password:'local-media-user-flow-fixture-password'});assert(r.ok,'Test Vault did not unlock');
+  r=await request('/api/integrations/media/artifacts/'+manifest.id);assert(r.ok,'Manifest download failed after Vault unlock');const j=await r.json();
+  assert(j.qa?.passed===true&&j.timeline?.ratio==='9:16','Video QA or aspect ratio failed: '+JSON.stringify({qa:j.qa,timeline:j.timeline}));
   r=await request('/api/integrations/media/artifacts/'+final.id);const file=Buffer.from(await r.arrayBuffer());
   assert(r.ok&&file.length>1000,'Cannot download generated MP4');
   assert(crypto.createHash('sha256').update(file).digest('hex')===final.sha256,'Downloaded MP4 failed checksum');

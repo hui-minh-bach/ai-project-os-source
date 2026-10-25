@@ -84,14 +84,14 @@ export function cliInferencePlan(c,{system='',prompt=''}={}){
  const claudeEffort=c?.meta?.reasoningEffort;
  return {kind,cwd,env,args:['-p',whole,'--model',c.model,...(['low','medium','high','xhigh','max'].includes(claudeEffort)?['--effort',claudeEffort]:[]),'--output-format','json','--tools','','--disallowedTools','*','--strict-mcp-config','--mcp-config','{"mcpServers":{}}','--no-session-persistence','--setting-sources',''],settings:null};
 }
-export async function askCliAccount(c,{system='',prompt=''}={},deps={}){
+export async function askCliAccount(c,{system='',prompt='',timeoutMs=90000}={},deps={}){
  assertVault();const old=getConnection(c.id),kind=account(old);
  if(old.credentialVersion!==c.credentialVersion)throw new Error('Tài khoản đã thay đổi.');
  const plan=cliInferencePlan(c,{system,prompt}),launcher=(deps.resolve||resolveCli)(kind);
  // CLI is a subprocess, not a tool executor. Output/diagnostics are private;
  // error text is generic to avoid exposing OAuth tokens or profile contents.
- const result=await (deps.invoke||run)(launcher.command,[...launcher.args,...plan.args],{cwd:plan.cwd,env:plan.env,inheritEnv:false,timeoutMs:90000});
- if(result.code!==0||result.timedOut)throw new Error('CLI chưa đăng nhập, model không khả dụng hoặc yêu cầu đã quá hạn. Mở cửa sổ đăng nhập chính thức rồi thử lại.');
+ const result=await (deps.invoke||run)(launcher.command,[...launcher.args,...plan.args],{cwd:plan.cwd,env:plan.env,inheritEnv:false,timeoutMs:Math.max(20,Math.min(90000,timeoutMs))});
+ if(result.code!==0||result.timedOut)throw Object.assign(new Error('CLI chưa đăng nhập, model không khả dụng hoặc yêu cầu đã quá hạn. Mở cửa sổ đăng nhập chính thức rồi thử lại.'),{code:result.timedOut?'PROVIDER_TIMEOUT':'PROVIDER_UNAVAILABLE'});
  let payload;try{payload=JSON.parse(result.stdout);}catch{throw new Error('CLI không trả kết quả JSON hợp lệ. Đã chặn sử dụng tài khoản.');}
  if(!payload||Array.isArray(payload)||payload.is_error||payload.error||payload.type==='error')throw new Error('CLI báo lỗi tài khoản hoặc model. Chưa xác minh.');
  // Do not accept a hidden fallback to a different model, when the CLI reports it.

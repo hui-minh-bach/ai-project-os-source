@@ -18,7 +18,7 @@ function reset(){for(const f of files)for(const suffix of ['','.bak'])fs.rmSync(
 const custom={name:'Contract skill',category:'build',roles:['frontend'],description:'A contract fixture',prompt:'SKILL_CUSTOM_MARKER'};
 
 test('skill registry preserves stable IDs and custom CRUD validates identity, schema and built-in protection',()=>{reset();try{
- const builtin=listSkills();assert.equal(builtin.length,14);assert.equal(new Set(builtin.map(s=>s.id)).size,14);assert.ok(builtin.every(s=>s.enabled&&s.builtin));
+ const all=listSkills(),builtin=all.filter(s=>!s.bundled);assert.equal(builtin.length,21);assert.equal(new Set(all.map(s=>s.id)).size,all.length);assert.equal(all.filter(s=>s.bundled).length,83);assert.ok(builtin.every(s=>s.enabled&&s.builtin));for(const id of ['project-manager','requirements-to-spec','task-dispatcher','checkpoint-resume','quality-gate','delivery-manager'])assert.ok(getSkill(id)?.prompt.includes('artifact'));
  for(const id of ['founder-discovery','ux-beginner','system-architecture','frontend-web','database-postgres','security-review','qa-test','git-release','vercel-deploy','supabase-setup'])assert.ok(getSkill(id));
  for(const input of [{...custom,id:'frontend-web'},{...custom,id:'../../evil'},{...custom,name:''},{...custom,prompt:'x'.repeat(5001)},{...custom,category:'bad'},{...custom,roles:['invalid']},{...custom,roles:[]},{...custom,roles:'frontend'},{...custom,enabled:'false'}])assert.throws(()=>saveCustomSkill(input));
  const s=saveCustomSkill({...custom,id:'custom-contract'});assert.equal(s.builtin,false);assert.equal(s.enabled,true);assert.throws(()=>saveCustomSkill({...custom,id:s.id}),/tồn tại/);assert.throws(()=>saveCustomSkill({...custom,id:'custom-different'},{updateId:s.id}),/đổi ID/);
@@ -65,3 +65,5 @@ test('workflow reserves mapping slot, persists toggle and reaches real Founder/p
  }
  }finally{server.closeAllConnections();server.close();reset();fs.rmSync(root,{recursive:true,force:true});}
 });
+
+test('continuity skill is visible, actually injected and respects owner toggle',()=>{reset();try{const id='project-continuity-orchestrator';assert.ok(getSkill(id).enabled);for(const role of ['founder','planning','worker','reviewer'])assert.equal(skillPrompt([],{role}).split('Project Continuity Orchestrator:').length-1,1);setSkillEnabled(id,false);for(const role of ['founder','planning','worker','reviewer'])assert.ok(!skillPrompt([id],{role}).includes('Project Continuity Orchestrator:'));}finally{reset();}});

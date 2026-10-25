@@ -64,10 +64,12 @@ async function downloadFile(url,dest,{fetchImpl,onProgress}={}){
   const total=Number(res.headers?.get?.('content-length')||0);
   const tmp=dest+'.part';
   fs.mkdirSync(path.dirname(dest),{recursive:true,mode:0o700});
-  const out=fs.createWriteStream(tmp);
   let seen=0;
   const reader=res.body?.getReader?res.body.getReader():null;
   if(reader){
+    // Open a stream only for streaming responses; otherwise its delayed open
+    // can truncate the file written by the arrayBuffer fallback.
+    const out=fs.createWriteStream(tmp);
     for(;;){const {done,value}=await reader.read();if(done)break;seen+=value.byteLength;out.write(Buffer.from(value));if(onProgress)onProgress({file:path.basename(dest),seen,total});}
     await new Promise((resolve,reject)=>{out.end(()=>resolve());out.once('error',reject);});
   }else{

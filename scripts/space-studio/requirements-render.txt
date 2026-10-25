@@ -1,0 +1,4 @@
+vtk==9.6.2
+numpy==2.3.5
+pillow==12.3.0
+playwright==1.57.0

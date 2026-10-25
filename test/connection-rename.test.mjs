@@ -81,7 +81,8 @@ test('connection rename: endpoint renames any connection, rejects empty/unknown,
     const fleetDefault = deriveFleet({ connections: [{ id: 'c2', kind: 'chatgpt_account', name: '' }], runs: [], workerConnByProject: {}, nowMs: Date.now() });
     assert.notEqual(fleetDefault.bots.find(b => b.connectionId === 'c2')?.label, '', 'empty name falls back to a provider label');
   } finally {
-    child.kill();
-    fs.rmSync(dataDir, { recursive: true, force: true });
+    // Wait for the server (and its atomic state writes) before removing fixtures.
+    if(child.exitCode===null){const exited=once(child,'exit');child.kill('SIGTERM');await Promise.race([exited,delay(2000)]);if(child.exitCode===null){child.kill('SIGKILL');await exited;}}
+    fs.rmSync(dataDir, { recursive: true, force: true, maxRetries:5, retryDelay:100 });
   }
 });

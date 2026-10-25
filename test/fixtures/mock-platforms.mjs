@@ -430,7 +430,7 @@ async function handleRequest(req, res, state) {
     if (method === 'GET' && path === '/youtube/v3/channels') {
       return sendJson(res, 200, { items: [{ id: 'mock-channel-1', snippet: { title: 'Kênh Mock' } }] });
     }
-    if (method === 'GET' && path === '/v19.0/me/accounts') {
+    if (method === 'GET' && /^\/v\d+\.\d+\/me\/accounts$/.test(path)) {
       return sendJson(res, 200, { data: [
         { id: 'page-1', name: 'Page Một', access_token: 'mock-page-token-1' },
         { id: 'page-2', name: 'Page Hai', access_token: 'mock-page-token-2' },
@@ -448,9 +448,9 @@ async function handleRequest(req, res, state) {
     if (method === 'GET' && path === '/youtube/v3/videos') return youtubeListVideos(req, res, state, url);
 
     // Facebook.
-    const fbUpload = /^\/v19\.0\/([^/]+)\/(?:videos|video_reels)$/.exec(path);
+    const fbUpload = /^\/v\d+\.\d+\/([^/]+)\/(?:videos|video_reels)$/.exec(path);
     if (fbUpload && method === 'POST') return facebookVideos(req, res, state, fbUpload[1]);
-    const fbGet = /^\/v19\.0\/([^/]+)$/.exec(path);
+    const fbGet = /^\/v\d+\.\d+\/([^/]+)$/.exec(path);
     if (fbGet && method === 'GET') return facebookGetVideo(req, res, state, fbGet[1]);
 
     // TikTok.

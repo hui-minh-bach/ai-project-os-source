@@ -74,8 +74,8 @@ function boundedPrompt(messages,maxChars=520000){
   return parts.join('\n\n');
 }
 
-export async function runNativeTask({root,workerId,spec,task,skills=[],maxTurns=18,sandboxMode='safe',extraContext='',assertCurrent=()=>{},onEvent=()=>{}}){
-  const redact=createVaultSecretRedactor();
+export async function runNativeTask({root,workerId,spec,task,skills=[],maxTurns=18,sandboxMode='safe',extraContext='',assertCurrent=()=>{},onEvent=()=>{},projectId=null,runId=null,routing={}}){
+  const redact=createVaultSecretRedactor(),routingSession={};
   let scripts=[];try{scripts=packageScripts(root);}catch{}
   const initial=localSnapshot(root,{maxFiles:28,maxBytes:100000}).map(f=>`--- ${f.path}\n${f.content}`).join('\n');
   const system='Bạn là coding worker trong AI Project OS Local. Làm thay đổi nhỏ, đúng task, giữ tương thích, không đọc secret. '+toolHelp(scripts,sandboxMode);
@@ -83,9 +83,12 @@ export async function runNativeTask({root,workerId,spec,task,skills=[],maxTurns=
   const emit=entry=>{const sanitized=JSON.parse(redact(JSON.stringify({at:new Date().toISOString(),...entry})));log.push(sanitized);if(sanitized.receipt)testReceipts.push(sanitized.receipt);onEvent(sanitized);};
   try{
     for(let turn=0;turn<maxTurns;turn++){
-      assertCurrent();const prompt=boundedPrompt(messages),startedAt=new Date().toISOString(),started=performance.now();let answer;
+      assertCurrent();const ledger=log.filter(e=>e.kind==='tool').map(e=>({turn:e.turn,tool:e.tool,path:e.path||null,status:e.status,script:e.script||null,receiptId:e.receipt?.id||null}));const prompt=boundedPrompt(messages)+'\n\nHOST OPERATION LEDGER (already performed; do not replay completed operations):\n'+JSON.stringify(ledger),startedAt=new Date().toISOString(),started=performance.now();let answer;
       emit({kind:'agent-request',turn:turn+1,status:'WAITING',startedAt});
-      try{answer=await ask(workerId,{usageContext:{role:'worker'},system:system+skillPrompt(skills,{role:'worker'}),prompt});}catch(e){emit({kind:'agent',turn:turn+1,status:'ERROR',startedAt,durationMs:Math.round(performance.now()-started),error:e.message});throw e;}
+      try{const served={};answer=await ask(workerId,{usageContext:{role:'worker',projectId,taskId:task.id,runId},routing:{...routing,session:routingSession},served,assertCurrent,
+        onAttempt:event=>{assertCurrent();emit({kind:'routing',turn:turn+1,status:event.type.toUpperCase(),...event});},
+        validate:text=>!!parseTool(text),system:system+skillPrompt(skills,{role:'worker'}),prompt});
+        emit({kind:'assignment',turn:turn+1,status:'SERVED',served});} catch(e){emit({kind:'agent',turn:turn+1,status:'ERROR',startedAt,durationMs:Math.round(performance.now()-started),error:e.message});throw e;}
       emit({kind:'agent',turn:turn+1,status:'RECEIVED',startedAt,durationMs:Math.round(performance.now()-started),answer});assertCurrent();messages.push({role:'assistant',content:answer});
       const req=parseTool(answer);if(!req){emit({kind:'tool',turn:turn+1,tool:'parse',status:'INVALID',output:'Không có tool JSON hợp lệ.'});messages.push({role:'user',content:'Hãy dùng đúng một tool JSON hoặc done.'});continue;}
       assertCurrent();const toolStartedAt=new Date().toISOString(),toolStarted=performance.now();let out;
@@ -98,12 +101,12 @@ export async function runNativeTask({root,workerId,spec,task,skills=[],maxTurns=
   }catch(e){e.agentLog=log;e.testReceipts=testReceipts;throw e;}
 }
 
-export async function reviewNativeTask({reviewerId,spec,task,diff,testReceipts=[],skills=[],assertCurrent=()=>{}}){
+export async function reviewNativeTask({reviewerId,spec,task,diff,testReceipts=[],skills=[],assertCurrent=()=>{},projectId=null,runId=null,routing={},onAttempt=()=>{}}){
   assertCurrent();
   // The Reviewer is stateless: no Worker conversation, answers or prior opinion.
   const prompt=`SPEC:\n${spec}\n\nTASK:\n${JSON.stringify(skillTaskContext(task))}\n\nGIT DIFF:\n${String(diff||'').slice(0,150000)||'(none)'}\n\nTRUSTED RUNTIME RECEIPTS:\n${JSON.stringify(testReceipts)}`;
   const system='Bạn là senior reviewer độc lập. Kiểm correctness, regression, secret exposure, path/security, acceptance criteria. Chỉ receipt source runtime có exitCode/status mới là bằng chứng command/test. NOT_RUN hoặc BLOCKED không phải PASS. Không suy acceptance từ summary. Trả JSON thuần {"approved":true|false,"summary":"...","risks":["..."],"fixes":["..."]}. Có thể thêm "acceptance":[{"criterionId":"AC1","met":true|false,"explanation":"bằng chứng cụ thể trong diff hoặc receipt"}] khi đã kiểm từng tiêu chí. approved/met phải là boolean.'+skillPrompt(skills,{role:'reviewer'});
-  const startedAt=new Date().toISOString(),started=performance.now(),raw=await ask(reviewerId,{usageContext:{role:'reviewer'},system,prompt}),base={startedAt,completedAt:new Date().toISOString(),durationMs:Math.round(performance.now()-started),raw:redactVaultSecrets(raw)};
+  const startedAt=new Date().toISOString(),started=performance.now(),served={},raw=await ask(reviewerId,{usageContext:{role:'reviewer',projectId,taskId:task.id,runId},routing,served,onAttempt:event=>{if(event.type==='attempt')assertCurrent();onAttempt(event);},system,prompt}),base={served,startedAt,completedAt:new Date().toISOString(),durationMs:Math.round(performance.now()-started),raw:redactVaultSecrets(raw)};
   const invalid=summary=>({...base,approved:false,status:'REJECTED',summary,risks:[raw.slice(0,1000)],fixes:[],acceptance:[]});
   try{
     const j=JSON.parse(String(raw).trim());if(!j||typeof j!=='object'||Array.isArray(j)||typeof j.approved!=='boolean')return invalid('Reviewer cần JSON hợp lệ với approved là boolean.');

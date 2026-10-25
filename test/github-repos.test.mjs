@@ -114,3 +114,10 @@ test('GitHub repos are honestly unavailable without a linked account', async () 
   assert.equal(listed.available, false);
   assert.match(listed.reason, /Chưa liên kết/);
 });
+
+test('private repo failure is noninteractive, bounded, leaves no empty project and keeps token out of URL/header on another host',async()=>{
+ const http=await import('node:http');const seen=[];const server=http.createServer((req,res)=>{seen.push(req.headers.authorization||'');res.writeHead(401,{'www-authenticate':'Basic realm="fixture"'});res.end('denied');});await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ const prior=process.env.AIOS_GITHUB_CLONE_BASE;process.env.AIOS_GITHUB_CLONE_BASE='http://127.0.0.1:'+server.address().port;
+ const {listProjects}=await import('../src/lib/projects.mjs');const count=listProjects().length;
+ try{await assert.rejects(importGithubRepo({fullName:'octo/private-denied'},{connection:{kind:'github',secret:'PRIVATE-ONLY-IN-MEMORY',meta:{authMode:'token'}},cloneTimeoutMs:3000}),e=>/Không truy cập được repo/.test(e.message)&&!e.message.includes('PRIVATE-ONLY'));assert.equal(listProjects().length,count);assert.ok(seen.length);assert.ok(seen.every(x=>!x));}finally{process.env.AIOS_GITHUB_CLONE_BASE=prior;server.closeAllConnections();await new Promise(r=>server.close(r));}
+});

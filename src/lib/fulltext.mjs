@@ -1,3 +1,4 @@
+import { fetchPublic } from './public-fetch.mjs';
 /** Full-text extraction for news cards, following the Miniflux pattern: when
  * a feed item carries only a short summary, fetch the article page the user
  * subscribed to and extract its main text locally with a small heuristic
@@ -59,7 +60,7 @@ function err(code,message){const e=new Error(message);e.code=code;return e;}
 
 /** Tải một trang bài và trích toàn văn. Trả {ok:true,title,text,chars} hoặc
  * {ok:false,reason} — không ném lỗi nghiệp vụ để scan không bị chặn. */
-export async function fetchArticleText(url,{fetchImpl=globalThis.fetch,timeoutMs=15000,maxBytes=3_000_000,maxChars=12000}={}){
+export async function fetchArticleText(url,{fetchImpl=fetchPublic,timeoutMs=15000,maxBytes=3_000_000,maxChars=12000}={}){
  let parsed=null;try{parsed=new URL(String(url||''));}catch{}
  if(!parsed||!['http:','https:'].includes(parsed.protocol))return {ok:false,reason:'invalid-url'};
  if(typeof fetchImpl!=='function')return {ok:false,reason:'no-fetch'};

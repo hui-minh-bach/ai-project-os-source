@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { readJson, writeJson } from './store.mjs';
+import {bundledSkillDescriptors} from './integration-catalog.mjs';
 
 const CUSTOM_FILE='custom-skills.json';
 export const WORKFLOW_SKILL_ID='ai-project-os-workflow';
@@ -47,21 +48,38 @@ const display=[
 ];
 BUILTIN.push({id:WORKFLOW_SKILL_ID,name:'AI Project OS Workflow',icon:'⇄',category:'ops',roles:SKILL_ROLES,prompt:workflowPrompt,rolePrompts:workflowRoles});
 display.push(['AI Project OS Workflow','ops',['workflow','checkpoint','review'],'Giao việc gọn theo vai trò, kiểm chứng thật và tiếp tục từ checkpoint; giữ model đã chọn.']);
-const builtinIds=new Set(BUILTIN.map(s=>s.id));
+export const CONTINUITY_SKILL_ID='project-continuity-orchestrator';
+BUILTIN.push({id:CONTINUITY_SKILL_ID,name:'Project Continuity Orchestrator',icon:'~',category:'ops',roles:SKILL_ROLES,prompt:'Continue the authorized task through implementation, real-output review, repair, verification and handoff. Preserve approved assets and customer data. Use the current workspace, operation ledger and durable checkpoint; do not restart completed effects or create duplicate resources on retry. Distinguish mock tests, runtime evidence and actual cloud/Windows checks. Never bypass approval, credentials, budget or a safety stop. A workflow skill cannot grant new tools or run after its execution host stops.'});
+display.push(['Project Continuity Orchestrator','ops',['continuity','handoff','checkpoint'],'Luu tien trinh, tiep tuc cong viec da duyet, kiem tra san pham that va ban giao; khong tu cap quyen hay chay vo han.']);
+// v0.9.67 factory skills from the existing continuation branch. Instructions
+// are capabilities/quality gates, NOT automatic creation of external workers.
+const FACTORY_SKILLS=[
+ {id:'project-manager',name:'Project Manager',category:'ops',roles:['founder','product','manager'],description:'Điều phối task graph, không làm mất vai trò AI đã chọn và chỉ công nhận kết quả thực.'},
+ {id:'requirements-to-spec',name:'Requirements to Spec',category:'planning',roles:['founder','product','research','architecture','design'],description:'Chuyển nhu cầu thành spec có đầu ra, giới hạn và tiêu chí kiểm chứng.'},
+ {id:'task-dispatcher',name:'Task Dispatcher',category:'ops',roles:['manager','architecture','frontend','backend','database','devops'],description:'Chọn worker có capability thật, giao và tiếp tục task an toàn.'},
+ {id:'checkpoint-resume',name:'Checkpoint Resume',category:'ops',roles:['manager','backend','devops','qa','release'],description:'Lưu checkpoint và receipt kèm SHA, tiếp tục mà không tạo trùng.'},
+ {id:'quality-gate',name:'Quality Gate',category:'ops',roles:['qa','reviewer','security','release'],description:'Kiểm tra sản phẩm thực, phân biệt fixture, browser, Windows native và chưa kiểm thử.'},
+ {id:'delivery-manager',name:'Delivery Manager',category:'deploy',roles:['manager','release','devops','reviewer'],description:'Chỉ giao file có thật, kèm kết quả kiểm tra và giới hạn xác minh.'}
+];
+for(const s of FACTORY_SKILLS){
+ BUILTIN.push({...s,icon:'🧩',prompt:s.description+' Chỉ báo hoàn thành khi có artifact thật, kiểm chứng runtime, dấu vết và phương án xử lý lỗi; không ghi đè model, 3D hay dữ liệu khách; không tự cấp quyền hoặc phát sinh chi phí.'});
+ display.push([s.name,s.category,['factory',s.id],s.description]);
+}
+const builtinIds=new Set([...BUILTIN,...bundledSkillDescriptors()].map(s=>s.id));
 const SETTINGS_FILE='skill-settings.json';
 const aliases={product:'planning',engineering:'build',data:'other',quality:'ops',delivery:'deploy',custom:'other'};
 function customs(){const raw=readJson(CUSTOM_FILE,[]);return (Array.isArray(raw)?raw:[]).filter(x=>x&&typeof x.id==='string'&&!builtinIds.has(x.id));}
 export function listSkills(){
   const settings=readJson(SETTINGS_FILE,{});
-  return [...BUILTIN.map((s,i)=>({...s,name:display[i][0],category:display[i][1],tags:display[i][2],description:display[i][3],builtin:true,recommended:[6,7,12].includes(i)})),...customs().map(s=>({...s,category:aliases[s.category]||s.category,builtin:false,tags:[aliases[s.category]||s.category,...(s.roles||[]).slice(0,2)]}))].map(s=>({...s,enabled:typeof settings[s.id]==='boolean'?settings[s.id]:s.enabled!==false}));
+  return [...BUILTIN.map((s,i)=>({...s,name:display[i][0],category:display[i][1],tags:display[i][2],description:display[i][3],builtin:true,recommended:[6,7,12].includes(i)})),...customs().map(s=>({...s,category:aliases[s.category]||s.category,builtin:false,tags:[aliases[s.category]||s.category,...(s.roles||[]).slice(0,2)]})),...bundledSkillDescriptors()].map(s=>({...s,enabled:s.referenceOnly?false:typeof settings[s.id]==='boolean'?settings[s.id]:s.enabled!==false}));
 }
 export function getSkill(id){return listSkills().find(x=>x.id===id)||null;}
 export function suggestSkillsForRole(role){return listSkills().filter(s=>s.enabled&&(s.roles||[]).includes(role)).sort((a,b)=>Number(b.id===WORKFLOW_SKILL_ID)-Number(a.id===WORKFLOW_SKILL_ID)).map(s=>s.id);}
 export function skillPrompt(ids=[],{role}={}){
-  // Reserve one of four slots for the enabled workflow, including older tasks.
+  // Reserve up to two of four slots for enabled workflow/continuity, including older tasks.
   // Resolve on every call so disabling a skill immediately affects the next request.
   const contextual=Object.hasOwn(workflowRoles,role||'');
-  const selected=[...new Set(contextual?[WORKFLOW_SKILL_ID,...ids]:ids)].map(getSkill).filter(s=>s?.enabled).slice(0,contextual?4:Infinity);
+  const selected=[...new Set(contextual?[WORKFLOW_SKILL_ID,CONTINUITY_SKILL_ID,...ids]:ids)].map(getSkill).filter(s=>s?.enabled).slice(0,contextual?4:Infinity);
   return selected.length?'\n\nSKILLS ÁP DỤNG:\n'+selected.map(s=>`- ${s.name}: ${s.prompt}${s.id===WORKFLOW_SKILL_ID&&contextual?' '+workflowRoles[role]:''}`).join('\n'):'';
 }
 export const SKILL_SAMPLES=[
@@ -93,6 +111,7 @@ export function saveCustomSkill(input,{updateId=null}={}){
  writeJson(CUSTOM_FILE,[...all.filter(s=>s.id!==id),item]);return getSkill(id);
 }
 export function setSkillEnabled(id,enabled){
+ if(getSkill(id)?.referenceOnly)throw new Error('Mở hướng dẫn đầy đủ rồi nhập bản thích ứng cho công cụ của app; bản tham chiếu không tự cài công cụ.');
  if(typeof enabled!=='boolean')throw new Error('Enabled phải là boolean.');if(!getSkill(id))throw new Error('Không tìm thấy skill.');
  const settings=readJson(SETTINGS_FILE,{});settings[id]=enabled;writeJson(SETTINGS_FILE,settings);return getSkill(id);
 }

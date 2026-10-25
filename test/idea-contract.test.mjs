@@ -6,7 +6,7 @@ import http from 'node:http';
 import { DATA_DIR, readJson, writeJson } from '../src/lib/store.mjs';
 import { lockVault, unlockVault, saveConnection } from '../src/lib/vault.mjs';
 import { recordModels } from '../src/lib/model-bindings.mjs';
-import { createProject, updateProjectBrief, updateProjectModelRoles, getProject, founderChat, clearFounderChat, analyzeIdea, sendBriefToCouncil, recoverInterruptedFounderChats } from '../src/lib/projects.mjs';
+import { createProject, updateProjectSettings, updateProjectBrief, updateProjectModelRoles, getProject, founderChat, clearFounderChat, analyzeIdea, sendBriefToCouncil, recoverInterruptedFounderChats } from '../src/lib/projects.mjs';
 import { normalizeAnalyzedBrief, normalizeIdeaStack } from '../src/lib/idea-brief.mjs';
 const stack={needsGithub:true,needsVercel:true,needsDatabase:false,needsAuth:false,needsStorage:false,needsPayments:false,needsDomain:false,needsBackend:false,recommended:{source:'github',deploy:'vercel',database:'none'},reasons:['Static site'],setupOrder:['GitHub','Vercel']};
 const brief={summary:'Static project summary',problem:'People need useful information',audience:'Local visitors',goals:['Publish useful information'],features:['Responsive pages'],userFlows:['Visit page and read'],constraints:[],openQuestions:[],successCriteria:['Page can be opened'],stack};
@@ -32,7 +32,7 @@ test('AI brief validates complete stack, sends structured Council input without 
  await fixture(async({p})=>{await analyzeIdea(p.id);const sent=sendBriefToCouncil(p.id);assert.equal(sent.councilBrief.summary,brief.summary);assert.equal(sent.councilBrief.project.productType,'website');assert.equal(sent.stack.needsGithub,true);assert.equal(sent.stack.needsPayments,false);assert.equal(sent.stage,'idea');assert.equal(sent.finalSpec,'');assert.deepEqual(sent.council,[]);});
 });
 test('malformed AI JSON fails and stale in-flight analysis cannot overwrite edited inputs',async()=>{
- await fixture(async({p,setMode,waiting,release})=>{setMode('invalid');await assert.rejects(()=>analyzeIdea(p.id),/problem/);assert.equal(getProject(p.id).analyzedBrief,null);setMode('pause');const request=analyzeIdea(p.id);await waiting;updateProjectBrief(p.id,{goals:'Edited while request ran'});release();await assert.rejects(()=>request,/thay đổi/);assert.equal(getProject(p.id).analyzedBrief,null);});
+ await fixture(async({p,setMode,waiting,release})=>{updateProjectSettings(p.id,{autoFailover:false});setMode('invalid');await assert.rejects(()=>analyzeIdea(p.id),/problem/);assert.equal(getProject(p.id).analyzedBrief,null);setMode('pause');const request=analyzeIdea(p.id);await waiting;updateProjectBrief(p.id,{goals:'Edited while request ran'});release();await assert.rejects(()=>request,/thay đổi/);assert.equal(getProject(p.id).analyzedBrief,null);});
 });
 test('AI schemas reject strings masquerading as booleans, oversized lists and missing required sections',()=>{
  assert.throws(()=>normalizeIdeaStack({...stack,needsAuth:'false'}),/boolean/);assert.throws(()=>normalizeAnalyzedBrief({...brief,features:[]}),/trống/);assert.throws(()=>normalizeAnalyzedBrief({...brief,goals:Array(21).fill('x')}),/20/);assert.throws(()=>normalizeAnalyzedBrief({...brief,stack:{...stack,recommended:{...stack.recommended,deploy:'unknown'}}}),/deploy/);

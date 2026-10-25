@@ -1,10 +1,12 @@
+import { routingPolicy, dispatchText } from './ai-dispatch.mjs';
+import { observeSpaceCall } from './space-activity.mjs';
 import crypto from 'node:crypto';
 import { recordUsage } from './usage.mjs';
 import { askAccount, listAccountModels } from './account-auth.mjs';
 import { askCliAccount } from './cli-account.mjs';
 import { askAntigravityAccount, listAntigravityModels } from './antigravity-account.mjs';
 import { getConnection, saveConnection, createVaultSecretRedactor } from './vault.mjs';
-import { resolveModelConnection, recordModels, invalidateModels, modelAvailability } from './model-bindings.mjs';
+import { resolveModelConnection, recordModels, invalidateModels, modelAvailability, noteModelRuntimeFailure, clearModelRuntimeFailure } from './model-bindings.mjs';
 import { poolCandidates, isQuotaError, noteQuotaHit, noteSwitch, notePoolExhausted, poolKindLabel, cooldownUntilMs } from './account-pool.mjs';
 import { readJson } from './store.mjs';
 
@@ -25,35 +27,37 @@ function textFromOpenAI(j) {
   return (j.output || []).flatMap(x => x.content || []).map(x => x.text || x.output_text || '').filter(Boolean).join('\n');
 }
 
-async function requestJson(url, init = {}, { timeoutMs = DEFAULT_TIMEOUT_MS, retries = 2 } = {}) {
+async function requestJson(url, init={}, {timeoutMs=DEFAULT_TIMEOUT_MS,retries=2,signal=null}={}) {
   let last;
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(new Error('AI request timeout')), timeoutMs);
+  for(let attempt=0;attempt<=retries;attempt++) {
+    const controller=new AbortController();
+    const timeout=Object.assign(new Error('AI request timeout'),{code:'PROVIDER_TIMEOUT'});
+    const cancel=()=>controller.abort(Object.assign(new Error('AI request cancelled.'),{code:'AI_CANCELLED'}));
+    if(signal?.aborted)cancel();else signal?.addEventListener('abort',cancel,{once:true});
+    const timer=setTimeout(()=>controller.abort(timeout),timeoutMs);
     try {
-      const r = await fetch(url, { ...init, redirect: 'error', signal: controller.signal });
-      const j = await readJsonLimited(r);
-      if (r.ok) return { r, j };
-      const retryable = r.status === 408 || r.status === 409 || r.status === 429 || r.status >= 500;
-      const err = new Error(`Provider HTTP ${r.status}. Kiểm tra quyền API, credential và endpoint.`);
-      err.status = r.status;
-      if (!retryable || attempt === retries) throw err;
-      last = err;
-    } catch (e) {
-      last = e;
-      const retryable = controller.signal.aborted || e?.name === 'AbortError' || e?.status === 408 || e?.status === 409 || e?.status === 429 || e?.status >= 500 || e instanceof TypeError;
-      if (!retryable || attempt === retries) throw e;
-    } finally {
-      clearTimeout(timer);
-    }
-    await sleep(300 * (2 ** attempt));
+      const r=await fetch(url,{...init,redirect:'error',signal:controller.signal});
+      const j=await readJsonLimited(r);
+      if(r.ok)return {r,j};
+      const e=new Error(`Provider HTTP ${r.status}. Ki\u1ec3m tra credential v\u00e0 endpoint.`);e.status=r.status;
+      const after=r.headers.get('retry-after');
+      if(after){const t=/^\d+(?:\.\d+)?$/.test(after)?Date.now()+Number(after)*1000:Date.parse(after);if(Number.isFinite(t))e.resetAt=t;}
+      // Do not send the raw provider body (which may echo private input) to logs.
+      if(['content_policy_violation','safety','content_filter'].includes(j.error?.code))e.code='PROVIDER_REFUSAL';
+      throw e;
+    } catch(error) {
+      last=controller.signal.aborted?controller.signal.reason:error;
+      const retryable=last?.code!=='AI_CANCELLED'&&last?.code!=='PROVIDER_REFUSAL'&&(last?.code==='PROVIDER_TIMEOUT'||[408,409,429].includes(last?.status)||last?.status>=500||last instanceof TypeError);
+      if(!retryable||attempt===retries)throw last;
+    } finally {clearTimeout(timer);signal?.removeEventListener('abort',cancel);}
+    await sleep(300*(2**attempt));
   }
-  throw last || new Error('AI request failed');
+  throw last||new Error('AI request failed');
 }
 
 function requireText(name, text) {
   const out = String(text || '').trim();
-  if (!out) throw new Error(`${name}: model trả về nội dung rỗng.`);
+  if (!out) throw Object.assign(new Error(`${name}: model trả về nội dung rỗng.`), {code:'PROVIDER_EMPTY'});
   if (out.length > 240000) throw new Error(`${name}: model trả về quá nhiều nội dung (>240k ký tự).`);
   return out;
 }
@@ -94,7 +98,43 @@ function backupBindingFor(connectionId, primary) {
   } catch { return null; }
 }
 
-export async function ask(connectionId, { system = '', prompt = '', usageContext = null, served = null }) {
+/** Project work uses the R4 dispatcher; explicit connection probes retain their
+ * old semantics and never silently probe a different account. */
+export async function ask(connectionId, options={}) {
+  const {system='',prompt='',usageContext=null,routing={},served=null,validate=null,onAttempt=()=>{},assertCurrent=()=>{},signal=null}=options;
+  const redact=createVaultSecretRedactor();
+  try {
+    const primary=resolveModelConnection(connectionId);
+    primary.usageContext={...primary.usageContext,...(usageContext||{})};
+    const policy=routingPolicy(primary.usageContext,routing);
+    if(!policy.enabled){
+      if(!policy.project)return await askLegacy(connectionId,options);
+      assertCurrent();
+      const out=await observeSpaceCall(primary,()=>invokeScoped(primary,{system,prompt,timeoutMs:policy.attemptTimeoutMs,retries:0,signal}));
+      assertCurrent();if(validate&&validate(out)===false)throw Object.assign(new Error('Invalid provider output.'),{code:'PROVIDER_INVALID_OUTPUT'});
+      if(served)Object.assign(served,{connectionId:primary.id,connectionName:primary.name,provider:primary.kind,model:primary.model,attempts:1});return redact(out);
+    }
+    return redact(await dispatchText(primary,{system,prompt,policy,routing,served,validate,onAttempt,assertCurrent,signal},
+      (candidate,request)=>observeSpaceCall(candidate,()=>invokeScoped(candidate,request))));
+  } catch(error) {
+    const safe=new Error(redact(error?.message||'AI request failed'));
+    if(['Error','TypeError','AbortError','TimeoutError'].includes(error?.name))safe.name=error.name;
+    if(Number.isInteger(error?.status)&&error.status>=100&&error.status<=599)safe.status=error.status;
+    if(typeof error?.code==='string'&&/^[A-Z][A-Z0-9_]{2,70}$/.test(error.code))safe.code=error.code;
+    if(error?.retryable===true)safe.retryable=true;
+    if(Number.isInteger(error?.attempts))safe.attempts=error.attempts;
+    if(typeof error?.retryAt==='string'&&Number.isFinite(Date.parse(error.retryAt)))safe.retryAt=error.retryAt;
+    throw safe;
+  }
+}
+async function invokeScoped(connection, request) {
+  try { const out=await askConnection(connection, request);clearModelRuntimeFailure(connection);return out; }
+  catch (error) {
+    if ([401,403,404,410].includes(error?.status)) noteModelRuntimeFailure(connection,error.status);
+    throw error;
+  }
+}
+async function askLegacy(connectionId, { system = '', prompt = '', usageContext = null, served = null }) {
   const redact = createVaultSecretRedactor();
   let c;
   try {
@@ -127,30 +167,20 @@ export async function ask(connectionId, { system = '', prompt = '', usageContext
     if (!chain.length) { notePoolExhausted(primary.kind, pool.earliestResetMs); throw allBlockedError(primary, blocked); }
     const tried = [];
     let quotaErr = null;
-    let toolErr = null;
-    let failReason = null;
     for (const cand of chain) {
       c = cand;
       try {
-        const out = await askConnection(cand, { system, prompt });
-        if (cand.id !== primary.id) noteSwitch(primary, cand, cand.model, failReason);
+        const out = await observeSpaceCall(cand, () => askConnection(cand, { system, prompt }));
+        if (cand.id !== primary.id) noteSwitch(primary, cand, cand.model);
         if (served && typeof served === 'object') { served.connectionId = cand.id; served.connectionName = cand.name; served.model = cand.model; }
         return redact(out);
       } catch (e) {
-        if (isQuotaError(e)) { const until = noteQuotaHit(cand, e); tried.push({ id: cand.id, name: String(cand.name || ''), model: cand.model, until }); quotaErr = e; failReason = 'quota'; continue; }
-        // v0.9.62 — typed candidate failure (Antigravity tool-only): the
-        // candidate cannot serve THIS call shape, but it is not out of
-        // quota — rotate to the next candidate WITHOUT a cooldown, the
-        // same rotation contract as quota, minus the rest.
-        if (e?.code === 'ANTIGRAVITY_TOOL_ONLY') { tried.push({ id: cand.id, name: String(cand.name || ''), model: cand.model, until: null, toolOnly: true }); toolErr = e; failReason = 'tool-only'; continue; }
+        if (isQuotaError(e)) { const until = noteQuotaHit(cand, e); tried.push({ id: cand.id, name: String(cand.name || ''), model: cand.model, until }); quotaErr = e; continue; }
         throw e;
       }
     }
-    if (toolErr && !quotaErr && !blocked.length) throw toolErr;
     notePoolExhausted(primary.kind, pool.earliestResetMs);
-    const blockedErr = allBlockedError(primary, [...blocked, ...tried.filter(t => !t.toolOnly)]);
-    if (toolErr) blockedErr.message += ` Ngoài ra: ${toolErr.message}`;
-    throw blockedErr;
+    throw allBlockedError(primary, [...blocked, ...tried]);
   } catch (e) {
     if (c && [401,403,404].includes(e?.status)) invalidateModels(c.id);
     // Do not retain the original stack/cause/custom fields containing provider
@@ -161,17 +191,19 @@ export async function ask(connectionId, { system = '', prompt = '', usageContext
     throw safe;
   }
 }
-async function askConnection(c, { system, prompt }) {
-  if(c.kind === 'chatgpt_account'){ const result=await askAccount(c,{system,prompt});recordUsage(c,{usage:result.usage},result.eventId);return requireText(c.name,result.text); }
-  if(['claude_account','gemini_account'].includes(c.kind))return requireText(c.name,await askCliAccount(c,{system,prompt}));
-  if(c.kind==='antigravity_account')return requireText(c.name,await askAntigravityAccount(c,{system,prompt}));
+async function askConnection(c, { system, prompt, timeoutMs=DEFAULT_TIMEOUT_MS, retries=2, signal=null }) {
+  const requestOptions={timeoutMs,retries,signal};
+  if(c.kind === 'chatgpt_account'){ const result=await askAccount(c,{system,prompt,timeoutMs});recordUsage(c,{usage:result.usage},result.eventId);return requireText(c.name,result.text); }
+  if(['claude_account','gemini_account'].includes(c.kind))return requireText(c.name,await askCliAccount(c,{system,prompt,timeoutMs}));
+  if(c.kind==='antigravity_account')return requireText(c.name,await askAntigravityAccount(c,{system,prompt,timeoutMs}));
   const requestId = crypto.randomUUID();
   if (!c.secret) throw new Error(`${c.name}: chưa có API credential.`);
   if (!c.model) throw new Error(`${c.name}: chưa chọn model.`);
 
   if (c.kind === 'openai') {
-    const { j } = await requestJson(c.baseUrl || 'https://api.openai.com/v1/responses', {method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${c.secret}`},body:JSON.stringify({model:c.model,instructions:system,input:prompt})});
+    const { j } = await requestJson(c.baseUrl || 'https://api.openai.com/v1/responses', {method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${c.secret}`},body:JSON.stringify({model:c.model,instructions:system,input:prompt})},requestOptions);
     recordUsage(c, j, requestId);
+    if(j.error?.code==='content_policy_violation'||j.promptFeedback?.blockReason||j.candidates?.some(x=>['SAFETY','RECITATION','PROHIBITED_CONTENT'].includes(x.finishReason))||j.stop_reason==='refusal'||j.choices?.some(x=>x.finish_reason==='content_filter'||x.message?.refusal)||(j.output||[]).some(x=>(x.content||[]).some(y=>y.type==='refusal')))throw Object.assign(new Error('Provider safety refusal. No failover permitted.'),{code:'PROVIDER_REFUSAL'});
     return requireText(c.name, textFromOpenAI(j));
   }
   if (c.kind === 'gemini') {
@@ -179,20 +211,23 @@ async function askConnection(c, { system, prompt }) {
     // Keep arbitrary legacy fixture/proxy endpoints unchanged.
     const modelPath = `/models/${encodeURIComponent(c.model)}:generateContent`;
     const endpoint = c.baseUrl ? c.baseUrl.replace(/\/models\/[^/]+:generateContent\/?$/, modelPath) : `https://generativelanguage.googleapis.com/v1beta${modelPath}`;
-    const { j } = await requestJson(endpoint,{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':c.secret},body:JSON.stringify({system_instruction:system?{parts:[{text:system}]}:undefined,contents:[{role:'user',parts:[{text:prompt}]}]})});
+    const { j } = await requestJson(endpoint,{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':c.secret},body:JSON.stringify({system_instruction:system?{parts:[{text:system}]}:undefined,contents:[{role:'user',parts:[{text:prompt}]}]})},requestOptions);
     recordUsage(c, j, requestId);
+    if(j.error?.code==='content_policy_violation'||j.promptFeedback?.blockReason||j.candidates?.some(x=>['SAFETY','RECITATION','PROHIBITED_CONTENT'].includes(x.finishReason))||j.stop_reason==='refusal'||j.choices?.some(x=>x.finish_reason==='content_filter'||x.message?.refusal)||(j.output||[]).some(x=>(x.content||[]).some(y=>y.type==='refusal')))throw Object.assign(new Error('Provider safety refusal. No failover permitted.'),{code:'PROVIDER_REFUSAL'});
     return requireText(c.name, (j.candidates?.[0]?.content?.parts||[]).map(x=>x.text||'').join('\n'));
   }
   if (c.kind === 'anthropic') {
-    const { j } = await requestJson(c.baseUrl||'https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':c.secret,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:c.model,max_tokens:7000,system,messages:[{role:'user',content:prompt}]})});
+    const { j } = await requestJson(c.baseUrl||'https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':c.secret,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:c.model,max_tokens:7000,system,messages:[{role:'user',content:prompt}]})},requestOptions);
     recordUsage(c, j, requestId);
+    if(j.error?.code==='content_policy_violation'||j.promptFeedback?.blockReason||j.candidates?.some(x=>['SAFETY','RECITATION','PROHIBITED_CONTENT'].includes(x.finishReason))||j.stop_reason==='refusal'||j.choices?.some(x=>x.finish_reason==='content_filter'||x.message?.refusal)||(j.output||[]).some(x=>(x.content||[]).some(y=>y.type==='refusal')))throw Object.assign(new Error('Provider safety refusal. No failover permitted.'),{code:'PROVIDER_REFUSAL'});
     return requireText(c.name, (j.content||[]).map(x=>x.text||'').join('\n'));
   }
   if(c.kind==='openai_compatible'){
     if(!c.baseUrl)throw new Error('OpenAI-compatible provider cần Base URL.');
     const base=c.baseUrl.replace(/\/$/,'');const url=base.endsWith('/chat/completions')?base:base+'/chat/completions';
-    const { j } = await requestJson(url,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${c.secret}`},body:JSON.stringify({model:c.model,messages:[{role:'system',content:system},{role:'user',content:prompt}],temperature:0.2})});
+    const { j } = await requestJson(url,{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${c.secret}`},body:JSON.stringify({model:c.model,messages:[{role:'system',content:system},{role:'user',content:prompt}],temperature:0.2})},requestOptions);
     recordUsage(c, j, requestId);
+    if(j.error?.code==='content_policy_violation'||j.promptFeedback?.blockReason||j.candidates?.some(x=>['SAFETY','RECITATION','PROHIBITED_CONTENT'].includes(x.finishReason))||j.stop_reason==='refusal'||j.choices?.some(x=>x.finish_reason==='content_filter'||x.message?.refusal)||(j.output||[]).some(x=>(x.content||[]).some(y=>y.type==='refusal')))throw Object.assign(new Error('Provider safety refusal. No failover permitted.'),{code:'PROVIDER_REFUSAL'});
     return requireText(c.name, j.choices?.[0]?.message?.content||'');
   }
   throw new Error(`Kết nối ${c.kind} chưa phải AI provider.`);

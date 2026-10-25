@@ -1,3 +1,4 @@
+const RELEASE_VERSION=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -18,7 +19,7 @@ async function freeRange(){
 }
 async function waitFor(p,timeout=10_000){
  for(let i=0;i<timeout/100;i++){
-  try{const r=await fetch(`http://127.0.0.1:${p}/api/health`,{signal:AbortSignal.timeout(300)});if(r.ok&&(await r.json()).version==="0.9.62")return true;}catch{}
+  try{const r=await fetch(`http://127.0.0.1:${p}/api/health`,{signal:AbortSignal.timeout(300)});if(r.ok&&(await r.json()).version===RELEASE_VERSION)return true;}catch{}
   await sleep(100);
  }
  return false;

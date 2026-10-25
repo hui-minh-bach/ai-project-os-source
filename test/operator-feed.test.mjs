@@ -58,7 +58,7 @@ test('meeting feed renders recorded run steps with honest labels', () => {
   const texts = feed.map(e => e.text).join('\n');
   assert.match(texts, /Nhận việc: “Tin nóng sáng”/);
   assert.match(texts, /AI mô phỏng/, 'simulated steps stay labeled');
-  assert.match(texts, /chờ Sếp Lâm duyệt đăng/);
+  assert.match(texts, /chờ người dùng duyệt đăng/);
   assert.match(texts, /Đã duyệt — cho phép đăng/);
   assert.match(texts, /môi trường mô phỏng/, 'simulated publish stays labeled');
   assert.ok(feed.some(e => e.kind === 'run.live' && e.runId === 'r2'), 'running run shows a live event');
@@ -66,3 +66,5 @@ test('meeting feed renders recorded run steps with honest labels', () => {
   const ats = feed.map(e => e.at || '');
   assert.deepEqual(ats, [...ats].sort(), 'events are chronological');
 });
+
+test('R7 local receipt gate is not presented as social publication',()=>{const events=buildRunFeed([{id:'local',pipeline:'news-video',deliveryOnly:true,state:'awaiting-approval',title:'Local product',createdAt:'2026-10-23T00:00:00Z',steps:[{name:'gate',state:'waiting',at:'2026-10-23T00:00:05Z'}]}]);const text=events.map(x=>x.text).join('\n');assert.match(text,/xem và nhận/);assert.ok(!text.includes('duyệt đăng'));});

@@ -14,6 +14,9 @@
 import fs from 'node:fs';
 
 export const PLATFORM_KINDS = ['youtube', 'facebook', 'tiktok'];
+// Default matches Meta's official Python Business SDK apiconfig.py (checked 2026-10-24).
+export const FACEBOOK_GRAPH_VERSION=process.env.AIOS_FACEBOOK_GRAPH_VERSION||'v26.0';
+if(!/^v[0-9]{1,3}\.[0-9]{1,2}$/.test(FACEBOOK_GRAPH_VERSION))throw new Error('AIOS_FACEBOOK_GRAPH_VERSION không hợp lệ.');
 export const REAL_HOSTS = { youtube: 'www.googleapis.com', facebook: 'graph.facebook.com', tiktok: 'open.tiktokapis.com' };
 const DEFAULT_BASE = { youtube: 'https://www.googleapis.com', facebook: 'https://graph.facebook.com', tiktok: 'https://open.tiktokapis.com' };
 
@@ -52,8 +55,8 @@ const OAUTH = {
     extra: { access_type: 'offline', prompt: 'consent' },
   },
   facebook: {
-    authorize: 'https://www.facebook.com/v19.0/dialog/oauth',
-    token: 'https://graph.facebook.com/v19.0/oauth/access_token',
+    authorize: `https://www.facebook.com/${FACEBOOK_GRAPH_VERSION}/dialog/oauth`,
+    token: `https://graph.facebook.com/${FACEBOOK_GRAPH_VERSION}/oauth/access_token`,
     scopes: ['pages_show_list', 'pages_manage_posts', 'pages_read_engagement'],
     extra: {},
   },
@@ -116,7 +119,7 @@ export async function fetchPlatformIdentity(kind, { connection, token, fetchImpl
     return { accountLabel: String(item.snippet?.title || 'Kênh YouTube'), channelId: item.id ? String(item.id) : null, channelTitle: String(item.snippet?.title || '') };
   }
   if (kind === 'facebook') {
-    const res = await fetchImpl(`${base}/v19.0/me/accounts?fields=id,name,access_token&limit=100`, { headers: auth });
+    const res = await fetchImpl(`${base}/${FACEBOOK_GRAPH_VERSION}/me/accounts?fields=id,name,access_token&limit=100`, { headers: auth });
     const body = await readBody(res);
     if (!res.ok) throw httpErr(kind, res.status, body);
     const pages = []; const pageTokens = {};
@@ -200,7 +203,7 @@ export async function facebookUpload({ connection, file, title, description = ''
   const size = fs.statSync(file).size;
   const data = fs.readFileSync(file);
   const form = (fields, chunk, chunkName) => { const f = new FormData(); for (const [k, v] of Object.entries(fields)) f.set(k, String(v)); if (chunk) f.set(chunkName || 'video_file_chunk', new Blob([chunk]), 'chunk.mp4'); return f; };
-  const startRes = await fetchImpl(`${base}/v19.0/${pageId}/videos`, { method: 'POST', headers: { authorization: `Bearer ${token.accessToken}` }, body: form({ upload_phase: 'start', file_size: size }) });
+  const startRes = await fetchImpl(`${base}/${FACEBOOK_GRAPH_VERSION}/${pageId}/videos`, { method: 'POST', headers: { authorization: `Bearer ${token.accessToken}` }, body: form({ upload_phase: 'start', file_size: size }) });
   const startBody = await readBody(startRes);
   if (!startRes.ok || !startBody.json?.upload_session_id) throw httpErr(kind, startRes.status, startBody);
   const session = startBody.json;
@@ -209,13 +212,13 @@ export async function facebookUpload({ connection, file, title, description = ''
   let guard = 0;
   while (offset < size && guard++ < 1000) {
     const end = Math.min(size, endOffset > offset ? endOffset : size);
-    const res = await fetchImpl(`${base}/v19.0/${pageId}/videos`, { method: 'POST', headers: { authorization: `Bearer ${token.accessToken}` }, body: form({ upload_phase: 'transfer', upload_session_id: session.upload_session_id, start_offset: offset }, data.subarray(offset, end)) });
+    const res = await fetchImpl(`${base}/${FACEBOOK_GRAPH_VERSION}/${pageId}/videos`, { method: 'POST', headers: { authorization: `Bearer ${token.accessToken}` }, body: form({ upload_phase: 'transfer', upload_session_id: session.upload_session_id, start_offset: offset }, data.subarray(offset, end)) });
     const body = await readBody(res);
     if (!res.ok) throw httpErr(kind, res.status, body);
     const next = Number(body.json?.start_offset);
     offset = Number.isFinite(next) && next > offset ? next : end;
   }
-  const finRes = await fetchImpl(`${base}/v19.0/${pageId}/videos`, { method: 'POST', headers: { authorization: `Bearer ${token.accessToken}` }, body: form({ upload_phase: 'finish', upload_session_id: session.upload_session_id, title: String(title).slice(0, 255), description: String(description).slice(0, 2000) }) });
+  const finRes = await fetchImpl(`${base}/${FACEBOOK_GRAPH_VERSION}/${pageId}/videos`, { method: 'POST', headers: { authorization: `Bearer ${token.accessToken}` }, body: form({ upload_phase: 'finish', upload_session_id: session.upload_session_id, title: String(title).slice(0, 255), description: String(description).slice(0, 2000) }) });
   const finBody = await readBody(finRes);
   if (!finRes.ok || finBody.json?.success !== true) throw httpErr(kind, finRes.status, finBody);
   const videoId = String(session.video_id || finBody.json?.video_id || '');
@@ -227,7 +230,7 @@ export async function facebookStats({ connection, videoId, fetchImpl = fetch }) 
   const kind = 'facebook';
   const token = requireToken(kind, connection);
   const base = platformBase(kind, connection);
-  const res = await fetchImpl(`${base}/v19.0/${encodeURIComponent(videoId)}?fields=views,likes.summary(true),comments.summary(true)`, { headers: { authorization: `Bearer ${token.accessToken}` } });
+  const res = await fetchImpl(`${base}/${FACEBOOK_GRAPH_VERSION}/${encodeURIComponent(videoId)}?fields=views,likes.summary(true),comments.summary(true)`, { headers: { authorization: `Bearer ${token.accessToken}` } });
   const parsed = await readBody(res);
   if (!res.ok) throw httpErr(kind, res.status, parsed);
   return { views: Number(parsed.json?.views || 0), likes: Number(parsed.json?.likes?.summary?.total_count || 0), comments: Number(parsed.json?.comments?.summary?.total_count || 0) };

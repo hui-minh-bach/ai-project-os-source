@@ -1,3 +1,4 @@
+const RELEASE_VERSION=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,7 +11,7 @@ test('doctor checks local project/storage without network or paid APIs',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aios-doctor-test-'));
   try {
     const report=systemDoctor({root,dataDir:path.join(dir,'data'),backupDir:path.join(dir,'backup'),smoke:false});
-    assert.equal(report.version,"0.9.62");
+    assert.equal(report.version,RELEASE_VERSION);
     assert.equal(report.capabilities.projectManagement,true);
     assert.equal(report.capabilities.backup,true);
     assert.equal(report.capabilities.cloudSpeechVerified,false);

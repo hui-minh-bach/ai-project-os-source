@@ -1,11 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { run, must, commandExists } from './shell.mjs';
 import { resolveInfraCli } from './infra-tools.mjs';
 import { listConnections, getConnection } from './vault.mjs';
-import { workspaceDir } from './workspace.mjs';
+import { workspaceDir, safeResolve } from './workspace.mjs';
 import { DATA_DIR } from './store.mjs';
-import { createProject, listProjects, getProject, updateProjectBrief, saveProjectGithub } from './projects.mjs';
+import { createProject, listProjects, getProject, updateProjectBrief, saveProjectGithub, updateProjectModelRoles } from './projects.mjs';
 import { ensureSecureGitignore, ensureGitIdentity, assertNoSensitiveStaged } from './git-security.mjs';
 
 /* Work with the user's EXISTING GitHub repositories: list them, import one as
@@ -13,7 +14,29 @@ import { ensureSecureGitignore, ensureGitIdentity, assertNoSensitiveStaged } fro
  * brief, and return the work as a Pull Request. Auth follows the established
  * pattern: the linked GitHub CLI (`gh auth setup-git`) or a Vault token
  * connection (Authorization header, never written into the remote URL). */
-const FULL_NAME_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const FULL_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$/;
+export function normalizeGithubRepo(value){
+ let name=String(value||'').trim();
+ if(name.startsWith('https://')){const u=new URL(name);if(u.hostname!=='github.com'||u.username||u.password||u.search||u.hash)throw new Error('Chỉ nhận link repo https://github.com/owner/repo.');name=u.pathname.replace(/^\/|\/$/g,'');}
+ name=name.replace(/\.git$/,'');if(!FULL_NAME_RE.test(name)||name.length>240)throw new Error('Repo cần dạng owner/repo hoặc link GitHub của repo.');return name;
+}
+function importFailure(r){
+ if(r.timedOut)return 'Clone quá thời gian. Kiểm tra mạng/GitHub rồi thử lại; chưa tạo dự án trống.';
+ const text=String(r.stderr||'');
+ if(/authentication|could not read Username|terminal prompts disabled|repository not found|403|401/i.test(text))return 'Không truy cập được repo bằng tài khoản GitHub đã liên kết. Kiểm tra quyền repo riêng tư và đăng nhập lại GitHub trong Kết nối.';
+ if(/resolve host|connect|SSL|TLS|certificate/i.test(text))return 'Git không kết nối được GitHub. Kiểm tra mạng, proxy hoặc chứng chỉ Windows; không tắt bảo vệ LSA.';
+ return 'Git clone không hoàn tất (mã '+String(r.code)+'). Chưa tạo dự án; có thể thử lại.';
+}
+async function cloneAuth(c,overrides){
+ let secret=c.secret;if(!secret&&c.id&&c.meta?.authMode!=='cli')try{secret=getConnection(c.id).secret;}catch{}
+ if(c.meta?.authMode==='cli'){
+  const gh=pickGh(overrides),args=['auth','token','--hostname','github.com'];if(c.meta?.login)args.push('--user',c.meta.login);
+  const out=await run(gh.command,[...gh.args,...args],{timeoutMs:15000,inheritEnv:false,env:{GH_PROMPT_DISABLED:'1'}});
+  if(out.code!==0||!out.stdout.trim())throw new Error('Phiên GitHub CLI chưa sẵn sàng. Liên kết lại tài khoản trong Kết nối.');secret=out.stdout.trim();
+ }
+ if(!secret)throw new Error('Thiếu xác thực GitHub.');
+ return {GIT_TERMINAL_PROMPT:'0',GCM_INTERACTIVE:'never',GIT_LFS_SKIP_SMUDGE:'1',GIT_CONFIG_COUNT:'2',GIT_CONFIG_KEY_0:'credential.helper',GIT_CONFIG_VALUE_0:'',GIT_CONFIG_KEY_1:'http.https://github.com/.extraheader',GIT_CONFIG_VALUE_1:'AUTHORIZATION: basic '+Buffer.from('x-access-token:'+secret).toString('base64')};
+}
 
 export function githubConnection() {
   let all = [];
@@ -25,7 +48,7 @@ function pickGh(overrides) { return overrides.gh || resolveInfraCli('github'); }
 function pickConn(overrides) { return overrides.connection !== undefined ? overrides.connection : githubConnection(); }
 async function ghRun(args, { cwd, timeoutMs = 60000, overrides = {} } = {}) {
   const gh = pickGh(overrides);
-  const r = await run(gh.command, [...gh.args, ...args], { cwd, timeoutMs, inheritEnv: false });
+  const r = await run(gh.command, [...gh.args, ...args], { cwd, timeoutMs, inheritEnv: false,env:{GH_PROMPT_DISABLED:'1',...(pickConn(overrides)?.meta?.authMode!=='cli'?{GH_TOKEN:(pickConn(overrides)?.secret||getConnection(pickConn(overrides).id).secret)}:{})} });
   if (r.code !== 0) throw new Error('GitHub CLI lỗi: ' + String(r.stderr || r.stdout || '').slice(-600));
   return r.stdout;
 }
@@ -58,7 +81,7 @@ function scanGuideFiles(ws) {
   try {
     for (const e of fs.readdirSync(ws, { withFileTypes: true })) if (e.isFile() && GUIDE_NAME_RES.some(rx => rx.test(e.name))) found.push(e.name);
     const docsDir = path.join(ws, 'docs');
-    if (fs.existsSync(docsDir)) for (const e of fs.readdirSync(docsDir, { withFileTypes: true })) if (e.isFile() && /\.md$/i.test(e.name)) found.push('docs/' + e.name);
+    if (fs.existsSync(docsDir) && fs.lstatSync(docsDir).isDirectory()) for (const e of fs.readdirSync(docsDir, { withFileTypes: true })) if (e.isFile() && /\.md$/i.test(e.name)) found.push('docs/' + e.name);
   } catch {}
   const rank = n => (/readme/i.test(n) ? 0 : /huong/i.test(n) ? 1 : 2);
   return [...new Set(found)].sort((a, b) => rank(a) - rank(b)).slice(0, 10);
@@ -109,12 +132,12 @@ export async function buildContinuationPlan(projectId, overrides = {}) {
   }
   let vercel = b.vercel || null;
   try {
-    const vj = JSON.parse(fs.readFileSync(path.join(ws, '.vercel', 'project.json'), 'utf8'));
+    const vj = JSON.parse(fs.readFileSync(safeResolve(ws,'.vercel/project.json'), 'utf8'));
     if (vj.projectId) vercel = { detected: true, projectId: vj.projectId, orgId: vj.orgId || '', ...(vercel?.manual ? { manual: vercel.manual } : {}) };
   } catch {}
   let stack = '';
   try {
-    const pkg = JSON.parse(fs.readFileSync(path.join(ws, 'package.json'), 'utf8'));
+    const pkg = JSON.parse(fs.readFileSync(safeResolve(ws,'package.json'), 'utf8'));
     const deps = Object.keys({ ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) });
     const hints = [['next', 'Next.js'], ['react', 'React'], ['vue', 'Vue'], ['svelte', 'Svelte'], ['express', 'Express'], ['fastify', 'Fastify'], ['electron', 'Electron'], ['tailwindcss', 'Tailwind']].filter(([k]) => deps.includes(k)).map(([, v]) => v);
     stack = `Node project "${pkg.name || ''}"${hints.length ? ' · ' + hints.join(' + ') : ''}${deps.length ? ` · ${deps.length} thư viện` : ''}${pkg.scripts ? ' · lệnh có sẵn: ' + Object.keys(pkg.scripts).slice(0, 8).join(', ') : ''}`;
@@ -138,32 +161,38 @@ export async function buildContinuationPlan(projectId, overrides = {}) {
   return { ok: true, continuation };
 }
 
-export async function importGithubRepo({ fullName, vercelProject } = {}, overrides = {}) {
-  if (!FULL_NAME_RE.test(fullName || '')) throw new Error('Tên repo không hợp lệ (cần dạng owner/repo).');
+export async function importGithubRepo({ fullName, vercelProject, copyTeamFrom } = {}, overrides = {}) {
+  fullName=normalizeGithubRepo(fullName);
+  const progress=(stage,percent=null)=>overrides.onProgress?.({stage,percent});
+  const previous=copyTeamFrom?getProject(String(copyTeamFrom)):null;
+  if(/^https:\/\/github\.com/i.test(String(vercelProject||'')))throw new Error('Link GitHub cần nhập ở ô Repo GitHub, không phải ô Vercel.');
   const c = pickConn(overrides);
   if (!c) throw new Error('Chưa liên kết tài khoản GitHub.');
-  if (listProjects().some(p => p.settings?.github?.fullName === fullName)) throw new Error('Repo này đã được nhập thành dự án rồi.');
+  if (listProjects().some(p => p.settings?.github?.fullName?.toLowerCase() === fullName.toLowerCase())) throw new Error('Repo này đã được nhập thành dự án rồi.');
   if (!(await commandExists('git'))) throw new Error('Máy chưa cài Git.');
   const repo = fullName.split('/')[1];
   const base = process.env.AIOS_GITHUB_CLONE_BASE || 'https://github.com';
-  const tmp = path.join(DATA_DIR, 'github-imports', repo + '-' + Date.now());
+  const tmp = path.join(DATA_DIR, 'github-imports', repo + '-' + crypto.randomUUID());
   fs.mkdirSync(tmp, { recursive: true });
   try {
-    if (c.meta?.authMode === 'cli') await ghSetupGit(overrides);
-    const r = await run('git', ['clone', `${base}/${fullName}.git`, tmp], { timeoutMs: 300000, inheritEnv: false, env: tokenEnv(c) });
-    if (r.code !== 0) throw new Error('Clone thất bại: ' + String(r.stderr || '').slice(-600));
+    progress('authenticating');const env=await cloneAuth(c,overrides);
+    progress('cloning');
+    const r = await run('git', ['-c','core.longpaths=true','clone','--progress','--depth','1','--single-branch', `${base}/${fullName}.git`, tmp], { timeoutMs: overrides.cloneTimeoutMs||180000, inheritEnv: false, env, onStderr:line=>{const m=String(line).match(/(?:Receiving objects|Resolving deltas|Updating files):\s*(\d+)%/);if(m)progress('cloning',Number(m[1]));} });
+    if (r.code !== 0) throw new Error(importFailure(r));
+    progress('reading-guides');
   } catch (e) { fs.rmSync(tmp, { recursive: true, force: true }); throw e; }
   const project = createProject({ name: repo, idea: `Dự án nhập từ GitHub: ${fullName}`, goals: `Tiếp tục phát triển repo ${fullName} bằng đội AI trong AI Project OS.` });
   const ws = workspaceDir(project.id);
   for (const entry of fs.readdirSync(tmp)) fs.renameSync(path.join(tmp, entry), path.join(ws, entry));
   fs.rmSync(tmp, { recursive: true, force: true });
-  const binding = { fullName, url: `https://github.com/${fullName}`, defaultBranch: (await run('git', ['branch', '--show-current'], { cwd: ws })).stdout.trim() || 'main', importedAt: new Date().toISOString(), issueNumber: null, issueUrl: '', lastPrUrl: '', lastBranch: '' };
+  const binding = { fullName, url: `https://github.com/${fullName}`, defaultBranch: (await run('git', ['branch', '--show-current'], { cwd: ws,timeoutMs:10000 })).stdout.trim() || 'main', importedAt: new Date().toISOString(), issueNumber: null, issueUrl: '', lastPrUrl: '', lastBranch: '' };
   saveProjectGithub(project.id, binding);
+  let teamWarning='';if(previous?.modelRoles)try{updateProjectModelRoles(project.id,{...previous.modelRoles,teams:previous.modelRoleTeams,backups:previous.modelRoleBackups||{}});}catch{teamWarning='Đã nhập code; phân công AI của dự án cũ cần xác minh lại trong Kết nối.';}
   if (vercelProject) saveProjectGithub(project.id, { vercel: { manual: String(vercelProject).slice(0, 200) } });
   let continuation = null, continuationError = '';
   try { continuation = (await buildContinuationPlan(project.id, overrides)).continuation; }
   catch (e) { continuationError = e.message; }
-  return { projectId: project.id, binding: githubBinding(project.id), continuation, continuationError };
+  progress('completed');return { projectId: project.id, binding: githubBinding(project.id), continuation, continuationError, teamWarning };
 }
 
 export function githubBinding(projectId) {

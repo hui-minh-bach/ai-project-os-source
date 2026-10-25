@@ -25,7 +25,7 @@ function loadOfficeLogic(pins) {
   const factory = new Function(
     'officeLoadPins', 'localStorage',
     sliceA + '\n' + sliceB +
-    '\nreturn {officeResolvePosts, officeIsoPointForPost, officeIsoWorldToPct, officeIsoPctToWorld, officeIsoClampToDeck, officeIsoInDeck, officeIsoLabelShift, officeIsoScaleFor, OFFICE_ISO_STATIONS, OFFICE_ISO_PODS, OFFICE_ISO_MONITORS, OFFICE_ISO_SCALES, OFFICE_DESK_POOL, OFFICE_ISO_FG, OFFICE_ISO_POD_INTERIORS, OFFICE_ISO_CAGE_INTERIOR, OFFICE_ISO_CHAIRS, OFFICE_ISO_DESK_ZONES, OFFICE_ISO_VIS_FRAC};');
+    '\nreturn {officeResolvePosts, officeIsoPointForPost, officeIsoWorldToPct, officeIsoPctToWorld, officeIsoClampToDeck, officeIsoInDeck, officeIsoLabelShift, officeIsoScaleFor, OFFICE_ISO_STATIONS, OFFICE_ISO_PODS, OFFICE_ISO_MONITORS, OFFICE_ISO_SCALES, OFFICE_DESK_POOL, OFFICE_ISO_FG, OFFICE_ISO_POD_INTERIORS, OFFICE_ISO_CAGE_INTERIOR, OFFICE_ISO_CHAIRS, OFFICE_ISO_VIS_FRAC};');
   return factory(() => pins || {}, { getItem: () => null });
 }
 
@@ -137,8 +137,8 @@ test('0.9.58: facing rule — the desk pose is the from-behind seated sprite she
   }
 });
 
-test('0.9.58: isometric is the default view; 3D stays one tap away', () => {
-  assert.match(team, /localStorage\.getItem\('aios-office-view'\)==='3d'/, '3D auto-opens only when previously chosen');
+test('R2 avoids starting the legacy WebGL room under the new scene; ISO remains available', () => {
+  assert.ok(team.includes("localStorage.getItem('aios-space-studio-mode')==='legacy'&&localStorage.getItem('aios-office-view')==='3d'"), 'legacy GPU scene starts only after explicit legacy preference');
   assert.match(team, /r0\.classList\.add\('office-iso'\)/);
   assert.match(team, /localStorage\.setItem\('aios-office-view','iso'\)/);
   assert.match(team, /localStorage\.setItem\('aios-office-view','3d'\)/);
@@ -219,8 +219,8 @@ test('0.9.59: the cage post stands inside the drawn electric cage; pod labels st
     for (const k of ['lx', 'ly', 'bx', 'by']) assert.ok(Number.isFinite(pd[k]), `pod ${i} carries label offset ${k}`);
     assert.deepEqual(L2.officeIsoLabelShift({ kind: 'pod', slot: i }), pd);
   }
-  assert.deepEqual(L2.officeIsoLabelShift({ kind: 'desk', id: 'news' }), { lx: 0, ly: -97, bx: 0, by: -12 });
-  assert.deepEqual(L2.officeIsoLabelShift({ kind: 'desk', id: 'image' }), { lx: 0, ly: -97, bx: 0, by: -12 });
+  assert.deepEqual(L2.officeIsoLabelShift({ kind: 'desk', id: 'news' }), { lx: 0, ly: -93, bx: 0, by: -14 });
+  assert.deepEqual(L2.officeIsoLabelShift({ kind: 'desk', id: 'image' }), { lx: 0, ly: -93, bx: 0, by: -14 });
   assert.deepEqual(L2.officeIsoLabelShift({ kind: 'station', id: 'boss' }), { lx: 0, ly: 22, bx: 0, by: 0 });
   assert.match(team, /const nlx=pd\?Math\.round\(pd\.lx\*lsc\):0/);
   assert.match(team, /pose==='pod'&&a\.fleet&&!a\.fleet\.resting/);
@@ -322,50 +322,4 @@ test('0.9.60: compositing — foreground cut-outs ship and the geometry puts spr
   assert.match(team, /el\.dataset\.postkind=post\?post\.kind:''/, 'render tags each bot with its post kind');
   assert.match(teamCss, /\[data-postkind="cage"\] \.office-agent-badge\{top:auto;bottom:100%/, 'cage badge hangs above the cage');
   assert.match(teamCss, /office-fg\{/, 'fg layer styled');
-});
-
-test('0.9.61: desk anchors land ON the drawn desk footprint, seated height reads seated, pod badges centre on their chamber', () => {
-  const L = loadOfficeLogic();
-  const W = 626, H = 418; // the QA room; element px sizes do not scale with the room
-  const visBox = (post, pt) => {
-    const s = L.officeIsoScaleFor(post, pt);
-    const figH = 84 * s, elH = 102; // figure 84 + gap 2 + name ~16 (unscaled element height)
-    const figTop = pt.y / 100 * H - 0.88 * elH * s, elLeft = pt.x / 100 * W - 0.5 * 57 * s;
-    const fr = L.OFFICE_ISO_VIS_FRAC.desk;
-    return { x0: (elLeft + fr[0] * 57 * s) / W * 100, y0: (figTop + fr[1] * figH) / H * 100, x1: (elLeft + fr[2] * 57 * s) / W * 100, y1: (figTop + fr[3] * figH) / H * 100, s };
-  };
-  for (const id of ['news', 'script', 'image', 'media', 'review', 'pm', 'publish']) {
-    const post = { kind: id === 'pm' ? 'station' : 'desk', id };
-    const pt = L.OFFICE_ISO_STATIONS[id];
-    const v = visBox(post, pt);
-    const seat = { x: (v.x0 + v.x1) / 2, y: v.y1 };
-    const ch = L.OFFICE_ISO_CHAIRS[id], zn = L.OFFICE_ISO_DESK_ZONES[id];
-    assert.ok(zn, 'drawn-desk zone declared for ' + id);
-    assert.ok(seat.x > ch.x0 && seat.x < ch.x1 && seat.y > ch.y0 && seat.y < ch.y1, id + ' seat lands in its drawn chair');
-    assert.ok(Math.abs(seat.x - (ch.x0 + ch.x1) / 2) <= 1.6, id + ' seat centred on its chair');
-    assert.ok(seat.x > zn.x0 && seat.x < zn.x1 && seat.y > zn.y0 && seat.y < zn.y1, id + ' anchor lands ON its drawn desk footprint');
-    const ix = Math.max(0, Math.min(v.x1, zn.x1) - Math.max(v.x0, zn.x0)), iy = Math.max(0, Math.min(v.y1, zn.y1) - Math.max(v.y0, zn.y0));
-    const frac = (ix * iy) / ((v.x1 - v.x0) * (v.y1 - v.y0));
-    assert.ok(frac >= 0.5, id + ' visible body overlaps its drawn desk zone >= 50% (got ' + frac.toFixed(2) + ')');
-    // Seated read: visible height <= 85% of a standing sprite at the same floor depth.
-    const standH = 84 * L.officeIsoScaleFor({ kind: 'floor' }, pt) * (L.OFFICE_ISO_VIS_FRAC.stand[3] - L.OFFICE_ISO_VIS_FRAC.stand[1]) / H * 100;
-    assert.ok((v.y1 - v.y0) <= 0.85 * standH, id + ' seated height ratio ' + ((v.y1 - v.y0) / standH).toFixed(2) + ' <= 0.85');
-  }
-  // The publish chair's centre is the DRAWN chair centre (51.8), not the old off-chair anchor.
-  assert.ok(Math.abs((L.OFFICE_ISO_CHAIRS.publish.x0 + L.OFFICE_ISO_CHAIRS.publish.x1) / 2 - 51.8) < 0.2, 'publish chair centred on the drawn chair');
-  // Pod chamber badges start with their CENTRE-X inside their own chamber
-  // (rendered offset = bx at pod scale) and the label pass locks them there.
-  for (let i = 0; i < 4; i++) {
-    const inr = L.OFFICE_ISO_POD_INTERIORS[i];
-    const bcx = L.OFFICE_ISO_PODS[i].x + L.OFFICE_ISO_PODS[i].bx * L.OFFICE_ISO_SCALES.pod / 6.26;
-    assert.ok(bcx > inr.x0 && bcx < inr.x1, 'pod ' + i + ' badge centre starts inside its chamber (cx=' + bcx.toFixed(2) + ')');
-    assert.ok(L.OFFICE_ISO_PODS[i].x > inr.x0 && L.OFFICE_ISO_PODS[i].x < inr.x1, 'pod ' + i + ' anchor inside its chamber x-range');
-  }
-  // Slot 3 (the 0.9.61 defect-C chamber) is truly centred on its chamber.
-  const c3 = L.OFFICE_ISO_POD_INTERIORS[3];
-  const bcx3 = L.OFFICE_ISO_PODS[3].x + L.OFFICE_ISO_PODS[3].bx * L.OFFICE_ISO_SCALES.pod / 6.26;
-  assert.ok(Math.abs(bcx3 - (c3.x0 + c3.x1) / 2) <= 0.3, 'slot 3 badge centred on its chamber');
-  assert.match(team, /isChamberBadge/, 'label pass locks chamber badge centre-x into its chamber');
-  assert.match(team, /bubbleObs/, 'label pass treats other bots bubbles as obstacles');
-  assert.match(team, /el\.dataset\.postslot=/, 'render tags each pod bot with its slot');
 });

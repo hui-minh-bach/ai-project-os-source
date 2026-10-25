@@ -23,7 +23,7 @@ const audio=Buffer.alloc(44+3200);audio.write('RIFF',0);audio.writeUInt32LE(audi
   const result=await piperSynthesize({text:'Xin chào mọi người',output:wav,env});
   assert.equal(result.provider,'piper-local');assert.ok(fs.statSync(wav).size>44);
   await assert.rejects(piperSynthesize({text:'xin',voice:'heygen-id',output:path.join(dir,'bad.wav'),env}),/chỉ dùng giọng đã cài/);
-  await assert.rejects(piperSynthesize({text:'xin',output:path.join(dir,'no.wav'),env:{PIPER_CLI_PATH:cli}}),/Chưa cài Piper/);
+  await assert.rejects(piperSynthesize({text:'xin',output:path.join(dir,'no.wav'),env:{PIPER_CLI_PATH:cli}}),/Chưa có Piper/);
  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
 

@@ -37,8 +37,8 @@ export function listNewsFields() { return NEWS_FIELDS.map(f => ({ id: f.id, labe
 const slugify = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^a-zA-Z0-9 ]/g, '').trim().split(/\s+/).map(w => w ? w[0].toUpperCase() + w.slice(1) : '').join('');
 
 /** Hashtag xác định từ lĩnh vực + từ khóa đầu — dùng cho caption khi đăng. */
-export function hashtagsForField(fieldId) {
-  const f = newsFieldById(fieldId); if (!f) return ['#TinTuc'];
+export function hashtagsForField(fieldId, suppliedField = null) {
+  const f = suppliedField || newsFieldById(fieldId); if (!f) return ['#TinTuc'];
   const tags = ['#' + slugify(f.label)];
   for (const k of f.keywords.slice(0, 4)) { const t = '#' + slugify(k); if (t.length > 2 && !tags.includes(t)) tags.push(t); }
   return tags.slice(0, 4);
@@ -90,8 +90,8 @@ export function classifyNewsField({ title, summary } = {}, fields = NEWS_FIELDS)
 /** Điểm độ đáng làm video 0–100, hoàn toàn xác định:
  * từ khóa (tối đa 54) + độ mới theo giờ đăng (tối đa 30) + có tóm tắt (8)
  * + độ dài tiêu đề hợp lý (8). Cơ sở chấm luôn là 'keyword-freshness'. */
-export function scoreNewsItem({ title, summary, publishedAt } = {}, { fieldId, now = new Date() } = {}) {
-  const field = fieldId ? FIELD_BY_ID.get(fieldId) : null;
+export function scoreNewsItem({ title, summary, publishedAt } = {}, { fieldId, field: suppliedField = null, now = new Date() } = {}) {
+  const field = suppliedField || (fieldId ? FIELD_BY_ID.get(fieldId) : null);
   const keywords = field ? field.keywords : [];
   const t = norm(title), s = norm(summary);
   let keywordPoints = 0;

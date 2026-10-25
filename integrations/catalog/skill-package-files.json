@@ -1,0 +1,423 @@
+[
+  {
+    "name": "imagegen",
+    "files": 12,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "openai-docs",
+    "files": 17,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "bmh-architectural-drawings",
+    "files": 4,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "bmh-design-review",
+    "files": 5,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "bmh-interior-exterior-3d",
+    "files": 4,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "bmh-visual-quality",
+    "files": 4,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "project-continuity-orchestrator",
+    "files": 5,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "Presentations",
+    "files": 36,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "Spreadsheets",
+    "files": 19,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "documents",
+    "files": 78,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "pdf",
+    "files": 4,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "answers-charts:answers-charts",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "answers-images:answers-images",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "static-app-previews:static-app-previews",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "answers-ask-user-input:answers-ask-user-input",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "demos:answers-ask-user-input",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "demos:onboarding-setup-pet",
+    "files": 6,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "google-drive:google-docs",
+    "files": 24,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "google-drive:google-drive",
+    "files": 10,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "google-drive:google-drive-comments",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "google-drive:google-sheets",
+    "files": 13,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "google-drive:google-slides",
+    "files": 16,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "heygen:heygen-workflows",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "answers-image-picker:answers-image-picker",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "answers-learning:answers-learning",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "openai-library:library",
+    "files": 10,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "pages:maintain-space",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "pages:manage-schedules",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "pages:organize-space",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "pages:write-page",
+    "files": 5,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "personal-context:personal-context",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "work-pets:create-pet",
+    "files": 21,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "work-pets:pets",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "work-pets:update-pet",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "plugin-management:plugin-management",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "resolve-recipients:resolve-recipients",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "sites:sites",
+    "files": 133,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "sites:sites-remix",
+    "files": 1,
+    "packageFilesIncluded": false
+  },
+  {
+    "name": "supabase:supabase",
+    "files": 4,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "supabase:supabase-postgres-best-practices",
+    "files": 36,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "template-creator:template-creator",
+    "files": 8,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:access-protected-vercel-deployment",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:ai-gateway",
+    "files": 8,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:ai-sdk",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:auth",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:bootstrap",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:build-agents",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:cdn-caching",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:chat-sdk",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:create-a-backend",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:custom-metrics",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:deployments-cicd",
+    "files": 6,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:domains",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:env-vars",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:eve",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:flags-sdk",
+    "files": 6,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:is-agentic",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:knowledge-update",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:marketplace",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:microfrontends",
+    "files": 8,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:queues",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:react-best-practices",
+    "files": 75,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:routing-middleware",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:runtime-cache",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:vercel-agent",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:vercel-cli",
+    "files": 29,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:vercel-connect",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:vercel-firewall",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:vercel-functions",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:vercel-sandbox",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:vercel-services",
+    "files": 3,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:vercel-storage",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:verification",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "vercel:workflow",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "work-skill-creator:skill-creator",
+    "files": 7,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "work-visualize:visualize",
+    "files": 12,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "writing-blocks:writing-blocks",
+    "files": 2,
+    "packageFilesIncluded": true
+  },
+  {
+    "name": "demos:onboarding-artifact-creation",
+    "files": 1,
+    "packageFilesIncluded": false,
+    "status": "cloud-instruction-snapshot"
+  },
+  {
+    "name": "demos:onboarding-email",
+    "files": 1,
+    "packageFilesIncluded": false,
+    "status": "cloud-instruction-snapshot"
+  },
+  {
+    "name": "demos:onboarding-learn-writing-style",
+    "files": 1,
+    "packageFilesIncluded": false,
+    "status": "cloud-instruction-snapshot"
+  },
+  {
+    "name": "demos:onboarding-messaging",
+    "files": 1,
+    "packageFilesIncluded": false,
+    "status": "cloud-instruction-snapshot"
+  },
+  {
+    "name": "demos:onboarding-parallel-research",
+    "files": 1,
+    "packageFilesIncluded": false,
+    "status": "cloud-instruction-snapshot"
+  },
+  {
+    "name": "demos:onboarding-website-creation",
+    "files": 1,
+    "packageFilesIncluded": false,
+    "status": "cloud-instruction-snapshot"
+  }
+]

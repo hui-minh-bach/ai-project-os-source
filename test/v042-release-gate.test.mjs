@@ -88,8 +88,9 @@ test('four parallel workers preserve all task states and merge four independent 
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   try{
     const c=saveConnection({kind:'openai',name:'parallel4',model:'mock',secret:'x',baseUrl:`http://127.0.0.1:${server.address().port}`});
+    const reviewer=saveConnection({kind:'openai',name:'independent reviewer4',model:'reviewer-mock',secret:'x',baseUrl:`http://127.0.0.1:${server.address().port}`});recordModels(reviewer,[reviewer.model]);
     recordModels(c,[c.model]);const p=createProject({name:'parallel4',idea:'i'});prepareTaskPlan(p.id,[1,2,3,4].map(n=>({id:`T${n}`,title:`Task ${n}`,role:'frontend',description:`write t${n}.txt`,dependsOn:[],doneWhen:'file exists',status:'todo',engineId:'native',skills:[]})));const a=readJson('projects.json',[]);a.find(v=>v.id===p.id).settings.maxParallel=4;writeJson('projects.json',a);
-    const batch=await runReadyBatch(p.id,{workerId:c.id,reviewerId:c.id,engineId:'native',limit:4});
+    const batch=await runReadyBatch(p.id,{workerId:c.id,reviewerId:reviewer.id,engineId:'native',limit:4});
     assert.equal(batch.ok,true);assert.deepEqual(getProject(p.id).tasks.map(t=>t.status),['done','done','done','done']);
     const root=workspaceDir(p.id);for(let n=1;n<=4;n++)assert.equal(fs.readFileSync(path.join(root,`t${n}.txt`),'utf8',),`T${n}\n`);
   } finally {server.close();}

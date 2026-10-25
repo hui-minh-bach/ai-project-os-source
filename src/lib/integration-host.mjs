@@ -1,6 +1,8 @@
+import { windowsSpeechStatus as installedWindowsStatus, windowsSpeechSynthesize as installedWindowsSynthesize } from './windows-speech.mjs';
+import { buildCaptionVideo } from './caption-video.mjs';
 /**
  * AI Project OS integration boundary.
- * The independently handed-off AI Core and Media Engine sources are intentionally unchanged.
+ * The bundled AI Core and Media Engine are versioned with this integration boundary.
  * Local-only, opt-in bridge: no browser-visible bearer token.
  * Social publishing (YouTube/Facebook/TikTok) was added 2026-10-17 on the
  * owner's explicit directive: opt-in per connection, always behind the task
@@ -17,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { createHeygenTts } from './heygen-tts.mjs';
 import { createFptTts } from './fpt-tts.mjs';
 import { templateById, directorPlanForTemplate, MEDIA_TEMPLATES } from './media-templates.mjs';
-import { piperStatus, piperSynthesize, piperVoiceFor } from './local-piper-tts.mjs';
+import { piperStatus, piperSynthesize, piperVoiceFor, clearPiperStatus } from './local-piper-tts.mjs';
 import { kokoroStatus, kokoroSynthesize, kokoroVoiceFor } from './kokoro-tts.mjs';
 import { buildVoiceover } from './voiceover.mjs';
 import { writeWordCaptions } from './voice-captions.mjs';
@@ -27,7 +29,8 @@ import { youtubeUpload, facebookUpload, tiktokUpload, youtubeStats, facebookStat
 import { createPublishRecords } from './publish-records.mjs';
 import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegmentsWithModel, writeRethemeScriptWithModel, splitScriptAcrossWindows, writeTextWithModel, buildDirectorModelCall, parseDirectorPlan, routeDirectorPlan, groupSpeechSegments } from './media-ai.mjs';
 import { EFFECT_IDS, buildEffectsGraph, buildEffectsAss } from './media-effects.mjs';
-import { generateImage, IMAGE_PROVIDERS } from './image-gen.mjs';
+import { generateImage, imageProviderStatus, prepareImagePool, IMAGE_PROVIDERS } from './image-gen.mjs';
+import { imageSceneOnce } from './image-scene-checkpoint.mjs';
 import { localWorkers } from './local-workers.mjs';
 import { whisperStatus, transcribeLocal, transcribeWordsLocal } from './local-whisper.mjs';
 import { alignKaraokeWords, buildKaraokeAss, KARAOKE_PRESETS } from './karaoke-captions.mjs';
@@ -38,6 +41,7 @@ const {createStandaloneCore}=require('../../integrations/ai-core/server.cjs');
 const {createCore}=require('../../integrations/ai-core/core.cjs');
 const {registerMediaEngine}=require('../../integrations/media-engine/index.cjs');
 const storyLogic=require('../../integrations/media-engine/src/story.cjs');
+const concatStoryAdapter=require('../../integrations/media-engine/src/concat-story.cjs');
 const concatRpc=require('../../integrations/media-engine/src/concat.cjs');
 const concatMultitrack=require('../../integrations/media-engine/src/concat-multitrack.cjs');
 const mediaTimeline=require('../../integrations/media-engine/src/timeline.cjs');
@@ -60,13 +64,14 @@ const ALLOWED_OPERATIONS=Object.freeze({
   'media.retheme':'video_edit',
   'media.effects':'video_edit',
   'media.story':'story',
+  'media.caption-video':'story',
   'media.story-outline':'story',
   'media.publish-youtube':'publish',
   'media.publish-facebook':'publish',
   'media.publish-tiktok':'publish',
   'media.publish-draft':'publish'
 });
-const UPLOAD_EXT=new Set(['.mp4','.mkv','.mov','.webm','.m4v','.mp3','.wav','.m4a','.txt','.srt','.vtt']);
+const UPLOAD_EXT=new Set(['.mp4','.mkv','.mov','.webm','.m4v','.mp3','.wav','.m4a','.txt','.srt','.vtt','.png','.jpg','.jpeg','.webp']);
 const MAX_UPLOAD_BYTES=150*1024*1024;
 const safeId=value=>typeof value==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(value);
 const safeFileName=value=>typeof value==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$/.test(value);
@@ -102,7 +107,9 @@ function verifiedPlan(params,file){
 
 function unwrapJson(response){const content=String(response||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');return JSON.parse(content);}
 
-export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock=true,ttsFetch=globalThis.fetch}={}){
+export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock=true,ttsFetch=globalThis.fetch,systemSpeech=null}={}){
+  const windowsSpeechStatus=(options={})=>systemSpeech?systemSpeech.status(options):installedWindowsStatus(options);
+  const windowsSpeechSynthesize=input=>systemSpeech?systemSpeech.synthesize(input):installedWindowsSynthesize(input);
   const data=path.resolve(root)===PROJECT_ROOT ? DATA_DIR : path.join(root,'.data');
   const mediaWorkspace=path.join(data,'media-workspace');
   const publishRecords=createPublishRecords({file:path.join(data,'publish-records.json')});
@@ -115,7 +122,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
   function ttsChoice(requested='auto'){
     // Never select a billable provider without an explicit user choice.
     // Legacy 'auto' jobs use local only; if local is absent they block.
-    if(!['auto','local','heygen','fpt','kokoro'].includes(requested))throw err('BLOCKED_TTS','Nhà cung cấp giọng không hợp lệ.');
+    if(!['auto','local','windows','heygen','fpt','kokoro'].includes(requested))throw err('BLOCKED_TTS','Nhà cung cấp giọng không hợp lệ.');
     if(requested==='kokoro'){
       const ks=kokoroStatus(env);
       if(!ks.ready)throw err('BLOCKED_TTS',ks.installHint);
@@ -130,12 +137,14 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       return {...tts,provider:'heygen'};
     }
     const local=piperStatus(env);
+    if((requested==='windows'||requested==='auto')&&windowsSpeechStatus().ready)return {provider:'windows-system',configured:()=>true,synthesize:input=>windowsSpeechSynthesize(input)};
+    if(requested==='windows')throw err('BLOCKED_WINDOWS_TTS','Windows chua co giong tieng Viet san sang.');
     if(!local.ready)throw err('BLOCKED_LOCAL_TTS',local.installHint);
     return {provider:'piper-local',configured:()=>true,synthesize:input=>piperSynthesize({...input,env})};
   }
   const taskContext=new Map();
   function concatSettings(){const credential=findServiceCredential('concat_remote');const token=credential?.secret||env.CONCAT_API_TOKEN||'';return {host:'127.0.0.1',port:Number(env.CONCAT_API_PORT||7420),token};}
-  async function checkConcat(){
+  async function checkConcat({revive=true}={}){
     const setting=concatSettings();
     if(!setting.token)throw err('BLOCKED_CONCAT','Mở Vault và bấm Cài + kết nối Concat tự động trong Video Studio.');
     let version;
@@ -143,7 +152,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     catch(original){
       // Managed engine: revive Concat on demand only when the saved local
       // configuration matches the Vault token. Never overwrite live edits.
-      if(process.platform!=='win32')throw original;
+      if(!revive||process.platform!=='win32')throw original;
       const exe=findInstalledConcat(env);
       let prefs=null;
       try{prefs=JSON.parse(fs.readFileSync(configPath(env),'utf8'));}catch{}
@@ -230,8 +239,9 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const jobId=String(request?.jobId||'gateway').replace(/[^a-zA-Z0-9_-]/g,'_');
           const dir=path.join(mediaWorkspace,'.gateway-image-jobs',jobId);
           fs.mkdirSync(dir,{recursive:true,mode:0o700});
-          const made=await generateImage({provider:request?.input?.provider||'auto',prompt:request?.input?.prompt,output:path.join(dir,'image.png'),size:request?.input?.size});
-          return {file:path.relative(mediaWorkspace,made.file),provider:made.provider,model:made.model,bytes:made.bytes,revisedPrompt:made.revisedPrompt||null};
+          const ctx=taskContext.get(request?.parentJobId||request?.jobId);
+          const made=await generateImage({provider:request?.input?.provider||'auto',prompt:request?.input?.prompt,output:path.join(dir,'image.png'),size:request?.input?.size,allowPaid:request?.input?.allowPaid===true,pool:request?.input?.imagePool||null,sceneIndex:request?.input?.scene||0,usageContext:{projectId:ctx?.projectId,taskId:ctx?.taskId,role:'image'},onAttempt:attempt=>core.state.emit('media.image.assignment',{jobId:request?.parentJobId||request?.jobId,projectId:ctx?.projectId,taskId:ctx?.taskId,scene:request?.input?.scene,...attempt})});
+          return {path:made.file,file:path.relative(mediaWorkspace,made.file),provider:made.provider,model:made.model,connectionId:made.connectionId,connectionName:made.connectionName,attempts:made.attempts,bytes:made.bytes,revisedPrompt:made.revisedPrompt||null};
         }
         if(!['video.edit-plan','story.adapt','text.translate'].includes(capability))
           throw err('BLOCKED_PROVIDER',`Chưa có adapter nhà cung cấp thật cho ${capability}. Không giả lập kết quả AI/STT/TTS.`);
@@ -282,7 +292,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       media=registerMediaEngine({CoreServices:{ProviderGateway:gateway,ArtifactStore:artifactPort,
         TaskQueue:{registerTask:(name,fn)=>{if(handlers.has(name))throw err('MEDIA_DUPLICATE','Đăng ký media task trùng.');handlers.set(name,fn);}},
         EventBus:{publish:(topic,payload)=>core.state.emit(topic,payload)}
-      },workspace:mediaWorkspace});
+      },workspace:mediaWorkspace,concatStory:async options=>{await checkConcat();if(options.preflight)return;return concatStoryAdapter.createStoryProject({...options,settings:concatSettings()});}});
       // Concat is a genuine editable multitrack document: original scene clips
       // are imported separately into its project, not one pre-flattened MP4.
       // The verified FFmpeg output remains independently available as fallback.
@@ -326,7 +336,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           if(synthesis){
             await artifactPort.putFile({jobId,source:narrationAudio,name:'narration.wav'});
             await artifactPort.putJson({jobId,name:'narration-report.json',data:{provider:synthesis.provider,
-              source:synthesis.provider==='piper-local'?'offline-user-installed-model':'approved-external-tts',
+              source:['piper-local','windows-sapi','windows-winrt','kokoro-local'].includes(synthesis.provider)?'offline-user-installed-model':'approved-external-tts',
               captions:captionsPath?'real-timing-or-user-upload':'unavailable',qa:mixed.qa}});
           }
           await artifactPort.putFile({jobId,source:output,name:'video-with-ai-narration.mp4'});
@@ -363,15 +373,23 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // AI image generation through the user's own connections: the logged-in
       // ChatGPT account (Codex hosted image tool) or a Vault API connection.
       // No route configured -> the task fails honestly at execution time.
-      handlers.set('media.image',async({jobId,scenes,imageProvider='auto',size})=>{
+      handlers.set('media.image',async({jobId,scenes,imageProvider='auto',size,confirmPaidImages=false})=>{
         const dir=path.join(mediaWorkspace,'.image-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
         const report={provider:null,model:null,scenes:[]};
+        if(!Array.isArray(scenes)||!scenes.length||scenes.length>24)throw err('MEDIA_IMAGE_LIMIT','Chỉ nhận 1–24 cảnh ảnh trong mỗi tác vụ.');
         for(let i=0;i<scenes.length;i++){
-          const made=await generateImage({provider:imageProvider,prompt:scenes[i].prompt,output:path.join(dir,`scene-${String(i+1).padStart(2,'0')}.png`),size});
+          // Paid routes require explicit approval, even when individually selected.
+          // Durable receipts prevent charging again for images already generated
+          // before a crash or a later scene failure.
+          const request={prompt:scenes[i]?.prompt,imageProvider,size:size||null,paidApproved:confirmPaidImages===true};
+          const {made,resumed}=await imageSceneOnce({dir,index:i,request,generate:output=>generateImage({provider:imageProvider,prompt:request.prompt,output,size,
+            allowPaid:confirmPaidImages===true,sceneIndex:i,
+            usageContext:{projectId:taskContext.get(jobId)?.projectId,taskId:jobId,role:'image'}})});
           report.provider=made.provider;report.model=made.model;
           const put=await artifactPort.putFile({jobId,source:made.file,name:path.basename(made.file)});
-          report.scenes.push({index:i+1,name:typeof scenes[i].name==='string'?scenes[i].name:null,prompt:scenes[i].prompt,artifactSha256:put.sha256,bytes:made.bytes,revisedPrompt:made.revisedPrompt||null});
+          report.scenes.push({index:i+1,name:typeof scenes[i].name==='string'?scenes[i].name:null,prompt:request.prompt,connectionId:made.connectionId,connectionName:made.connectionName,
+            attempts:made.attempts,artifactSha256:put.sha256,bytes:made.bytes,revisedPrompt:made.revisedPrompt||null,resumed});
         }
         await artifactPort.putJson({jobId,name:'images-report.json',data:report});
         return {count:scenes.length,provider:report.provider,model:report.model};
@@ -556,7 +574,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const tr=await translateSegmentsWithModel(ctx.projectId,segments,targetLanguage);
           texts=tr.texts;translationMeta={origin:'project-worker-model',provider:tr.provider,model:tr.model};
         }
-        const provider=ttsChoice(['heygen','fpt','kokoro'].includes(ttsProvider)?ttsProvider:'local');
+        const provider=ttsChoice(['auto','local','heygen','fpt','kokoro','windows'].includes(ttsProvider)?ttsProvider:'auto');
         if(provider.provider==='piper-local'){
           const voiceName=piperStatus(env).voice||'';
           const voiceLang=(voiceName.split(/[_-]/)[0]||'').toLowerCase();
@@ -630,7 +648,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
           const wr=await writeRethemeScriptWithModel(ctx.projectId,segments,{topic,notes,language:targetLanguage});
           texts=wr.texts;scriptMeta={origin:'project-worker-model',provider:wr.provider,model:wr.model};
         }
-        const provider=ttsChoice(['heygen','fpt','kokoro'].includes(ttsProvider)?ttsProvider:'local');
+        const provider=ttsChoice(['heygen','fpt','kokoro','windows'].includes(ttsProvider)?ttsProvider:'local');
         if(provider.provider==='piper-local'){
           const voiceName=piperStatus(env).voice||'';
           const voiceLang=(voiceName.split(/[_-]/)[0]||'').toLowerCase();
@@ -707,12 +725,20 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         await artifactPort.putFile({jobId,source:wav,name:'generated-natural-voice.wav'});
         await artifactPort.putFile({jobId,source:rendered.file,name:'video-with-ai-narration.mp4'});
         if(rendered.captionPath)await artifactPort.putFile({jobId,source:rendered.captionPath,name:'captions.srt'});
-        const report={provider:synth.provider,voice:synth.voice,ttsRequestId:synth.providerRequestId,source:synth.provider==='piper-local'?'offline-licensed-model':'approved-external-api',captions:captionMethod,captionStyle,captionTiming,qa:rendered.qa,alignment:rendered.alignment,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds,musicMixed:rendered.musicMixed,musicVolume:rendered.musicVolume};
+        const report={provider:synth.provider,voice:synth.voice,ttsRequestId:synth.providerRequestId,source:['piper-local','windows-sapi','windows-winrt','kokoro-local'].includes(synth.provider)?'offline-licensed-model':'approved-external-api',captions:captionMethod,captionStyle,captionTiming,qa:rendered.qa,alignment:rendered.alignment,videoSeconds:rendered.videoSeconds,audioSeconds:rendered.audioSeconds,musicMixed:rendered.musicMixed,musicVolume:rendered.musicVolume};
         await artifactPort.putJson({jobId,name:'tts-video-report.json',data:report});
         return {file:rendered.file,report};
       });
       // A useful fully local Story Studio deliverable. It is explicitly a text
       // storyboard only; it never presents an AI-generated narrated video.
+      handlers.set('media.caption-video',async({jobId,text,title,sourceUrl,voiceMode})=>{
+        if(voiceMode!=='captions')throw err('MEDIA_CONSENT','Caption-only video needs an explicit user choice.');
+        const made=await buildCaptionVideo({text,title,sourceUrl,jobDir:path.join(mediaWorkspace,'.caption-jobs',jobId)});
+        await artifactPort.putFile({jobId,source:made.file,name:'caption-video.mp4'});
+        await artifactPort.putFile({jobId,source:made.srt,name:'captions.srt'});
+        await artifactPort.putJson({jobId,name:'caption-video-report.json',data:{...made.report,qa:made.qa}});
+        return made;
+      });
       handlers.set('media.story-outline',async({jobId,text,rights='unspecified',maxChars=420})=>{
         if(typeof text!=='string'||!text.trim()||text.length>30000)throw err('STORY_INPUT','Truyện cần 1-30.000 ký tự.');
         const ch=storyLogic.chapters(text),segments=[],characters=storyLogic.characters(text);
@@ -753,7 +779,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       handlers.set('media.publish-youtube',publishHandler('youtube',({connection,file,title,description,tags,privacyStatus})=>youtubeUpload({connection,file,title,description,tags,privacyStatus:privacyStatus||'unlisted'})));
       handlers.set('media.publish-facebook',publishHandler('facebook',({connection,file,title,description})=>facebookUpload({connection,file,title,description})));
       handlers.set('media.publish-tiktok',publishHandler('tiktok',({connection,file,title,privacyLevel})=>tiktokUpload({connection,file,title,privacyLevel:privacyLevel||'PUBLIC_TO_EVERYONE'})));
-      for(const [kind,allowed] of Object.entries({video_edit:['media.analyze','media.subtitle-edit','media.edit-plan','media.quick-edit','media.render','media.voiceover','media.tts-video','media.image','media.music','image.local','media.concat-effects','media.dub','media.retheme','media.effects'],story:['media.story','media.story-outline'],publish:['media.publish-draft','media.publish-youtube','media.publish-facebook','media.publish-tiktok']})){
+      for(const [kind,allowed] of Object.entries({video_edit:['media.analyze','media.subtitle-edit','media.edit-plan','media.quick-edit','media.render','media.voiceover','media.tts-video','media.image','media.music','image.local','media.concat-effects','media.dub','media.retheme','media.effects'],story:['media.story','media.story-outline','media.caption-video'],publish:['media.publish-draft','media.publish-youtube','media.publish-facebook','media.publish-tiktok']})){
         core.queue.registerModule(kind,async({task,workspace})=>{
           const op=task.input?.operation;
           if(!allowed.includes(op))throw err('MEDIA_OPERATION','Loại tác vụ và công việc media không khớp hoặc chưa được phê duyệt.');
@@ -790,7 +816,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       modelVerified:!!usage?.verifiedModelCalls},
       media:{status:media?(probeCache.ffmpeg&&probeCache.ffprobe?'available':'dependency-missing'):'core-offline',
         version:media?.version||'0.1.0',sourceIncluded:true,ffmpeg:probeCache.ffmpeg||null,ffprobe:probeCache.ffprobe||null,
-        operations:Object.keys(ALLOWED_OPERATIONS),storyTts:piperStatus(env).ready?'piper-local-ready':tts.configured()?'optional-heygen-api':'needs-local-piper-or-imported-audio',ttsProvider:piperStatus(env).ready?'piper-local':tts.configured()?'heygen':'none',ttsVoiceConfigured:piperStatus(env).ready||tts.voiceConfigured(),localTts:piperStatus(env),kokoroTts:kokoroStatus(env),heygenOptionalConfigured:tts.configured(),transcription:(whisperStatus(env).ready?'whisper.cpp-local-real':'needs-approved-provider'),socialPosting:'opt-in-approval-gated',platforms:Object.fromEntries(PLATFORM_KINDS.map(k=>[k,platformConnectionStatus(k,findConnectionByKind(k))])),publishRecords:publishRecords.list().length,whisper:whisperStatus(env),concat:{configured:!!concatSettings().token,mode:'real-multitrack-editor-project-after-approval',speech:'available-in-editor-not-in-json-rpc-0.2'}},
+        operations:Object.keys(ALLOWED_OPERATIONS),storyTts:windowsSpeechStatus().ready?'windows-local-ready':piperStatus(env).ready?'piper-local-ready':tts.configured()?'optional-heygen-api':'needs-local-piper-or-imported-audio',ttsProvider:windowsSpeechStatus().ready?'windows-system':piperStatus(env).ready?'piper-local':tts.configured()?'heygen':'none',ttsVoiceConfigured:piperStatus(env).ready||windowsSpeechStatus().ready||tts.voiceConfigured(),images:imageProviderStatus(),localTts:piperStatus(env),windowsTts:windowsSpeechStatus(),fptOptionalConfigured:fptTts.configured(),kokoroTts:kokoroStatus(env),heygenOptionalConfigured:tts.configured(),transcription:(whisperStatus(env).ready?'whisper.cpp-local-real':'needs-approved-provider'),socialPosting:'opt-in-approval-gated',platforms:Object.fromEntries(PLATFORM_KINDS.map(k=>[k,platformConnectionStatus(k,findConnectionByKind(k))])),publishRecords:publishRecords.list().length,whisper:whisperStatus(env),concat:{configured:!!concatSettings().token,mode:'real-multitrack-editor-project-after-approval',speech:'available-in-editor-not-in-json-rpc-0.2'}},
       workspace:'dedicated-local-directory',host:'127.0.0.1',approvalRequired:true};
   }
   // Metrics sweep (M7): refresh view/like/comment counts for confirmed
@@ -813,8 +839,19 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
   function isMediaTask(t){return Boolean(t&&Object.hasOwn(ALLOWED_OPERATIONS,t.input?.operation)&&ALLOWED_OPERATIONS[t.input.operation]===t.kind);}
   function mediaTask(id){const t=requireCore().state.find(id);if(!isMediaTask(t))throw err('MEDIA_TASK_DENIED','Tác vụ này không thuộc Media Studio.');return t;}
   function listTasks(projectId){requireCore();if(projectId&&!safeId(projectId))throw err('PROJECT_ID','Mã dự án không hợp lệ.');return core.state.data.tasks.filter(t=>isMediaTask(t)&&(!projectId||t.projectId===projectId)).map(t=>structuredClone(t));}
-  function submit({projectId,operation,params={}}){requireCore();if(!safeId(projectId))throw err('PROJECT_ID','Mã dự án không hợp lệ.');if(!Object.hasOwn(ALLOWED_OPERATIONS,operation))throw err('MEDIA_OPERATION','Tác vụ media chưa hỗ trợ hoặc đang bị khóa.');
+  function submit({projectId,operation,params={},reuseFromTaskId=null}){requireCore();if(!safeId(projectId))throw err('PROJECT_ID','Mã dự án không hợp lệ.');if(!Object.hasOwn(ALLOWED_OPERATIONS,operation))throw err('MEDIA_OPERATION','Tác vụ media chưa hỗ trợ hoặc đang bị khóa.');
     if(!params||typeof params!=='object'||Array.isArray(params)||JSON.stringify(params).length>100000)throw err('MEDIA_INPUT','Dữ liệu không hợp lệ hoặc quá lớn.');
+    // Reuse only a failed approved story's own immutable inputs/media. The Core
+    // still creates a NEW, explicitly approved task; generic replay guards stay intact.
+    params=structuredClone(params);delete params._storyCacheId;
+    if(reuseFromTaskId){
+      const prior=mediaTask(reuseFromTaskId);
+      if(operation!=='media.story'||prior.projectId!==projectId||prior.input?.operation!==operation||prior.input?.approved!==true||!['failed','blocked','interrupted'].includes(prior.state))throw err('MEDIA_RESUME_DENIED','Only the same approved failed story can resume its media.');
+      const cacheId=prior.input.params?._storyCacheId||prior.id;
+      if(!/^[a-f0-9-]{36}$/.test(cacheId))throw err('MEDIA_RESUME_DENIED','Invalid previous story ID.');
+      if(core.state.data.tasks.some(t=>t.id!==prior.id&&t.input?.params?._storyCacheId===cacheId&&!['failed','blocked','interrupted','completed','cancelled','rejected'].includes(t.state)))throw err('MEDIA_RESUME_BUSY','Another continuation already owns this story.');
+      params={...structuredClone(prior.input.params),_storyCacheId:cacheId};
+    }
     if(params.sourceLabel!==undefined&&(typeof params.sourceLabel!=='string'||params.sourceLabel.length>160))throw err('MEDIA_INPUT','Tên video hiển thị không hợp lệ.');
     // Empty subtitles mean no subtitles. The engine's subtitle formatter rightly
     // rejects [] if passed explicitly; normalize at the host boundary.
@@ -863,6 +900,8 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         if(s.name!==undefined&&(typeof s.name!=='string'||s.name.length>80))throw err('MEDIA_INPUT','Tên cảnh tối đa 80 ký tự.');
       }
       if(params.imageProvider!==undefined&&!IMAGE_PROVIDERS.includes(params.imageProvider))throw err('MEDIA_INPUT','Nguồn sinh ảnh không hợp lệ.');
+      if(['gemini-api','openai-api'].includes(params.imageProvider)&&params.confirmPaidImages!==true)
+        throw err('MEDIA_PAID_CONSENT','Nguồn ảnh API có thể phát sinh phí. Phải cho phép rõ ràng trước khi giao việc.');
       if(params.size!==undefined&&!['1024x1024','1536x1024','1024x1536'].includes(params.size))throw err('MEDIA_INPUT','Kích thước ảnh không được hỗ trợ.');
     }
     if(operation==='media.music'){
@@ -894,7 +933,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         if(!Array.isArray(params.translatedTexts)||params.translatedTexts.length<1||params.translatedTexts.length>200)throw err('MEDIA_INPUT','Bản dịch nạp sẵn cần 1-200 đoạn.');
         for(const t of params.translatedTexts)if(typeof t!=='string'||!t.trim()||t.length>1000)throw err('MEDIA_INPUT','Mỗi đoạn dịch cần 1-1.000 ký tự.');
       }
-      if(params.ttsProvider!==undefined&&!['local','heygen','fpt','kokoro'].includes(params.ttsProvider))throw err('MEDIA_INPUT','Nhà cung cấp giọng lồng tiếng không hợp lệ.');
+      if(params.ttsProvider!==undefined&&!['auto','local','windows','heygen','fpt','kokoro'].includes(params.ttsProvider))throw err('MEDIA_INPUT','Nhà cung cấp giọng lồng tiếng không hợp lệ.');
     }
     if(operation==='media.voiceover'&&(!params.source||!params.audioSource))throw err('MEDIA_INPUT','Cần một video nguồn và một file âm thanh WAV/MP3/M4A.');
     if(operation==='media.effects'){
@@ -918,7 +957,23 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       if(params.alignment!==undefined&&!['hold','stretch'].includes(params.alignment))throw err('MEDIA_INPUT','Cách đồng bộ âm thanh/video chưa hợp lệ.');
       if(params.musicVolume!==undefined&&!(Number.isFinite(Number(params.musicVolume))&&Number(params.musicVolume)>=0&&Number(params.musicVolume)<=.4))throw err('MEDIA_INPUT','Nhạc nền chỉ hỗ trợ 0-40%.');
     }
+    if(operation==='media.caption-video'&&(params.voiceMode!=='captions'||typeof params.text!=='string'||!params.text.trim()||params.text.length>2000))throw err('MEDIA_INPUT','Caption video requires explicit captions mode and 1-2000 characters.');
     if(['media.story','media.story-outline'].includes(operation)&&!(typeof params.text==='string'&&params.text.trim())&&!params.source)throw err('MEDIA_INPUT','Cần văn bản hoặc nguồn truyện.');
+    if(operation==='media.story'){
+      if(params.renderEngine&&!['concat','ffmpeg'].includes(params.renderEngine))throw err('MEDIA_INPUT','Unknown renderer.');
+      if(params.renderEngine==='concat'&&!concatSettings().token)throw err('BLOCKED_CONCAT','Concat chua ket noi. Bam Ket noi Concat truoc khi dung video.');
+      ttsChoice(params.ttsProvider||'local');
+      const visual=params.visualMode||(params.allowProviderImages?'ai':'procedural');
+      if(!['ai','uploads','procedural'].includes(visual))throw err('MEDIA_IMAGE_MODE','Invalid illustration mode.');
+      if(visual==='uploads')storyLogic.validateImageSources(mediaWorkspace,params.imageSources);
+      if(visual==='ai'){
+        if(!IMAGE_PROVIDERS.includes(params.imageProvider||'auto'))throw err('MEDIA_IMAGE_MODE','Invalid image provider.');
+        // Free ComfyUI/FLUX and free-first auto do not need consent for a paid API.
+        // Image router only includes paid connections when confirmPaidImages is true.
+        if(['gemini-api','openai-api'].includes(params.imageProvider)&&params.confirmPaidImages!==true)
+          throw err('MEDIA_IMAGE_CONSENT','Chưa duyệt chi phí API ảnh; chọn ComfyUI/FLUX miễn phí hoặc cho phép trả phí.');
+      }
+    }
     if(operation==='media.story-outline'&&(!params.text||params.text.length>30000))throw err('STORY_INPUT','Story outline cần văn bản tối đa 30.000 ký tự.');
     if(['media.publish-youtube','media.publish-facebook','media.publish-tiktok'].includes(operation)){
       if(!(typeof params.video==='string'&&params.video.trim()))throw err('MEDIA_INPUT','Cần video trong Media Studio để đăng.');
@@ -1006,13 +1061,53 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
   }
   async function importUpload(req,name){requireCore();if(!safeFileName(name))throw err('MEDIA_FILENAME','Tên tệp không hợp lệ.');
     const ext=path.extname(name).toLowerCase();if(!UPLOAD_EXT.has(ext))throw err('MEDIA_FILETYPE','Định dạng chưa được chấp thuận.');
-    const declared=Number(req.headers['content-length']||0);if(declared>MAX_UPLOAD_BYTES)throw err('MEDIA_UPLOAD_LIMIT','Giới hạn nhập media là 150MB.');
+    const imageUpload=['.png','.jpg','.jpeg','.webp'].includes(ext);const limit=imageUpload?20_000_000:MAX_UPLOAD_BYTES;
+    const declared=Number(req.headers['content-length']||0);if(declared>limit)throw err('MEDIA_UPLOAD_LIMIT',imageUpload?'Ảnh tối đa 20 MB.':'Giới hạn nhập media là 150MB.');
     const uploadDir=path.join(mediaWorkspace,'uploads');fs.mkdirSync(uploadDir,{recursive:true,mode:0o700});
     const rel=`uploads/${crypto.randomUUID()}${ext}`;const dest=path.join(mediaWorkspace,rel);const fd=fs.openSync(dest,'wx',0o600);
-    let size=0;const digest=crypto.createHash('sha256');try{for await(const chunk of req){size+=chunk.length;if(size>MAX_UPLOAD_BYTES)throw err('MEDIA_UPLOAD_LIMIT','Vượt giới hạn 150MB.');fs.writeSync(fd,chunk);digest.update(chunk);}if(size===0)throw err('MEDIA_UPLOAD_EMPTY','Tệp tải lên rỗng.');}
+    let size=0;const digest=crypto.createHash('sha256');try{for await(const chunk of req){size+=chunk.length;if(size>limit)throw err('MEDIA_UPLOAD_LIMIT',imageUpload?'Ảnh vượt 20 MB.':'Vượt giới hạn 150MB.');fs.writeSync(fd,chunk);digest.update(chunk);}if(size===0)throw err('MEDIA_UPLOAD_EMPTY','Tệp tải lên rỗng.');}
     catch(e){fs.closeSync(fd);fs.rmSync(dest,{force:true});throw e;}
-    fs.closeSync(fd);return {source:rel,name,size,sha256:digest.digest('hex')};
+    fs.closeSync(fd);if(imageUpload){try{storyLogic.imageExtension(dest);}catch(e){fs.rmSync(dest,{force:true});throw e;}}return {source:rel,name,size,sha256:digest.digest('hex')};
   }
+  let previewBusy=false;
+  async function previewVoice({ttsProvider='local',voice,confirmPaidVoice=false}={}){
+    requireCore();if(previewBusy)throw err('VOICE_BUSY','Voice preview is already running.');
+    if(['heygen','fpt'].includes(ttsProvider)&&confirmPaidVoice!==true)throw err('VOICE_CONSENT','Approve the selected paid voice before preview.');
+    if(ttsProvider==='kokoro')throw err('VOICE_LANGUAGE','Kokoro installed here is English-only; choose Vietnamese narration.');
+    const selected=ttsChoice(ttsProvider),id=crypto.randomUUID(),dir=path.join(mediaWorkspace,'.voice-previews');
+    fs.mkdirSync(dir,{recursive:true,mode:0o700});
+    for(const f of fs.readdirSync(dir)){const full=path.join(dir,f);if(/^[a-f0-9-]+\.wav$/.test(f)&&Date.now()-fs.statSync(full).mtimeMs>600000)fs.rmSync(full,{force:true});}
+    const output=path.join(dir,id+'.wav');previewBusy=true;
+    try{const result=await selected.synthesize({text:'Xin chào. Đây là giọng đọc cho video của bạn. Ảnh minh họa và lời đọc sẽ được ghép theo kịch bản.',language:'vi',voice:selected.provider==='piper-local'?piperVoiceFor(voice,env):voice,output,env});
+      const file=result.audioPath;if(path.resolve(file)!==path.resolve(output))fs.copyFileSync(file,output);
+      return {id,provider:result.provider,voice:result.voice,audio:'/api/production/voice/preview/'+id,expiresIn:600};
+    }catch(e){fs.rmSync(output,{force:true});throw e;}finally{previewBusy=false;}
+  }
+  function voicePreviewArtifact(id){
+    if(!/^[a-f0-9-]{36}$/.test(id))throw err('VOICE_PREVIEW','Invalid voice preview.');
+    const file=path.join(mediaWorkspace,'.voice-previews',id+'.wav');if(!fs.existsSync(file)||Date.now()-fs.statSync(file).mtimeMs>600000)throw err('VOICE_PREVIEW','Preview expired; generate another sample.');
+    return {filePath:file,metadata:{name:'voice-preview.wav',sha256:shaFileSync(file)}};
+  }
+
+  function refreshProductionStatus(){clearPiperStatus();probeCache=null;probeAt=0;windowsSpeechStatus({refresh:true});return status();}
+  async function prepareProduction(input={}){
+    if(input.voiceMode==='captions')return input;
+    let provider=input.ttsProvider||'auto';
+    if(provider==='auto')provider=windowsSpeechStatus().ready?'windows':'local';
+    ttsChoice(provider); // A selected Windows voice never falls back to Piper/API.
+    if(provider==='windows'){
+      const st=windowsSpeechStatus();
+      const {selectSpeechVoice}=await import('./windows-speech.mjs');
+      const voice=selectSpeechVoice(st.voices,'vi',input.voice);
+      if(!voice)throw err('BLOCKED_WINDOWS_TTS','Khong tim thay giong Windows tieng Viet da chon. Them giong tai Windows Settings > Speech, sau do bam Kiem tra lai.');
+      input.voice=voice.id;
+    }
+    input.ttsProvider=provider;
+    if(input.renderEngine==='concat')await checkConcat();
+    if(input.visualMode==='ai'&&input.imageProvider!=='local-flux'&&!input.imagePool)input.imagePool=await prepareImagePool({provider:input.imageProvider||'auto',allowPaid:input.confirmPaidImages===true});
+    return input;
+  }
+  function productionEvents(projectId){const ids=new Set(listTasks(projectId).flatMap(t=>[t.id,t.id.replace(/-/g,'_')]));return (core?.state.events.items||[]).filter(e=>e.type==='media.image.assignment'&&(e.payload?.projectId===projectId||ids.has(e.payload?.jobId))).slice(-100);}
   function stop(){if(timer){clearInterval(timer);timer=null;}if(core){core.close();core=null;}}
-  return {status,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,mediaTemplates:()=>MEDIA_TEMPLATES,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
+  return {status,productionEvents,refreshProductionStatus,prepareProduction,previewVoice,voicePreviewArtifact,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,mediaTemplates:()=>MEDIA_TEMPLATES,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
 }

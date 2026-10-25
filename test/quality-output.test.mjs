@@ -25,12 +25,11 @@ test('procedural illustration v2 renders a 1280x720 PNG, deterministic per seed'
   assert.ok(buf.length > 200_000, 'v2 art should carry texture/grain, not flat fills');
 });
 
-test('illustration falls back to procedural art when the provider gateway fails', async () => {
+test('AI illustration failure blocks instead of silently substituting procedural scenery', async () => {
   const out = path.join(tmp, 'fallback.png');
   const gateway = { invoke: async () => { throw new Error('BLOCKED_PROVIDER'); } };
-  const made = await illustration({ gateway, description: 'a village at dusk', output: out, offline: false, scene: 1 });
-  assert.equal(made.path, out);
-  assert.ok(fs.existsSync(out));
+  await assert.rejects(illustration({ gateway, description: 'a village at dusk', output: out, offline: false, scene: 1 }),/BLOCKED_PROVIDER/);
+  assert.equal(fs.existsSync(out),false);
 });
 
 test('effects pads use full social canvases (1080x1920 / 1920x1080)', () => {

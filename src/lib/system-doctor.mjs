@@ -79,11 +79,12 @@ export function systemDoctor({dataDir=DATA_DIR,backupDir=BACKUP_DIR,root=ROOT,sm
   if(integrationsStatus) {
     const active=integrationsStatus?.core?.status==='active';
     add('core',active?'pass':'fail','AI Core',active?'Hàng đợi tác vụ AI Core hoạt động.':'AI Core chưa sẵn sàng.', 'Kiểm tra nhật ký khởi động, Vault và thư mục dữ liệu.');
-    add('voice',integrationsStatus?.media?.localTts?.ready?'pass':'info','Giọng đọc local từ kịch bản',integrationsStatus?.media?.localTts?.ready?'Piper và model giọng đã được phát hiện; muốn nghiệm thu cần tạo WAV thật.':'Giọng local qua Concat có sẵn trong giao diện; API Concat 0.2 chưa gọi TTS. Có thể nạp giọng WAV/MP3 từ Concat. Piper offline cần cài thêm nếu muốn tự tạo từ kịch bản.', 'Bật Concat hoặc cài Piper + model hợp pháp, không cần HeyGen API.');
+    const speech=integrationsStatus?.media||{},localVoice=speech.localTts?.ready||speech.windowsTts?.ready||speech.kokoroTts?.ready;
+    add('voice',localVoice?'pass':'info','Giọng đọc local',localVoice?'Đã phát hiện giọng local; cần nghe WAV thực tế để nghiệm thu.':'Chưa có giọng local sẵn sàng. Local Worker và giọng đọc là hai điều kiện riêng.','Trong Trưởng phòng, chọn rõ video chữ không lời đọc hoặc cài giọng hợp pháp. API trả phí cần đồng ý riêng.');
   }
   add('windows',process.platform==='win32'?'info':'warning','Kiểm thử Windows',process.platform==='win32'?'Đang chạy trực tiếp trên Windows; cần thử theo phiếu nghiệm thu cho máy này.':`Đang chạy trên ${process.platform}/${process.arch}; đây không phải bằng chứng đã thử trên Windows.`, 'Chạy bộ nghiệm thu trên máy Windows 10/11 64-bit trước khi giao khách.');
   const count=Object.fromEntries(['pass','warning','fail','info'].map(s=>[s,checks.filter(x=>x.status===s).length]));
-  return {version:'0.9.62',timestamp:new Date().toISOString(),checks,count,
+  return {version:JSON.parse(fs.readFileSync(path.join(ROOT,'package.json'),'utf8')).version,timestamp:new Date().toISOString(),checks,count,
     capabilities:{projectManagement:filesValid&&dataWritable,backup:dataWritable&&backupWritable,video:mediaReady&&(smoke?encodingReady:true),aiCore:integrationsStatus?.core?.status==='active'||false,cloudSpeechVerified:false},
     label:'Chỉ kiểm thử cục bộ. Không gọi API AI, không xác nhận các dịch vụ trả phí.'};
 }

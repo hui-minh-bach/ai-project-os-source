@@ -295,7 +295,9 @@ test('image binding contract: local-flux is an explicit provider, bypasses the V
   try {
     saveConnection({ kind: 'chatgpt_account', label: 'Fixture', data: {} });
     const status = imageProviderStatus();
-    assert.equal(status.available, true);
-    assert.deepEqual(status.routes, ['chatgpt-account']);
+    // A saved label without an account identity is not generation access.
+    assert.equal(status.available, false);
+    assert.deepEqual(status.routes, []);
+    assert.equal(status.configured, true);
   } finally { lockVault(); }
 });

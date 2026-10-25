@@ -68,8 +68,12 @@ test('0.9.57: selection — tap a robot selects it, card carries rename + back-t
   assert.match(team, /sel\.a\.id!=='boss'/);
 });
 
-test('0.9.57: seated pose is driven by the resolved post kind, not the run station', () => {
-  assert.match(team, /const ownDesk=A\.postKind==='desk'/);
+test('v0.9.60 motion fix: seat is resolved from the real chair mesh, not the run station', () => {
+  assert.match(team, /const dg=\(post.kind==='desk'/);
+  assert.match(team, /officeMotion\.officeChairPoint\(newDesk\)/);
+  assert.match(team, /A\.seatWanted=Boolean\(newDesk\)/);
+  assert.match(team, /A\.motionPhase='sitting'/);
+  assert.match(team, /A\.motionPhase='standingUp'/);
 });
 
 test('0.9.57: guide documents the curtain removal, post assignment and the override rule', () => {

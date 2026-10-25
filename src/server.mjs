@@ -1,3 +1,19 @@
+import {SOCIAL_CHANNELS,createSocialPublisher,socialIdentity,socialApprovalHash} from './lib/social-channels.mjs';
+import {createGithubImportJobs} from './lib/github-import-jobs.mjs';
+import {buildProjectConversation} from './lib/project-conversation.mjs';
+import {windowsSpeechStatus} from './lib/windows-speech.mjs';
+import {piperSetupStatus,installPiperVietnamese,configureLocalVoice} from './lib/piper-managed.mjs';
+import {scanNews,suggestNewsField,pageNewsCards} from './lib/radar-service.mjs';
+import {productionCapabilities,assertProductionReady} from './lib/production-preflight.mjs';
+import {createWorkCenter} from './lib/work-center.mjs';
+import {createWorkBackend} from './lib/work-center-backend.mjs';
+import {listProducts,projectSourceZip,articleDocument,customerDeliveryBundle} from './lib/product-service.mjs';
+import {sendArtifact} from './lib/range-response.mjs';
+import {currentSpecification} from './lib/council-spec.mjs';
+import {attachProductionRequest} from './lib/projects.mjs';
+import { createAppLaunch } from './lib/launch-bridge.mjs';
+import { prepareNewsEvidence } from './lib/intake-evidence.mjs';
+import { dispatchStatus, dispatchFeedEvents } from './lib/ai-dispatch.mjs';
 import { projectMapSnapshot, exportMapSvg } from './lib/project-map.mjs';
 import { deleteAccountProfile, verifyAccountModel, startAccountLogin, refreshAccount, cancelAccountLogin, logoutAccount, readAccountUsage, accountAvailability, closeAccountSessions } from './lib/account-auth.mjs';
 import { usageSummary } from './lib/usage.mjs';
@@ -12,10 +28,10 @@ import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { redactVaultSecrets, vaultStatus, unlockVault, lockVault, listConnections, saveConnection, deleteConnection, renameConnection, findServiceCredential } from './lib/vault.mjs';
+import { redactVaultSecrets, vaultStatus, unlockVault, lockVault, listConnections, getConnection, saveConnection, deleteConnection, renameConnection, findServiceCredential } from './lib/vault.mjs';
 import { testConnection, listModels } from './lib/providers.mjs';
 import { AI_KINDS, modelAvailability, verifiedBinding, invalidateModels } from './lib/model-bindings.mjs';
-import { updateProjectBrief, clearFounderChat, analyzeIdea, sendBriefToCouncil, saveProjectDomain, projectModelRoles, updateProjectModelRoles, listProjects, createProject, getProject, updateProjectSettings, founderChat, runCouncil, councilHistory, confirmCouncilSpecification, recoverInterruptedCouncils, analyzeStack, buildPlan, createTask, updateTask, archiveTask, runTask, runReadyBatch, readyTasks, recoverInterruptedTasks, recoverInterruptedFounderChats } from './lib/projects.mjs';
+import { updateProjectBrief, clearFounderChat, analyzeIdea, sendBriefToCouncil, saveProjectDomain, projectModelRoles, updateProjectModelRoles, listProjects, createProject, getProject, updateProjectSettings, founderChat, runCouncil, councilHistory, confirmCouncilSpecification, recoverInterruptedCouncils, analyzeStack, buildPlan, createTask, updateTask, archiveTask, runTask, runReadyBatch, acceptProjectWork, readyTasks, recoverInterruptedTasks, recoverInterruptedFounderChats } from './lib/projects.mjs';
 import { snapshot, workspaceSummary } from './lib/workspace.mjs';
 import { listSkills, saveCustomSkill, setSkillEnabled, deleteCustomSkill, sampleSkillMapping } from './lib/skills.mjs';
 import { importSkillUpload, importRepoZip, importRepoGit, listImportedRepos, deleteImportedRepo } from './lib/skill-import.mjs';
@@ -29,7 +45,7 @@ import { listSupabaseProjects, createSupabaseProject, attachSupabaseProject, gen
 import { attachVercelDomain } from './lib/domain.mjs';
 import { createIntegrationHost } from './lib/integration-host.mjs';
 import { concatInstallStatus, provisionConcat } from './lib/concat-managed.mjs';
-import { DATA_DIR, BACKUP_DIR } from './lib/store.mjs';
+import { DATA_DIR, BACKUP_DIR, readJson, writeJson } from './lib/store.mjs';
 import { createEncryptedBackup, listBackups, backupFileByName } from './lib/customer-backup.mjs';
 import { systemDoctor } from './lib/system-doctor.mjs';
 import { createLocalAccess } from './lib/local-access.mjs';
@@ -40,18 +56,25 @@ import { createOrchestrator, createSimulatedAi, createGatewayAi, buildRunFeed } 
 import { operatorStatus, createOperatorToken, revokeOperatorToken, verifyOperatorToken, operatorCan, addOperatorNote, listOperatorNotes, operatorNoteEvents } from './lib/operator.mjs';
 import { poolFeedEvents, poolInfoFor } from './lib/account-pool.mjs';
 import { deriveFleet } from './lib/office-fleet.mjs';
+import { deriveSpaceFleet } from './lib/space-fleet.mjs';
+import { spaceActivitySnapshot } from './lib/space-activity.mjs';
 import { writeTextWithModel, translateSegmentsWithModel } from './lib/media-ai.mjs';
 import { oauthAuthorizeUrl, oauthExchangeCode, fetchPlatformIdentity, PLATFORM_KINDS } from './lib/publish-platforms.mjs';
 import { createUpdater } from './lib/updater.mjs';
 import { listOfficeModels, saveOfficeModel, deleteOfficeModel, officeModelPath, OFFICE_MODEL_MAX_BYTES } from './lib/office-models.mjs';
 import { localWorkers } from './lib/local-workers.mjs';
+import {freeStackStatus} from './lib/free-stack.mjs';
+import {comfyImageBridge} from './lib/comfyui-local.mjs';
+import {integrationCatalog,bundledSkillText} from './lib/integration-catalog.mjs';
+import {createMcpHub} from './lib/mcp-hub.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.62';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.75';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
+const mcpHub=createMcpHub({getProject});
 let installingConcat=false;
 const integrations=createIntegrationHost({root:ROOT});
 const ingestStore=createIngestStore({file:path.join(DATA_DIR,'ingest.json')});
@@ -65,7 +88,12 @@ const storyMusic=async({run,cfg})=>{
   const made=await localWorkers.resolveStoryMusic({musicSource:cfg.musicSource||'synthesized',title:run.title,outputBase:path.join(dir,`${run.id}-music`),seconds:75});
   return {file:made.file?path.relative(integrations.mediaWorkspace,made.file):null,detail:made.detail};
 };
-const orchestrator=createOrchestrator({file:path.join(DATA_DIR,'orchestrator.json'),ingest:ingestStore,host:integrations,createProject,storyMusic,aiAdapters:{simulated:createSimulatedAi(),gateway:createGatewayAi({writeTextWithModel,translateSegmentsWithModel})}});
+const orchestrator=createOrchestrator({file:path.join(DATA_DIR,'orchestrator.json'),ingest:ingestStore,host:integrations,createProject,storyMusic,preflight:async(pipeline,input)=>{if(!['news-article','client-article'].includes(pipeline)&&input.voiceMode!=='captions'&&!input.ttsProvider){integrations.refreshProductionStatus();input.ttsProvider=productionCapabilities(integrations).defaultVoice||'auto';}if(!['news-article','client-article'].includes(pipeline)&&input.voiceMode!=='captions')await integrations.prepareProduction(input);assertProductionReady(integrations,pipeline,input);},aiAdapters:{simulated:createSimulatedAi(),gateway:createGatewayAi({writeTextWithModel,translateSegmentsWithModel})}});
+const deliveryLaunch=createAppLaunch();
+let workCenter;
+try{workCenter=createWorkCenter({file:path.join(DATA_DIR,'work-center.json'),backend:createWorkBackend({host:integrations,orchestrator,delivery:deliveryLaunch}),redact:redactVaultSecrets});}
+catch(e){const unavailable=()=>{throw new Error('Work center journal unavailable; restore backup. Other tabs are preserved.');};workCenter={start:unavailable,list:unavailable,latest:unavailable,isActive:()=>false,close:()=>{}};}
+
 const oauthPending=new Map();
 const updater=createUpdater({dataDir:DATA_DIR,currentVersion:VERSION});
 function send(res,status,data,type='application/json; charset=utf-8'){
@@ -112,6 +140,8 @@ function sameLocalOrigin(req){
 function mutating(method){return ['POST','PUT','PATCH','DELETE'].includes(method);}
 try{const messages=recoverInterruptedFounderChats();if(messages)console.warn(`Recovered ${messages} interrupted Founder message(s) from previous session.`);const councils=recoverInterruptedCouncils();if(councils)console.warn(`Recovered ${councils} interrupted Council run(s) from previous session.`);const n=recoverInterruptedTasks();if(n)console.warn(`Recovered ${n} interrupted task(s) from previous session.`);}catch(e){console.error('Project state recovery failed:',e.message);throw e;}
 
+const githubImportJobs=createGithubImportJobs();
+const socialPublisher=createSocialPublisher({load:()=>readJson('social-drafts.json',[]),save:r=>writeJson('social-drafts.json',r),getConnection,appendRecord:r=>integrations.publishRecords.append(r),simulated:process.env.AIOS_DELIVERY_FIXTURE==='1'});
 const server=http.createServer(async(req,res)=>{try{
   const u=new URL(req.url,'http://localhost');
   // --- External operator channel (token-gated, narrow scope) ---
@@ -173,11 +203,101 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='POST'&&u.pathname==='/api/update/check')return send(res,200,await updater.check());
   if(req.method==='POST'&&u.pathname==='/api/update/download')return send(res,200,await updater.download());
   // Trusted, same-origin local integration boundary; no provider tokens sent to browser.
+  if(req.method==='GET'&&u.pathname==='/api/integrations/catalog')return send(res,200,integrationCatalog());
+  if(req.method==='GET'&&u.pathname==='/api/integrations/skill-reference')return send(res,200,bundledSkillText(u.searchParams.get('id')));
+  if(req.method==='GET'&&u.pathname==='/api/mcp')return send(res,200,mcpHub.list());
+  if(u.pathname.startsWith('/api/mcp/')&&req.method==='POST'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Mở Vault trước khi dùng MCP.'});
+    const b=await readBody(req);
+    if(u.pathname==='/api/mcp/save')return send(res,200,mcpHub.save(b));
+    if(u.pathname==='/api/mcp/connect')return send(res,200,await mcpHub.connect(b.id));
+    if(u.pathname==='/api/mcp/call')return send(res,200,await mcpHub.call(b));
+  }
   if(req.method==='GET'&&u.pathname==='/api/integrations/status')return send(res,200,integrations.status());
+  if(req.method==='GET'&&u.pathname==='/api/free-stack/status')return send(res,200,await freeStackStatus({capabilities:()=>{integrations.refreshProductionStatus();return productionCapabilities(integrations);},concatProbe:()=>integrations.checkConcat({revive:false})}));
+  if(req.method==='POST'&&u.pathname==='/api/free-stack/comfyui/workflow'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Mở Vault trước khi thay đổi cấu hình công cụ ảnh local.'});
+    const body=await readBody(req);
+    if(typeof body.workflow!=='string')return send(res,400,{error:'Chọn file JSON ở định dạng API Format từ ComfyUI.'});
+    let installed;
+    try{installed=comfyImageBridge.installWorkflow(body.workflow);}
+    catch(e){if(/^COMFY_(?:CONFIGURATION|CONFIGURATION_OVERRIDE|SECURITY)$/.test(String(e.code)))return send(res,400,{error:e.message,code:e.code});throw e;}
+    return send(res,200,{installed:installed.installed,changed:installed.changed,configured:installed.configured,nodes:installed.nodes,workflowHash:installed.workflowHash,reason:installed.reason});
+  }
+  // Unified reception and real artifact delivery. No publication is triggered here.
+  if(req.method==='POST'&&u.pathname==='/api/production/prepare'){if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});const raw=await readBody(req);const input={ttsProvider:String(raw.ttsProvider||'auto'),voice:raw.voice,renderEngine:raw.renderEngine||'concat',visualMode:raw.visualMode||'ai',imageProvider:raw.imageProvider||'auto',confirmPaidImages:raw.confirmPaidImages===true};await integrations.prepareProduction(input);return send(res,200,{ready:true,message:'Giong / nhom anh / editor da kiem tra. Chua tao anh hay goi TTS.',imageAccounts:(input.imagePool||[]).map(({name,model,provider,paid})=>({name,model,provider,paid})),voice:input.voice||null,renderEngine:input.renderEngine});}
+  if(req.method==='POST'&&u.pathname==='/api/production/refresh'){if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});const input=await readBody(req);integrations.refreshProductionStatus();const caps=productionCapabilities(integrations);const voicePreview=input.testVoice===true&&caps.defaultVoice?await integrations.previewVoice({ttsProvider:caps.defaultVoice}):null;return send(res,200,{...caps,refreshed:true,voiceVerified:!!voicePreview,voicePreview,noDownloads:true,noPaidApiCalled:true});}
+  if(req.method==='GET'&&u.pathname==='/api/production/windows-voices'){if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});return send(res,200,windowsSpeechStatus({refresh:true}));}
+  if(req.method==='GET'&&u.pathname==='/api/production/capabilities')return send(res,200,productionCapabilities(integrations));
+  if(u.pathname.startsWith('/api/production/voice/')){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Mo Vault truoc khi thiet lap/nghe giong.'});
+    if(req.method==='GET'&&u.pathname==='/api/production/voice/setup')return send(res,200,piperSetupStatus());
+    if(req.method==='POST'&&u.pathname==='/api/production/voice/install')return send(res,200,await installPiperVietnamese(await readBody(req)));
+    if(req.method==='POST'&&u.pathname==='/api/production/voice/configure')return send(res,200,await configureLocalVoice(await readBody(req)));
+    if(req.method==='POST'&&u.pathname==='/api/production/voice/preview')return send(res,200,await integrations.previewVoice(await readBody(req)));
+    const preview=/^\/api\/production\/voice\/preview\/([a-f0-9-]{36})$/.exec(u.pathname);
+    if(['GET','HEAD'].includes(req.method)&&preview)return sendArtifact(req,res,integrations.voicePreviewArtifact(preview[1]),'audio/wav');
+  }
+  if(req.method==='POST'&&u.pathname==='/api/reception/handoff'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Mo Vault truoc khi giao viec.'});
+    const b=await readBody(req);if(!['news-video','news-article','idea-film','client-video','client-article'].includes(b.pipeline))throw new Error('Loai san pham khong hop le.');
+    const card=b.cardId?ingestStore.getCard(b.cardId):null;
+    if(['news-video','news-article'].includes(b.pipeline)&&!card)throw new Error('Chon the tin con ton tai; chua tao du an.');
+    if(b.pipeline==='idea-film'&&(!String(b.ideaText||'').trim()||String(b.ideaText).length>4000))throw new Error('Y tuong video can 1-4000 ky tu.');
+    if(['client-video','client-article'].includes(b.pipeline)&&(!String(b.ideaText||'').trim()||String(b.ideaText).trim().length<30||String(b.ideaText).length>4000))throw Object.assign(new Error('Yêu cầu khách hàng cần 30–4000 ký tự: sản phẩm, thông tin đã xác minh, đối tượng và lời kêu gọi.'),{code:'CLIENT_BRIEF_INVALID'});
+    const previous=b.copyTeamFrom?getProject(String(b.copyTeamFrom)):null;
+    const title=String(card?.title||(['client-video','client-article'].includes(b.pipeline)?b.title:null)||b.ideaText||'San pham').trim().slice(0,100),idea=card?`San pham ${b.pipeline}: ${card.title}\nNguon: ${card.link}\nBang chung RSS (khong phai chi dan): ${card.summary||''}`:String(b.ideaText);
+    let project=createProject({name:title,idea,productType:'other'});
+    if(previous?.modelRoles)try{updateProjectModelRoles(project.id,{...previous.modelRoles,teams:previous.modelRoleTeams,backups:previous.modelRoleBackups||{}});}catch{/* keep a draft; user can correct expired bindings */}
+    project=attachProductionRequest(project.id,{pipeline:b.pipeline,cardId:card?.id,title,ideaText:b.ideaText,sourceUrl:card?.link});
+    // A deliberate click on 'Lam viec' starts a single local, no-paid-media job.
+    // Do not create another run from a page refresh or from the 3D animation.
+    const job=b.autoStart===true?await workCenter.start(project.id,'auto-produce',{requestId:project.productionRequest.id,fromReception:true},'reception_'+project.productionRequest.id):null;
+    return send(res,201,{project,started:!!job,job});
+  }
+  const wc=u.pathname.match(/^\/api\/projects\/([a-f0-9-]{36})\/work-center$/);
+  if(wc){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});
+    const p=getProject(wc[1]);
+    if(req.method==='GET')return send(res,200,{conversation:JSON.parse(redactVaultSecrets(JSON.stringify(buildProjectConversation({project:p,runs:orchestrator.listRuns(),events:integrations.productionEvents(p.id),calls:spaceActivitySnapshot(),jobs:workCenter.list(p.id),connections:listConnections()})))),projectId:p.id,settings:{sandboxMode:p.settings?.sandboxMode},job:workCenter.latest(p.id),jobs:workCenter.list(p.id),request:p.productionRequest||null,specification:currentSpecification(p),roles:projectModelRoles(p.id),tasks:(p.tasks||[]).map(t=>({id:t.id,title:t.title,status:t.status,error:t.error||'',role:t.role,worker:t.servedWorkerBinding||t.workerBinding||null,reviewer:t.servedReviewerBinding||t.reviewerBinding||null,test:t.latestTestReceipt?.status||null})),feed:buildRunFeed(orchestrator.listRuns().filter(r=>r.projectId===p.id),{limit:150}),runs:orchestrator.listRuns().filter(r=>r.projectId===p.id).slice(0,15).map(r=>({id:r.id,title:r.title,state:r.state,error:r.error,steps:r.steps.slice(-35),voiceMode:r.voiceMode,review:r.review?{approved:r.review.approved,feedback:r.review.feedback,provider:r.review.provider,model:r.review.model}:null}))});
+    if(req.method==='POST'){const b=await readBody(req);return send(res,202,{job:await workCenter.start(p.id,b.action,b.input||{},b.key||null)});}
+  }
+  const pp=u.pathname.match(/^\/api\/projects\/([a-f0-9-]{36})\/products(?:\/(source\.zip))?$/);
+  if(pp&&req.method==='GET'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});
+    if(pp[2])return sendArtifact(req,res,projectSourceZip(pp[1]),'application/zip');
+    return send(res,200,listProducts(pp[1],{host:integrations,orchestrator,delivery:deliveryLaunch}));
+  }
+  const productArticle=u.pathname.match(/^\/api\/work-products\/([a-f0-9-]{36})\/article\.md$/);
+  if(productArticle&&req.method==='GET'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});
+    const r=orchestrator.getRun(productArticle[1]);if(!r)return send(res,404,{error:'Product not found'});getProject(r.projectId);
+    return sendArtifact(req,res,{metadata:{name:'article.md'},bytes:Buffer.from(articleDocument(r),'utf8')},'text/plain; charset=utf-8');
+  }
+  const productBundle=u.pathname.match(/^\/api\/work-products\/([a-f0-9-]{36})\/delivery\.zip$/);
+  if(productBundle&&req.method==='GET'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});
+    const run=orchestrator.getRun(productBundle[1]);if(!run)return send(res,404,{error:'Product not found'});
+    getProject(run.projectId);
+    return sendArtifact(req,res,customerDeliveryBundle(run,{host:integrations}),'application/zip');
+  }
   // --- Closed loop: ingest, orchestrator, platform publishing ---
   if(req.method==='GET'&&u.pathname==='/api/ingest/sources')return send(res,200,{sources:ingestStore.listSources(),counts:ingestStore.counts()});
   if(req.method==='POST'&&u.pathname==='/api/ingest/sources')return send(res,200,ingestStore.addSource(await readBody(req)));
+  // R3 account-to-avatar projection. Read-only: no task starts or provider probes.
+  if(u.pathname==='/api/office/space-fleet'&&req.method==='GET'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});
+    const connections=listConnections().filter(c=>AI_KINDS.includes(c.kind)).map(c=>{
+      let connected=false,coolingUntil=null;
+      try{connected=(modelAvailability(c.id)?.models||[]).length>0;coolingUntil=poolInfoFor(c.id)?.cooldownUntil||null;}catch{}
+      return {id:c.id,kind:c.kind,name:redactVaultSecrets(c.name||''),connected,coolingUntil};
+    });
+    const data=deriveSpaceFleet({connections,projects:listProjects(),runs:orchestrator.listRuns(),activity:spaceActivitySnapshot(),workJobs:listProjects().flatMap(p=>workCenter.list(p.id).filter(j=>['queued','running'].includes(j.state)))});
+    // Defense in depth: also redact user-entered job titles against unlocked Vault secrets.
+    return send(res,200,JSON.parse(redactVaultSecrets(JSON.stringify(data))));
+  }
   if(u.pathname==='/api/office/fleet'&&req.method==='GET'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED',message:'Unlock the Vault to read the real AI account fleet.'});
     // "Connected" (v0.9.55) = logged in + has a model catalog — probe
     // verification is advisory now, so a bot is no longer dark just
     // because its models were never probe-verified. The pool cooldown is
@@ -196,8 +316,16 @@ const server=http.createServer(async(req,res)=>{try{
   const ingestSourceMatch=u.pathname.match(/^\/api\/ingest\/sources\/([^/]+)(?:\/(enabled))?$/);
   if(ingestSourceMatch&&req.method==='POST'&&ingestSourceMatch[2]==='enabled'){const b=await readBody(req);return send(res,200,ingestStore.setSourceEnabled(ingestSourceMatch[1],Boolean(b.enabled)));}
   if(ingestSourceMatch&&req.method==='DELETE'&&!ingestSourceMatch[2]){ingestStore.removeSource(ingestSourceMatch[1]);return send(res,200,{ok:true});}
-  if(req.method==='POST'&&u.pathname==='/api/ingest/scan'){const b=await readBody(req);const targets=b.sourceId?[b.sourceId]:ingestStore.listSources().filter(s=>s.enabled).map(s=>s.id);const results=[];for(const id of targets){try{results.push(await ingestStore.scanSource(id));}catch(e){results.push({sourceId:id,error:e.code||'INGEST_SCAN',message:e.message});}}return send(res,200,{results,counts:ingestStore.counts()});}
-  if(req.method==='GET'&&u.pathname==='/api/ingest/cards')return send(res,200,{cards:ingestStore.listCards({fieldId:u.searchParams.get('fieldId')||null}).slice(0,100)});
+  if(req.method==='POST'&&u.pathname==='/api/ingest/scan')return send(res,200,await scanNews(ingestStore,await readBody(req)));
+  if(req.method==='GET'&&u.pathname==='/api/ingest/cards')return send(res,200,pageNewsCards(ingestStore,{fieldId:u.searchParams.get('fieldId')||null,maxAgeHours:u.searchParams.get('maxAgeHours')||0,offset:u.searchParams.get('offset')||0,limit:u.searchParams.get('limit')||100}));
+  if(req.method==='POST'&&u.pathname==='/api/ingest/fields/suggest'){
+    const b=await readBody(req);if(b.projectId){if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});getProject(b.projectId);}
+    return send(res,200,await suggestNewsField({label:b.label,projectId:b.projectId||null}));
+  }
+  if(req.method==='POST'&&u.pathname==='/api/ingest/fields')return send(res,201,{field:ingestStore.saveField(await readBody(req))});
+  const customField=u.pathname.match(/^\/api\/ingest\/fields\/(custom-[a-z0-9-]+)$/);
+  if(customField&&req.method==='PUT')return send(res,200,{field:ingestStore.saveField({...await readBody(req),id:customField[1]})});
+  if(customField&&req.method==='DELETE'){ingestStore.removeField(customField[1]);return send(res,200,{ok:true});}
   const ingestCardFullText=u.pathname.match(/^\/api\/ingest\/cards\/([^/]+)\/fulltext$/);
   if(req.method==='POST'&&ingestCardFullText){
     const card=ingestStore.getCard(ingestCardFullText[1]);
@@ -210,8 +338,8 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='GET'&&u.pathname==='/api/ingest/fields'){
     const cfgFields=orchestrator.getConfig().pipelines['news-video']?.fieldIds||[];
     const allCards=ingestStore.listCards();const sources=ingestStore.listSources();
-    const fields=listNewsFields().map(f=>{
-      const fc=allCards.filter(c=>c.fieldId===f.id);
+    const fields=ingestStore.listFields().map(f=>{
+      const fc=allCards.filter(c=>c.fieldId===f.id||(c.fieldIds||[]).includes(f.id));
       return {...f,sources:sources.filter(x=>x.fieldId===f.id).length,cards:fc.length,unusedCards:fc.filter(c=>!c.usedByProjectId).length,topScore:fc.reduce((m,c)=>Math.max(m,c.score||0),0),enabled:!cfgFields.length||cfgFields.includes(f.id)};
     });
     const unclassified=allCards.filter(c=>!c.fieldId).length;
@@ -219,7 +347,7 @@ const server=http.createServer(async(req,res)=>{try{
   }
   const ingestFieldMatch=u.pathname.match(/^\/api\/ingest\/fields\/([a-z0-9-]+)\/(source|enabled)$/);
   if(ingestFieldMatch&&req.method==='POST'){
-    const field=newsFieldById(ingestFieldMatch[1]);
+    const field=ingestStore.fieldById(ingestFieldMatch[1]);
     if(!field)return send(res,404,{error:{code:'NEWS_FIELD_NOT_FOUND',message:'Không tìm thấy lĩnh vực tin.'}});
     if(ingestFieldMatch[2]==='source'){
       const existing=ingestStore.listSources().find(x=>x.fieldId===field.id);
@@ -228,7 +356,7 @@ const server=http.createServer(async(req,res)=>{try{
       return send(res,200,{source,created:true});
     }
     const b=await readBody(req);const cfg=orchestrator.getConfig();
-    const allIds=listNewsFields().map(f=>f.id);
+    const allIds=ingestStore.listFields().map(f=>f.id);
     let current=Array.isArray(cfg.pipelines['news-video'].fieldIds)&&cfg.pipelines['news-video'].fieldIds.length?[...cfg.pipelines['news-video'].fieldIds]:[...allIds];
     current=Boolean(b.enabled)?[...new Set([...current,field.id])]:current.filter(id=>id!==field.id);
     cfg.pipelines['news-video'].fieldIds=current.length===allIds.length?[]:current;
@@ -240,7 +368,7 @@ const server=http.createServer(async(req,res)=>{try{
     const records=integrations.publishRecords.list({});
     const byProject=new Map();
     for(const r of records){if(!r.projectId)continue;const arr=byProject.get(r.projectId)||[];arr.push(r);byProject.set(r.projectId,arr);}
-    const fields=listNewsFields().map(f=>{
+    const fields=ingestStore.listFields().map(f=>{
       const fr=runs.filter(r=>r.fieldId===f.id);
       const recs=fr.flatMap(r=>byProject.get(r.projectId)||[]);
       const sum=k=>recs.reduce((a,r)=>a+(Number(r.metrics?.[k])||0),0);
@@ -251,18 +379,40 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='GET'&&u.pathname==='/api/orchestrator')return send(res,200,{config:orchestrator.getConfig(),runs:orchestrator.listRuns().slice(0,50)});
   if(req.method==='POST'&&u.pathname==='/api/orchestrator/config'){const b=await readBody(req);return send(res,200,{config:orchestrator.setConfig(b.config||b)});}
   if(req.method==='POST'&&u.pathname==='/api/orchestrator/stop'){const b=await readBody(req);const cfg=orchestrator.getConfig();cfg.stopAll=Boolean(b.stopAll);return send(res,200,{config:orchestrator.setConfig(cfg)});}
-  if(req.method==='POST'&&u.pathname==='/api/orchestrator/run'){const b=await readBody(req);const run=await orchestrator.startRun(String(b.pipeline||''),{cardId:b.cardId||null,sourceVideo:b.sourceVideo||null,title:b.title||undefined,ideaText:b.ideaText||null});return send(res,200,{run});}
+  if(req.method==='POST'&&u.pathname==='/api/orchestrator/run'){const b=await readBody(req);if(b.projectId)getProject(b.projectId);const run=await orchestrator.startRun(String(b.pipeline||''),{cardId:b.cardId||null,sourceVideo:b.sourceVideo||null,title:b.title||undefined,ideaText:b.ideaText||null,projectId:b.projectId||null,voiceMode:b.voiceMode,ttsProvider:b.ttsProvider,confirmPaidVoice:b.confirmPaidVoice===true,visualMode:b.visualMode,imageProvider:b.imageProvider,imageSources:b.imageSources,visualStyle:b.visualStyle,confirmPaidImages:b.confirmPaidImages===true,renderEngine:b.renderEngine,effects:b.effects,voice:b.voice});return send(res,200,{run});}
+  const orchRetryMatch=u.pathname.match(/^\/api\/orchestrator\/runs\/([^/]+)\/retry$/);
+  if(req.method==='POST'&&orchRetryMatch)return send(res,200,{run:await orchestrator.retryRun(orchRetryMatch[1])});
   const orchApproveMatch=u.pathname.match(/^\/api\/orchestrator\/runs\/([^/]+)\/approve$/);
   if(req.method==='POST'&&orchApproveMatch)return send(res,200,{run:await orchestrator.approveRun(orchApproveMatch[1])});
   if(req.method==='GET'&&u.pathname==='/api/orchestrator/feed'){
-    const events=[...buildRunFeed(orchestrator.listRuns()),...operatorNoteEvents(50),...poolFeedEvents(50)];
+    const events=[...buildRunFeed(orchestrator.listRuns()),...operatorNoteEvents(50),...poolFeedEvents(50),...dispatchFeedEvents(90)];
     events.sort((a,b)=>String(a.at||'').localeCompare(String(b.at||'')));
-    return send(res,200,{events:events.slice(-150),generatedAt:new Date().toISOString()});
+    return send(res,200,{events:events.slice(-180),activeCount:dispatchStatus().active.length+orchestrator.listRuns().filter(r=>r.state==='running').length,generatedAt:new Date().toISOString()});
   }
   // --- Operator channel management (the boss, via the browser session) ---
   if(req.method==='GET'&&u.pathname==='/api/operator')return send(res,200,{status:operatorStatus(),notes:listOperatorNotes(20)});
   if(req.method==='POST'&&u.pathname==='/api/operator/token'){const b=await readBody(req);return send(res,200,createOperatorToken(b.scopes||{}));}
   if(req.method==='DELETE'&&u.pathname==='/api/operator/token')return send(res,200,{status:revokeOperatorToken()});
+  if(u.pathname.startsWith('/api/social/')){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Mở Vault để quản lý kênh.'});
+    if(req.method==='GET'&&u.pathname==='/api/social/channels')return send(res,200,{channels:SOCIAL_CHANNELS,connections:listConnections().filter(c=>['threads','x','zalo'].includes(c.kind))});
+    if(req.method==='POST'&&u.pathname==='/api/social/connect'){
+      const b=await readBody(req);if(!['threads','x','zalo'].includes(b.platform))throw new Error('Kênh này hiện hỗ trợ xuất nội dung.');
+      const candidate={kind:b.platform,secret:String(b.accessToken||'')};const identity=await socialIdentity(b.platform,candidate);
+      return send(res,200,{connection:saveConnection({kind:b.platform,name:identity.accountLabel,secret:JSON.stringify({accessToken:candidate.secret}),meta:{...identity,verifiedAt:new Date().toISOString()}})});
+    }
+    if(u.pathname==='/api/social/drafts'){
+      const projectId=req.method==='GET'?u.searchParams.get('projectId'):(await readBody(req));
+      if(req.method==='GET'){getProject(projectId);return send(res,200,{drafts:socialPublisher.list(projectId).map(({operationToken,credentialVersion,...r})=>r)});}
+      if(req.method==='POST'){getProject(projectId.projectId);return send(res,201,{draft:socialPublisher.create(projectId.projectId,projectId)});}
+    }
+    const sd=u.pathname.match(/^\/api\/social\/drafts\/([a-f0-9-]{36})\/(preview|publish)$/);
+    if(sd&&req.method==='POST'){
+      const b=await readBody(req);getProject(b.projectId);const draft=socialPublisher.list(b.projectId).find(r=>r.id===sd[1]);if(!draft)throw new Error('Không tìm thấy bản nháp của dự án.');
+      if(sd[2]==='preview'){const c=getConnection(b.connectionId);if(c.kind!==draft.platform||!c.meta?.verifiedAt)throw new Error('Chọn tài khoản đã xác minh đúng nền tảng.');return send(res,200,{preview:{id:draft.id,title:draft.title,text:draft.text,platform:draft.platform,coverUrl:draft.coverUrl,account:c.meta.accountLabel,accountId:c.meta.userId,connectionId:c.id,approvalHash:socialApprovalHash(draft,c)}});}
+      const {operationToken,credentialVersion,...result}=await socialPublisher.publish(draft.id,b);return send(res,200,{draft:result});
+    }
+  }
   if(req.method==='GET'&&u.pathname==='/api/publish/records')return send(res,200,{records:integrations.publishRecords.list({projectId:u.searchParams.get('projectId')||undefined})});
   if(req.method==='POST'&&u.pathname==='/api/publish/metrics/refresh'){const b=await readBody(req).catch(()=>({}));return send(res,200,{results:await integrations.refreshPublishMetrics({projectId:b.projectId||undefined})});}
   const oauthStartMatch=u.pathname.match(/^\/api\/connections\/oauth\/([a-z]+)\/start$/);
@@ -362,26 +512,12 @@ const server=http.createServer(async(req,res)=>{try{
     return send(res,200,await integrations.importUpload(req,filename));
   }
   const mediaArtifact=u.pathname.match(/^\/api\/integrations\/media\/artifacts\/([a-f0-9-]{36})$/);
-  if(mediaArtifact&&req.method==='GET'){
-    const {metadata,bytes,filePath}=integrations.artifact(mediaArtifact[1]);
-    const ext=path.extname(metadata.name).toLowerCase();
-    const types={'.mp4':'video/mp4','.webm':'video/webm','.wav':'audio/wav','.mp3':'audio/mpeg','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.srt':'text/plain; charset=utf-8','.vtt':'text/vtt','.json':'application/octet-stream'};
-    if(filePath){
-      // Large videos stay in the private media workspace and are SHA verified by
-      // integrations.artifact BEFORE streaming. Range enables browser video seek.
-      const size=metadata.size,raw=String(req.headers.range||'');let start=0,end=size-1,partial=false;
-      if(raw){
-        const match=/^bytes=(\d*)-(\d*)$/.exec(raw);if(!match)return send(res,416,{error:'Invalid Range'});
-        if(match[1]){start=Number(match[1]);end=match[2]?Number(match[2]):end;}
-        else if(match[2]){const suffix=Number(match[2]);start=Math.max(0,size-suffix);}
-        if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start<0||end<start||start>=size)return send(res,416,{error:'Range out of bounds'});
-        end=Math.min(end,size-1);partial=true;
-      }
-      const cleanName=String(metadata.name).replace(/[^a-zA-Z0-9._-]/g,'_');
-      res.writeHead(partial?206:200,{'content-type':types[ext]||'application/octet-stream','content-length':end-start+1,'accept-ranges':'bytes',...(partial?{'content-range':`bytes ${start}-${end}/${size}`}:{}),'cache-control':'no-store','x-content-type-options':'nosniff','x-artifact-sha256':metadata.sha256,'content-disposition':`inline; filename="${cleanName}"`});
-      fs.createReadStream(filePath,{start,end}).on('error',()=>res.destroy()).pipe(res);return;
-    }
-    return send(res,200,bytes,types[ext]||'application/octet-stream');
+  if(mediaArtifact&&['GET','HEAD'].includes(req.method)){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Đã khóa Vault. Mở lại để xem tệp sản phẩm.'});
+    const art=integrations.artifact(mediaArtifact[1]);
+    const ext=path.extname(art.metadata.name).toLowerCase();
+    const types={'.mp4':'video/mp4','.webm':'video/webm','.wav':'audio/wav','.mp3':'audio/mpeg','.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.srt':'text/plain; charset=utf-8','.vtt':'text/vtt'};
+    return sendArtifact(req,res,art,types[ext]||'application/octet-stream');
   }
   if(req.method==='GET'&&u.pathname==='/api/system/tts/config'){
     const c=findServiceCredential('heygen_tts');
@@ -515,21 +651,48 @@ const server=http.createServer(async(req,res)=>{try{
 
   if(req.method==='GET'&&u.pathname==='/api/projects')return send(res,200,listProjects());
   if(req.method==='POST'&&u.pathname==='/api/projects')return send(res,200,createProject(await readBody(req)));
+  if(u.pathname==='/api/launch/options'&&req.method==='POST'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Open Vault first.',code:'LAUNCH_VAULT_LOCKED'});
+    return send(res,200,await deliveryLaunch.options(await readBody(req)));
+  }
   const rp=routeProject(u.pathname);
+  if(rp&&rp.action.startsWith('launch')){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Open Vault first.',code:'LAUNCH_VAULT_LOCKED'});
+    const launchProject=getProject(rp.id);
+    if(req.method==='POST'&&launchProject.productionRequest)return send(res,409,{error:'Use the media reception for this project, not the web deployment workflow.',code:'WORK_PRODUCT_TYPE'});
+    if(req.method==='POST'&&workCenter.isActive(rp.id)&&!rp.action.endsWith('/stop'))return send(res,409,{error:'Reception work is still running for this project.',code:'WORK_ACTIVE'});
+    if(rp.action==='launch'&&req.method==='GET')return send(res,200,deliveryLaunch.getForProject(rp.id));
+    if(rp.action==='launch'&&req.method==='POST')return send(res,202,deliveryLaunch.create(rp.id,await readBody(req)));
+    const m=rp.action.match(/^launch\/(run-[a-f0-9-]{36})\/(approve|resume|stop|artifact\/(source\.zip|qr\.svg))$/);
+    if(m){const run=deliveryLaunch.get(m[1]);if(run.projectId!==rp.id)return send(res,404,{error:'Delivery run not found for this project.'});
+      if(req.method==='POST'&&['approve','resume','stop'].includes(m[2]))return send(res,202,deliveryLaunch[m[2]](m[1],await readBody(req)));
+      if(req.method==='GET'&&m[3]){const a=deliveryLaunch.artifact(m[1],m[3]);res.setHeader('Content-Disposition',(m[3]==='qr.svg'?'inline':'attachment')+'; filename="'+m[3]+'"');return send(res,200,a.bytes,a.mime);}
+    }
+  }
   if(rp&&req.method==='GET'&&rp.action==='map')return send(res,200,projectMapSnapshot(rp.id));
   if(rp&&req.method==='GET'&&rp.action==='map/export')return send(res,200,exportMapSvg(projectMapSnapshot(rp.id)),'image/svg+xml; charset=utf-8');
   if(rp&&req.method==='GET'&&rp.action==='')return send(res,200,getProject(rp.id));
-  if(rp&&req.method==='POST'&&rp.action==='brief')return send(res,200,updateProjectBrief(rp.id,await readBody(req)));
+  if(rp&&req.method==='POST'&&rp.action==='brief'){
+   const project=getProject(rp.id);if(project.approvedSpecificationId)return send(res,409,{error:'Yeu cau da duyet. Trao doi them khong sua ngam pham vi; tao du an moi cho yeu cau thay doi.',code:'BRIEF_APPROVED'});
+   if(workCenter.isActive(rp.id)||deliveryLaunch.isActive(rp.id))return send(res,409,{error:'Project work is running.',code:'WORK_ACTIVE'});
+   return send(res,200,updateProjectBrief(rp.id,await readBody(req)));
+  }
+  if(rp&&req.method==='GET'&&rp.action==='dispatch')return send(res,200,dispatchStatus(rp.id));
+  if(rp&&req.method==='POST'&&rp.action==='accept-work')return send(res,200,await acceptProjectWork(rp.id));
   if(rp&&req.method==='POST'&&rp.action==='chat/clear')return send(res,200,clearFounderChat(rp.id));
   if(rp&&req.method==='POST'&&rp.action==='analyze-idea')return send(res,200,await analyzeIdea(rp.id));
   if(rp&&req.method==='POST'&&rp.action==='send-council')return send(res,200,sendBriefToCouncil(rp.id));
   if(rp&&req.method==='GET'&&rp.action==='model-roles')return send(res,200,projectModelRoles(rp.id));
-  if(rp&&req.method==='POST'&&rp.action==='model-roles')return send(res,200,updateProjectModelRoles(rp.id,await readBody(req)));
+  if(rp&&req.method==='POST'&&rp.action==='model-roles'){
+   if(workCenter.isActive(rp.id)||deliveryLaunch.isActive(rp.id))return send(res,409,{error:'Wait for active work before changing assigned accounts.',code:'WORK_ACTIVE'});
+   return send(res,200,updateProjectModelRoles(rp.id,await readBody(req)));
+  }
   if(rp&&req.method==='GET'&&rp.action==='workspace')return send(res,200,snapshot(rp.id));
   if(rp&&req.method==='GET'&&rp.action==='workspace-summary')return send(res,200,workspaceSummary(rp.id));
   if(rp&&req.method==='GET'&&rp.action==='git')return send(res,200,await gitStatus(rp.id));
   if(rp&&req.method==='POST'&&rp.action==='git/init')return send(res,200,await initGit(rp.id));
   if(req.method==='GET'&&u.pathname==='/api/github/repos')return send(res,200,await listGithubRepos());
+  if(u.pathname==='/api/github/import-jobs'){if(!vaultStatus().unlocked)return send(res,423,{error:'Mở Vault trước khi nhập repo.'});if(req.method==='GET')return send(res,200,{jobs:githubImportJobs.list()});if(req.method==='POST')return send(res,202,{job:githubImportJobs.start(await readBody(req))});}
   if(req.method==='POST'&&u.pathname==='/api/github/import'){const b=await readBody(req);return send(res,200,await importGithubRepo({fullName:b.fullName,vercelProject:b.vercelProject}));}
   if(rp&&req.method==='POST'&&rp.action==='github/continuation')return send(res,200,await buildContinuationPlan(rp.id));
   if(rp&&req.method==='GET'&&rp.action==='github/issues')return send(res,200,await listGithubIssues(rp.id));
@@ -539,7 +702,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(rp&&req.method==='POST'&&rp.action==='vercel/deploy'){const b=await readBody(req);return send(res,200,await deployVercel({projectId:rp.id,...b}));}
   if(rp&&req.method==='POST'&&rp.action==='vercel/domain'){const b=await readBody(req);const result=await attachVercelDomain(b);saveProjectDomain(rp.id,{domain:result.domain,deploymentUrl:String(b.deploymentUrl)});return send(res,200,result);}
   if(rp&&req.method==='POST'&&rp.action==='settings')return send(res,200,updateProjectSettings(rp.id,await readBody(req)));
-  if(rp&&req.method==='POST'&&rp.action==='chat'){const b=await readBody(req);return send(res,200,{reply:await founderChat(rp.id,b.connectionId,b.message)});}
+  if(rp&&req.method==='POST'&&rp.action==='chat'){const b=await readBody(req);return send(res,200,{reply:await founderChat(rp.id,b.connectionId,b.message,{retryMessageId:b.retryMessageId||null,evidenceLoader:message=>prepareNewsEvidence(message,ingestStore)})});}
   if(rp&&req.method==='POST'&&rp.action==='council'){const b=await readBody(req);return send(res,200,await runCouncil(rp.id,b.memberIds||[],b.chairId));}
   if(rp&&req.method==='GET'&&rp.action==='council/history')return send(res,200,councilHistory(rp.id));
   if(rp&&req.method==='POST'&&rp.action==='council/confirm')return send(res,200,confirmCouncilSpecification(rp.id,(await readBody(req)).specificationId));
@@ -557,9 +720,9 @@ const server=http.createServer(async(req,res)=>{try{
     if(p===path.join(PUB,'index.html')||p.startsWith(PUB+path.sep)){if(fs.existsSync(p)&&fs.statSync(p).isFile())return send(res,200,(p===path.join(PUB,'index.html')?fs.readFileSync(p,'utf8').replace(/<!-- TAB:([a-z]+) -->/g,(_,tab)=>fs.readFileSync(path.join(PUB,'tabs',tab+'.html'),'utf8').replace('<!-- TAB:media-studio -->',fs.readFileSync(path.join(PUB,'tabs','media-studio.html'),'utf8'))):fs.readFileSync(p)),mime[path.extname(p)]||'application/octet-stream');}
   }
   return send(res,404,{error:'Not found'});
-}catch(e){return send(res,500,{error:redactVaultSecrets(e?.message||e)});}});
+}catch(e){const code=typeof e?.code==='string'&&/^[A-Z][A-Z0-9_]{2,70}$/.test(e.code)?e.code:null;return send(res,code==='ORCHESTRATOR_INPUT'?422:code==='AI_DISPATCH_EXHAUSTED'?503:code==='LAUNCH_STORE'?503:code==='LAUNCH_VAULT_LOCKED'?423:code==='LAUNCH_NOT_FOUND'?404:code==='LAUNCH_CONFIG'?422:code?.startsWith('LAUNCH_')?409:500,{error:redactVaultSecrets(e?.message||e),code,retryAt:e?.retryAt||null});}});
 server.on('error',e=>{if(e?.code==='EADDRINUSE'){console.error(`Port ${PORT} đang được dùng. Đóng phiên AI Project OS cũ hoặc ứng dụng đang chiếm cổng rồi chạy lại.`);process.exitCode=1;return;}console.error(e);process.exitCode=1;});
-server.on('close',()=>{localAccess.discard();closeAccountSessions();integrations.stop();});
+server.on('close',()=>{workCenter.close();deliveryLaunch.close();localAccess.discard();closeAccountSessions();integrations.stop();});
 process.once('SIGTERM',()=>{closeAccountSessions();server.close();});
 process.once('SIGINT',()=>{closeAccountSessions();server.close();});
 server.listen(PORT,HOST,()=>{localAccess.expose();console.log(`AI Project OS Local v${VERSION}: http://${HOST}:${PORT} (access via launcher)`);});

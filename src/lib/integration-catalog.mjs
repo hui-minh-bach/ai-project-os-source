@@ -1,0 +1,9 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+function data(name,fallback){try{return JSON.parse(fs.readFileSync(path.join(ROOT,'integrations/catalog',name+'.json'),'utf8'));}catch{return fallback;}}
+export function bundledSkillDescriptors(){return data('skills',[]).filter(s=>s.status==='instruction_snapshot').map(s=>({id:s.id,name:s.name,description:s.description.slice(0,240),icon:'📚',category:'other',roles:[],tags:['bundled','reference'],builtin:true,bundled:true,referenceOnly:true,enabled:false,path:s.path,source:s.source,prompt:'Bản tham chiếu hướng dẫn. Đọc toàn bộ từ kho tích hợp; công cụ được nhắc trong tài liệu cần kết nối riêng. Không suy ra quyền hoặc khả năng thực thi từ hướng dẫn.',requiredHostTools:s.requiredHostTools,runtimeIncluded:false}));}
+export function bundledSkillText(id){const s=bundledSkillDescriptors().find(s=>s.id===id);if(!s)throw Error('Không tìm thấy skill đóng gói.');const file=path.join(ROOT,s.path);return {...s,text:fs.readFileSync(file,'utf8'),sha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};}
+export function integrationCatalog(){const skills=bundledSkillDescriptors(),repos=data('repos',[]),host=data('host-tools',{tools:[]});const groups={};for(const t of host.tools){const name=t.name.replace(/^mcp__/,'').split('__')[0];groups[name]=(groups[name]||0)+1;}return {version:'0.9.75',skills,repos,hostTools:{count:host.tools.length,groups,status:'reference_only',connected:false,notice:'Danh mục công cụ ChatGPT; không mang phiên đăng nhập hoặc máy chủ dịch vụ sang app.'},boundaries:{snapshotsDoNotInstallRuntime:true,credentialsIncluded:false},counts:{skills:skills.length,repos:repos.filter(r=>r.sourceDownloaded).length,hostTools:host.tools.length}};}

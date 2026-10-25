@@ -39,20 +39,21 @@ async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',p
   return {...previous.result,reused:clips.length,idempotent:true};
  }
  const chunks=mkdir(path.join(jobDir,'render-cache',preview?'preview':'final'));
+ const speechOverlap=timeline.kind==='story'&&timeline.preserveNarration&&['crossfade','fadeblack','slideleft','slideright','wipeleft'].includes(timeline.transition)?Number(timeline.transitionSeconds||0):0;
  const paths=[];let expected=0,reused=0;
  for(let i=0;i<clips.length;i++){
-  const c=clips[i],length=timeline.kind==='story'?c.duration:c.end-c.start;
+  const c=clips[i],tail=speechOverlap&&i<clips.length-1?speechOverlap:0,length=timeline.kind==='story'?c.duration+tail:c.end-c.start;
   insist(Number.isFinite(length)&&length>=.12&&length<=900,'Invalid clip length. Dựng lại từ video gốc.','MEDIA_PLAN_RANGE');expected+=length;
   if(timeline.kind==='edit')insist(shaFile(c.source)===sourceHashes.get(c.source),'Video nguồn đã thay đổi trong lúc dựng.','MEDIA_PLAN_SOURCE');
   let clipFingerprint=timeline.kind==='story'?`${c.cacheKey}:${shaFile(c.audio)}:${shaFile(c.image)}`:`${sourceHashes.get(c.source)}:${c.start}:${c.end}:${timeline.audioStreamIndex??'auto'}`;
-  clipFingerprint=sha(JSON.stringify([clipFingerprint,w,h,preview,crf,ffmpegBin,timeline.framing])).slice(0,20);
+  clipFingerprint=sha(JSON.stringify([clipFingerprint,w,h,preview,crf,ffmpegBin,timeline.framing,length,tail])).slice(0,20);
   const outfile=path.join(chunks,`${String(i).padStart(4,'0')}-${clipFingerprint}.mp4`);
   let valid=false;
   if(fs.existsSync(outfile))try{const p=await ffprobe(outfile,ffprobeBin);valid=duration(p)>.2&&Math.abs(duration(p)-length)<1.0;}catch{}
   if(valid)reused++;else{
    const temp=outfile+'.'+process.pid+'.part.mp4';const args=['-hide_banner','-loglevel','error','-nostdin','-y'];
    if(timeline.kind==='story'){
-    args.push('-loop','1','-framerate','25','-i',c.image,'-i',c.audio,'-t',String(length),'-vf',videoFilters(w,h,true,'fit',i),'-af','loudnorm=I=-14:TP=-1.5:LRA=11','-map','0:v:0','-map','1:a:0');
+    args.push('-loop','1','-framerate','25','-i',c.image,'-i',c.audio,'-t',String(length),'-vf',videoFilters(w,h,true,'fit',i),'-af','loudnorm=I=-14:TP=-1.5:LRA=11'+(tail?',apad=pad_dur='+tail:''),'-map','0:v:0','-map','1:a:0');
    }else{
     const src=await ffprobe(c.source,ffprobeBin);args.push('-ss',String(c.start),'-t',String(length),'-i',c.source);
     const tracks=(src.streams||[]).filter(s=>s.codec_type==='audio');
@@ -74,14 +75,19 @@ async function render({timeline,jobDir,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',p
  const XF={'crossfade':'fade','fadeblack':'fadeblack','slideleft':'slideleft','slideright':'slideright','wipeleft':'wipeleft'};
  const overlap=XF[timeline.transition]&&paths.length>1 ? Number(timeline.transitionSeconds||0) : 0;
  if(overlap>0){
-  const lengths=clips.map(c=>timeline.kind==='story'?c.duration:c.end-c.start);
+  const lengths=clips.map((c,i)=>timeline.kind==='story'?c.duration+(speechOverlap&&i<clips.length-1?speechOverlap:0):c.end-c.start);
   const filter=[];let at=0,vprev='[0:v]',aprev='[0:a]';
   for(let i=1;i<paths.length;i++){
    at+=lengths[i-1];const offset=at-i*overlap;
    const vnext=`[v${i}]`,anext=`[a${i}]`;
    filter.push(`${vprev}[${i}:v]xfade=transition=${XF[timeline.transition]}:duration=${overlap.toFixed(4)}:offset=${offset.toFixed(4)}${vnext}`);
-   filter.push(`${aprev}[${i}:a]acrossfade=d=${overlap.toFixed(4)}:c1=tri:c2=tri${anext}`);
+   if(!speechOverlap)filter.push(`${aprev}[${i}:a]acrossfade=d=${overlap.toFixed(4)}:c1=tri:c2=tri${anext}`);
    vprev=vnext;aprev=anext;
+  }
+  if(speechOverlap){
+   // Trim only the extra visual tails. Keep each measured spoken phrase full.
+   const labels=clips.map((c,i)=>{filter.push(`[${i}:a]atrim=duration=${c.duration},asetpts=PTS-STARTPTS[narr${i}]`);return `[narr${i}]`;});
+   filter.push(labels.join('')+`concat=n=${clips.length}:v=0:a=1[narration]`);aprev='[narration]';
   }
   const args=['-hide_banner','-loglevel','error','-nostdin','-y'];
   for(const file of paths)args.push('-i',file);

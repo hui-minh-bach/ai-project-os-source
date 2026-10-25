@@ -61,13 +61,15 @@ function createPng(file,{width=1280,height=720,seed='village',scene=0}={}){
  const head=Buffer.alloc(13);head.writeUInt32BE(width,0);head.writeUInt32BE(height,4);head[8]=8;head[9]=2;
  mkdir(require('node:path').dirname(file));fs.writeFileSync(file,Buffer.concat([Buffer.from('89504e470d0a1a0a','hex'),chunk('IHDR',head),chunk('IDAT',zlib.deflateSync(raw,{level:6})),chunk('IEND',Buffer.alloc(0))]));return file;
 }
-async function illustration({gateway,description,characterSheet,output,offline=true,scene=0}){
- if(!offline&&gateway?.invoke){
-   try{
-     const result=await gateway.invoke({capability:'image.generate',input:{description,characterSheet,output}});
-     if(result?.path&&fs.existsSync(result.path))return {path:result.path,origin:'provider'};
-   }catch{/* provider unavailable: fall through to the procedural fallback */}
- }
- return {path:createPng(output,{seed:characterSheet||description,scene}),origin:'procedural-offline-non-ai'};
+async function illustration({gateway,description,characterSheet,output,offline=true,scene=0,provider='auto',jobId,parentJobId,imagePool=null,confirmPaidImages=false}){
+ if(offline)return {path:createPng(output,{seed:characterSheet||description,scene}),origin:'procedural-offline-non-ai'};
+ if(!gateway?.invoke)throw Object.assign(new Error('Image generation needs a connected image provider; no silent stock-art fallback.'),{code:'BLOCKED_IMAGE'});
+ const prompt=['Create an editorial illustration for this narration. Match the subject, not a generic landscape.',
+ 'Illustration only, not documentary evidence. No invented quotes, statistics, logos or readable text.',
+ 'Consistent wide 16:9 composition. '+String(characterSheet||''),String(description||'')].join('\n').slice(0,4000);
+ const result=await gateway.invoke({jobId:jobId||'scene-'+scene,parentJobId,capability:'image.generate',input:{prompt,provider,output,scene,imagePool,allowPaid:confirmPaidImages===true}});
+ const file=result?.path||result?.file;
+ if(typeof file!=='string'||!fs.existsSync(file))throw Object.assign(new Error('Image provider returned no usable image. Narrated video is paused, not replaced with unrelated art.'),{code:'BLOCKED_IMAGE'});
+ return {path:file,origin:'provider',provider:result.provider||provider,model:result.model||null,connectionId:result.connectionId||null,connectionName:result.connectionName||null,attempts:result.attempts||[]};
 }
 module.exports={createPng,illustration};

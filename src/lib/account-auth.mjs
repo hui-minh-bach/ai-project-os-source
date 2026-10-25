@@ -26,14 +26,32 @@ export function codexLauncher(env=process.env,platform=process.platform){
 }
 export class AccountRpc {
   constructor({command,args=[],cwd,env,timeoutMs=20000,onNotification=()=>{}}){
-    this.listeners=new Set();this.next=1;this.pending=new Map();this.closed=false;this.buffer='';this.onNotification=onNotification;this.timeoutMs=timeoutMs;
+    this.listeners=new Set();this.imageThreads=new Set();this.next=1;this.pending=new Map();this.closed=false;this.buffer='';this.onNotification=onNotification;this.timeoutMs=timeoutMs;
     this.child=spawn(command,args,{cwd,env,stdio:['pipe','pipe','pipe'],windowsHide:true,shell:false});
     this.child.stdin.on('error',()=>this.close('Codex input đã đóng.'));
     this.child.on('error',()=>this.close('Không khởi động được Codex CLI.'));
     this.child.on('exit',()=>this.close('Codex CLI đã dừng.'));
     this.child.stderr.on('data',()=>{}); // Never return raw CLI diagnostics/auth data.
     this.child.stdout.setEncoding('utf8'); // Preserve code points split across pipe chunks.
-    this.child.stdout.on('data',chunk=>{this.buffer+=chunk;if(Buffer.byteLength(this.buffer)>2_000_000)return this.close('Codex RPC vượt giới hạn.');let at;while((at=this.buffer.indexOf('\n'))>=0){const line=this.buffer.slice(0,at);this.buffer=this.buffer.slice(at+1);if(!line.trim())continue;let msg;try{msg=JSON.parse(line)}catch{return this.close('Codex RPC không hợp lệ.')}if(msg.method){if(msg.id!==undefined){this.write({id:msg.id,error:{code:-32601,message:'Client does not allow tools or approvals'}});continue;}try{this.onNotification(msg.method,msg.params||{});for(const fn of this.listeners)fn(msg.method,msg.params||{})}catch{this.close('Codex notification không hợp lệ.')}continue;}const p=this.pending.get(msg.id);if(p){this.pending.delete(msg.id);clearTimeout(p.timer);msg.error?p.reject(new Error('Codex không hỗ trợ thao tác hoặc tài khoản chưa sẵn sàng.')):p.resolve(msg.result);}}});
+    this.child.stdout.on('data',chunk=>{
+      this.buffer+=chunk;let at;
+      while((at=this.buffer.indexOf('\n'))>=0){
+        const line=this.buffer.slice(0,at);this.buffer=this.buffer.slice(at+1);if(!line.trim())continue;
+        const bytes=Buffer.byteLength(line);if(bytes>48*1024*1024)return this.close('Codex image payload vượt giới hạn.');
+        let msg;try{msg=JSON.parse(line);}catch{return this.close('Codex RPC không hợp lệ.');}
+        const p=msg.params||{},imageEvent=this.imageThreads.has(p.threadId)&&((msg.method==='item/completed'&&p.item?.type==='imageGeneration')||(msg.method==='turn/completed'&&p.turn?.items?.some(i=>i.type==='imageGeneration')));
+        if(bytes>2_000_000&&!imageEvent)return this.close('Codex RPC vượt giới hạn cho nội dung không phải ảnh.');
+        if(msg.method){
+          if(msg.id!==undefined){this.write({id:msg.id,error:{code:-32601,message:'Client does not allow tools or approvals'}});continue;}
+          try{this.onNotification(msg.method,p);for(const fn of this.listeners)fn(msg.method,p);}catch{return this.close('Codex notification không hợp lệ.');}
+          continue;
+        }
+        const pending=this.pending.get(msg.id);if(pending){this.pending.delete(msg.id);clearTimeout(pending.timer);
+          if(msg.error){const e=Object.assign(new Error(msg.error.code===-32601?'Codex CLI chưa hỗ trợ thao tác yêu cầu.':msg.error.code===-32602?'Codex CLI từ chối tham số giao thức.':'Codex không hỗ trợ thao tác hoặc phiên tài khoản chưa sẵn sàng.'),{code:msg.error.code===-32601?'CODEX_RPC_METHOD':msg.error.code===-32602?'CODEX_RPC_PARAMS':'CODEX_RPC_FAILED',rpcCode:msg.error.code});pending.reject(e);}else pending.resolve(msg.result);
+        }
+      }
+      if(Buffer.byteLength(this.buffer)>(this.imageThreads.size?48*1024*1024:2_000_000))this.close('Codex RPC vượt giới hạn.');
+    });
   }
   write(message){if(this.closed)throw new Error('Codex session đã đóng.');this.child.stdin.write(JSON.stringify(message)+'\n');}
   request(method,params={}){if(this.closed)return Promise.reject(new Error('Codex session đã đóng.'));if(this.pending.size>=16)return Promise.reject(new Error('Codex đang bận.'));const id=this.next++;return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{this.pending.delete(id);reject(new Error('Codex RPC hết thời gian.'));this.close();},this.timeoutMs);this.pending.set(id,{resolve,reject,timer});try{this.write({id,method,params})}catch(e){clearTimeout(timer);this.pending.delete(id);reject(e)}});}
@@ -111,7 +129,7 @@ export async function listAccountModels(id){
  for(let page=0;page<20;page++){const r=await s.rpc.request('model/list',{cursor,limit:100});if(!Array.isArray(r?.data))throw new Error('Codex không trả danh mục model.');for(const m of r.data){const name=m.model||m.id;if(typeof name==='string'&&name.length<=120)models.push(name);}cursor=r.nextCursor;if(!cursor){recordAccountCatalog(getConnection(id),models);return models;}if(seen.has(cursor))throw new Error('Codex model pagination không hợp lệ.');seen.add(cursor);}
  throw new Error('Danh mục model quá lớn.');
 }
-export async function askAccount(c,{system='',prompt=''}){
+export async function askAccount(c,{system='',prompt='',timeoutMs=90000}){
  const state=await refreshAccount(c.id),s=await session(c.id);
  if(state.state!=='connected')throw new Error('Tài khoản ChatGPT chưa đăng nhập.');
  if(getConnection(c.id).credentialVersion!==c.credentialVersion)throw new Error('Tài khoản đã thay đổi. Hãy phân vai lại.');
@@ -144,9 +162,19 @@ export async function askAccount(c,{system='',prompt=''}){
   }
  };
  s.rpc.listeners.add(listener);
- timer=setTimeout(()=>{if(!done){done=true;reject(new Error('Codex inference hết thời gian.'));if(turnId)void s.rpc.request('turn/interrupt',{threadId,turnId}).catch(()=>{});s.rpc.close();}},90000);
+ timer=setTimeout(()=>{if(!done){done=true;reject(new Error('Codex inference hết thời gian.'));if(turnId)void s.rpc.request('turn/interrupt',{threadId,turnId}).catch(()=>{});s.rpc.close();}},Math.max(20,Math.min(90000,timeoutMs)));
  try{const r=await s.rpc.request('turn/start',{threadId,input:[{type:'text',text:prompt}],environments:[]});turnId=r?.turn?.id;const result=await completed;const {recordUsage}=await import('./usage.mjs');recordUsage(c,{usage:result.usage},result.eventId);assertOpen();if(getConnection(c.id).credentialVersion!==c.credentialVersion)throw new Error('Tài khoản đã thay đổi trong khi chạy.');return result;}
  finally{clearTimeout(timer);s.rpc.listeners.delete(listener);void s.rpc.request('thread/unsubscribe',{threadId}).catch(()=>{});}
+}
+/** Provider bounds are verified through the CLI protocol, not inferred from text login. */
+export async function accountImageCapability(c,{refresh=false}={}){
+ const state=await refreshAccount(c.id),s=await session(c.id);
+ if(state.state!=='connected')throw Object.assign(new Error('Tài khoản ChatGPT chưa đăng nhập.'),{code:'CODEX_AUTH_EXPIRED'});
+ if(getConnection(c.id).credentialVersion!==c.credentialVersion)throw Object.assign(new Error('Tài khoản đã thay đổi.'),{code:'IMAGE_IDENTITY_CHANGED',retryable:false});
+ if(!VALIDATED_VERSIONS.has(s.version))throw Object.assign(new Error('Phiên bản Codex chưa được kiểm chứng cho tạo ảnh.'),{code:'IMAGE_CLI_VERSION',retryable:false});
+ if(!refresh&&s.imageCapability&&Date.now()-s.imageCapability.at<600000)return s.imageCapability.value;
+ const caps=await s.rpc.request('modelProvider/capabilities/read',{});const value={available:caps?.imageGeneration===true,reason:caps?.imageGeneration===true?null:'Tài khoản này chưa cung cấp công cụ tạo ảnh qua Codex.',code:caps?.imageGeneration===true?null:'IMAGE_CAPABILITY'};
+ s.imageCapability={at:Date.now(),value};return value;
 }
 export async function generateAccountImage(c,{prompt='',outputPath=''}={}){
  const state=await refreshAccount(c.id),s=await session(c.id);
@@ -155,25 +183,28 @@ export async function generateAccountImage(c,{prompt='',outputPath=''}={}){
  if(!VALIDATED_VERSIONS.has(s.version))throw new Error(snapshot(s).inference.reason);
  if(typeof prompt!=='string'||!prompt.trim()||prompt.length>4000)throw new Error('Mô tả ảnh cần 1-4.000 ký tự.');
  if(typeof outputPath!=='string'||!outputPath)throw new Error('Thiếu đường dẫn tệp ảnh đầu ra.');
- const caps=await s.rpc.request('modelProvider/capabilities/read',{});
- if(caps?.imageGeneration!==true){const e=new Error('Tài khoản/nhà cung cấp này không báo hỗ trợ sinh ảnh qua Codex. Không giả lập ảnh.');e.code='BLOCKED_PROVIDER';throw e;}
+ const caps=await accountImageCapability(c);
+ if(!caps.available){const e=new Error('Tài khoản/nhà cung cấp này không báo hỗ trợ sinh ảnh qua Codex. Không giả lập ảnh.');e.code='BLOCKED_PROVIDER';throw e;}
  const effective=await s.rpc.request('config/read',{includeLayers:false,cwd:s.cwd});
- if(!effective?.config||Object.keys(effective.config.mcp_servers||effective.config.mcpServers||{}).length){s.rpc.close();throw new Error('Codex có cấu hình MCP hoặc không xác minh được cấu hình. Đã chặn sinh ảnh để bảo vệ ranh giới an toàn.');}
+ if(!effective?.config||Object.keys(effective.config.mcp_servers||effective.config.mcpServers||{}).length){s.rpc.close();throw Object.assign(new Error('Image account security boundary could not be verified.'),{code:'IMAGE_SECURITY',retryable:false});}
  const t=await s.rpc.request('thread/start',{model:c.model,ephemeral:true,allowProviderModelFallback:false,approvalPolicy:'never',sandbox:'workspace-write',environments:[],dynamicTools:[],config:accountThreadConfig(c,{features:{image_generation:true}}),baseInstructions:'Use only the built-in image generation tool to create the requested image. Do not run commands, do not edit files, do not browse the web. Return the generated image only.',cwd:s.cwd});
- if(!t?.thread?.id||!VALIDATED_VERSIONS.has(t.thread.cliVersion)){s.rpc.close();throw new Error('Codex chưa xác nhận môi trường sinh ảnh an toàn. Đã chặn.');}
- const threadId=t.thread.id;let turnId=null,usage=null,done=false,timer,resolve,reject,terminalError=null,imageItem=null;
+ if(!t?.thread?.id||!VALIDATED_VERSIONS.has(t.thread.cliVersion)){s.rpc.close();throw Object.assign(new Error('Image account security boundary could not be verified.'),{code:'IMAGE_SECURITY',retryable:false});}
+ const threadId=t.thread.id;s.rpc.imageThreads.add(threadId);let turnId=null,usage=null,done=false,timer,resolve,reject,terminalError=null,imageItem=null;
  const completed=new Promise((yes,no)=>{resolve=yes;reject=no});completed.catch(()=>{});
  const listener=(method,p)=>{
-  if(method==='client/closed'){if(!done){done=true;reject(new Error('Phiên Codex đã đóng.'));}return;}
+  if(method==='client/closed'){if(!done){done=true;reject(Object.assign(new Error(p.reason||'Phiên Codex đã đóng.'),{code:/vượt giới hạn/i.test(p.reason||'')?'CODEX_IMAGE_PAYLOAD':'CODEX_SESSION_CLOSED'}));}return;}
   if(p.threadId!==threadId)return;
   if(method==='thread/tokenUsage/updated')usage=p.tokenUsage?.total||null;
-  if(method==='item/started'&&['commandExecution','fileChange','mcpToolCall','dynamicToolCall','webSearch','imageView'].includes(p.item?.type)){s.rpc.close('Codex attempted a prohibited tool during image generation');return;}
+  if(method==='item/started'&&['commandExecution','fileChange','mcpToolCall','dynamicToolCall','webSearch','imageView'].includes(p.item?.type)){done=true;reject(Object.assign(new Error('Image account attempted a prohibited tool.'),{code:'IMAGE_SECURITY',retryable:false}));s.rpc.close('Codex attempted a prohibited tool during image generation');return;}
   if(method==='item/completed'&&p.item?.type==='imageGeneration')imageItem=p.item;
   if(method==='error'&&p.willRetry!==true)terminalError=p.error||{message:'Codex provider error'};
   if(method==='turn/completed'&&!done){
    done=true;turnId=p.turn?.id||turnId;
+   if(/safety|policy|moderation|contentFilter|refusal/i.test(JSON.stringify([p.turn?.error?.codexErrorInfo,terminalError?.codexErrorInfo,imageItem?.failure?.type]))){reject(Object.assign(new Error('Nhà cung cấp từ chối ảnh theo chính sách.'),{code:'IMAGE_POLICY',retryable:false}));return;}
    if(p.turn?.status!=='completed'||terminalError){reject(describeCodexTurnFailure(p.turn?.error,terminalError,p.turn?.status));return;}
-   if(!imageItem){reject(new Error('Codex hoàn thành lượt nhưng không trả ảnh nào. Không thay bằng ảnh giả.'));return;}
+   imageItem=imageItem||(p.turn?.items||[]).find(i=>i.type==='imageGeneration');
+   if(!imageItem){reject(Object.assign(new Error('Codex hoàn thành lượt nhưng không trả ảnh nào.'),{code:'IMAGE_EMPTY'}));return;}
+   if(imageItem.failure&&/safety|policy|moderation|contentFilter|refus/i.test(String(imageItem.failure.type||''))){reject(Object.assign(new Error('Image safety refusal; do not retry through another provider.'),{code:'IMAGE_POLICY',retryable:false}));return;}
    if(imageItem.failure){const e=new Error(imageItem.failure.type==='usageLimitExceeded'?'Tài khoản ChatGPT đã hết hạn mức sinh ảnh của gói. Đợi hạn mức hồi phục hoặc đổi nhà cung cấp ảnh.':'Codex báo sinh ảnh thất bại.');e.code=imageItem.failure.type==='usageLimitExceeded'?'PROVIDER_QUOTA':'BLOCKED_PROVIDER';reject(e);return;}
    resolve({imageItem,usage,eventId:threadId+':'+turnId});
   }
@@ -185,8 +216,8 @@ export async function generateAccountImage(c,{prompt='',outputPath=''}={}){
   const result=await completed;
   let bytes=null;
   const raw=typeof result.imageItem.result==='string'?result.imageItem.result.trim():'';
-  if(raw){const b64=raw.startsWith('data:')?raw.slice(raw.indexOf(',')+1):raw;try{const buf=Buffer.from(b64,'base64');if(buf.length>1000)bytes=buf;}catch{}}
-  if(!bytes&&typeof result.imageItem.savedPath==='string'&&result.imageItem.savedPath&&fs.existsSync(result.imageItem.savedPath))bytes=fs.readFileSync(result.imageItem.savedPath);
+  if(raw){const b64=raw.startsWith('data:')?raw.slice(raw.indexOf(',')+1):raw;try{const buf=Buffer.from(b64,'base64');if(buf.length>1000&&buf.length<=24*1024*1024)bytes=buf;}catch{}}
+  if(!bytes&&typeof result.imageItem.savedPath==='string'&&result.imageItem.savedPath){const target=path.resolve(s.cwd,result.imageItem.savedPath),allowed=fs.realpathSync(s.cwd);if(!target.startsWith(allowed+path.sep))throw Object.assign(new Error('Generated image escaped the account workspace.'),{code:'IMAGE_SECURITY',retryable:false});const actual=fs.realpathSync(target);if(!actual.startsWith(allowed+path.sep))throw Object.assign(new Error('Generated image escaped the account workspace.'),{code:'IMAGE_SECURITY',retryable:false});bytes=fs.readFileSync(actual);}
   if(!bytes||bytes.length<=1000)throw new Error('Codex trả item ảnh nhưng không có dữ liệu ảnh hợp lệ. Không lưu tệp giả.');
   const ext=bytes.subarray(0,4).equals(Buffer.from([0x89,0x50,0x4e,0x47]))?'.png':bytes[0]===0xff&&bytes[1]===0xd8?'.jpg':bytes.subarray(0,4).toString('latin1')==='RIFF'&&bytes.subarray(8,12).toString('latin1')==='WEBP'?'.webp':null;
   if(!ext)throw new Error('Dữ liệu Codex trả về không phải PNG/JPEG/WebP hợp lệ.');
@@ -196,7 +227,7 @@ export async function generateAccountImage(c,{prompt='',outputPath=''}={}){
   const {recordUsage}=await import('./usage.mjs');if(result.usage)recordUsage(c,{usage:result.usage},result.eventId);
   assertOpen();if(getConnection(c.id).credentialVersion!==c.credentialVersion)throw new Error('Tài khoản đã thay đổi trong khi chạy.');
   return {provider:'chatgpt-account',model:c.model,file:finalPath,bytes:bytes.length,revisedPrompt:typeof result.imageItem.revisedPrompt==='string'?result.imageItem.revisedPrompt:null};
- }finally{clearTimeout(timer);s.rpc.listeners.delete(listener);void s.rpc.request('thread/unsubscribe',{threadId}).catch(()=>{});}
+ }finally{clearTimeout(timer);s.rpc.imageThreads.delete(threadId);s.rpc.listeners.delete(listener);void s.rpc.request('thread/unsubscribe',{threadId}).catch(()=>{});}
 }
 
 export async function verifyAccountModel(id,model){

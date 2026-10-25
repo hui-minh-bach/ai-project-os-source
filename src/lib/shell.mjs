@@ -44,7 +44,7 @@ export function run(cmd,args=[],opts={}){
     if(Object.hasOwn(opts,'stdin')){child.stdin.on('error',()=>{});child.stdin.end(opts.stdin);}
     child.stdout?.setEncoding('utf8');child.stderr?.setEncoding('utf8');
     child.stdout?.on('data',d=>{stdout+=d;if(stdout.length>500000)stdout=stdout.slice(-500000);});
-    child.stderr?.on('data',d=>{stderr+=d;if(stderr.length>500000)stderr=stderr.slice(-500000);});
+    child.stderr?.on('data',d=>{try{opts.onStderr?.(d);}catch{}stderr+=d;if(stderr.length>500000)stderr=stderr.slice(-500000);});
     child.on('error',e=>finish(null,e));
     child.on('close',code=>{childClosed=true;closeCode=code;if(!killer)finish(code);});
   });

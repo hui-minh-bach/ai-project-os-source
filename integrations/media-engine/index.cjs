@@ -5,7 +5,7 @@ const timeline=require('./src/timeline.cjs'),renderer=require('./src/renderer.cj
 const {Publisher}=require('./src/publisher.cjs'),concat=require('./src/concat.cjs');
 // CoreServices v1 boundary: no direct web application, Vault, TaskQueue core, or router modifications.
 // Pass a dedicated adapter when the host uses different method names. All four ports are mandatory.
-function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',pythonBin=process.platform==='win32'?'py':'python3',limits={}}){
+function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeBin='ffprobe',pythonBin=process.platform==='win32'?'py':'python3',limits={},concatStory=null}){
  insist(CoreServices&&workspace,'CoreServices and workspace required');
  const {TaskQueue,ProviderGateway,ArtifactStore,EventBus}=CoreServices;
  insist(typeof TaskQueue?.registerTask==='function','TaskQueue.registerTask required');
@@ -21,11 +21,29 @@ function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeB
    const resourceHeavy=['analyze','render','story'].includes(name);
    if(resourceHeavy&&activeJobs>=maxConcurrent)throw Object.assign(new Error('Media worker concurrency limit; TaskQueue should retry'),{code:'RESOURCE_BUSY'});
    if(resourceHeavy)activeJobs++;
-   try{const result=await handler({jobId,...payload},jobDir(jobId));
+   try{const cacheId=name==='story'&&payload._storyCacheId?payload._storyCacheId.replace(/-/g,'_'):jobId;insist(/^[a-zA-Z0-9_-]{1,90}$/.test(cacheId),'Invalid story cache ID','MEDIA_INPUT');const result=await handler({jobId,...payload},jobDir(cacheId));
     EventBus.publish('media.progress',{jobId,operation:name,status:'DONE',percent:100});return result;
    }catch(e){EventBus.publish('media.progress',{jobId,operation:name,status:e.code?.startsWith('BLOCKED')?'BLOCKED':'FAILED',error:e.message});throw e;}
    finally{if(resourceHeavy)activeJobs--;}
  });}
+ /** After a validated final MP4, export exactly the sources that belong to it.
+  * These are REAL scene narration WAVs and original storyboard text, not
+  * placeholder audio/subtitles. No additional provider calls are made. */
+ async function handoffStory(made,dir,title){
+  const scenes=made.timeline.scenes;
+  insist(scenes?.length>0&&scenes.every(s=>fs.existsSync(s.audio)&&fs.existsSync(s.image)),'Story files missing','MEDIA_DELIVERY');
+  const heading=String(title||'Kịch bản video').replace(/[\r\n]/g,' ').slice(0,140);
+  const script=path.join(dir,'script-final.md');
+  fs.writeFileSync(script,'# '+heading+'\n\n'+scenes.map(x=>String(x.sourceText||'').trim()).filter(Boolean).join('\n\n')+'\n','utf8');
+  const wav=path.join(dir,'voice.wav'),voiceList=path.join(dir,'handoff-voice-list.txt');
+  fs.writeFileSync(voiceList,scenes.map(x=>`file '${x.audio.replace(/'/g,"'\\''")}'`).join('\n')+'\n');
+  await require('./src/utils.cjs').run(ffmpegBin,['-hide_banner','-loglevel','error','-nostdin','-y','-f','concat','-safe','0','-i',voiceList,'-c:a','pcm_s16le',wav],{timeoutMs:120000});
+  const voiceInfo=await require('./src/utils.cjs').ffprobe(wav,ffprobeBin);
+  insist(voiceInfo.streams.some(x=>x.codec_type==='audio')&&Math.abs(require('./src/utils.cjs').duration(voiceInfo)-made.timeline.expectedDuration)<.15,'Delivered narration duration differs from story','MEDIA_DELIVERY');
+  const thumb=path.join(dir,'thumbnail.png');
+  await require('./src/utils.cjs').run(ffmpegBin,['-hide_banner','-loglevel','error','-nostdin','-y','-i',scenes[0].image,'-vf','scale=960:540:force_original_aspect_ratio=decrease,pad=960:540:(ow-iw)/2:(oh-ih)/2','-frames:v','1',thumb],{timeoutMs:45000});
+  return [['script-final.md',script],['voice.wav',wav],['thumbnail.png',thumb]];
+ }
  async function save(jobId,data,files=[]){
   const written=[];
   for(const [name,source] of files){if(source)written.push({name,...await ArtifactStore.putFile({jobId,source,name})});}
@@ -97,16 +115,28 @@ function registerMediaEngine({CoreServices,workspace,ffmpegBin='ffmpeg',ffprobeB
   const saved=await save(jobId,{edit,preview,final,qa},[['preview.mp4',preview.file],['final.mp4',final.file],['timeline.json',timelineFile],['captions.srt',subtitle]]);
   return {preview,final,qa,saved};
  });
- task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition,transitionSeconds,quality:qualityProfile,karaokeCaptions=true,captionPreset='sweep'},dir)=>{
-  const made=await story.buildStory({workspace:root,text,source,jobDir:dir,gateway:ProviderGateway,voice,mode,allowProviderImages,ffprobeBin,ffmpegBin,python:pythonBin,maxChars,resolution,rights,rate,volume,emotion,transition,transitionSeconds,karaokeCaptions,captionPreset});
+ task('story',async({jobId,text,source,voice='vi',mode='verbatim',allowProviderImages=false,music,maxChars=420,resolution='720p',rights='unspecified',rate=1,volume=1,emotion='neutral',transition,transitionSeconds,quality:qualityProfile,karaokeCaptions=true,captionPreset='sweep',ttsProvider='local',visualMode, imageProvider='auto',imageSources=[],visualStyle='',confirmPaidImages=false,imagePool=null,renderEngine='ffmpeg',effects='gentle',title=''},dir)=>{
+  insist(['ffmpeg','concat'].includes(renderEngine),'Unknown video renderer','MEDIA_INPUT');
+  if(renderEngine==='concat'){insist(typeof concatStory==='function','Concat is not integrated','BLOCKED_CONCAT');await concatStory({preflight:true});}
+  const made=await story.buildStory({workspace:root,text,source,jobDir:dir,gateway:ProviderGateway,voice,mode,allowProviderImages,ffprobeBin,ffmpegBin,python:pythonBin,maxChars,resolution,rights,rate,volume,emotion,transition,transitionSeconds,karaokeCaptions,captionPreset,ttsProvider,visualMode,imageProvider,imageSources,visualStyle,jobId,imagePool,confirmPaidImages,maxSceneCount:renderEngine==='concat'?24:200,maxSeconds:renderEngine==='concat'?300:Infinity});
   const onProgress=p=>EventBus.publish('media.progress',{jobId,operation:'story',...p});
   const sound=music?within(root,music):null,subtitle=(made.karaokeFile&&fs.existsSync(made.karaokeFile))?made.karaokeFile:path.join(dir,'captions.srt');
+  if(renderEngine==='concat'){
+   const report=await concatStory({workspace:root,story:made,jobId,jobDir:dir,title,musicSource:sound,effects,onProgress});
+   const final={file:report.exported,expectedSeconds:made.timeline.expectedDuration,actualSeconds:report.qa.durationSeconds,engine:report.engine};
+   const metadata={...made.metadata,renderEngine:'concat',effects,concatProject:report.project};
+   const handoff=await handoffStory(made,dir,title);
+   const saved=await save(jobId,{metadata,timeline:made.timeline,qa:report.qa,final,concat:report},[['concat-story.mp4',final.file],['captions.srt',path.join(dir,'captions.srt')],['captions.vtt',path.join(dir,'captions.vtt')],['storyboard.json',path.join(dir,'storyboard.json')],...handoff]);
+   await ArtifactStore.putJson({jobId,name:'concat-story-report.json',data:report});
+   return {metadata,timeline:made.timeline,final,qa:report.qa,saved,concat:report};
+  }
   const preview=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,preview:true,subtitle,music:sound,onProgress});
   const final=await renderer.render({timeline:made.timeline,jobDir:dir,ffmpegBin,ffprobeBin,subtitle,music:sound,onProgress,quality:qualityProfile||'high'});
   const qa=await quality.check({file:final.file,expectedDuration:made.timeline.expectedDuration,ffmpegBin,ffprobeBin,subtitleSegments:made.subtitles});
   insist(qa.passed,'Story quality failed: '+qa.problems.join(','),'QUALITY_FAILED');
   const storyboardFile=path.join(dir,'storyboard.json');
-  const saved=await save(jobId,{metadata:made.metadata,timeline:made.timeline,qa,preview,final},[['story-720p-or-source.mp4',final.file],['preview.mp4',preview.file],['captions.srt',path.join(dir,'captions.srt')],['captions.vtt',path.join(dir,'captions.vtt')],['captions-karaoke.ass',made.karaokeFile||null],['storyboard.json',storyboardFile]]);
+  const handoff=await handoffStory(made,dir,title);
+  const saved=await save(jobId,{metadata:made.metadata,timeline:made.timeline,qa,preview,final},[['story-720p-or-source.mp4',final.file],['preview.mp4',preview.file],['captions.srt',path.join(dir,'captions.srt')],['captions.vtt',path.join(dir,'captions.vtt')],['captions-karaoke.ass',made.karaokeFile||null],['storyboard.json',storyboardFile],...handoff]);
   return {metadata:made.metadata,timeline:made.timeline,preview,final,qa,saved};
  });
  task('publish-draft',async({jobId,...draft})=>{const video=within(root,draft.video);const d=publisher.createDraft({...draft,video});await save(jobId,{draft:d});return d;});

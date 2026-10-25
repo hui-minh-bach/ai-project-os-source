@@ -85,6 +85,8 @@ test('review rejection rolls back branch and batch reports not-ok',async()=>{
     const oa=saveConnection({kind:'openai',name:'Mock OpenAI',model:'gpt-mock',secret:'x',baseUrl:`http://127.0.0.1:${port}/openai`});
     const an=saveConnection({kind:'anthropic',name:'Mock Claude',model:'claude-mock',secret:'x',baseUrl:`http://127.0.0.1:${port}/anthropic`});
     for(const c of [oa,an])recordModels(c,[c.model]);
+    // Warm the first injected 429: this test concerns a rejecting independent reviewer, not provider failover.
+    await ask(oa.id,{system:'plain',prompt:'plain'});
     const p=createProject({name:'Reject Mock',idea:'Reject'});addRejectTask(p.id);
     const batch=await runReadyBatch(p.id,{workerId:oa.id,reviewerId:an.id,engineId:'native',limit:1});
     assert.equal(batch.ok,false);assert.equal(batch.runs[0].status,'review');
@@ -107,8 +109,9 @@ test('parallel agents editing the same file produce a safe merge-conflict instea
   await new Promise(r=>server.listen(0,'127.0.0.1',r));
   try{
     unlockVault('provider-test-pass');const port=server.address().port;const oa=saveConnection({kind:'openai',name:'Mock OpenAI',model:'gpt-mock',secret:'x',baseUrl:`http://127.0.0.1:${port}/openai`});
+    const reviewer=saveConnection({kind:'openai',name:'Independent conflict reviewer',model:'reviewer-mock',secret:'x',baseUrl:`http://127.0.0.1:${port}/openai`});recordModels(reviewer,[reviewer.model]);
     recordModels(oa,[oa.model]);const p=createProject({name:'Conflict Mock',idea:'Conflict'});prepareTaskPlan(p.id,[{id:'T1',title:'Conflict A',role:'frontend',description:'same file',dependsOn:[],doneWhen:'done',status:'todo',engineId:'native',skills:[]},{id:'T2',title:'Conflict B',role:'backend',description:'same file',dependsOn:[],doneWhen:'done',status:'todo',engineId:'native',skills:[]}]);
-    const batch=await runReadyBatch(p.id,{workerId:oa.id,reviewerId:oa.id,engineId:'native',limit:2});
+    const batch=await runReadyBatch(p.id,{workerId:oa.id,reviewerId:reviewer.id,engineId:'native',limit:2});
     assert.equal(batch.ok,false);const statuses=batch.runs.map(r=>r.status).sort();assert.deepEqual(statuses,['done','merge-conflict']);
     const root=workspaceDir(p.id),value=fs.readFileSync(path.join(root,'shared.txt'),'utf8');assert.ok(value==='A\n'||value==='B\n');
     const project=getProject(p.id);assert.equal(project.tasks.filter(t=>t.status==='done').length,1);assert.equal(project.tasks.filter(t=>t.status==='merge-conflict').length,1);

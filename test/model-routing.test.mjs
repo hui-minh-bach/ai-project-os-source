@@ -2,7 +2,8 @@
 // Fixture providers only: an account whose models were NEVER probe-verified
 // (catalog-only registry entry) must bind, resolve and serve; quota hits
 // rotate inside the step (pool peers, then the role's backup binding);
-// non-quota errors abort; the all-blocked error names every candidate.
+// R4 project calls prefer explicit backups and can opt out; standalone probes
+// keep legacy quota routing. The all-blocked error names every candidate.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -112,7 +113,7 @@ test('routing a→b: quota on the primary rotates to the pooled peer inside the 
   } finally { A.s.close(); B.s.close(); f.cleanup(); }
 });
 
-test('routing a→b→c: the backup binding serves only after the whole primary kind is exhausted', async () => {
+test('R4 project routing: explicit backup precedes unrelated same-kind peers', async () => {
   const { f, vault, bindings, store, providers, projects } = await boot('routing-backup');
   const A = await fixtureServer(quota);
   const B = await fixtureServer(quota);
@@ -127,8 +128,8 @@ test('routing a→b→c: the backup binding serves only after the whole primary 
     const served = {};
     const out = await providers.ask(bindings.roleRef(p.id, 'worker'), { prompt: 'work', served });
     assert.equal(out, 'reply-from-backup');
-    assert.ok(A.hits.n >= 1 && B.hits.n >= 1, 'primary and pool peer were tried first');
-    assert.equal(C.hits.n, 1, 'backup served exactly once, after the pool');
+    assert.equal(A.hits.n, 1, 'primary attempted once');assert.equal(B.hits.n,0,'explicit project backup has priority over unrelated peers');
+    assert.equal(C.hits.n, 1, 'backup served exactly once, after the primary');
     assert.equal(served.connectionId, cc.id);
   } finally { A.s.close(); B.s.close(); C.s.close(); f.cleanup(); }
 });
@@ -159,7 +160,7 @@ test('all candidates blocked: the error lists every candidate and the earliest r
   } finally { A.s.close(); B.s.close(); C.s.close(); f.cleanup(); }
 });
 
-test('non-quota errors abort immediately — pool peers and the backup are never touched', async () => {
+test('R4 opt-out: provider errors abort immediately without pool or backup calls', async () => {
   const { f, vault, bindings, store, providers, projects } = await boot('routing-abort');
   const A = await fixtureServer((req, res) => json(res, 401, { error: { message: 'invalid key' } }));
   const B = await fixtureServer(okCompat('peer'));
@@ -170,6 +171,7 @@ test('non-quota errors abort immediately — pool peers and the backup are never
     const cc = await catalogOnly(f, vault, bindings, store, { kind: 'openai', name: 'Backup C', url: C.url });
     const p = projects.createProject({ name: 'Abort fixture', idea: 'fixture' });
     projects.updateProjectModelRoles(p.id, { worker: { connectionId: ca.id, model: 'm1' }, backups: { worker: { connectionId: cc.id, model: 'm1' } } });
+    projects.updateProjectSettings(p.id,{autoFailover:false});
     await assert.rejects(() => providers.ask(bindings.roleRef(p.id, 'worker'), { prompt: 'x' }), /401/);
     assert.equal(B.hits.n, 0, 'a 401 must not rotate to the pool peer');
     assert.equal(C.hits.n, 0, 'a 401 must not rotate to the backup');

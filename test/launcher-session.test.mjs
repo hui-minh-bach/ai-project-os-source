@@ -1,3 +1,4 @@
+const RELEASE_VERSION=JSON.parse(fs.readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -22,7 +23,7 @@ test('real launcher provides an ephemeral browser session; direct local URL is d
     let ready=false;
     for(let i=0;i<80;i++){
       if(child.exitCode!==null)throw Error('Launcher exited: '+log);
-      try{const r=await fetch(`http://127.0.0.1:${p}/api/health`);if(r.ok&&(await r.json()).version==="0.9.62"){ready=true;break;}}
+      try{const r=await fetch(`http://127.0.0.1:${p}/api/health`);if(r.ok&&(await r.json()).version===RELEASE_VERSION){ready=true;break;}}
       catch{}
       await sleep(120);
     }

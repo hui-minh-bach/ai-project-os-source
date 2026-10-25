@@ -28,7 +28,7 @@ function createSession(settings={}){
   if(obj?.id===0&&!authenticated){if(obj.error)return fail(new Error('Concat authentication refused'));authenticated=true;clearTimeout(authTimer);accept();return;}
   if(Object.hasOwn(obj,'id')){
    const p=pending.get(obj.id);if(!p)return;pending.delete(obj.id);clearTimeout(p.timer);
-   if(obj.error){const e=new Error(String(obj.error?.message||'Concat error'));e.code=obj.error?.data?.code||'CONCAT_API';p.reject(e);}
+   if(obj.error){const e=new Error(String(obj.error?.message||'Concat error'));e.code=obj.error?.data?.code||'CONCAT_API';e.rpcCode=obj.error.code;e.rpcData=obj.error.data;p.reject(e);}
    else p.resolve(obj.result);return;
   }
   if(typeof obj?.method==='string'&&obj.method.startsWith('export.')){

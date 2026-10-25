@@ -133,12 +133,14 @@ export async function writeRethemeScriptWithModel(projectId,segments,{topic,note
   return {texts:parsed,budgets,provider:served.connectionName||selection.provider,model:served.model||selection.model,connectionId:served.connectionId||null};
 }
 
-export async function writeTextWithModel(projectId,{instructions,prompt,maxChars=4500}={}){
-  const selection=mediaPlannerStatus(projectId,'worker');
+export async function writeTextWithModel(projectId,{instructions,prompt,maxChars=4500,role='worker'}={}){
+  if(!['worker','founder','reviewer'].includes(role))throw blocked('Invalid text-model role.');
+  if(role==='reviewer'&&!getProject(projectId).modelRoles?.reviewer)throw blocked('Chon AI Reviewer cua du an.');
+  const selection=mediaPlannerStatus(projectId,role);
   if(!selection.available)throw blocked(selection.reason);
   const served={};
-  const text=await ask(selection.target,{system:String(instructions||'').slice(0,2000),prompt:String(prompt||'').slice(0,12000),usageContext:{role:'worker',projectId},served});
-  const out=String(text||'').trim().replace(/^```(?:\w+)?\s*/i,'').replace(/\\s*```$/,'');
+  const text=await ask(selection.target,{system:String(instructions||'').slice(0,2000),prompt:String(prompt||'').slice(0,12000),usageContext:{role,projectId},served});
+  const out=String(text||'').trim().replace(/^```(?:\w+)?\s*/i,'').replace(/\s*```$/,'');
   if(!out||out.length>maxChars)throw new Error('AI không trả văn bản hợp lệ hoặc văn bản quá dài. Đã chặn.');
   return {text:out,provider:served.connectionName||selection.provider,model:served.model||selection.model,connectionId:served.connectionId||null};
 }

@@ -188,7 +188,7 @@ export function findConnectionByKind(kind) {
 
 export function saveConnection(input) {
   if (!unlocked) throw new Error('Vault đang khóa.');
-  const validKinds = ['chatgpt_account','claude_account','gemini_account','antigravity_account','openai','gemini','anthropic','openai_compatible','github','vercel','supabase','youtube','facebook','tiktok','other'];
+  const validKinds = ['chatgpt_account','claude_account','gemini_account','antigravity_account','openai','gemini','anthropic','openai_compatible','github','vercel','supabase','youtube','facebook','tiktok','threads','x','zalo','other'];
   if (!validKinds.includes(input.kind)) throw new Error('Loại kết nối không hợp lệ.');
   const now = new Date().toISOString();
   const id = input.id || crypto.randomUUID();

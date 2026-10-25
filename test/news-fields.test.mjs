@@ -67,7 +67,7 @@ function fieldWorld(cards) {
   };
   const host = {
     mediaWorkspace: path.join(dir, 'media'),
-    submit: ({ projectId, operation }) => { const id = 'task-' + (++seq); artifacts.set(id, { id, projectId, name: 'story.mp4', bytes: 2048 }); return { id }; },
+    submit: ({ projectId, operation }) => { const id = 'task-' + (++seq); artifacts.set(id, { id, projectId, taskId:id, name: 'story.mp4', bytes: 2048 }); return { id }; },
     action: () => {},
     core: { queue: { drain: async () => {} }, state: { find: (id) => ({ id, state: 'completed' }) } },
     listArtifacts: (projectId) => [...artifacts.values()].filter(a => a.projectId === projectId),

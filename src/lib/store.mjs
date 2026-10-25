@@ -10,6 +10,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const overrideDir = process.env.AI_PROJECT_OS_DATA_DIR;
 if (overrideDir && !path.isAbsolute(overrideDir)) throw new Error('AI_PROJECT_OS_DATA_DIR must be an absolute path.');
 export const DATA_DIR = overrideDir ? path.resolve(overrideDir)
+  : process.env.AIOS_TEST_ISOLATION === '1' ? path.join(ROOT, '.data')
   : process.platform === 'win32' ? path.join(process.env.LOCALAPPDATA || process.env.APPDATA || process.env.USERPROFILE || ROOT, 'AIProjectOSLocal', 'data')
   : path.join(ROOT, '.data');
 export const BACKUP_DIR = process.env.AI_PROJECT_OS_BACKUP_DIR

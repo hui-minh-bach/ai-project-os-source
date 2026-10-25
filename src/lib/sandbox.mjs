@@ -1,6 +1,11 @@
 import { commandExists, run } from './shell.mjs';
 import { createVaultSecretRedactor } from './vault.mjs';
 import crypto from 'node:crypto';
+import {npmCliPath} from './managed-cli.mjs';
+
+// Windows batch wrappers cannot be directly spawned with shell:false. Keep
+// shell disabled and invoke the npm JavaScript entry with the current Node.
+export function hostNpmInvocation({platform=process.platform,nodePath=process.execPath,resolveNpm=npmCliPath}={}){return platform==='win32'?{exe:nodePath,prefix:[resolveNpm({nodePath})]}:{exe:'npm',prefix:[]};}
 
 export async function sandboxStatus(){return {docker:await commandExists('docker')};}
 
@@ -18,9 +23,9 @@ export async function runNpm(root,script,{mode='safe',timeoutMs=180000}={}){
       const args=['run','--rm','--network','none','--cap-drop','ALL','--security-opt','no-new-privileges','--pids-limit','256','--memory','1536m','--cpus','2','-v',`${root}:/workspace`,'-w','/workspace','node:22-bookworm-slim','npm','run',script];
       result=await run('docker',args,{timeoutMs,inheritEnv:false});
     }else{
-      const exe=process.platform==='win32'?'npm.cmd':'npm';
+      const {exe,prefix}=hostNpmInvocation();
       // Explicit Host mode still excludes unrelated ambient shell credentials.
-      result=await run(exe,['run',script],{cwd:root,timeoutMs,inheritEnv:false});
+      result=await run(exe,[...prefix,'run',script],{cwd:root,timeoutMs,inheritEnv:false});
     }
     status=status||(result.timedOut?'TIMED_OUT':result.code===0?'PASS':'FAIL');
   }catch(e){result={code:null,stdout:'',stderr:redact(e?.message||e),timedOut:false};status='ERROR';reason=result.stderr;}

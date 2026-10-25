@@ -22,6 +22,20 @@ export function recordModels(connection, models) {
 export function invalidateModels(id) {
   const all = registry(); delete all[id]; writeJson(FILE, all);
 }
+/** R4 keeps the current-credential catalog for resolving an existing project
+ * binding to its backup. A runtime failure is NOT a successful verification.
+ * Explicit catalog invalidation and identity changes keep their strict gates.
+ */
+export function noteModelRuntimeFailure(connection, status) {
+  const all=registry(),r=all[connection.id];
+  if(!r || r.revision!==(connection.credentialVersion||''))return;
+  r.runtimeIssue={status:Number(status),at:new Date().toISOString()};
+  writeJson(FILE,all);
+}
+export function clearModelRuntimeFailure(connection) {
+  const all=registry(),r=all[connection.id];
+  if(r?.revision===(connection.credentialVersion||'')&&r.runtimeIssue){delete r.runtimeIssue;writeJson(FILE,all);}
+}
 export const ACCOUNT_KINDS = Object.freeze(['chatgpt_account', 'claude_account', 'gemini_account', 'antigravity_account']);
 export function connectionHasCredential(c) {
   return c.kind === 'chatgpt_account' ? Boolean(c.meta?.accountIdentity) : ['claude_account', 'gemini_account'].includes(c.kind) ? c.meta?.authMode === 'cli-account' : c.kind === 'antigravity_account' ? c.meta?.authMode === 'antigravity-cli' : Boolean(c.secret);
@@ -29,7 +43,7 @@ export function connectionHasCredential(c) {
 export function registryEntry(id) {
   const c = getConnection(id), r = registry()[id];
   if (!AI_KINDS.includes(c.kind) || !connectionHasCredential(c)) throw new Error('Kết nối không có AI credential.');
-  if (!r || r.revision !== (c.credentialVersion || '') || r.status !== 'verified') throw new Error('Chưa xác minh danh sách model. Hãy làm mới kết nối.');
+  if (!r || r.runtimeIssue || r.revision !== (c.credentialVersion || '') || r.status !== 'verified') throw new Error('Chưa xác minh danh sách model. Hãy làm mới kết nối.');
   if (!Number.isFinite(Date.parse(r.verifiedAt)) || Date.now() - Date.parse(r.verifiedAt) > MODEL_REGISTRY_MAX_AGE_MS) throw new Error('Danh sách model đã cũ. Hãy làm mới kết nối.');
   if (ACCOUNT_KINDS.includes(c.kind)) { const models = r.models.filter(m => Number.isFinite(Date.parse(r.modelVerifiedAt?.[m])) && Date.now() - Date.parse(r.modelVerifiedAt[m]) <= MODEL_REGISTRY_MAX_AGE_MS); if (!models.length) throw new Error('Chưa có model tài khoản được xác minh phản hồi.'); return { ...r, models }; }
   return r;
@@ -56,7 +70,7 @@ export function catalogModelsFor(id) {
   let verified = [];
   if (isAccount) verified = (r.models || []).filter(m => Number.isFinite(Date.parse(r.modelVerifiedAt?.[m])) && Date.now() - Date.parse(r.modelVerifiedAt[m]) <= MODEL_REGISTRY_MAX_AGE_MS);
   else if (r.status === 'verified' && fresh) verified = [...(r.models || [])];
-  return { catalog, verified, stale: !fresh, entry: r, connection: c };
+  return { catalog, verified:r.runtimeIssue?[]:verified, stale: !fresh, entry: r, connection: c };
 }
 export function modelAvailability(id) {
   if (!vaultStatus().unlocked) return { status: 'locked', models: [], verifiedModels: [], catalogModels: [], catalogStale: false, message: 'Vault đang khóa — trạng thái chưa xác định.' };
@@ -64,6 +78,7 @@ export function modelAvailability(id) {
   if (!AI_KINDS.includes(c.kind) || !connectionHasCredential(c)) return { status: 'unverified', models: [], verifiedModels: [], catalogModels: [], catalogStale: false, message: 'Kết nối không có AI credential.' };
   const { catalog, verified, stale, entry } = catalogModelsFor(id);
   if (!entry || !catalog.length) return { status: 'unverified', models: [], verifiedModels: [], catalogModels: [], catalogStale: false, verifiedAt: entry?.verifiedAt || null, message: 'Chưa có danh mục model. Hãy tải danh mục model của tài khoản.' };
+  if(entry.runtimeIssue)return {status:'unverified',models:catalog,verifiedModels:[],catalogModels:catalog,catalogStale:stale,verifiedAt:entry.verifiedAt||null,runtimeIssue:entry.runtimeIssue,message:'L\u1ed7i g\u1ecdi AI HTTP '+entry.runtimeIssue.status+'. Danh m\u1ee5c c\u0169 ch\u1ec9 gi\u1eef \u0111\u1ec3 chuy\u1ec3n vai tr\u00f2; h\u00e3y ki\u1ec3m tra k\u1ebft n\u1ed1i.'};
   const status = verified.length ? 'verified' : 'catalog';
   const message = stale ? 'Danh mục model đã cũ — vẫn chọn và chạy được; bấm Làm mới khi tiện.' : verified.length >= catalog.length ? '' : 'Đã có danh mục model. Model chưa xác minh vẫn chọn và chạy được; bấm Xác minh nếu muốn kiểm tra phản hồi trước.';
   return { status, models: catalog, verifiedModels: verified, catalogModels: catalog, catalogStale: stale, verifiedAt: entry.verifiedAt || null, message };
@@ -89,6 +104,15 @@ export function verifiedBinding(input) {
   if (ACCOUNT_KINDS.includes(c.kind)) return { connectionId, model, credentialVersion: c.credentialVersion };
   return { connectionId, model };
 }
+/** Ordered members; legacy projects remain valid without a migration. */
+export function roleBindings(project, role) {
+ if(!MODEL_ROLES.includes(role))return [];
+ if(role==='council')return Array.isArray(project?.modelRoles?.council)?project.modelRoles.council:[];
+ const team=project?.modelRoleTeams?.[role];
+ if(Array.isArray(team)&&team.length)return team;
+ const primary=project?.modelRoles?.[role];
+ return primary?[primary]:[];
+}
 export function roleRef(projectId, role, member = 0) {
   if (!MODEL_ROLES.includes(role)) throw new Error('Vai trò model không hợp lệ.');
   return `role:${projectId}:${role}:${member}`;
@@ -106,7 +130,7 @@ export function resolveBinding(target) {
     if (!MODEL_ROLES.includes(role) || !/^\d+$/.test(index || '')) throw new Error('Tham chiếu vai trò không hợp lệ.');
     const project = readJson('projects.json', []).find(p => p.id === projectId);
     if (!project) throw new Error('Không tìm thấy dự án cho vai trò.');
-    binding = role === 'council' ? project.modelRoles?.council?.[Number(index)] : project.modelRoles?.[role];
+    binding = roleBindings(project,role)[Number(index)];
     if (!binding) throw new Error(`Chưa phân vai ${role} cho dự án.`);
     return { ...verifiedBinding(binding), projectId, role, member: Number(index) };
   }
@@ -122,7 +146,7 @@ export function resolveModelConnection(target) {
 export function roleDescriptors(project) {
   const out = {};
   for (const role of MODEL_ROLES) {
-    const bindings = role === 'council' ? project.modelRoles?.council || [] : project.modelRoles?.[role] ? [project.modelRoles[role]] : [];
+    const bindings = roleBindings(project,role);
     out[role] = bindings.map((b, i) => {
       let status = 'ready', message = '';
       try { verifiedBinding(b); status = catalogModelsFor(b.connectionId).verified.includes(b.model) ? 'verified' : 'ready'; }
