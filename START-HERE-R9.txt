@@ -1,0 +1,13 @@
+AI PROJECT OS v0.9.68 - FULL SOURCE, TRUONG PHONG TU DONG NHAN FILE
+
+1) Giai nen ZIP vao thu muc moi tren Windows. KHONG ghi de ban cu truoc khi thu.
+2) Can Node.js 22+ va FFmpeg/FFprobe. Chay RUN-WINDOWS.cmd.
+3) Mo Vault. Kiem tra AI roles trong Ket noi. Cai Windows Vietnamese voice/Piper va cong cu anh local neu chua co. Ket noi Concat tu Media Studio neu muon dung engine Concat.
+4) Mo Radar tin, chon tin, bam Lam viec; tai Idea Studio > Giao file khi hoan thanh se hien nhat ky va file MP4, WAV, SRT, VTT, kich ban, thumbnail. Nguon anh/voice/Concat chua READY thi bao loi ro rang, khong tu dung API co phi.
+
+QUAN TRONG: AI-Project-OS.exe trong goi nay la launcher cu giu nguyen, CHUA build lai tren Windows. Ban v0.9.68 la source update. Khong bao dam Concat native va tai khoan AI cua may nguoi dung chay 100% khi chua test tren may do.
+
+Chi tiet: docs/V0968_GIAO_FILE_TU_DONG_3D_CONCAT.md
+Bien ban: evidence/v0968/verification.json
+Hinh WebGL that (GPU phan mem): evidence/v0968/r9-real-webgl-swiftshader.png
+Video MP4 demo fixture: evidence/v0968/r9-fixture-narrated.mp4

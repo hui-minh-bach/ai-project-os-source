@@ -26,3 +26,6 @@ Before distributing a build that vendors or modifies upstream code, re-check the
 ## Whisper.cpp (external optional transcription)
 
 Whisper is not embedded in this ZIP. Enable captions only after installing an authorized `whisper-cli` executable and model separately, and configuring paths locally. Model use remains subject to its own license and privacy conditions.
+
+## R6 local QR encoder
+`src/vendor/qrcode/` contains the QRCode JavaScript encoder, copyright (c) 2009 Kazuhiko Arase, MIT, as vendored by qrcode-terminal in the installed Node/npm distribution. Upstream notices and both the distribution license and MIT text are retained in that folder. QR generation does not send customer URLs to an external QR service.

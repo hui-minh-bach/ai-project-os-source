@@ -1,3 +1,11 @@
+# 0.9.66: Windows voice / AI images / Concat
+
+Read `START-HERE-WINDOWS-AI-CONCAT.md` first. Scope and honest test boundaries: `docs/WINDOWS_AI_CONCAT_IMPLEMENTATION.md`. Earlier notes below are historical.
+
+> Current source: v0.9.65 / Recovery R8. Start with `START-HERE-RECOVERY-R8.md`; current evidence: `evidence/recovery-r8/verification.json`. Prior sections below are historical. Windows/live-services commercial acceptance remains open.
+
+> **0.9.64 / R7:** Xem `START-HERE-WORKFLOW-R7.md` cho luồng hiện tại. Tài liệu phía dưới giữ lại thông tin các bản trước.
+
 # v0.8.5 Internal RC – Media workflow corrections from customer recording (2026-10-16)
 
 - Fixed misleading 3-step Video Studio flow: "Only plan" and "Render JSON" do **not** execute Whisper, Concat, voice or music options; they now refuse these selected options with an exact route to "Dựng MP4 theo mô tả".

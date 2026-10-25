@@ -1,3 +1,65 @@
+## v0.9.69 — Dịch vụ khách hàng từ brief đến file bàn giao (2026-10-24)
+
+- Idea Studio: tiếp nhận brief khách trực tiếp, tự chọn loại sản phẩm (bài đăng / video có giọng).
+- Worker thật theo vai trò, Reviewer độc lập, giới hạn đa đơn; giữ yêu cầu cũ và an toàn provider.
+- Giao khách một ZIP có manifest SHA-256 và tài liệu quyền sử dụng; không giao tệp chưa có đủ đầu ra thật.
+- Chặn video MP4 câm/thất lạc WAV/SRT; giữ Concat hoặc FFmpeg được gắn nhãn chính xác.
+- Browser/HTTP/FFmpeg test với provider giả lập, không chứng nhận Windows/tài khoản thực hoặc doanh thu.
+
+## v0.9.67 (2026-10-24) — Source QA / factory skill integration
+
+- Six factory skills + checkpoint, CSP-safe Radar, Idea Studio file/photo/video upload bridge into Media Studio, per-project media references, standalone WebGL fallback diagnostics.
+- Original approved 81/81 3D files and prior multi-AI task roles preserved; no GitHub publish.
+- 732 automated tests (731 pass, 1 skip), 11 isolated browser/HTTP checks, actual FFmpeg narrated diagnostic MP4, protected scene comparison pass.
+- Native Windows/Piper/Concat/FLUX/WebGL and commercial final acceptance **not tested**. Original Windows launcher binary retained unchanged.
+
+# 0.9.66 - Windows / AI images / Concat pipeline
+
+Installed Windows voices; model-aware image account routing and bounded handoff; native Concat project/final-export adapter; validated media receipts and same-story recovery; reception and Video Studio integration. Approved room assets unchanged. External Windows/AI/native-Concat acceptance remains untested.
+
+# v0.9.65 - Recovery R8 (2026-10-23)
+- Resume Commercial Check repairs from delivered R7; approved 3D files unchanged.
+- Restore source-entry buttons with delegated handlers under unchanged CSP.
+- Persist multi-member role teams; independent task rotation, distinct review and compatibility with prior bindings.
+- Correct illustration gateway prompt/path; support uploaded images and explicit AI generation. No unrelated fallback artwork.
+- Add explicit voice selection, authenticated preview and optional consented local Vietnamese setup; propagate voice to scenes.
+- Preserve full narration through image transitions; keep project media drafts separate and reset spend consent across projects.
+- Keep reception work/progress and artifact-only products separate. No new paid actions or cloud resources.
+- Source RC, not a signed Windows installer/commercial certification. See current evidence for test scope.
+
+# 0.9.64 - Reception / Products R7
+
+- Close central intake -> named team -> approved execution -> real product handoff.
+- Keep unfinished-task robots seated, including actual fallback during media production.
+- Add persistent custom Radar fields, query suggestions, source/range scanning and explicit errors.
+- Preflight video voice/tool capabilities, explicit caption MP4/SRT, local receipt, range downloads and Vault guard.
+- Preserve cloud one-button delivery, approved 3D aesthetics and existing credentials/data.
+- Reproducible local fixture tests; live services/Windows/signing remain unverified.
+
+# v0.9.63 - One-button web delivery R6 (source pilot, 2026-10-23)
+
+- Add durable launch runner and ten-stage delivery contract: build, validate, database, schema, hosting, environment, deploy, auth, smoke, handoff.
+- Use actual project analysis/Council, named role assignment, existing bounded AI failover, reviewed Git worktrees and final passing tests. Do not mark skipped tests as product success.
+- Add strict static/Vite/Next.js delivery manifest; new owner-only Supabase tables/private storage; never place admin/management credentials in frontend settings.
+- Add scoped REST adapters for new Vercel/Supabase resources, resource-ID receipts, lost-response reconciliation, deployment readiness and source/access checks. No cloud resources were created in this verification run.
+- Generate QR and ZIP locally; integrate approval, status, named task attribution, recovery and product cards inside Idea Studio. Protect against double clicks, stale specs/credentials, Vault lock and corrupt journals.
+- Add the toggleable Project Continuity Orchestrator built-in to Skill Hub and workflow prompts. This does not provide unattended background execution.
+- Fix a genuine intake-panel overflow that covered approval controls. Keep all 81 approved 3D modules/assets unchanged.
+- Targeted reliability repairs: avoid unused stream truncation in Kokoro arrayBuffer download fallback; resolve Windows npm JS entry instead of spawning npm.cmd with shell disabled; await test-server shutdown before rename-fixture cleanup.
+- Verification: 644 tests total, 643 passed, 1 optional media integration skipped, 0 failed; 7 in-memory Chromium/actual HTTP UI checks; QR decode and independent ZIP validation. Live customer AI/cloud, Windows/GPU and actual multi-user RLS remain not_tested.
+- Pilot limits: new isolated cloud projects only, bounded source snapshot, simple owner-scoped database schema, no local dependency installation, domain purchase/payment/SMTP setup, native app delivery or universal business acceptance. Interrupted R5 changes were unavailable and are not represented as integrated.
+
+---
+
+# 0.9.61 / SPACE STUDIO R2.1 (source candidate)
+
+- Full geometric room, shared source motion and offline proof video.
+- Isolated lazy app mode, camera controls, lifecycle cleanup and legacy fallback.
+- Fleet endpoint returns 423 when the Vault is locked; no auth bypass.
+- Distinct source version prevents an older running server from being reused.
+- Inherited test fixture repair: a comment swallowed the stdio assertions/finally block; restore its newline so the fixture terminates and actually checks timeout/security.
+- No new installer build or Windows/GPU acceptance.
+
 # v0.8.5 Internal RC – Media workflow corrections from customer recording (2026-10-16)
 
 - Fixed misleading 3-step Video Studio flow: "Only plan" and "Render JSON" do **not** execute Whisper, Concat, voice or music options; they now refuse these selected options with an exact route to "Dựng MP4 theo mô tả".

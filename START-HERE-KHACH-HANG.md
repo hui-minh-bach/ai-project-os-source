@@ -1,3 +1,5 @@
+> **0.9.64 / R7:** Xem `START-HERE-WORKFLOW-R7.md` cho luồng hiện tại. Tài liệu phía dưới giữ lại thông tin các bản trước.
+
 # v0.8.4 RC — Hướng dẫn thử nghiệm Concat một nút
 
 Khách thử nghiệm **không phải mở GitHub để tải Concat thủ công**: trong Video Studio, mở Vault và bấm **Cài + kết nối Concat tự động**, cấp quyền cài. Gói thử nghiệm hiện tại tự tải bộ cài official qua HTTPS khi Concat chưa có, kiểm tra SHA-256. Gói installer offline đầy đủ cần được nhà phát triển build trên Windows theo `windows/Build-WorkerC-Internal-RC.ps1` (không phải thao tác của khách). Chưa đủ điều kiện bán thương mại hoặc nghiệm thu Smart App Control trên Windows.

@@ -1,6 +1,6 @@
 {
   "name": "ai-project-os-local",
-  "version": "0.9.62",
+  "version": "0.9.75",
   "private": true,
   "type": "module",
   "engines": {
@@ -8,14 +8,30 @@
   },
   "scripts": {
     "start": "node src/server.mjs",
-    "test": "node --test --test-concurrency=1",
-    "check": "node --check src/server.mjs && node --check src/lib/vault.mjs && node --check src/lib/providers.mjs && node --check src/lib/projects.mjs && node --check src/lib/workspace.mjs && node --check src/lib/skills.mjs && node --check src/lib/engines.mjs && node --check src/lib/native-agent.mjs && node --check src/lib/publish.mjs && node --check src/lib/task-git.mjs && node --check src/lib/sandbox.mjs && node --check src/lib/external-agents.mjs && node --check public/app.js && node --check src/lib/cli-connections.mjs && node --check src/lib/supabase.mjs && node --check src/lib/domain.mjs && node --check src/lib/git-security.mjs && node --check src/launcher.mjs && node --check src/lib/council-spec.mjs && node --check public/tabs/council.js && node --check src/lib/integration-host.mjs && node --check src/lib/media-ai.mjs && node --check src/lib/heygen-tts.mjs && node --check src/lib/local-piper-tts.mjs && node --check src/lib/voiceover.mjs && node --check src/lib/voice-captions.mjs && node --check public/experience.js && node --check public/theme.js && node --check public/media-studio.js && node --check scripts/verify-media-e2e.mjs && node --check src/lib/system-doctor.mjs && node --check src/lib/local-access.mjs && node --check src/lib/managed-cli.mjs && node --check src/lib/cli-account.mjs && node --check src/lib/antigravity-account.mjs && node --check public/tabs/connections.js && node --check tools/install-ai-clis.mjs && node --check tools/cli-login.mjs && node --check src/lib/local-whisper.mjs && node --check src/lib/image-gen.mjs && node --check src/lib/account-auth.mjs && node --check integrations/media-engine/src/concat.cjs && node --check integrations/media-engine/src/concat-multitrack.cjs && node --check integrations/media-engine/src/timeline.cjs && node --check integrations/media-engine/src/renderer.cjs && node --check src/lib/concat-managed.mjs && node --check src/lib/ingest.mjs && node --check src/lib/publish-platforms.mjs && node --check src/lib/publish-records.mjs && node --check src/lib/orchestrator.mjs && node --check src/lib/updater.mjs && node --check src/lib/skill-import.mjs && node --check tools/update-publish.mjs && node --check src/lib/infra-tools.mjs && node --check src/lib/office-models.mjs && node --check src/lib/office-fleet.mjs && node --check public/tabs/team.js && node --check public/office-clip.mjs",
+    "test": "node scripts/run-tests.mjs",
+    "check": "node scripts/check-syntax.mjs",
     "verify:media-e2e": "node scripts/verify-media-e2e.mjs",
     "verify:quick-media": "node scripts/verify-media-quick-e2e.mjs",
     "verify:media-user-flow": "node scripts/verify-media-user-flow.mjs",
     "verify:large-media": "node scripts/verify-large-media.mjs",
     "verify:full": "npm run check && npm test && npm run verify:media-e2e && npm run verify:large-media",
     "verify:media-source-binding": "node scripts/verify-media-plan-api.mjs",
-    "verify:release-readiness": "node scripts/release-readiness.mjs --enforce"
-  }
+    "verify:release-readiness": "node scripts/release-readiness.mjs --enforce",
+    "test:space-studio": "node --test test/space-studio*.test.mjs",
+    "test:workflow": "node --test --test-concurrency=1 test/workflow-routing-r4.test.mjs test/workflow-orchestrator-r4.test.mjs",
+    "test:delivery": "node --test --test-concurrency=1 test/launch-*.test.mjs",
+    "verify:delivery-ui": "python scripts/verify-one-button-dom.py",
+    "test:reception": "node --test --test-concurrency=1 test/*r7.test.mjs",
+    "verify:reception-ui": "python scripts/verify-reception-r7.py",
+    "test:recovery": "node --test --test-concurrency=1 test/*r8.test.mjs",
+    "verify:recovery-ui": "python scripts/verify-recovery-r8.py",
+    "test:video-pipeline": "node --test --test-concurrency=1 test/windows-media-pipeline.test.mjs test/image-dispatch-pipeline.test.mjs test/concat-story-pipeline.test.mjs",
+    "verify:video-pipeline-ui": "python scripts/verify-windows-image-concat.py",
+    "verify:all-flows": "python scripts/verify-all-flows-v0970.py",
+    "verify:team16": "node scripts/verify-16-ai-v0970.mjs evidence/v0970"
+  },
+  "spaceStudioRevision": "space-studio-team-r3.0",
+  "releaseChannel": "windows-images-concat-source-rc",
+  "workflowRevision": "windows-images-concat-1",
+  "deliveryRevision": "one-button-r6.0"
 }

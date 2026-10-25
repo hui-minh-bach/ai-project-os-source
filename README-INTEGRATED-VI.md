@@ -1,3 +1,15 @@
+# BỔ SUNG CÔNG CỤ LOCAL MIỄN PHÍ (source v0.9.66)
+
+**Đọc [START-HERE-MIEN-PHI.md](START-HERE-MIEN-PHI.md) trước.** Bản này thêm cầu nối ảnh ComfyUI localhost, ưu tiên công cụ local miễn phí API, và kiểm tra tình trạng công cụ trong Engine Hub. Không thay phòng 3D. **Chưa nghiệm thu Windows/GPU hay đạt A–Z thương mại.** Các thông tin phiên bản bên dưới là lịch sử và có thể cũ hơn.
+
+---
+
+# 0.9.66: Windows voice / AI images / Concat
+
+Read `START-HERE-WINDOWS-AI-CONCAT.md` first. Scope and honest test boundaries: `docs/WINDOWS_AI_CONCAT_IMPLEMENTATION.md`. Earlier notes below are historical.
+
+> Current source: v0.9.65 / Recovery R8. Start with `START-HERE-RECOVERY-R8.md`; current evidence: `evidence/recovery-r8/verification.json`. Prior sections below are historical. Windows/live-services commercial acceptance remains open.
+
 # Cập nhật v0.7.0 — Phát hành thử cho khách
 
 Đọc `START-HERE-KHACH-HANG.md` và `RELEASE-CHECKLIST-V070.md` trước. Bản này bổ sung lưu dữ liệu tách khỏi thư mục ứng dụng trên Windows, backup/restore AES256-GCM, kết nối HeyGen qua Vault và khởi chạy Node portable sau khi kiểm SHA. Báo cáo v0.5.1 bên dưới giữ nguyên làm lịch sử kỹ thuật; **chưa kết luận sẵn sàng thương mại chính thức**.

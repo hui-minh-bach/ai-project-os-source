@@ -1,3 +1,79 @@
+# Bản hiện tại: 0.9.75
+
+Hướng dẫn liên kết đa nền tảng nằm ngay đầu tab Hướng dẫn; có nút mở từ Kết nối và Publish. Phân biệt token quản trị/CLI, OAuth/token xã hội và các kênh chỉ xuất nội dung. Giữ nguyên chức năng .74, không thêm OAuth hoặc tự cấp thêm quyền. Đọc START-HERE-V0975.md.
+
+# Lịch sử: 0.9.74
+
+Đọc [START-HERE-V0974.md](START-HERE-V0974.md). Sửa nhập GitHub, chọn đúng dự án và đội AI; thêm kênh xã hội với phạm vi API/xuất nội dung rõ ràng. Các mục dưới là lịch sử.
+
+# Lịch sử: 0.9.73
+
+Đọc [START-HERE-V0973.md](START-HERE-V0973.md). Sửa tiếp nhận/hội thoại, giữ ghế khi dự án chưa xong và truyền ảnh Codex lớn. Các phần dưới là lịch sử.
+
+# Lịch sử: 0.9.72
+
+Đọc [START-HERE-V0972.md](START-HERE-V0972.md). Bản này sửa nhận lại giọng local, bộ nhớ đệm, tải phần giọng còn thiếu và retry đúng lượt sản xuất. Các mục/báo cáo phiên bản cũ bên dưới là lịch sử.
+
+# Bản sửa hiện tại: 0.9.71
+
+Đọc [START-HERE-V0971.md](START-HERE-V0971.md) để chạy app và xử lý thiếu giọng Việt. Các báo cáo 0.9.70 bên dưới là lịch sử kiểm tra trước bản sửa.
+
+# AI Project OS v0.9.70
+
+Đọc [START-HERE-V0970.md](START-HERE-V0970.md) trước. Gói source có 83 bộ skill, 13 repo và kết nối MCP HTTP; xem báo cáo kiểm tra A–Z tại `docs/BAO_CAO_V0970.html`. Các phần bên dưới là lịch sử.
+
+---
+
+# SOURCE v0.9.69 — Nhận đơn dịch vụ, AI xử lý, giao hồ sơ khách
+
+Đọc **[START-HERE-V0969.md](START-HERE-V0969.md)** trước. Đây là source có nghiệm thu fixture/Chromium/FFmpeg, **chưa** nghiệm thu tài khoản AI thật, Concat Windows, hoặc doanh thu; không đè bản đang sử dụng. Các hướng dẫn dưới là lịch sử.
+
+---
+
+# BỔ SUNG CÔNG CỤ LOCAL MIỄN PHÍ (source v0.9.66)
+
+**Đọc [START-HERE-MIEN-PHI.md](START-HERE-MIEN-PHI.md) trước.** Bản này thêm cầu nối ảnh ComfyUI localhost, ưu tiên công cụ local miễn phí API, và kiểm tra tình trạng công cụ trong Engine Hub. Không thay phòng 3D. **Chưa nghiệm thu Windows/GPU hay đạt A–Z thương mại.** Các thông tin phiên bản bên dưới là lịch sử và có thể cũ hơn.
+
+---
+
+# 0.9.66: Windows voice / AI images / Concat
+
+Read `START-HERE-WINDOWS-AI-CONCAT.md` first. Scope and honest test boundaries: `docs/WINDOWS_AI_CONCAT_IMPLEMENTATION.md`. Earlier notes below are historical.
+
+> Current source: v0.9.65 / Recovery R8. Start with `START-HERE-RECOVERY-R8.md`; current evidence: `evidence/recovery-r8/verification.json`. Prior sections below are historical. Windows/live-services commercial acceptance remains open.
+
+> **0.9.64 / R7:** Xem `START-HERE-WORKFLOW-R7.md` cho luồng hiện tại. Tài liệu phía dưới giữ lại thông tin các bản trước.
+
+# ONE-BUTTON WEB DELIVERY R6 - v0.9.63
+
+Start with [START-HERE-ONE-BUTTON-R6.md](START-HERE-ONE-BUTTON-R6.md) for the Vietnamese launch and usage guide. This is a **complete source pilot**, not a new EXE installer and not a guarantee of every product A-Z.
+
+The new flow runs inside Idea Studio: idea and analysis -> explicit specification/account/cost approval -> named AI build/review/tests -> optional new isolated Supabase -> new Vercel deployment -> verified URL + local QR + source ZIP. Provider failures use the existing R4 handoff. Checkpoints preserve completed effects; unknown create outcomes are reconciled instead of blindly replayed.
+
+The 81 approved 3D room modules/assets remain byte-identical. The continuity workflow is visible and toggleable in Skill Hub. Cloud management credentials belong in the local Vault, not chat messages or source files. Account login alone is not management API authorization.
+
+**Latest verification:** 643 passed, 1 optional media test skipped, 0 failed; 7 in-memory Chromium UI/real HTTP checks; QR decode and ZIP verification. AI/cloud are isolated fixtures. Windows, GPU, live customer accounts/cloud, cross-user RLS and business acceptance remain untested. Scope and limitations: [docs/ONE_BUTTON_R6_ACCEPTANCE.md](docs/ONE_BUTTON_R6_ACCEPTANCE.md). Evidence: `evidence/one-button-r6/`.
+
+This build uses the available R4 source. The interrupted R5 Radar/custom-category/video/intake work was not available and is not claimed as merged. Close the old Local Worker, back up your data, extract to a new directory and run `RUN-WINDOWS.cmd`. Do not remove the user's existing external data directory.
+
+---
+
+## Historical release notes below
+
+# WORKFLOW RELIABILITY R4 - v0.9.62
+
+Read [START-HERE-WORKFLOW-R4.md](START-HERE-WORKFLOW-R4.md) first. Full source, not a new installer. The approved Team R3 3D scene remains unchanged. This release changes project text-provider failover, real intake execution, input evidence, retry recovery and honest result attribution. Close the previous Local Worker and run `RUN-WINDOWS.cmd` from this new folder; preserve the per-user data folder.
+
+The documentation below describes previous releases. Current verification is under `evidence/workflow-r4/`; Linux/fixture/UI-harness checks are not Windows or live-provider sign-off.
+
+---
+
+# SPACE STUDIO TEAM R3 (base 0.9.61)
+
+Start with [START-HERE-SPACE-STUDIO-TEAM-R3.md](START-HERE-SPACE-STUDIO-TEAM-R3.md). Approved R2 architecture is preserved. Added real-account avatars, read-only live status, automatic visual chair actions and mild brightness control. No new AI work is launched by opening this room.
+
+The older documentation below remains historical.
+
 # AI Project OS v0.8.4 — Concat managed setup (INTERNAL RC)
 
 **Một ứng dụng điều khiển, không còn yêu cầu khách tự đi tải Concat**: mở `AI-Project-OS.exe`, mở Vault, vào **Video & Story Studio → Kế hoạch dựng → Kết nối trình biên tập Concat**, bấm **Cài + kết nối Concat tự động**. Đồng ý với cài đặt ứng dụng Concat AGPL riêng. Nếu Concat đã cài thì ứng dụng chỉ cấu hình kết nối; nếu chưa thì tự xác minh SHA-256 của bộ cài chính thức, cấu hình localhost, lưu token vào Vault và khởi động Concat.

@@ -1,0 +1,32 @@
+AI PROJECT OS v0.9.60 - BAN VA IDEA STUDIO 3D
+=============================================
+
+DAY LA BAN VA MA NGUON, KHONG PHAI BO CAI EXE WINDOWS MOI.
+
+Cach dung tren may da cai AI Project OS v0.9.60:
+1. DONG HOAN TOAN AI Project OS, ke ca cua so trinh duyet va server dang chay.
+2. Giai nen ZIP ra mot thu muc (khong chay truc tiep ben trong ZIP).
+3. Bam dup CAI-BAN-VA-3D.cmd. Script tim thu muc cai dat; neu khong tim thay, cho phep chon thu muc.
+4. Script chi cap nhat public/tabs/team.js va them public/office-motion.mjs. Script kiem tra hash ma nguon goc dung v0.9.60 de tranh de len phien ban khac.
+5. Mo lai chuong trinh > Idea Studio. Phong WebGL 3D bat mac dinh, co the chuyen thu cong ve ISO.
+6. De thu di/chuyen ban, su dung tinh nang chon robot va chon ban/vi tri san trong phong 3D.
+
+NOI DUNG SUA:
+- Bat WebGL 3D theo mac dinh; giu isometric khi dung chon hoac 3D khong the khoi dong.
+- Gan TAM19 GLB cho tat ca robot va robot moi ket noi; khong ve hai than chong len nhau.
+- Them AnimationMixer clip ngoi xuong, ngoi cho, ngoi lam viec, dung day tren cac khop co san cua TAM19.
+- Dung dung diem ghe, xoay nguoi, di theo waypoint tinh boi A* tranh ban, co chuyen huong va giam toc.
+- Khong thay doi business logic, API, du lieu ca nhan, thu muc data hay cau hinh ket noi.
+
+HAN CHE KIEM THU:
+- Da pass 38/38 test phong AI va npm run check tren source v0.9.60.
+- Chua kiem thu chay EXE Windows va chuyen dong WebGL tren GPU thuc; ban va duoc giao de kiem thu thuc dia.
+- Khong tuyet doi hoa do tu nhien: chua co IK chan/bam san, chua collision dong giua robot, chua mo phong keo ghe.
+- Chromium tu dong trong moi truong xay dung bi chan truy cap localhost; chua co screenshot xac nhan.
+
+AN TOAN:
+- Script backup team.js cu duoi %%LOCALAPPDATA%%\AIProjectOSLocal\backups\idea3d-<thoi-gian>.
+- Khong xoa cai dat, tai khoan, token, profile, du lieu hoac file nguoi dung.
+- Neu team.js khac hash ban goc 0.9.60, script tu dung, khong de len.
+
+Voi ban full source, can Node.js >=22 va chay RUN-WINDOWS.cmd. Ban full source khong chua runtime Node.exe va khong phai installer duoc ky.
