@@ -1,0 +1,6 @@
+interface:
+  display_name: "Create Your Pet"
+  short_description: "Choose and activate a personalized Work pet"
+  default_prompt: "Use $onboarding-setup-pet to create and activate a personalized Work pet, loading $pets first and using $answers-ask-user-input for choices."
+policy:
+  allow_implicit_invocation: true

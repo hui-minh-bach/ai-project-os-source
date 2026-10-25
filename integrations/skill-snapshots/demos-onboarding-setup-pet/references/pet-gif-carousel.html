@@ -1,0 +1,194 @@
+<section id="work-pet-gif-carousel" aria-label="Pet animation modes" tabindex="0">
+  <style>
+    #work-pet-gif-carousel {
+      width: 100%;
+      color: var(--foreground);
+      outline: none;
+    }
+
+    #work-pet-gif-carousel:focus-visible {
+      border-radius: 18px;
+      box-shadow: 0 0 0 2px var(--ring);
+    }
+
+    #work-pet-gif-carousel .wpg-shell {
+      width: min(100%, 420px);
+      margin: 0 auto;
+      padding: 16px 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    #work-pet-gif-carousel .wpg-stage {
+      min-height: 286px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--viz-series-1) 16%, transparent) 0%, transparent 58%),
+        var(--card);
+    }
+
+    #work-pet-gif-carousel .wpg-gif {
+      display: block;
+      width: 256px;
+      height: 234px;
+      max-width: 82%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    #work-pet-gif-carousel .wpg-meta {
+      min-height: 44px;
+      display: grid;
+      align-content: center;
+      gap: 3px;
+      text-align: center;
+    }
+
+    #work-pet-gif-carousel .wpg-name {
+      margin: 0;
+      font-weight: 500;
+    }
+
+    #work-pet-gif-carousel .wpg-detail {
+      margin: 0;
+      color: var(--muted-foreground);
+    }
+
+    #work-pet-gif-carousel .wpg-nav {
+      display: grid;
+      grid-template-columns: 44px minmax(74px, auto) 44px;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    #work-pet-gif-carousel .wpg-button {
+      width: 44px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--foreground);
+      background: var(--card);
+      cursor: pointer;
+      font: inherit;
+    }
+
+    #work-pet-gif-carousel .wpg-button:hover {
+      background: var(--accent);
+    }
+
+    #work-pet-gif-carousel .wpg-button:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+
+    #work-pet-gif-carousel .wpg-count {
+      color: var(--muted-foreground);
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 480px) {
+      #work-pet-gif-carousel .wpg-shell {
+        padding: 12px 0;
+        gap: 12px;
+      }
+
+      #work-pet-gif-carousel .wpg-stage {
+        min-height: 252px;
+        border-radius: 20px;
+      }
+
+      #work-pet-gif-carousel .wpg-gif {
+        width: 224px;
+        height: 205px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #work-pet-gif-carousel .wpg-gif {
+        animation: none;
+      }
+    }
+  </style>
+
+  <div class="wpg-shell">
+    <div class="wpg-stage">
+      <img class="wpg-gif" alt="" />
+    </div>
+
+    <div class="wpg-meta" aria-live="polite">
+      <p class="wpg-name"></p>
+      <p class="wpg-detail text-small"></p>
+    </div>
+
+    <div class="wpg-nav" aria-label="Animation navigation">
+      <button class="wpg-button" type="button" data-direction="previous" aria-label="Previous animation">&larr;</button>
+      <span class="wpg-count text-small"></span>
+      <button class="wpg-button" type="button" data-direction="next" aria-label="Next animation">&rarr;</button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.getElementById("work-pet-gif-carousel");
+      const image = root.querySelector(".wpg-gif");
+      const name = root.querySelector(".wpg-name");
+      const detail = root.querySelector(".wpg-detail");
+      const count = root.querySelector(".wpg-count");
+      const previous = root.querySelector("[data-direction='previous']");
+      const next = root.querySelector("[data-direction='next']");
+
+      const modes = [
+        { name: "Idle", detail: "A quiet loop while your pet is ready to help.", src: "{{IDLE_GIF_DATA_URI}}" },
+        { name: "Run right", detail: "Moving across the workspace to the right.", src: "{{RUN_RIGHT_GIF_DATA_URI}}" },
+        { name: "Run left", detail: "Heading back across the workspace to the left.", src: "{{RUN_LEFT_GIF_DATA_URI}}" },
+        { name: "Wave", detail: "A friendly hello.", src: "{{WAVE_GIF_DATA_URI}}" },
+        { name: "Jump", detail: "A quick burst of energy.", src: "{{JUMP_GIF_DATA_URI}}" },
+        { name: "Failure reaction", detail: "A visible reaction when something goes wrong.", src: "{{FAILURE_GIF_DATA_URI}}" },
+        { name: "Waiting", detail: "Ready for your input or approval.", src: "{{WAITING_GIF_DATA_URI}}" },
+        { name: "Active work", detail: "Focused while a task is in progress.", src: "{{ACTIVE_WORK_GIF_DATA_URI}}" },
+        { name: "Review", detail: "Checking the work before calling it done.", src: "{{REVIEW_GIF_DATA_URI}}" }
+      ];
+
+      let index = 0;
+
+      function render() {
+        const mode = modes[index];
+        image.src = mode.src;
+        image.alt = `${mode.name} pet animation`;
+        name.textContent = mode.name;
+        detail.textContent = mode.detail;
+        count.textContent = `${index + 1} of ${modes.length}`;
+      }
+
+      function move(delta) {
+        index = (index + delta + modes.length) % modes.length;
+        render();
+      }
+
+      previous.addEventListener("click", () => move(-1));
+      next.addEventListener("click", () => move(1));
+
+      root.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          move(-1);
+        }
+        if (event.key === "ArrowRight") {
+          event.preventDefault();
+          move(1);
+        }
+      });
+
+      render();
+    })();
+  </script>
+</section>

@@ -1,0 +1,14 @@
+interface:
+  display_name: BMH · Kiểm tra thiết kế xây dựng
+  short_description: Kiểm tra hình học, công năng và đồng bộ hồ sơ BMH
+  default_prompt: Use $bmh-design-review to inspect a BMH design snapshot and verify
+    its drawings and 3D remain consistent.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

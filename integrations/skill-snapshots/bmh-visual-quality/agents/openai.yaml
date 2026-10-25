@@ -1,0 +1,14 @@
+interface:
+  display_name: BMH · Chất lượng phối cảnh
+  short_description: Đối chiếu hình BMH với mẫu và nâng chất lượng 3D
+  default_prompt: Use $bmh-visual-quality to improve an actual BMH exterior, living
+    room and stairwell against the supplied references.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

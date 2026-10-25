@@ -1,0 +1,45 @@
+<section id="work-pet-picker" aria-label="Built-in ChatGPT Work pets">
+  <style>
+    #work-pet-picker {
+      width: 100%;
+      color: var(--foreground);
+    }
+
+    #work-pet-picker .wpp-figure {
+      width: 100%;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    #work-pet-picker .wpp-image-wrap {
+      overflow: hidden;
+    }
+
+    #work-pet-picker .wpp-image {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 1px 1px rgb(0 0 0 / 75%));
+    }
+
+    #work-pet-picker .wpp-caption {
+      margin: 0;
+      color: var(--muted-foreground);
+      text-align: center;
+    }
+
+  </style>
+
+  <figure class="wpp-figure">
+    <div class="wpp-image-wrap">
+      <img
+        class="wpp-image"
+        src="{{BUILTIN_PETS_LINEUP_DATA_URI}}"
+        alt="The nine built-in ChatGPT Work pets, labeled Codex, Dewey, Fireball, Hoots, Rocky, Seedy, Stacky, BSOD, and Null Signal."
+      />
+    </div>
+    <figcaption class="wpp-caption text-small">Choose one of these built-in companions or create a custom pet.</figcaption>
+  </figure>
+</section>
