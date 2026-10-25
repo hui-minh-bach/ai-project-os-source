@@ -9,7 +9,7 @@ async function api(url,opts={}){
  if(!r.ok){
   const reason=typeof j.error==='string'?j.error:`HTTP ${r.status}`;
   if(r.status===401)throw new Error('Phiên truy cập Local Worker đã hết hạn. Vui lòng mở lại ứng dụng bằng lối tắt AI Project OS.');
-  throw new Error(reason);
+  throw Object.assign(new Error(reason),{code:j.code||null,status:r.status,retryAt:j.retryAt||null});
  }
  return j;
 }
@@ -58,7 +58,8 @@ function renderSelectors(){
  for(const [id,kind] of [['githubSelect','github'],['vercelSelect','vercel'],['supabaseSelect','supabase']]){const e=$('#'+id);if(e)e.innerHTML=state.connections.filter(c=>c.kind===kind&&c.meta?.verifiedAt).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');}
 }
 async function loadProjects(){state.projects=await api('/api/projects');const html=state.projects.length?state.projects.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''):'<option value="">Chưa có dự án</option>';if($('#projectSelect'))$('#projectSelect').innerHTML=html;$('#globalProjectSelect').innerHTML=html;state.project=state.projects.find(x=>x.id===state.project?.id)||state.projects[0]||null;if(state.project){if($('#projectSelect'))$('#projectSelect').value=state.project.id;$('#globalProjectSelect').value=state.project.id;if($('#repoName'))$('#repoName').value=(state.project.name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}renderProject();renderHome()}
-async function chooseProject(id){if(!id)return;state.project=await api('/api/projects/'+encodeURIComponent(id));if($('#projectSelect'))$('#projectSelect').value=id;$('#globalProjectSelect').value=id;renderProject();renderHome()}
+let projectSelectionRequest=0;
+async function chooseProject(id){if(!id)return;const token=++projectSelectionRequest;const project=await api('/api/projects/'+encodeURIComponent(id));if(token!==projectSelectionRequest)return;state.project=project;if($('#projectSelect'))$('#projectSelect').value=id;$('#globalProjectSelect').value=id;renderProject();renderHome()}
 if($('#projectSelect'))$('#projectSelect').onchange=()=>chooseProject($('#projectSelect').value);$('#globalProjectSelect').onchange=()=>chooseProject($('#globalProjectSelect').value);
 function renderProject(){renderIdeaProject();renderCouncilProject();renderTasks();renderExecutionControls();loadWorkspace();document.dispatchEvent(new CustomEvent('project-change'));}
 

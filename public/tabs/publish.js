@@ -1,4 +1,4 @@
-async function renderPublish(){loadClosedLoop();}
+async function renderPublish(){loadClosedLoop();loadSocialHub();}
 /* ---- Vòng khép kín & đăng nền tảng (YouTube / Facebook / TikTok) ---- */
 const clPipelines=[['news-video','Tin tức → Video ngắn'],['news-article','Tin tức → Bài phân tích'],['dub-video','Video nước ngoài → Lồng tiếng'],['idea-film','Ý tưởng → Phim ngắn']];
 const clPlatformList=[['youtube','YouTube'],['facebook','Facebook'],['tiktok','TikTok']];
@@ -44,8 +44,8 @@ function clRenderRuns(){
  box.innerHTML=runs.map(r=>{
   const name=(clPipelines.find(p=>p[0]===r.pipeline)||[])[1]||r.pipeline||'';
   const stateTag=r.state==='awaiting-approval'?'warn':r.state==='failed'||r.state==='error'?'bad':['completed','done','succeeded'].includes(r.state)?'good':'';
-  const steps=(r.steps||[]).map(s=>`<span class="tag ${s.state==='failed'||s.state==='error'?'bad':['completed','done','succeeded'].includes(s.state)?'good':s.state==='running'?'warn':''}">${esc(s.name)}: ${esc(clStepStates[s.state]||s.state||'')}${s.detail?` · ${esc(s.detail)}`:''}</span>`).join(' ');
-  return `<div class="task" style="margin:8px 0"><div class="inline" style="justify-content:space-between"><strong>${esc(name)}</strong><span class="tag ${stateTag}">${esc(clRunStates[r.state]||r.state||'')}</span></div><div class="meta">${esc(clTime(r.createdAt))}${r.projectId?` · Dự án: ${esc(r.projectId)}`:''}${r.cardId?` · Thẻ tin: ${esc(r.cardId)}`:''}</div>${steps?`<div class="skillchips">${steps}</div>`:''}${r.error?`<p class="bad">${esc(r.error)}</p>`:''}${r.state==='awaiting-approval'?`<button class="primary small" type="button" data-cl-approve="${esc(r.id)}">Duyệt đăng</button>`:''}</div>`;
+  const steps=(r.steps||[]).map(s=>`<span class="tag ${s.state==='failed'||s.state==='error'?'bad':['completed','done','succeeded'].includes(s.state)?'good':s.state==='running'?'warn':''}">${esc(s.name)}: ${esc(clStepStates[s.state]||s.state||'')}${s.detail?` · ${esc(typeof s.detail==='object'?JSON.stringify(s.detail):s.detail)}`:''}</span>`).join(' ');
+  return `<div class="task" style="margin:8px 0"><div class="inline" style="justify-content:space-between"><strong>${esc(name)}</strong><span class="tag ${stateTag}">${esc(clRunStates[r.state]||r.state||'')}</span></div><div class="meta">${esc(clTime(r.createdAt))}${r.projectId?` · Dự án: ${esc(r.projectId)}`:''}${r.cardId?` · Thẻ tin: ${esc(r.cardId)}`:''}</div>${steps?`<div class="skillchips">${steps}</div>`:''}${r.error?`<p class="bad">${esc(r.error.message||JSON.stringify(r.error))}</p>`:''}${r.state==='failed'&&!r.publishAttempted&&!(r.publish||[]).length&&(r.retryCount||0)<3?`<button class="ghost small" type="button" data-cl-retry="${esc(r.id)}">Thử lại bước lỗi (giữ kết quả cũ)</button>`:''}${r.state==='awaiting-approval'?`<button class="primary small" type="button" data-cl-approve="${esc(r.id)}">Duyệt đăng</button>`:''}</div>`;
  }).join('');
 }
 function clRenderRecords(){
@@ -83,24 +83,29 @@ function clCollectConfig(){
 }
 async function clRunPipeline(key){
  const body={pipeline:key};
- if(key==='news-video'){
+ if(key==='news-video'||key==='news-article'){
   const x=await api('/api/ingest/cards');
   const unused=(x.cards||[]).filter(c=>!c.usedByProjectId).sort((a,b)=>new Date(a.publishedAt||a.fetchedAt)-new Date(b.publishedAt||b.fetchedAt));
   if(!unused.length){toast('Chưa có thẻ tin chưa dùng — quét nguồn tin ở tab Idea trước');return}
   body.cardId=unused[0].id;
  }
+ if(key==='idea-film'){const idea=prompt('Noi dung y tuong phim:');if(!idea?.trim())return;body.ideaText=idea;}
+ if(key==='dub-video'){toast('Tai video nguon trong Video Studio va chon long tieng.');return;}
  const r=await api('/api/orchestrator/run',{method:'POST',body:JSON.stringify(body)});
+ if(r.run?.state==='failed'){await loadClosedLoop();throw new Error(r.run.error?.message||'Quy trinh that bai.');}
  toast('Đã bắt đầu lượt chạy'+(r.run?.id?` ${r.run.id}`:''));
  await loadClosedLoop();
 }
 $('#closedLoopPanel').addEventListener('click',async e=>{
+ const retryBtn=e.target.closest('[data-cl-retry]');
  const runBtn=e.target.closest('[data-cl-run]'),apBtn=e.target.closest('[data-cl-approve]');
  try{
   if(e.target.id==='clRefresh'){await loadClosedLoop();toast('Đã làm mới vòng khép kín');return}
   if(e.target.id==='clMetricsRefresh'||e.target.id==='pubStatsRefresh'){e.target.disabled=true;try{await api('/api/publish/metrics/refresh',{method:'POST',body:'{}'});await loadClosedLoop();toast('Đã cập nhật số liệu')}finally{e.target.disabled=false}return}
   if(e.target.id==='clSaveConfig'){const config=clCollectConfig();const saved=await api('/api/orchestrator/config',{method:'POST',body:JSON.stringify({config})});clData.config=saved.config||config;clRenderControls();toast('Đã lưu cấu hình vòng khép kín');return}
   if(runBtn){runBtn.disabled=true;try{await clRunPipeline(runBtn.dataset.clRun)}finally{runBtn.disabled=false}return}
-  if(apBtn){apBtn.disabled=true;await api(`/api/orchestrator/runs/${encodeURIComponent(apBtn.dataset.clApprove)}/approve`,{method:'POST',body:'{}'});toast('Đã duyệt — hệ thống đang đăng bài');await loadClosedLoop();return}
+  if(retryBtn){retryBtn.disabled=true;try{const r=await api(`/api/orchestrator/runs/${encodeURIComponent(retryBtn.dataset.clRetry)}/retry`,{method:'POST',body:'{}'});if(r.run?.state==='failed')throw new Error(r.run.error?.message||'Thu lai chua thanh cong.');toast('Da chay lai buoc loi; xem ket qua thuc te.');}finally{await loadClosedLoop();retryBtn.disabled=false;}return;}
+  if(apBtn){apBtn.disabled=true;const approval=await api(`/api/orchestrator/runs/${encodeURIComponent(apBtn.dataset.clApprove)}/approve`,{method:'POST',body:'{}'});if(approval.run?.state==='failed'){await loadClosedLoop();throw new Error(approval.run.error?.message||'Dang bai that bai.');}toast('Đã duyệt — hệ thống đang đăng bài');await loadClosedLoop();return}
  }catch(err){toast(err.message)}
 });
 $('#closedLoopPanel').addEventListener('change',async e=>{
@@ -127,22 +132,38 @@ function ghRenderContinuation(c){
    (c.vercel?`Vercel: ${c.vercel.detected?'đã nối sẵn trong repo':esc(c.vercel.manual||'')}<br>`:'')+
    `<b>Danh sách việc tiếp tục (${c.items?.length||0}):</b>`+
    (c.items?.length?c.items.map(i=>`<div class="ghRepoItem"><div>${srcName[i.source]||i.source} — ${esc(i.title)}</div></div>`).join(''):'<div>Chưa rút được mục việc nào (hướng dẫn không có checklist, không có issue mở, không có TODO).</div>')+
-   `<small>Brief của dự án đã được viết lại theo hướng dẫn trong repo — sang tab Hội đồng để đội AI lập kế hoạch và giao việc từ brief này.</small>`;
+   `<small>Brief của dự án đã được viết lại theo hướng dẫn trong repo — trao đổi và nhận việc tại Trưởng phòng tiếp nhận để đội AI lập kế hoạch theo brief này.</small>`;
 }
 $('#ghLoadRepos')?.addEventListener('click',async()=>{
   const box=$('#ghRepoList');box.textContent='Đang nạp repo từ GitHub…';
   try{const d=await api('/api/github/repos');
     if(!d.available){box.textContent=d.reason||'Chưa liên kết GitHub.';return;}
     if(!d.repos.length){box.textContent='Tài khoản GitHub chưa có repo nào.';return;}
-    box.innerHTML=d.repos.map(r=>`<div class="ghRepoItem"><div><b>${esc(r.fullName)}</b> ${r.private?'🔒':'🌐'} <small>${esc(r.description||'')}</small><br><small>Cập nhật: ${esc(String(r.updatedAt||'').slice(0,10))}</small></div>${r.importedProjectId?'<span>✓ Đã là dự án</span>':`<button type="button" class="ghost small" data-gh-import="${esc(r.fullName)}">Nhập thành dự án</button>`}</div>`).join('');
+    box.innerHTML=d.repos.map(r=>`<div class="ghRepoItem"><div><b>${esc(r.fullName)}</b> ${r.private?'🔒':'🌐'} <small>${esc(r.description||'')}</small><br><small>Cập nhật: ${esc(String(r.updatedAt||'').slice(0,10))}</small></div>${r.importedProjectId?`<button type="button" class="ghost small" data-gh-open="${esc(r.importedProjectId)}">Mở dự án</button>`:`<button type="button" class="ghost small" data-gh-import="${esc(r.fullName)}">Nhập thành dự án</button>`}</div>`).join('');
   }catch(e){box.textContent='Không nạp được repo: '+e.message;}
 });
+let ghWatching=null;
+const ghStage={queued:'Đang xếp lượt',authenticating:'Đang xác minh GitHub',cloning:'Đang tải code', 'reading-guides':'Đang đọc hướng dẫn và issue',completed:'Đã nhập dự án'};
+async function ghWatchImport(id){
+ if(ghWatching===id)return;ghWatching=id;const box=$('#ghImportStatus');box.hidden=false;
+ try{for(;;){const d=await api('/api/github/import-jobs');const j=d.jobs.find(j=>j.id===id);if(!j)throw new Error('Không tìm thấy lượt nhập repo.');
+  box.textContent=`${j.fullName} · ${ghStage[j.stage]||j.stage}${j.percent!==null?' · '+j.percent+'%':''}`;
+  if(j.state==='completed'){try{localStorage.removeItem('aiosGithubImport');}catch{}await loadProjects();await chooseProject(j.result.projectId);ghRenderBinding();box.textContent='Đã chọn dự án '+j.fullName+'. Code và hướng dẫn đã sẵn sàng trong workspace.'+(j.result.teamWarning?' '+j.result.teamWarning:'')+(j.result.continuationError?' Chưa đọc được toàn bộ hướng dẫn; bấm Đọc hướng dẫn để thử lại.':'');toast('Đã mở đúng dự án GitHub vừa nhập.');return;}
+  if(['failed','interrupted'].includes(j.state)){try{localStorage.removeItem('aiosGithubImport');}catch{}throw new Error(j.error||'Nhập repo chưa hoàn tất.');}await new Promise(r=>setTimeout(r,1500));
+ }}catch(e){box.textContent=e.message;}finally{ghWatching=null;$$('[data-gh-import],#ghImportUrl').forEach(b=>{b.disabled=false;if(b.dataset.ghImport)b.textContent='Nhập thành dự án';});}
+}
+async function ghStartImport(fullName){
+ const vercelProject=$('#ghVercelProject')?.value.trim()||'';if(/^https:\/\/github\.com/i.test(vercelProject))throw new Error('Ô Vercel đang chứa link GitHub. Chuyển link đó lên ô Repo GitHub; để trống Vercel nếu chưa cần.');
+ const x=await api('/api/github/import-jobs',{method:'POST',body:JSON.stringify({fullName,vercelProject,copyTeamFrom:state.project?.id})});try{localStorage.setItem('aiosGithubImport',x.job.id);}catch{}await ghWatchImport(x.job.id);
+}
 $('#ghRepoList')?.addEventListener('click',async e=>{
-  const btn=e.target.closest?.('[data-gh-import]');if(!btn)return;btn.disabled=true;btn.textContent='Đang clone repo…';
-  try{const x=await api('/api/github/import',{method:'POST',body:JSON.stringify({fullName:btn.dataset.ghImport,vercelProject:$('#ghVercelProject')?.value||''})});
-    toast(x.continuation?`Đã nhập repo và đọc hướng dẫn: lập được ${x.continuation.items?.length||0} việc tiếp tục. Đang tải lại…`:'Đã nhập repo thành dự án. Đang tải lại để chọn dự án mới…');setTimeout(()=>location.reload(),1200);
-  }catch(err){toast(err.message);btn.disabled=false;btn.textContent='Nhập thành dự án';}
+ const open=e.target.closest?.('[data-gh-open]');if(open){await chooseProject(open.dataset.ghOpen);ghRenderBinding();return;}
+ const btn=e.target.closest?.('[data-gh-import]');if(!btn)return;btn.disabled=true;
+ try{await ghStartImport(btn.dataset.ghImport);}catch(err){$('#ghImportStatus').hidden=false;$('#ghImportStatus').textContent=err.message;btn.disabled=false;}
 });
+$('#ghImportUrl')?.addEventListener('click',async e=>{e.target.disabled=true;try{await ghStartImport($('#ghRepoUrl').value);}catch(err){$('#ghImportStatus').hidden=false;$('#ghImportStatus').textContent=err.message;}finally{e.target.disabled=false;}});
+async function ghResumeImport(){try{const d=await api('/api/github/import-jobs');let pending=null;try{pending=localStorage.getItem('aiosGithubImport');}catch{}const j=d.jobs.find(j=>j.id===pending)||[...d.jobs].reverse().find(j=>['queued','running'].includes(j.state));if(j)void ghWatchImport(j.id);}catch{}}
+document.addEventListener('connections-change',ghResumeImport);void ghResumeImport();
 $('#ghLoadIssues')?.addEventListener('click',async()=>{
   if(!state.project)return toast('Chọn dự án trước');
   const box=$('#ghIssues');box.textContent='Đang nạp issue…';
@@ -179,12 +200,12 @@ renderPublish=async function(){await ghOrigRenderPublish();ghRenderBinding();};
 const PUB_PLATFORM_CATALOG=[['youtube','YouTube','▶️'],['facebook','Facebook','📘'],['tiktok','TikTok','🎵'],['instagram','Instagram','📸'],['threads','Threads','🧵'],['x','X (Twitter)','𝕏'],['zalo','Zalo','💬']];
 function clRenderStats(){
  const kpi=$('#pubStatsKpis'),ch=$('#pubStatsChannels');if(!kpi)return;
- const rows=clData.records||[];const posted=rows.filter(r=>!r.draft);const drafts=rows.filter(r=>r.draft);
+ const rows=clData.records||[];const posted=rows.filter(r=>!r.draft);const drafts=[...rows.filter(r=>r.draft),...socialData.drafts.filter(r=>r.state!=='published')];
  const fmt=n=>new Intl.NumberFormat('vi-VN').format(n||0);
- const sum=k=>posted.reduce((a,r)=>a+(Number(r.metrics?.[k])||0),0);
+ const sum=k=>posted.some(r=>Number.isFinite(r.metrics?.[k]))?new Intl.NumberFormat('vi-VN').format(posted.reduce((a,r)=>a+(Number(r.metrics?.[k])||0),0)):'—';
  const hasShares=posted.some(r=>r.metrics&&'shares' in r.metrics);
  const hasFollowers=posted.some(r=>r.metrics&&'followers' in r.metrics);
- const cards=[['Tổng bài đã đăng',fmt(posted.length)],['👁 Lượt xem',fmt(sum('views'))],['❤️ Lượt thích',fmt(sum('likes'))],['💬 Bình luận',fmt(sum('comments'))],['🔁 Chia sẻ',hasShares?fmt(sum('shares')):'—'],['👥 Theo dõi mới',hasFollowers?fmt(sum('followers')):'—'],['📝 Bản nháp chờ đăng',fmt(drafts.length)]];
+ const cards=[['Tổng bài đã đăng',fmt(posted.length)],['👁 Lượt xem',sum('views')],['❤️ Lượt thích',sum('likes')],['💬 Bình luận',sum('comments')],['🔁 Chia sẻ',hasShares?sum('shares'):'—'],['👥 Theo dõi mới',hasFollowers?sum('followers'):'—'],['📝 Bản nháp chờ đăng',fmt(drafts.length)]];
  kpi.innerHTML=cards.map(([t,v])=>`<div class="card"><h4>${t}</h4><p style="font-size:22px;font-weight:700">${v}</p></div>`).join('');
  if(ch){
    const by={};for(const r of posted){const b=by[r.platform]||(by[r.platform]={n:0,views:0,likes:0,comments:0,shares:0,followers:0,drafts:0});b.n++;b.views+=Number(r.metrics?.views)||0;b.likes+=Number(r.metrics?.likes)||0;b.comments+=Number(r.metrics?.comments)||0;b.shares+=Number(r.metrics?.shares)||0;b.followers+=Number(r.metrics?.followers)||0;}
@@ -197,3 +218,22 @@ function clRenderStats(){
      +(hasFollowers?'':'<p class="muted" style="margin-top:8px">Số "theo dõi mới" chỉ hiện khi nền tảng trả về qua lần cập nhật số liệu; không có thì để trống (—) chứ không ước lượng.</p>');
  }
 }
+
+let socialData={channels:[],connections:[],drafts:[]};
+async function loadSocialHub(){try{const d=await api('/api/social/channels');socialData={...socialData,...d};$('#socialPlatform').innerHTML=d.channels.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+ $('#socialChannels').innerHTML=d.channels.map(c=>{const linked=d.connections.filter(x=>x.kind===c.id);return `<div class="card"><b>${esc(c.name)}</b><p>${esc(c.note)}</p><small>${c.mode==='export'?'Xuất nội dung · đăng thủ công':c.mode==='video'?'Video ở vòng khép kín':'Kết nối API · cần quyền của nền tảng'}</small>${['threads','x','zalo'].includes(c.id)?`<p>${linked.map(x=>esc(x.name)).join(', ')||'Chưa liên kết'}</p><button data-social-connect="${esc(c.id)}" class="ghost small" type="button">Liên kết bằng token</button>`:''}</div>`;}).join('');await loadSocialDrafts();
+ }catch(e){$('#socialStatus').textContent=e.message;}}
+async function loadSocialDrafts(){if(!state.project){$('#socialDrafts').textContent='Chọn dự án để lưu bản nháp.';return;}const d=await api('/api/social/drafts?projectId='+encodeURIComponent(state.project.id));socialData.drafts=d.drafts;$('#socialDrafts').innerHTML=d.drafts.map(r=>`<div class="resultBox"><b>${esc(r.title||r.platform)}</b> · ${esc(({draft:'Bản nháp',published:r.simulated?'Xác nhận mô phỏng — chưa đăng thật':'Đã được nền tảng xác nhận',uncertain:'Chưa rõ kết quả — kiểm tra nền tảng',publishing:'Đang gửi'})[r.state]||r.state)}<p style="white-space:pre-wrap">${esc(r.text)}</p><button type="button" class="ghost small" data-social-export="${esc(r.id)}">Tải nội dung .txt</button>${['threads','x','zalo'].includes(r.platform)&&r.state!=='published'?`<select aria-label="Tài khoản đăng bài" data-social-account="${esc(r.id)}">${socialData.connections.filter(c=>c.kind===r.platform).map(c=>`<option value="${esc(c.id)}">${esc(c.name)} · ${esc(c.meta?.userId)}</option>`).join('')}</select><button type="button" class="primary small" data-social-preview="${esc(r.id)}">Xem và duyệt đăng</button>`:''}${r.platformPostId?`<p>Mã bài: ${esc(r.platformPostId)}</p>`:''}${r.error?`<p>${esc(r.error)}</p>`:''}</div>`).join('');}
+$('#socialChannels').addEventListener('click',e=>{const b=e.target.closest('[data-social-connect]');if(!b)return;const kind=b.dataset.socialConnect;
+ modal(`<h3>Liên kết ${esc(kind)}</h3><p>Dùng access token do ứng dụng của bạn trên nền tảng cấp. Không nhập mật khẩu tài khoản. X cần user token có quyền tweet.write; Threads cần threads_basic và threads_content_publish; Zalo cần token OA có quyền nội dung. Chưa có token thì vẫn có thể xuất bản nháp để đăng thủ công.</p><label for="socialToken">Access token</label><input id="socialToken" type="password" autocomplete="off"><button id="socialVerifyToken" class="primary" type="button">Xác minh và lưu</button><p id="socialConnectError" role="status"></p>`);
+ $('#socialVerifyToken').onclick=async()=>{const btn=$('#socialVerifyToken');btn.disabled=true;try{await api('/api/social/connect',{method:'POST',body:JSON.stringify({platform:kind,accessToken:$('#socialToken').value})});$('#socialToken').value='';closeCustomerModal();await loadConnections();await loadSocialHub();}catch(err){$('#socialConnectError').textContent=err.message;}finally{btn.disabled=false;}};
+});
+$('#socialSaveDraft').onclick=async()=>{const b=$('#socialSaveDraft');b.disabled=true;try{if(!state.project)throw new Error('Chọn dự án trước.');await api('/api/social/drafts',{method:'POST',body:JSON.stringify({projectId:state.project.id,platform:$('#socialPlatform').value,title:$('#socialTitle').value,text:$('#socialText').value,coverUrl:$('#socialCover').value})});$('#socialStatus').textContent='Đã lưu bản nháp. Chưa đăng ra mạng.';await loadSocialDrafts();}catch(e){$('#socialStatus').textContent=e.message;}finally{b.disabled=false;}};
+$('#socialDrafts').addEventListener('click',async e=>{const ex=e.target.closest('[data-social-export]'),pv=e.target.closest('[data-social-preview]');try{
+ if(ex){const r=socialData.drafts.find(r=>r.id===ex.dataset.socialExport);const blob=new Blob([r.title+'\n\n'+r.text+(r.coverUrl?'\n\nẢnh bìa: '+r.coverUrl:'')],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='noi-dung-'+r.platform+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}
+ if(pv){const id=pv.dataset.socialPreview,connectionId=document.querySelector('[data-social-account="'+id+'"]').value;if(!connectionId)throw new Error('Liên kết tài khoản đúng nền tảng trước.');const projectId=state.project.id;const {preview:p}=await api('/api/social/drafts/'+id+'/preview',{method:'POST',body:JSON.stringify({projectId,connectionId})});
+ modal(`<h3>Duyệt đăng ${esc(p.platform)}</h3><p>Tài khoản: <b>${esc(p.account)}</b> · ID ${esc(p.accountId)}</p><b>${esc(p.title)}</b><p style="white-space:pre-wrap">${esc(p.text)}</p>${p.coverUrl?`<p>Ảnh bìa: ${esc(p.coverUrl)}</p>`:''}${p.platform==='x'?'<label><input id="socialApiCost" type="checkbox"> Tôi đồng ý chi phí API X theo tài khoản của tôi</label>':''}<p>Thao tác này công khai nội dung trên tài khoản đã chọn.</p><button id="socialConfirmPublish" class="primary" type="button">Duyệt và đăng bài này</button><p id="socialPublishError" role="status"></p>`);
+ $('#socialConfirmPublish').onclick=async()=>{const b=$('#socialConfirmPublish');b.disabled=true;try{const allowApiCost=$('#socialApiCost')?.checked===true;await api('/api/social/drafts/'+id+'/publish',{method:'POST',body:JSON.stringify({projectId,connectionId,approvalHash:p.approvalHash,allowApiCost})});closeCustomerModal();await loadSocialDrafts();await loadClosedLoop();}catch(err){$('#socialPublishError').textContent=err.message;}finally{b.disabled=false;}};
+ }
+ }catch(err){$('#socialStatus').textContent=err.message;}});
+document.addEventListener('project-change',()=>{if($('#page-publish').classList.contains('active'))void loadSocialDrafts();});

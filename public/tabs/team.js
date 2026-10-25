@@ -32,13 +32,26 @@ const teamTaskRequests=new Set();
 function teamCurrentSpecification(){const p=state.project,s=p?.specifications?.find(s=>s.id===p.currentSpecificationId),r=p?.councilRuns?.find(r=>r.id===p.currentCouncilRunId);return s&&s.status==='approved'&&s.approvedAt&&p.approvedSpecificationId===s.id&&s.briefRevision===(p.briefRevision||0)&&p.councilBrief?.revision===(p.briefRevision||0)&&p.analyzedBrief?.revision===(p.briefRevision||0)&&r?.status==='completed'&&s.runId===r.id?s:null;}
 function teamTaskCurrent(task){const s=teamCurrentSpecification(),p=state.project;return !!s&&task.specificationId===s.id&&p.planSpecificationId===s.id&&(!p.planId||task.planId===p.planId);}
 function teamBinding(task,role){
-  const active=teamActiveStatuses.has(task.status)||task.status==='done'||task.status==='stale',binding=active?task[role+'Binding']||task['assigned'+(role==='worker'?'Worker':'Reviewer')]||state.project?.modelRoles?.[role]:task['assigned'+(role==='worker'?'Worker':'Reviewer')]||task[role+'Binding']||state.project?.modelRoles?.[role];
+  const active=teamActiveStatuses.has(task.status)||task.status==='done'||task.status==='stale',binding=active?task['served'+(role==='worker'?'Worker':'Reviewer')+'Binding']||task[role+'Binding']||task['assigned'+(role==='worker'?'Worker':'Reviewer')]||state.project?.modelRoles?.[role]:task['assigned'+(role==='worker'?'Worker':'Reviewer')]||task[role+'Binding']||state.project?.modelRoles?.[role];
   const c=state.connections.find(c=>c.id===binding?.connectionId),snapshot=task[role+'Descriptor'],descriptor=snapshot?.connectionId===binding?.connectionId&&snapshot?.model===binding?.model?snapshot:null;
-  return {binding,provider:descriptor?.provider||c?.kind||'',name:descriptor?.name||c?.name||'',model:binding?.model||'',verified:!!c&&c.availability?.status==='verified'&&c.availability.models.includes(binding?.model)};
+  return {binding,provider:descriptor?.provider||c?.kind||'',name:descriptor?.name||c?.name||'',model:binding?.model||'',verified:!!c&&['verified','catalog'].includes(c.availability?.status)&&c.availability.models.includes(binding?.model)};
+}
+// A temporarily failed primary must not disable the button when a valid
+// owner-connected backup can receive the SAME task. Server remains authoritative.
+function teamRouteAvailable(task,role){
+ const original=teamBinding(task,role),p=state.project;
+ if(original.verified)return true;
+ if(!state.vault?.unlocked||p?.settings?.autoFailover===false)return false;
+ const bound=original.binding,primary=state.connections.find(c=>c.id===bound?.connectionId);
+ // A removed/changed identity or an unknown model needs explicit configuration.
+ if(!primary||(primary.availability?.catalogModels||[]).indexOf(bound?.model)<0)return false;
+ const bindings=[p.modelRoleBackups?.[role],...Object.values(p.modelRoles||{}).flat(),...Object.values(p.modelRoleBackups||{}).flat()].filter(Boolean);
+ if(p.settings?.failoverScope!=='project')bindings.push(...aiConns().map(c=>({connectionId:c.id,model:c.model})));
+ return bindings.some(b=>{const c=state.connections.find(x=>x.id===b.connectionId);return c&&['verified','catalog'].includes(c.availability?.status)&&(c.availability?.models||[]).includes(b.model)&&!c.meta?.routingDisabled;});
 }
 function teamEngineAvailable(task){const id=task.engineId||state.project?.settings?.defaultEngine||'native';return id==='native'||id==='mini-swe-agent'&&state.engines.find(e=>e.id===id)?.runtimeInstalled&&state.project?.settings?.allowUnsafeExternal===true;}
-function teamCanRun(task){return teamStartableStatuses.has(task.status)&&teamTaskCurrent(task)&&teamEngineAvailable(task)&&(state.project?.settings?.sandboxMode!=='docker'||state.sandbox?.docker)&&(task.dependsOn||[]).every(id=>state.project.tasks.find(t=>t.id===id)?.status==='done')&&teamBinding(task,'worker').verified&&(state.project?.settings?.reviewRequired===false||teamBinding(task,'reviewer').verified);}
-function teamRunReason(task){if(!teamTaskCurrent(task))return 'Cần specification đã chốt và kế hoạch/task cùng phiên bản.';if(!teamEngineAvailable(task))return 'Engine chưa hỗ trợ task, runtime chưa cài hoặc chưa có opt-in UNSAFE.';if(state.project?.settings?.sandboxMode==='docker'&&!state.sandbox?.docker)return 'Docker runtime chưa khả dụng; chọn Safe để dùng file tools.';if(!teamBinding(task,'worker').verified)return 'Phân vai Worker đã xác minh trong Kết nối hoặc sửa task.';if(state.project?.settings?.reviewRequired!==false&&!teamBinding(task,'reviewer').verified)return 'Phân vai Reviewer đã xác minh trong Kết nối hoặc sửa task.';if((task.dependsOn||[]).some(id=>state.project.tasks.find(t=>t.id===id)?.status!=='done'))return 'Còn dependency chưa hoàn tất.';return teamStartableStatuses.has(task.status)?'Chạy trên worktree riêng':'Trạng thái này chưa hỗ trợ chạy lại.';}
+function teamCanRun(task){return teamStartableStatuses.has(task.status)&&teamTaskCurrent(task)&&teamEngineAvailable(task)&&(state.project?.settings?.sandboxMode!=='docker'||state.sandbox?.docker)&&(task.dependsOn||[]).every(id=>state.project.tasks.find(t=>t.id===id)?.status==='done')&&teamRouteAvailable(task,'worker')&&(state.project?.settings?.reviewRequired===false||teamRouteAvailable(task,'reviewer'));}
+function teamRunReason(task){if(!teamTaskCurrent(task))return 'Cần specification đã chốt và kế hoạch/task cùng phiên bản.';if(!teamEngineAvailable(task))return 'Engine chưa hỗ trợ task, runtime chưa cài hoặc chưa có opt-in UNSAFE.';if(state.project?.settings?.sandboxMode==='docker'&&!state.sandbox?.docker)return 'Docker runtime chưa khả dụng; chọn Safe để dùng file tools.';if(!teamRouteAvailable(task,'worker'))return 'Phân vai Worker đã xác minh trong Kết nối hoặc sửa task.';if(state.project?.settings?.reviewRequired!==false&&!teamRouteAvailable(task,'reviewer'))return 'Phân vai Reviewer đã xác minh trong Kết nối hoặc sửa task.';if((task.dependsOn||[]).some(id=>state.project.tasks.find(t=>t.id===id)?.status!=='done'))return 'Còn dependency chưa hoàn tất.';return teamStartableStatuses.has(task.status)?'Chạy trên worktree riêng':'Trạng thái này chưa hỗ trợ chạy lại.';}
 function teamColumn(task){if(task.status==='done')return 'done';if(['review','reviewing','merge-conflict','merge-rollback-failed'].includes(task.status))return 'review';if(teamActiveStatuses.has(task.status))return 'running';return 'ready';}
 function teamProgress(task){return typeof task.progress==='number'&&Number.isFinite(task.progress)&&task.progress>=0&&task.progress<=100?`${task.progress}%`:'Chưa đo';}
 function teamDuration(task){if(task.durationMs!==null&&task.durationMs!==undefined&&Number.isFinite(task.durationMs))return teamFormatDuration(task.durationMs);if(task.startedAt&&teamActiveStatuses.has(task.status))return teamFormatDuration(Math.max(0,Date.now()-Date.parse(task.startedAt)));return 'Chưa chạy';}
@@ -114,20 +127,20 @@ function renderExecutionControls(){
   const settings=state.project?.settings||{},selected=settings.defaultEngine||'native';$('#taskEngineSelect').innerHTML=teamEngineOptions(selected,true);
   $$('input[name="teamSandbox"]').forEach(e=>{e.checked=e.value===(settings.sandboxMode||'safe');e.disabled=!state.project||teamSettingsPending||e.value==='docker'&&!state.sandbox?.docker;e.closest('label').title=e.value==='safe'?'Safe chỉ có file tools; mọi npm/shell bị BLOCKED.':e.value==='docker'&&!state.sandbox?.docker?'Docker runtime chưa khả dụng.':e.value==='host'?'UNSAFE: npm chạy trực tiếp trên máy, có thể truy cập hệ thống.':'';});
   $('#taskEngineSelect').disabled=!state.project||teamSettingsPending;$('#allowUnsafeExternal').checked=settings.allowUnsafeExternal===true;$('#allowUnsafeExternal').disabled=!state.project||teamSettingsPending;
-  $('#teamMaxParallel').value=settings.maxParallel||2;$('#teamReviewRequired').checked=settings.reviewRequired!==false;$('#teamAutoRepair').checked=settings.autoRepair!==false;
-  ['teamMaxParallel','teamReviewRequired','teamAutoRepair'].forEach(id=>$('#'+id).disabled=!state.project||teamSettingsPending);
+  $('#teamMaxParallel').value=settings.maxParallel||2;$('#teamReviewRequired').checked=settings.reviewRequired!==false;$('#teamAutoRepair').checked=settings.autoRepair!==false;$('#teamAutoFailover').checked=settings.autoFailover!==false;$('#teamFailoverScope').value=settings.failoverScope||'connected';$('#teamMaxProviderAttempts').value=settings.maxProviderAttempts||4;
+  ['teamMaxParallel','teamReviewRequired','teamAutoRepair','teamAutoFailover','teamFailoverScope','teamMaxProviderAttempts'].forEach(id=>$('#'+id).disabled=!state.project||teamSettingsPending);
   $('#teamEngineHint').textContent=selected==='mini-swe-agent'?'External runtime có shell trên host (UNSAFE).':'Safe: không chạy npm/shell; chỉ có file tools.';
   $('#teamReviewWarning').hidden=settings.reviewRequired!==false;
   const host=settings.sandboxMode==='host',external=settings.allowUnsafeExternal===true;$('#teamUnsafeWarning').hidden=!host&&!external;$('#teamUnsafeWarning').textContent=host?'⚠ UNSAFE — Host chạy npm/test trực tiếp trên máy. Code dự án có thể đọc file và khởi chạy process ngoài worktree.':external?'⚠ UNSAFE — External agent được phép chạy shell trực tiếp trên host. Chỉ runtime đã cài và adapter hỗ trợ mới có thể thực thi.':'';
   renderTeamActionAvailability();
 }
 async function saveExecutionSettings(){
-  if(!state.project)return;const id=state.project.id,settings={defaultEngine:$('#taskEngineSelect').value||'native',sandboxMode:$('input[name="teamSandbox"]:checked')?.value||'safe',allowUnsafeExternal:$('#allowUnsafeExternal').checked===true,maxParallel:Number($('#teamMaxParallel').value)||2,reviewRequired:$('#teamReviewRequired').checked===true,autoRepair:$('#teamAutoRepair').checked===true};
+  if(!state.project)return;const id=state.project.id,settings={defaultEngine:$('#taskEngineSelect').value||'native',sandboxMode:$('input[name="teamSandbox"]:checked')?.value||'safe',allowUnsafeExternal:$('#allowUnsafeExternal').checked===true,maxParallel:Number($('#teamMaxParallel').value)||2,reviewRequired:$('#teamReviewRequired').checked===true,autoRepair:$('#teamAutoRepair').checked===true,autoFailover:$('#teamAutoFailover').checked===true,failoverScope:$('#teamFailoverScope').value,maxProviderAttempts:Number($('#teamMaxProviderAttempts').value)||4};
   teamSettingsPending=true;renderTeamActionAvailability();
   try{const p=await api(`/api/projects/${id}/settings`,{method:'POST',body:JSON.stringify(settings)});if(state.project?.id===id){state.project=p;renderTasks();}return p;}finally{teamSettingsPending=false;renderExecutionControls();}
 }
 async function teamChangeSettings(){try{await saveExecutionSettings();toast('Đã lưu cấu hình thực thi')}catch(e){renderExecutionControls();toast(e.message);}}
-$('#taskEngineSelect').addEventListener('change',teamChangeSettings);$$('input[name="teamSandbox"]').forEach(e=>e.addEventListener('change',teamChangeSettings));['allowUnsafeExternal','teamMaxParallel','teamReviewRequired','teamAutoRepair'].forEach(id=>$('#'+id).addEventListener('change',teamChangeSettings));
+$('#taskEngineSelect').addEventListener('change',teamChangeSettings);$$('input[name="teamSandbox"]').forEach(e=>e.addEventListener('change',teamChangeSettings));['allowUnsafeExternal','teamMaxParallel','teamReviewRequired','teamAutoRepair','teamAutoFailover','teamFailoverScope','teamMaxProviderAttempts'].forEach(id=>$('#'+id).addEventListener('change',teamChangeSettings));
 $('#managerSelect').addEventListener('change',renderTeamActionAvailability);
 function teamBindingOptions(role,binding){const configured=state.project?.modelRoles?.[role],configuredText=configured?`${teamProviderNames[state.connections.find(c=>c.id===configured.connectionId)?.kind]||'Provider'} · ${configured.model}`:'chưa phân vai';return `<option value="">Dùng vai trò ${role}: ${esc(configuredText)}</option>`+aiConns().flatMap(c=>c.availability.models.map(model=>{const b={connectionId:c.id,model};return `<option value="${esc(JSON.stringify(b))}" ${binding?.connectionId===c.id&&binding?.model===model?'selected':''}>${esc(c.name)} · ${esc(model)}</option>`;})).join('');}
 function openTeamTaskDialog(task){
@@ -155,7 +168,7 @@ $('#page-idea').addEventListener('click',async e=>{
 $('#taskBoard').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-team-task]')){e.preventDefault();teamSelectedTask=e.target.dataset.teamTask;teamMenuTask=null;renderTasks();}});
 $('#runReady').onclick=async()=>{
   const p=state.project;if(!p)return;teamBatchPending=true;renderTeamActionAvailability();
-  try{const result=await api(`/api/projects/${p.id}/run-ready`,{method:'POST',body:JSON.stringify({limit:p.settings?.maxParallel||2})});if(state.project?.id===p.id)await chooseProject(p.id);toast(result.runs?.length?`Batch: ${result.runs.filter(r=>r.status==='done').length}/${result.runs.length} task đã merge; xem test/review thực.`:result.message||'Không có task sẵn sàng.');}catch(err){toast(err.message);if(state.project?.id===p.id)await chooseProject(p.id);}finally{teamBatchPending=false;renderTeamActionAvailability();}
+  try{const result=await api(`/api/projects/${p.id}/run-ready`,{method:'POST',body:JSON.stringify({limit:p.settings?.maxParallel||2,autoContinue:true})});if(state.project?.id===p.id)await chooseProject(p.id);toast(result.runs?.length?`Batch: ${result.runs.filter(r=>r.status==='done').length}/${result.runs.length} task đã merge; xem test/review thực.`:result.message||'Không có task sẵn sàng.');}catch(err){toast(err.message);if(state.project?.id===p.id)await chooseProject(p.id);}finally{teamBatchPending=false;renderTeamActionAvailability();}
 };
 $('#buildPlan').onclick=async()=>{const p=state.project;if(!p)return toast('Hãy chọn dự án');teamPlanPending=true;renderTeamActionAvailability();try{await api(`/api/projects/${p.id}/plan`,{method:'POST',body:JSON.stringify({managerId:$('#managerSelect').value||undefined})});if(state.project?.id===p.id)await chooseProject(p.id);toast('Đã chia task; kế hoạch trước được giữ trong lịch sử.');}catch(e){toast(e.message);}finally{teamPlanPending=false;renderTeamActionAvailability();}};
 async function loadWorkspace(){if(!state.project)return;const id=state.project.id;try{const x=await api(`/api/projects/${id}/workspace-summary`);if(state.project?.id===id)$('#workspaceFiles').innerHTML=x.files.length?x.files.map(f=>`<code>${esc(f)}</code>`).join(''):'<p class="team-empty-copy">Workspace chưa có file.</p>';}catch(e){$('#workspaceFiles').textContent='Workspace chưa khả dụng: '+e.message;}}
@@ -338,14 +351,10 @@ function officeResolvePosts(roster){
  * NHÃN TRẠM (đặt trên thân bàn, dưới mặt trước bàn — không nằm trên robot). */
 const OFFICE_ISO_STATIONS={
  boss:{x:46.4,y:29.2,label:'👔 Sếp Lâm'},
- /* 0.9.61: neo bàn HẠ ~2.1–2.2% so với 0.9.60 — đường hông của sprite
-  * ngồi đáp đúng đường đệm ghế vẽ sẵn (hông = điểm đáp trong ghế − 0.7)
-  * để tư thế đọc là NGỒI; x của bàn Đăng bài khớp tâm ghế vẽ (51.8)
-  * thay vì lệch phải trên sàn trống. Nhãn trạm (lx/ly) giữ nguyên. */
- news:{x:33.8,y:46.0,lx:33.8,ly:38.6,label:'📰 Tin tức'}, script:{x:24.5,y:52.6,lx:24.5,ly:47.9,label:'✍️ Biên tập'},
- image:{x:34.5,y:59.6,lx:34.5,ly:56.3,label:'🎨 Hình ảnh'}, media:{x:15,y:57.7,lx:15.5,ly:52.9,label:'🎬 Sản xuất'},
- review:{x:24.6,y:66.4,lx:24.6,ly:62.6,label:'🔎 Kiểm duyệt'}, pm:{x:43.7,y:69.1,lx:43.7,ly:67.8,label:'🧭 Điều phối'},
- publish:{x:51.55,y:60.4,lx:52.3,ly:55.6,label:'🚀 Đăng bài'}, intake:{x:48.5,y:78.5,lx:48.5,ly:84.5,label:'🛋️ Tiếp nhận'},
+ news:{x:33.8,y:43.9,lx:33.8,ly:41.5,label:'📰 Tin tức'}, script:{x:24.5,y:50.5,lx:24.5,ly:47.9,label:'✍️ Biên tập'},
+ image:{x:34.5,y:57.5,lx:34.5,ly:56.3,label:'🎨 Hình ảnh'}, media:{x:15.5,y:55.6,lx:15.5,ly:52.9,label:'🎬 Sản xuất'},
+ review:{x:24.6,y:64.3,lx:24.6,ly:62.6,label:'🔎 Kiểm duyệt'}, pm:{x:43.7,y:66.9,lx:43.7,ly:67.8,label:'🧭 Điều phối'},
+ publish:{x:52.3,y:58.2,lx:52.3,ly:55.6,label:'🚀 Đăng bài'}, intake:{x:48.5,y:78.5,lx:48.5,ly:84.5,label:'🛋️ Tiếp nhận'},
  lounge:{x:66,y:31,lx:52,ly:10.2,label:'🔋 Phòng nạp năng lượng'}, cage:{x:82.6,y:49.3,lx:83.5,ly:57.5,label:'⚡ Phòng chích điện'},
 };
 /* Ô sạc: 4 ô đầu = đúng 4 buồng kính vẽ sẵn (chân robot ở đế buồng); 6 ô
@@ -361,14 +370,11 @@ const OFFICE_ISO_STATIONS={
  * các robot kề nhau không chạm nhau. lx/ly vẫn là lưới bảng tên phía trên
  * cụm buồng, tính lại theo neo mới. */
 const OFFICE_ISO_PODS=[
- /* 0.9.61: huy hiệu của robot trong buồng (ô 0–3) căn GIỮA lòng buồng
-  * của nó (bx −1 ≈ tâm buồng) và vòng nhãn khóa tâm-x trong lòng buồng —
-  * bản 0.9.60 để huy hiệu ô 3 trôi sang dưới buồng kề. */
- {x:65,y:36.4,lx:3,ly:-84,bx:-12,by:8},{x:69.35,y:37.4,lx:2,ly:-104,bx:-8,by:8},
- {x:73.4,y:38.4,lx:3,ly:-92,bx:-6,by:8},{x:77.5,y:39.6,lx:3,ly:-113,bx:-1,by:8},
+ {x:65,y:36.4,lx:3,ly:-84,bx:10,by:8},{x:69.35,y:37.4,lx:2,ly:-104,bx:-12,by:8},
+ {x:73.4,y:38.4,lx:3,ly:-92,bx:12,by:8},{x:77.5,y:39.6,lx:3,ly:-113,bx:-10,by:8},
  {x:55,y:43.2,lx:1,ly:-13,bx:8,by:0},{x:58.3,y:44.9,lx:1,ly:2,bx:-8,by:0},
- {x:61.6,y:46.6,lx:1,ly:18,bx:10,by:0},{x:66,y:43.9,lx:1,ly:30,bx:-10,by:0},
- {x:70.5,y:45.6,lx:1,ly:-4,bx:8,by:0},{x:75.5,y:47.1,lx:1,ly:2,bx:-8,by:0}];
+ {x:61.6,y:46.6,lx:1,ly:18,bx:10,by:0},{x:66,y:43.9,lx:1,ly:18,bx:-10,by:0},
+ {x:70.5,y:45.6,lx:1,ly:-13,bx:8,by:0},{x:75.5,y:47.1,lx:1,ly:2,bx:-8,by:0}];
 /* Neo TÂM MÀN HÌNH vẽ sẵn của từng bàn (%, cùng hệ tọa độ phòng) — chỗ
  * hiệu ứng "màn hình sáng lên" sẽ bám vào khi robot ở bàn đó ĐANG LÀM
  * VIỆC THẬT. Đo trực tiếp trên ảnh render đúng tọa độ phòng (probe
@@ -392,10 +398,7 @@ const OFFICE_ISO_MONITORS={
 /* 0.9.60: pod 0.94 -> 0.70 — thân robot (phần nhìn thấy ≈2,4% bề ngang
  * phòng) phải lọt hẳn vào lòng buồng kính vẽ sẵn (≈2,5–2,7%); tỉ lệ cũ làm
  * robot to hơn buồng nên không thể "ở trong" buồng được. */
-/* 0.9.61: robot ngồi bàn thu nhỏ đồng nhất ~0.92 (xa 0.84→0.78, gần
- * 0.92→0.85) — cùng với neo hạ, chiều cao nhìn thấy của robot ngồi còn
- * ≤ 85% robot đứng cùng vùng sàn: tư thế đọc là NGỒI, không phải đứng. */
-const OFFICE_ISO_SCALES={deskFar:0.78,deskNear:0.85,pod:0.67,cage:0.86,intake:1.0,boss:0.95};
+const OFFICE_ISO_SCALES={deskFar:0.84,deskNear:0.92,pod:0.67,cage:0.86,intake:1.0,boss:0.95};
 /* ===== 0.9.60: LỚP MẶT TRƯỚC (compositing) =====
  * Sprite dán lên phông phẳng thì không bao giờ đọc là "ở trong" nội thất.
  * Các file PNG trong assets/office-iso-fg/ được CẮT TỪ CHÍNH PHÔNG (cùng
@@ -425,27 +428,13 @@ const OFFICE_ISO_POD_INTERIORS=[
  {x0:63.5,y0:25.6,x1:66.2,y1:34.3},{x0:67.9,y0:26.6,x1:70.5,y1:35.2},
  {x0:72,y0:27.6,x1:74.5,y1:36.2},{x0:76.1,y0:28.6,x1:78.6,y1:37.4}];
 const OFFICE_ISO_CAGE_INTERIOR={x0:79.4,y0:30.4,x1:85.5,y1:45.9};
-/* Vùng GHẾ của từng bàn (%, [x0,y0,x1,y1]): đáy thân nhìn thấy của
- * robot ngồi phải đáp vào vùng này (điểm đáp = tâm-x, mép dưới thân).
- * 0.9.61: vùng nới ra TOÀN BỘ chiếc ghế vẽ sẵn (lưng + đệm + đế, ≈5.8×6.7%
- * phòng) quanh cùng tâm ghế; tâm-x ghế bàn Đăng bài hiệu chỉnh theo ghế
- * vẽ thật (51.8). Điểm đáp giữ ở vị trí cũ trong ghế. */
+/* Vùng mặt ghế của từng bàn (%, [x0,y0,x1,y1]): đáy thân nhìn thấy của
+ * robot ngồi phải đáp vào vùng này (điểm đáp = tâm-x, mép dưới thân). */
 const OFFICE_ISO_CHAIRS={
- news:{x0:30.9,y0:34.9,x1:36.7,y1:41.6}, script:{x0:21.6,y0:41.5,x1:27.4,y1:48.2},
- media:{x0:12.6,y0:46.6,x1:18.4,y1:53.3}, image:{x0:31.6,y0:48.5,x1:37.4,y1:55.2},
- review:{x0:21.7,y0:55.3,x1:27.5,y1:62}, pm:{x0:40.8,y0:57.3,x1:46.6,y1:64},
- publish:{x0:48.9,y0:48.6,x1:54.7,y1:55.3}, boss:{x0:44.2,y0:26.2,x1:48.6,y1:28.6},
-};
-/* 0.9.61 — Vùng BÀN VẼ SẴN của từng trạm (%, hợp nhất của mặt bàn + mặt
- * trước bàn cắt FG + ghế + màn hình vẽ sẵn, đo trên phông): neo robot
- * ngồi bàn phải đáp TRÊN footprint này và thân nhìn thấy phải giao với
- * nó ≥ 50% diện tích — điều kiện "ở đúng bàn của trạm" mà QA đo trên DOM
- * (bản 0.9.60: neo bàn Đăng bài nằm trên sàn trống ngoài footprint). */
-const OFFICE_ISO_DESK_ZONES={
- news:{x0:27.6,y0:31.2,x1:36.7,y1:44}, script:{x0:17.1,y0:38.3,x1:27.4,y1:50.5},
- media:{x0:8.1,y0:46.4,x1:18.4,y1:55}, image:{x0:30.1,y0:47.6,x1:39.7,y1:60.5},
- review:{x0:17.1,y0:53.6,x1:27.5,y1:63.5}, pm:{x0:32.6,y0:55.7,x1:46.6,y1:70.5},
- publish:{x0:44.8,y0:47.9,x1:54.7,y1:58.1}, boss:{x0:42.9,y0:22.9,x1:54.6,y1:35.6},
+ news:{x0:31.6,y0:37.4,x1:36,y1:39.8}, script:{x0:22.3,y0:44,x1:26.7,y1:46.4},
+ media:{x0:13.3,y0:49.1,x1:17.7,y1:51.5}, image:{x0:32.3,y0:51,x1:36.7,y1:53.4},
+ review:{x0:22.4,y0:57.8,x1:26.8,y1:60.2}, pm:{x0:41.5,y0:59.8,x1:45.9,y1:62.2},
+ publish:{x0:50.1,y0:51.1,x1:54.5,y1:53.5}, boss:{x0:44.2,y0:26.2,x1:48.6,y1:28.6},
 };
 /* Khung thân NHÌN THẤY của sprite theo tư thế — tỉ lệ [trái, trên, phải,
  * dưới] của hộp phần tử .bot-iso ứng với vùng có điểm ảnh (đo alpha>24
@@ -536,10 +525,7 @@ function officeIsoLabelShift(post){
   // tên + huy hiệu xếp chồng TRÊN ĐẦU robot ngồi bàn: dưới bàn là nhãn
   // trạm (tấm biển trên mặt bàn) và thân robot bàn kề — để tên dưới bàn là
   // bị thân robot kề che chữ (bài học zoom 0.9.60 vòng đầu).
-  // 0.9.61: huy hiệu khít xuống (by −14 → −12) — bản cũ để huy hiệu của
-  // robot lỗi treo lơ lửng ~38px khỏi thân, sát bàn Sếp; giữ vừa đủ hở
-  // để chồng tên–huy hiệu không đẩy tên xuống đè đầu robot.
-  return {lx:0,ly:-97,bx:0,by:-12};
+  return {lx:0,ly:-93,bx:0,by:-14};
  }
  if(post.kind==='cage')return {lx:0,ly:8,bx:0,by:0};
  return null;
@@ -705,21 +691,20 @@ function officeIsoLabelPass(room){
   const az=parseInt(el.style.zIndex||'10',10)||10;
   for(const f of fgRects){ if(f.z<=az)continue; const fr3=f.rect;
    if(fr3.left<=rect.left+2&&fr3.right>=rect.right-2&&fr3.top>rect.top&&fr3.top<rect.bottom) rect={...rect,bottom:Math.min(rect.bottom,fr3.top)}; }
-  obstacles.push({rect,agent:el.getAttribute('data-office-agent'),postkind:el.dataset.postkind||''});
+  obstacles.push({rect});
  });
  room.querySelectorAll('.office-fg').forEach(el=>{
   const r=el.getBoundingClientRect(), ix=rr.width*0.003, iy=rr.height*0.004; // lề trong suốt của mảng cắt không phải chướng ngại thật
-  obstacles.push({rect:{left:r.left+ix,top:r.top+iy,right:r.right-ix,bottom:r.bottom-iy},z:parseInt(el.style.zIndex||'0',10)||0,fg:true,fgid:el.dataset.fg||''});
+  obstacles.push({rect:{left:r.left+ix,top:r.top+iy,right:r.right-ix,bottom:r.bottom-iy},z:parseInt(el.style.zIndex||'0',10)||0,fg:true});
  });
  const items=[];
  room.querySelectorAll('.office-station').forEach(el=>{el.dataset.gx='0'; el.dataset.gy='0'; items.push({el,kind:'station',fixed:true,z:110});});
  room.querySelectorAll('[data-office-agent]').forEach(el=>{
   const az=parseInt(el.style.zIndex||'10',10)||10;
-  const aid=el.getAttribute('data-office-agent'), pk=el.dataset.postkind||'', slot=parseInt(el.dataset.postslot||'-1',10);
   const nm=el.querySelector('.office-agent-name');
-  if(nm){nm.dataset.gx='0'; nm.dataset.gy='0'; items.push({el:nm,kind:'name',fixed:false,z:az,agent:aid});}
+  if(nm){nm.dataset.gx='0'; nm.dataset.gy='0'; items.push({el:nm,kind:'name',fixed:false,z:az});}
   const bd=el.querySelector('.office-agent-badge');
-  if(bd&&!bd.hidden){bd.dataset.gx='0'; bd.dataset.gy='0'; items.push({el:bd,kind:'badge',fixed:false,z:az,agent:aid,postkind:pk,slot});}
+  if(bd&&!bd.hidden){bd.dataset.gx='0'; bd.dataset.gy='0'; items.push({el:bd,kind:'badge',fixed:false,z:az});}
  });
  const apply=it=>{
   const gx=parseFloat(it.el.dataset.gx)||0, gy=parseFloat(it.el.dataset.gy)||0;
@@ -728,32 +713,14 @@ function officeIsoLabelPass(room){
   else it.el.style.transform=`translate(-50%,-50%) translate(${Math.round(gx)}px,${Math.round(gy)}px)`;
  };
  items.forEach(apply);
- /* 0.9.61: BONG BÓNG ⚡ của robot trong LỒNG là chướng ngại (phồng 4×3px)
-  * cho tên + nhãn trạm của robot khác — bản 0.9.60 để tên ô sạc 3 áp sát
-  * bong bóng này. (Chỉ bong bóng lồng: nó lớn và treo đúng vùng lưới tên
-  * của cụm sạc; huy hiệu thường đã được tính trực tiếp trong điểm chồng
-  * nhãn-nhãn.) Huy hiệu buồng sạc (ô 0–3) bị phạt nặng nếu tâm-x rời
-  * lòng buồng của nó (khoá mềm: góc sạc quá tải vẫn được thoát ra chỗ
-  * trống, còn bình thường huy hiệu nằm đúng buồng) và được miễn chướng
-  * ngại mảng lồng + thân robot lồng: phần đuôi huy hiệu khuất sau khung
-  * lồng là đúng phép xếp lớp, không phải lỗi trôi huy hiệu. */
- const bubbleObs=[];
- for(const it of items){ if(it.kind!=='badge'||it.postkind!=='cage')continue;
-  const r=it.el.getBoundingClientRect();
-  bubbleObs.push({rect:{left:r.left-4,top:r.top-3,right:r.right+4,bottom:r.bottom+3},agent:it.agent});
- }
- const isChamberBadge=it=>it.kind==='badge'&&it.postkind==='pod'&&it.slot>=0&&it.slot<=3;
  const ovArea=(rect,r)=>{const ox=Math.min(rect.right,r.right)-Math.max(rect.left,r.left); const oy=Math.min(rect.bottom,r.bottom)-Math.max(rect.top,r.top); return ox>0&&oy>0?ox*oy:0;};
  const scoreOf=(it,rect)=>{
   let s=0;
   for(const o of items){if(o===it)continue; s+=ovArea(rect,o.el.getBoundingClientRect());}
   for(const ob of obstacles){
    if(ob.fg&&(ob.z||0)<=it.z)continue; // mảng mặt trước vẽ DƯỚI chữ này thì không phải chướng ngại
-   if(ob.fg&&it.kind==='badge'&&it.postkind==='pod'&&ob.fgid==='cage')continue;
-   if(ob.postkind==='cage'&&it.kind==='badge'&&it.postkind==='pod')continue;
    s+=4*ovArea(rect,ob.rect);
   }
-  if(it.kind!=='badge')for(const bo of bubbleObs){ if(bo.agent===it.agent)continue; s+=4*ovArea(rect,bo.rect); }
   return s;
  };
  const tryMove=(mv,penalty)=>{
@@ -767,20 +734,13 @@ function officeIsoLabelPass(room){
   const push=(r)=>{const ox=Math.min(mr.right,r.right)-Math.max(mr.left,r.left), oy=Math.min(mr.bottom,r.bottom)-Math.max(mr.top,r.top); if(ox>0&&oy>0){steps.add(`0,${oy+3}`);steps.add(`0,${-(oy+3)}`);steps.add(`${ox+3},0`);steps.add(`${-(ox+3)},0`);}};
   for(const o of items){if(o!==mv)push(o.el.getBoundingClientRect());}
   for(const ob of obstacles){if(ob.fg&&(ob.z||0)<=mv.z)continue; push(ob.rect);}
-  if(mv.kind!=='badge')for(const bo of bubbleObs){ if(bo.agent===mv.agent)continue; push(bo.rect); }
   let best=null;
   for(const s of steps){
    const [dx,dy]=s.split(',').map(Number);
    if(Math.abs(gx0+dx)>cl.x||Math.abs(gy0+dy)>cl.y)continue;
    const cand={left:mr.left+dx,right:mr.right+dx,top:mr.top+dy,bottom:mr.bottom+dy};
    if(cand.left<rr.left+1||cand.right>rr.right-1||cand.top<rr.top+1||cand.bottom>rr.bottom-1)continue;
-   let chamberPen=0;
-   if(isChamberBadge(mv)){ // huy hiệu buồng: phạt nặng nếu tâm-x rời lòng buồng của nó
-    const inr=OFFICE_ISO_POD_INTERIORS[mv.slot];
-    const cxPct=((cand.left+cand.right)/2-rr.left)/rr.width*100;
-    if(cxPct<inr.x0-0.2||cxPct>inr.x1+0.2)chamberPen=150;
-   }
-   const score=scoreOf(mv,cand)+0.02*(Math.abs(dx)+Math.abs(dy))+(penalty||0)+chamberPen;
+   const score=scoreOf(mv,cand)+0.02*(Math.abs(dx)+Math.abs(dy))+(penalty||0);
    if(!best||score<best.score)best={dx,dy,score};
   }
   if(!best||best.score>=(penalty||0)+base)return false;
@@ -884,6 +844,8 @@ function officeRender(){
  const isoMode=room.classList.contains('office-iso');
  const rosterSig=roster.map(a=>a.id).join(',')+(isoMode?'|iso':'|flat');
  if(!room.dataset.built||officeState.rosterSig!==rosterSig){
+  // Render đổi danh sách bot/mode: hủy DEMO trước khi thay lớp scene.
+  window.__officeChairDemoActive?.stop();
   room.dataset.built='1'; officeState.rosterSig=rosterSig;
   const cnv=room.querySelector('.office-3d-canvas'); if(cnv)cnv.remove();
   room.innerHTML=Object.entries(isoMode?OFFICE_ISO_STATIONS:OFFICE_STATIONS_2D).filter(([id])=>!(isoMode&&id==='boss')).map(([id,st])=>`<div class="office-station" data-station="${id}" style="left:${st.lx??st.x}%;top:${st.ly??st.y}%">${st.label}</div>`).join('')
@@ -929,7 +891,6 @@ function officeRender(){
    if(nmEl){const nlx=pd?Math.round(pd.lx*lsc):0, nly=pd?Math.round(pd.ly*lsc):0; nmEl.dataset.nlx=String(nlx); nmEl.dataset.nly=String(nly); nmEl.dataset.gx='0'; nmEl.dataset.gy='0'; nmEl.style.transform=`translate(${nlx}px,${nly}px)`;}
    if(bdEl){const btx=pd?Math.round(pd.bx*lsc):0, bty=pd?Math.round(pd.by*lsc):0; bdEl.dataset.btx=String(btx); bdEl.dataset.bty=String(bty); bdEl.dataset.gx='0'; bdEl.dataset.gy='0'; bdEl.style.transform=`translateX(calc(-50% + ${btx}px)) translateY(${bty}px)`;}
    el.dataset.postkind=post?post.kind:'';
-   el.dataset.postslot=(post&&post.kind==='pod')?String(post.slot||0):'';
    const postKey=post?(post.kind+':'+(post.id!==undefined?post.id:(post.slot!==undefined?post.slot:post.x+','+post.z))):'cast:'+pt.x+','+pt.y;
    const prev=officePrevPos[a.id];
    if(prev&&prev.station!==postKey){
@@ -1027,7 +988,7 @@ function officeRender(){
   const bar=document.createElement('div');bar.className='office-approve-bar';bar.id='officeApprove';
   bar.innerHTML=`<span>📦 Có sản phẩm đang chờ Sếp Lâm duyệt đăng: <b>${esc(awaiting.title||awaiting.pipeline)}</b></span><button type="button" class="primary" id="officeApproveBtn">✔ Duyệt đăng ngay</button>`;
   room.after(bar);
-  $('#officeApproveBtn').onclick=async()=>{const b=$('#officeApproveBtn');b.disabled=true;try{await api(`/api/orchestrator/runs/${encodeURIComponent(awaiting.id)}/approve`,{method:'POST',body:'{}'});toast('Đã duyệt đăng');officePoll(true);}catch(e){toast(e.message);b.disabled=false;}};
+  $('#officeApproveBtn').onclick=async()=>{const b=$('#officeApproveBtn');b.disabled=true;try{const result=await api(`/api/orchestrator/runs/${encodeURIComponent(awaiting.id)}/approve`,{method:'POST',body:'{}'});if(result.state==='failed')throw new Error(result.error?.message||result.error||'Publish failed; inspect the run before retrying.');toast('Đã duyệt đăng');officePoll(true);}catch(e){toast(e.message);b.disabled=false;}};
  } else if(!awaiting&&approveBtn){approveBtn.remove();}
  const feed=$('#officeFeed');
  if(feed){
@@ -1078,7 +1039,7 @@ async function officePoll(force){
   if(fleet&&Array.isArray(fleet.bots))officeState.fleet=fleet;
   officeState.loaded=true;
  }catch{/* giữ trạng thái cũ */}
- finally{officePollPending=false;officeRender();}
+ finally{officePollPending=false;officeRender();document.dispatchEvent(new Event('office-space-fleet'));}
 }
 setInterval(()=>{const page=$('#page-idea');if(page&&page.classList.contains('active')&&!document.hidden)officePoll();},4000);
 document.addEventListener('page-change',e=>{if(e.detail.page==='idea'){officeRender();officePoll();officeModelsRender();}});
@@ -1095,24 +1056,52 @@ async function officeModelsRender(){
 }
 officeRender();officePoll();officeModelsRender();
 
+/* Preview ghế tương tác: kích hoạt thủ công, bảo toàn toàn bộ task/fleet/roster AI.
+ * Thử trực tiếp robot GLB trên mỹ thuật B2 2D; không làm giả trạng thái xử lý. */
+const officeChairPreviewButton=$('#officeChairPreview');
+let officeChairPreviewRunning=null;
+if(officeChairPreviewButton){
+ const resetPreviewButton=()=>{officeChairPreviewButton.disabled=false;officeChairPreviewButton.textContent='🪑 Xem kéo ghế (demo)';};
+ officeChairPreviewButton.onclick=async()=>{
+  if(officeChairPreviewRunning?.running){officeChairPreviewRunning.stop();return;}
+  const room=$('#officeRoom');
+  if(!room?.classList.contains('office-iso')||room.classList.contains('office-3d-on')){
+   toast('Chuyển về chế độ phòng isometric trước khi xem diễn họa kéo ghế.');return;
+  }
+  officeChairPreviewButton.disabled=true;officeChairPreviewButton.textContent='Đang nạp robot 3D…';
+  try{
+   const {mountOfficeChairPreview}=await import('/office-chair-demo.mjs');
+   const player=await mountOfficeChairPreview(room,{
+    onDone:()=>{officeChairPreviewRunning=null;window.__officeChairDemoActive=null;resetPreviewButton();}
+   });
+   officeChairPreviewRunning=player;
+   window.__officeChairDemoActive=player;
+   officeChairPreviewButton.disabled=false;officeChairPreviewButton.textContent='■ Dừng diễn họa';
+  }catch(err){
+   officeChairPreviewRunning=null;window.__officeChairDemoActive=null;resetPreviewButton();
+   console.warn('Không nạp được demo kéo ghế:',err);
+   toast('Không thể nạp robot WebGL: '+String(err?.message||err).slice(0,140));
+  }
+ };
+ document.addEventListener('page-change',e=>{
+  if(e.detail.page!=='idea')officeChairPreviewRunning?.stop();
+ });
+}
+
 /* ================= Văn phòng 3D (0.9.25) =================
  * Cùng một bộ não trạng thái với phòng 2D (officeStationOf/officeCulprit),
  * chỉ khác cách vẽ: phòng 3D bằng Three.js (MIT, nhúng trong source).
  * Nếu WebGL/import lỗi, phòng 2D vẫn chạy như cũ — không giấu lỗi. */
 var office3DVisible=true;
 document.addEventListener('page-change',e=>{office3DVisible=e.detail.page==='idea';});
-function office3DShowError(err){window.__office3DError=String((err&&err.message)||err||'không rõ').slice(0,90);console.warn('Văn phòng 3D lỗi, dùng bản isometric:',err);const t=$('#office3DToggle');if(t&&window.__office3DWanted&&!window.__office3DReady){t.disabled=false;t.textContent='🧊 Phòng 3D chưa tải được ('+window.__office3DError+') — đang dùng bản isometric';}}
 function office3DEnsure(){
  if(window.__office3DEnsureStarted)return; window.__office3DEnsureStarted=true;
  const room=$('#officeRoom'); if(!room)return;
- setTimeout(()=>{if(window.__office3DWanted&&!window.__office3DReady){const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D chưa tải được'+(window.__office3DError?' ('+window.__office3DError+')':' (quá 9 giây chưa sẵn sàng)')+' — đang dùng bản isometric';}console.warn('Phòng 3D không sẵn sàng sau 9 giây — giữ bản isometric.');}},9000);
- // v0.9.62: mọi lỗi nạp 3D trước đây bị nuốt vào console nên trên máy Sếp
- // chỉ thấy câu chung chung "chưa tải được" mà không ai biết lý do. Nay lý
- // do thật (ngắn) được ghi vào window.__office3DError và hiện ngay trên
- // nhãn nút 3D để chẩn đoán được (WebGL bị chặn / thiếu file / lỗi dựng).
- import('/vendor/three.module.min.js').then(THREE=>{try{office3DBuild(THREE,room);}catch(err){office3DShowError(err);}}).catch(err=>{office3DShowError(new Error('không nạp được thư viện 3D: '+String((err&&err.message)||err||'')));});
+ setTimeout(()=>{if(window.__office3DWanted&&!window.__office3DReady){const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🧊 Phòng 3D chưa tải được — đang dùng bản isometric';}console.warn('Phòng 3D không sẵn sàng sau 9 giây — giữ bản isometric.');}},9000);
+ import('/vendor/three.module.min.js').then(THREE=>{try{office3DBuild(THREE,room);}catch(err){console.warn('Văn phòng 3D lỗi, dùng bản 2D:',err);}}).catch(()=>{});
 }
 {const tgl=$('#office3DToggle');if(tgl)tgl.onclick=()=>{
+ window.__officeChairDemoActive?.stop();
  const roomEl=$('#officeRoom');
  if(window.__office3DReady&&roomEl&&roomEl.classList.contains('office-3d-on')){window.__office3DOff=true;roomEl.classList.remove('office-3d-on');if(window.__office3DSelect)window.__office3DSelect(null);tgl.textContent='🧊 Xem phòng 3D';try{localStorage.setItem('aios-office-view','iso');}catch{} if(roomEl){roomEl.classList.add('office-iso');officeRender();} return;}
  if(window.__office3DReady&&window.__office3DOff){window.__office3DOff=false;if(roomEl){roomEl.classList.remove('office-iso');roomEl.classList.add('office-3d-on');}tgl.textContent='🗺️ Đang ở phòng 3D — bấm để về isometric';try{localStorage.setItem('aios-office-view','3d');}catch{} return;}
@@ -1122,7 +1111,7 @@ function office3DEnsure(){
  * tự mở khi Sếp đã chọn nó trước đó ('3d'). Lựa chọn '2d' của các bản cũ
  * cũng về isometric — bản 2D phẳng cũ đã nghỉ, isometric thay thế hẳn. */
 try{
- if(localStorage.getItem('aios-office-view')==='3d'){window.__office3DWanted=true;const t=$('#office3DToggle');if(t){t.disabled=true;t.textContent='🧊 Đang tải phòng 3D…';}office3DEnsure();}
+ if(localStorage.getItem('aios-space-studio-mode')==='legacy'&&localStorage.getItem('aios-office-view')==='3d'){window.__office3DWanted=true;const t=$('#office3DToggle');if(t){t.disabled=true;t.textContent='🧊 Đang tải phòng 3D…';}office3DEnsure();}
  else{const r0=$('#officeRoom'); if(r0){r0.classList.add('office-iso'); officeRender();}}
 }catch{}
 function officeWorld(pct){return {x:(pct.x-50)/50*17,z:(pct.y-50)/50*11};}
@@ -1609,12 +1598,23 @@ function office3DBuild(THREE,room){
   scene.add(grp);
   return {a,grp,legL,legR,shinL,shinR,armL,armR,ring,selRing,nameSp,zzz,faceMat,faceMode:'idle',name:officePlateName(a),target:new THREE.Vector3(),walking:false,busy:false,phase:Math.random()*7,sit:0,postKind:null,postId:null,pinned:false,stateDriven:false};
  }
- const agents={}; for(const a of officeRosterCast()){const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]); built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); built.baseY=0; built.yCur=0; agents[a.id]=built;}
- // --- Model 3D GLB do người dùng nạp (0.9.31): có file thì thay robot mặc định ---
- for(const id in agents){const A=agents[id];const keep=new Set([A.nameSp,A.zzz,A.ring,A.selRing]);const proc=new THREE.Group();proc.name='ProceduralBody';
+ function officeWrapProcedural(A){
+  if(A.procBody)return;
+  const keep=new Set([A.nameSp,A.zzz,A.ring,A.selRing]);
+  const proc=new THREE.Group();proc.name='ProceduralBody';
   [...A.grp.children].forEach(ch=>{if(!keep.has(ch))proc.add(ch);});
-  A.grp.add(proc);A.procBody=proc;}
+  A.grp.add(proc);A.procBody=proc;
+ }
+ const agents={}; for(const a of officeRosterCast()){
+  const built=buildAgent(a);const home=officeWorld(OFFICE_STATIONS[a.station]);
+  built.grp.position.set(home.x,0,home.z);built.target.copy(built.grp.position);
+  built.baseY=0;built.yCur=0;officeWrapProcedural(built);agents[a.id]=built;
+ }
+ let tamTemplate=null,tamClipList=null,tamCloneFn=null,tamBusy=false;
+ const TAM_NATIVE_H=1.6137,TAM_TARGET_H=1.9;
  let clipLogic=null; import('/office-clip.mjs').then(m=>{clipLogic=m;}).catch(e=>{console.warn('Không nạp được logic clip phòng 3D — dùng quy tắc dự phòng:',e);});
+ let officeMotion=null;
+ const officeMotionPromise=import('/office-motion.mjs').then(m=>{officeMotion=m;window.__officeNavReady=true;return m;}).catch(e=>{console.warn('Không nạp được office motion:',e);return null;});
  function officePlayClip(A,want){
   const M=A.model; if(!M||M.current===want)return;
   const clip=M.clips[want]||M.clips.idle;
@@ -1622,7 +1622,7 @@ function office3DBuild(THREE,room){
   if(!clip||!A.mixer){M.current=want;M.action=null;return;}
   const act=A.mixer.clipAction(clip);
   act.reset(); act.enabled=true;
-  if(want==='cheer'){act.setLoop(THREE.LoopOnce,1); act.clampWhenFinished=true;}
+  if(['cheer','sitDown','standUp'].includes(want)){act.setLoop(THREE.LoopOnce,1); act.clampWhenFinished=true;}
   else{act.setLoop(THREE.LoopRepeat,Infinity); act.clampWhenFinished=false;}
   act.fadeIn(.22); act.play();
   M.action=act; M.current=want;
@@ -1632,7 +1632,15 @@ function office3DBuild(THREE,room){
   try{
    const list=await (await fetch('/api/office/models')).json();
    const has=(list.models||[]).some(m=>m.id===A.a.id);
-   if(!has){if(A.modelRoot){A.grp.remove(A.modelRoot);A.modelRoot=null;} A.model=null; A.mixer=null; if(A.procBody)A.procBody.visible=true; return;}
+   if(!has){
+    if(A.model&&A.model.source==='upload'){
+     if(A.modelRoot){A.grp.remove(A.modelRoot);A.modelRoot=null;}
+     A.model=null;A.mixer=null;
+    }
+    if(tamTemplate)officeAttachTam(A);
+    else if(A.procBody)A.procBody.visible=true;
+    return;
+   }
    if(!gltfLoaderPromise)gltfLoaderPromise=import('/vendor/addons/GLTFLoader.js').then(m=>new m.GLTFLoader());
    const loader=await gltfLoaderPromise;
    const gltf=await loader.loadAsync('/api/office/models/'+A.a.id+'/file');
@@ -1642,6 +1650,7 @@ function office3DBuild(THREE,room){
    const box2=new THREE.Box3().setFromObject(root); root.position.y-=box2.min.y;
    root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
    if(A.modelRoot)A.grp.remove(A.modelRoot);
+   A.bend=null;
    A.grp.add(root); A.modelRoot=root;
    if(!clipLogic)clipLogic=await import('/office-clip.mjs');
    const names=(gltf.animations||[]).map(c=>c.name);
@@ -1650,19 +1659,33 @@ function office3DBuild(THREE,room){
    // Sếp duyệt việc bằng InspectTablet như cũ — không dùng chu trình bàn
    // đứng WorkCycle dù model có clip đó.
    if(A.a.id==='boss'){const it=(gltf.animations||[]).find(c=>clipLogic.officeClipKey(c.name)==='inspecttablet'); if(it)clips.work=it;}
+   const namesByIntent={sitDown:['Sit_Down','SitDown'],standUp:['Stand_Up','StandUp'],seatedIdle:['Seated_Idle','SittingIdle','Sit_Idle'],seatedWork:['Type_Keyboard','Seated_Work','Review_Document']};
+   for(const [intent,candidates] of Object.entries(namesByIntent)){
+    const clip=(gltf.animations||[]).find(c=>candidates.includes(c.name));
+    if(clip)clips[intent]=clip;
+   }
    A.mixer=new THREE.AnimationMixer(root);
-   A.model={clips,current:null,action:null};
+   A.model={clips,current:null,action:null,source:'upload',hasSeatClips:Boolean(clips.sitDown&&clips.standUp&&clips.seatedIdle)};
    A.workClipName=clips.work?clips.work.name:null;
-   A.standingDesk=['WorkCycle','Typing','Mouse','TabletTouch'].includes(A.workClipName||'');
+   A.standingDesk=!A.model.hasSeatClips&&['WorkCycle','Typing','Mouse','TabletTouch'].includes(A.workClipName||'');
    if(A.procBody)A.procBody.visible=false;
   }catch(e){console.warn('Không nạp được model 3D cho',A.a.id,e);}
  }
  window.__office3DLoadModels=()=>{for(const id in agents){if(officeFleetActive()&&id!=='boss')continue; officeLoadModel(agents[id]);}};
  window.__office3DLoadModels();
+ // Keep the model template loaded even when no external fleet account exists.
+ // officeEnsureTam is defined later, but function declarations are hoisted.
+ officeEnsureTam();
  scene.traverse(o=>{if(o.isMesh&&o.material&&o.material.isMeshStandardMaterial&&!o.material.transparent){o.castShadow=true;o.receiveShadow=true;}});
  floor.receiveShadow=true;
  // đường chấm khi di chuyển + gói hàng
- for(const id in agents){const A=agents[id];const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);const line=new THREE.Line(geo,new THREE.LineDashedMaterial({color:new THREE.Color(A.a.color),dashSize:.22,gapSize:.14,transparent:true,opacity:.6}));line.visible=false;scene.add(line);A.path=line;}
+ function officeMakePath(A){
+  if(A.path)return;
+  const geo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);
+  const line=new THREE.Line(geo,new THREE.LineDashedMaterial({color:new THREE.Color(A.a.color),dashSize:.22,gapSize:.14,transparent:true,opacity:.6}));
+  line.visible=false;scene.add(line);A.path=line;
+ }
+ for(const id in agents)officeMakePath(agents[id]);
  const parcel=new THREE.Mesh(new THREE.BoxGeometry(.36,.36,.36),new THREE.MeshStandardMaterial({color:0xffb020,emissive:0xcf7a00,emissiveIntensity:.55,roughness:.5}));
  parcel.visible=false; scene.add(parcel);
  const parcelTarget=new THREE.Vector3();
@@ -1673,7 +1696,7 @@ function office3DBuild(THREE,room){
  let zapId=null,zapClock=0;
  // --- đồng bộ từ trạng thái thật ---
  window.__office3D=true; window.__office3DCamera=orbit;
- window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,clipName:(A.model&&A.model.action&&A.model.action.getClip)?A.model.action.getClip().name:null,workClip:A.workClipName||null,standing:Boolean(A.standingDesk),seated:(A.sit||0)>.5,sit:Math.round((A.sit||0)*100)/100,station:A.station||null,post:A.postKind||null,postId:A.postId||null,pinned:Boolean(A.pinned),stateDriven:Boolean(A.stateDriven),pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
+ window.__office3DModelInfo=()=>Object.fromEntries(Object.entries(agents).map(([id,A])=>[id,{clip:A.model?A.model.current:null,clipName:(A.model&&A.model.action&&A.model.action.getClip)?A.model.action.getClip().name:null,workClip:A.workClipName||null,standing:Boolean(A.standingDesk),seated:A.motionPhase==='seated',phase:A.motionPhase||'standing',routeLeft:Math.max(0,(A.routePoints||[]).length-(A.routeStep||0)),sit:Math.round((A.sit||0)*100)/100,station:A.station||null,post:A.postKind||null,postId:A.postId||null,pinned:Boolean(A.pinned),stateDriven:Boolean(A.stateDriven),pos:[Math.round(A.grp.position.x*10)/10,Math.round(A.grp.position.z*10)/10],walking:Boolean(A.walking)}]));
  window.__office3DSync=(ctx)=>{
   office3DReconcile();
   const roster=officeRosterCast();
@@ -1688,6 +1711,28 @@ function office3DBuild(THREE,room){
    else if(post.kind==='cage'){const w=officeWorld(OFFICE_STATIONS.cage); tx=w.x; tz=w.z;}
    else if(post.kind==='floor'){tx=post.x; tz=post.z;}
    else {const s=officePodSlotPos(post.slot||0); tx=s.x; tz=s.z;}
+   const dg=(post.kind==='desk'||post.kind==='station')?deskGroups.find(g=>g.userData.stationId===post.id):null;
+   const oldDesk=A.seatStation||null;
+   const newDesk=dg?{x:dg.position.x,z:dg.position.z,yaw:dg.rotation.y}:null;
+   if(newDesk){
+    // local seat z=.28; the desk is rotated 180 degrees in this room.
+    const seat=officeMotion?officeMotion.officeChairPoint(newDesk):{x:newDesk.x,z:newDesk.z-.28,yaw:0};
+    tx=seat.x;tz=seat.z;A.facingYaw=seat.yaw;
+   }else A.facingYaw=0;
+   const destKey=[post.kind,post.id||post.slot||'',tx.toFixed(2),tz.toFixed(2)].join(':');
+   const changed=A.navKey!==destKey;
+   if(changed){
+    const leavingSeat=A.motionPhase==='seated'||A.motionPhase==='sitting';
+    if(leavingSeat&&A.navKey)A.leaveSeat=true;
+    const obstacleDesks=deskGroups.map(g=>({x:g.position.x,z:g.position.z,yaw:g.rotation.y,r:1.52}));
+    const points=(officeMotion&&A.navKey)?officeMotion.officeRoute(
+     {x:A.grp.position.x,z:A.grp.position.z},{x:tx,z:tz},obstacleDesks,
+     {fromDesk:leavingSeat?oldDesk:null,toDesk:newDesk}
+    ):[{x:tx,z:tz}];
+    A.routePoints=points.map(v=>new THREE.Vector3(v.x,0,v.z));
+    A.routeStep=0;A.navKey=destKey;A.moveSpeed=0;
+   }
+   A.seatStation=newDesk;A.seatWanted=Boolean(newDesk);
    A.target.set(tx,0,tz);
    A.baseY=(post.kind==='desk'||post.kind==='station')?officeYFor(post.id):post.kind==='floor'?((Math.abs(tx)<=12.6&&Math.abs(tz)<=12.6)?officeRoomDeckY:0):0;
    A.station=stId; A.postKind=post.kind; A.postId=post.kind==='desk'||post.kind==='station'?post.id:post.kind==='pod'?('pod'+(post.slot||0)):post.kind;
@@ -1789,42 +1834,97 @@ function office3DBuild(THREE,room){
   const dt=Math.min(clockT.getDelta(),.05),t=clockT.elapsedTime;
   for(const id in agents){
    const A=agents[id],p=A.grp.position;
-   const dx=A.target.x-p.x,dz=A.target.z-p.z,dist=Math.hypot(dx,dz);
-   const ownDesk=A.postKind==='desk'; // ngồi ghế khi vị trí của nó là một BÀN (0.9.57: theo officeResolvePosts, không còn suy đoán theo trạm của lượt chạy)
-   if(dist>.05&&A.sit>.12){ A.sit=Math.max(0,A.sit-dt*3.4); A.walking=false; A.path.visible=false; }
-   else if(dist>.05){
-    const step=Math.min(dist,4.4*dt); p.x+=dx/dist*step; p.z+=dz/dist*step; A.walking=true;
-    const targetRot=Math.atan2(dx,dz); let dr=targetRot-A.grp.rotation.y; while(dr>Math.PI)dr-=2*Math.PI; while(dr<-Math.PI)dr+=2*Math.PI; A.grp.rotation.y+=dr*Math.min(1,dt*10);
-    const pos=A.path.geometry.attributes.position; pos.setXYZ(0,p.x,officeRoomDeckY>0?.25:.06,p.z); pos.setXYZ(1,A.target.x,officeRoomDeckY>0?.25:.06,A.target.z); pos.needsUpdate=true; A.path.computeLineDistances(); A.path.visible=true;
-   } else { A.walking=false; A.path.visible=false; }
-   const sitT=(dist<=.05&&ownDesk&&!A.standingDesk)?1:0;
-   if(dist<=.05)A.sit+=(sitT-A.sit)*Math.min(1,dt*3.2);
-   const sit=A.sit, sw=Math.sin(t*11+A.phase);
+   if(!A.motionPhase)A.motionPhase='standing';
+   const distGoal=Math.hypot(A.target.x-p.x,A.target.z-p.z);
+   let waypoint=(A.routePoints||[])[A.routeStep||0]||null;
+   while(waypoint&&Math.hypot(waypoint.x-p.x,waypoint.z-p.z)<.085){
+    A.routeStep++;waypoint=(A.routePoints||[])[A.routeStep]||null;
+   }
+   const seatedPose=A.motionPhase==='sitting'||A.motionPhase==='seated';
+   if(seatedPose&&A.leaveSeat){A.motionPhase='standingUp';A.poseClock=0;}
+   let phase=A.motionPhase;
+   A.walking=false;
+   if(phase==='standingUp'){
+    A.poseClock=(A.poseClock||0)+dt;
+    const dur=A.model?.clips?.standUp?.duration||.98;
+    A.sit=Math.max(0,1-A.poseClock/dur);
+    if(A.poseClock>=dur){A.motionPhase='standing';A.poseClock=0;A.sit=0;A.leaveSeat=false;}
+   }else if(phase==='sitting'){
+    A.poseClock=(A.poseClock||0)+dt;
+    const dur=A.model?.clips?.sitDown?.duration||1.05;
+    A.sit=Math.min(1,A.poseClock/dur);
+    if(A.poseClock>=dur){A.motionPhase='seated';A.poseClock=0;A.sit=1;A.seatedDestKey=A.navKey;}
+   }else if(phase==='seated'){
+    A.sit=1;
+   }else if(waypoint){
+    const vx=waypoint.x-p.x,vz=waypoint.z-p.z,dd=Math.hypot(vx,vz);
+    const yaw=Math.atan2(vx,vz);
+    let turn=yaw-A.grp.rotation.y;
+    while(turn>Math.PI)turn-=Math.PI*2;
+    while(turn<-Math.PI)turn+=Math.PI*2;
+    const turnStep=Math.min(Math.abs(turn),dt*3.3);
+    A.grp.rotation.y+=Math.sign(turn)*turnStep;
+    // Rotate into the aisle before walking; no instantaneous sideways slide.
+    if(Math.abs(turn)<.75){
+     const fast=2.25,slow=Math.max(.6,Math.sqrt(dd*5.6));
+     A.moveSpeed=Math.min(fast,slow,(A.moveSpeed||0)+dt*3.8);
+     const step=Math.min(dd,A.moveSpeed*dt*(Math.abs(turn)>.35?.55:1));
+     p.x+=vx/dd*step;p.z+=vz/dd*step;
+     A.walking=step>0.0001;A.motionPhase='walking';
+    }else{A.moveSpeed=0;A.motionPhase='turning';}
+   }else{
+    A.moveSpeed=0;
+    const sittingHere=A.seatWanted&&distGoal<.12;
+    const desiredYaw=sittingHere?(A.facingYaw||0):0;
+    let turn=desiredYaw-A.grp.rotation.y;
+    while(turn>Math.PI)turn-=Math.PI*2;
+    while(turn<-Math.PI)turn+=Math.PI*2;
+    if(Math.abs(turn)>.045){A.grp.rotation.y+=Math.sign(turn)*Math.min(Math.abs(turn),dt*3.3);A.motionPhase='turning';}
+    else if(sittingHere&&!A.standingDesk){A.motionPhase='sitting';A.poseClock=0;A.sit=0;}
+    else{A.motionPhase='standing';A.sit=0;}
+   }
+   phase=A.motionPhase;
+   if(A.path){
+    const show=Boolean(waypoint)&&A.walking;
+    if(show){const data=A.path.geometry.attributes.position;
+     data.setXYZ(0,p.x,officeRoomDeckY>0?.25:.06,p.z);
+     data.setXYZ(1,waypoint.x,officeRoomDeckY>0?.25:.06,waypoint.z);
+     data.needsUpdate=true;A.path.computeLineDistances();}
+    A.path.visible=show;
+   }
+   const sit=A.sit||0,sw=Math.sin(t*11+A.phase);
    A.yCur+=((A.baseY||0)-A.yCur)*Math.min(1,dt*3);
-   if(A.model){if(A.wasBusy&&!A.busy&&!A.walking)A.cheerT=1.5; if(A.cheerT>0)A.cheerT-=dt;}
+   if(A.model){if(A.wasBusy&&!A.busy&&!A.walking)A.cheerT=1.5;if(A.cheerT>0)A.cheerT-=dt;}
    A.wasBusy=A.busy;
    if(A.model){
-    if(A.walking){p.y=A.yCur+Math.abs(Math.sin(t*9+A.phase))*.04;}
-    else{p.y=A.yCur-(A.standingDesk?0:0.5*A.sit); let fd=0-A.grp.rotation.y; while(fd>Math.PI)fd-=2*Math.PI; while(fd<-Math.PI)fd+=2*Math.PI; A.grp.rotation.y+=fd*Math.min(1,dt*3.5);}
+    p.y=A.yCur+(A.walking?Math.abs(Math.sin(t*9+A.phase))*.018:0);
     A.grp.rotation.x=0;
-    const want=clipLogic?clipLogic.officeClipFor({walking:A.walking,faceMode:A.faceMode,cheer:A.cheerT>0}):(A.faceMode==='zap'?'fail':A.walking?'walk':A.cheerT>0?'cheer':A.faceMode==='work'?'work':'idle');
+    let want;
+    if(phase==='sitting'&&A.model.clips.sitDown)want='sitDown';
+    else if(phase==='standingUp'&&A.model.clips.standUp)want='standUp';
+    else if(phase==='seated'&&A.model.clips.seatedIdle)want=A.busy&&A.model.clips.seatedWork?'seatedWork':'seatedIdle';
+    else want=clipLogic?clipLogic.officeClipFor({walking:A.walking,faceMode:A.faceMode,cheer:A.cheerT>0}):(A.faceMode==='zap'?'fail':A.walking?'walk':A.cheerT>0?'cheer':A.faceMode==='work'?'work':'idle');
     officePlayClip(A,want);
     if(A.mixer)A.mixer.update(dt);
-    if(A.bend&&A.sit>0.01&&!A.standingDesk){const s=A.sit,B=A.bend;
-     if(B.hipL)B.hipL.rotation.x-=1.05*s; if(B.hipR)B.hipR.rotation.x-=1.05*s;
-     if(B.kneeL)B.kneeL.rotation.x+=1.5*s; if(B.kneeR)B.kneeR.rotation.x+=1.5*s;
-     if(B.ankleL)B.ankleL.rotation.x-=0.22*s; if(B.ankleR)B.ankleR.rotation.x-=0.22*s;}
-   }
-   else if(A.walking){
-    A.legL.rotation.x=sw*.55*(1-sit); A.legR.rotation.x=-sw*.55*(1-sit);
-    A.shinL.rotation.x=Math.max(0,-sw)*.55*(1-sit); A.shinR.rotation.x=Math.max(0,sw)*.55*(1-sit);
-    A.armL.rotation.x=-sw*.44*(1-sit)-.55*sit; A.armR.rotation.x=sw*.44*(1-sit)-.55*sit;
-    p.y=A.yCur+Math.abs(Math.sin(t*11+A.phase))*.05*(1-sit)-.40*sit; A.grp.rotation.x=.05*(1-sit);
-   } else {
-    A.legL.rotation.x=-1.5*sit; A.legR.rotation.x=-1.5*sit; A.shinL.rotation.x=1.5*sit; A.shinR.rotation.x=1.5*sit;
-    A.armL.rotation.x=-.55*sit; A.armR.rotation.x=-.55*sit;
-    p.y=A.yCur+Math.sin(t*1.7+A.phase)*.015-.40*sit; A.grp.rotation.x=.07*sit;
-    let fd=0-A.grp.rotation.y; while(fd>Math.PI)fd-=2*Math.PI; while(fd<-Math.PI)fd+=2*Math.PI; A.grp.rotation.y+=fd*Math.min(1,dt*3.5);
+    // Unknown user GLBs may not contain a seated pose. Keep a conservative
+    // geometric fallback, but NEVER apply it over a genuine seated clip.
+    if(!A.model.hasSeatClips&&A.bend&&sit>.01&&!A.standingDesk){
+     p.y=A.yCur-.28*sit;
+     const B=A.bend;
+     if(B.hipL)B.hipL.rotation.x-=1.05*sit;if(B.hipR)B.hipR.rotation.x-=1.05*sit;
+     if(B.kneeL)B.kneeL.rotation.x+=1.43*sit;if(B.kneeR)B.kneeR.rotation.x+=1.43*sit;
+     if(B.ankleL)B.ankleL.rotation.x-=.22*sit;if(B.ankleR)B.ankleR.rotation.x-=.22*sit;
+    }
+   }else if(A.walking){
+    A.legL.rotation.x=sw*.55*(1-sit);A.legR.rotation.x=-sw*.55*(1-sit);
+    A.shinL.rotation.x=Math.max(0,-sw)*.55*(1-sit);A.shinR.rotation.x=Math.max(0,sw)*.55*(1-sit);
+    A.armL.rotation.x=-sw*.44*(1-sit)-.55*sit;A.armR.rotation.x=sw*.44*(1-sit)-.55*sit;
+    p.y=A.yCur+Math.abs(Math.sin(t*11+A.phase))*.035*(1-sit)-.28*sit;A.grp.rotation.x=.05*(1-sit);
+   }else{
+    A.legL.rotation.x=-1.05*sit;A.legR.rotation.x=-1.05*sit;
+    A.shinL.rotation.x=1.43*sit;A.shinR.rotation.x=1.43*sit;
+    A.armL.rotation.x=-.55*sit;A.armR.rotation.x=-.55*sit;
+    p.y=A.yCur+Math.sin(t*1.7+A.phase)*.01-.28*sit;A.grp.rotation.x=.04*sit;
    }
    if(A.faceMode!=='sleep'&&A.faceMode!=='zap'){ const bl=((t+A.phase*3.7)%4.1)<.11; const tgt=bl?faceTexCache.blink:faceTexCache[A.faceMode]; if(A.faceMat.map!==tgt)A.faceMat.map=tgt; }
    if(zapId===id){
@@ -1846,24 +1946,23 @@ function office3DBuild(THREE,room){
   camera.lookAt(orbit.lookX,orbit.lookY,orbit.lookZ);
   if(!window.__office3DReady){window.__office3DReady=true;room.classList.remove('office-iso');room.classList.add('office-3d-on');const t=$('#office3DToggle');if(t){t.disabled=false;t.textContent='🗺️ Đang ở phòng 3D — bấm để về isometric';}}
   if(officeComposer)officeComposer.render(); else renderer.render(scene,camera);
- }catch(err){window.__office3DError=String((err&&err.message)||err||'không rõ').slice(0,90);console.warn('Khung hình 3D lỗi — quay về phòng isometric:',err);try{renderer.setAnimationLoop(null);}catch{} window.__office3D=false;window.__office3DReady=false;const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');room.classList.add('office-iso');officeRender();const t2=$('#office3DToggle');if(t2){t2.disabled=false;t2.textContent='🧊 Phòng 3D lỗi ('+window.__office3DError+') — đang dùng bản isometric';}} });
+ }catch(err){console.warn('Khung hình 3D lỗi — quay về phòng isometric:',err);try{renderer.setAnimationLoop(null);}catch{} window.__office3D=false;window.__office3DReady=false;const c=room.querySelector('.office-3d-canvas');if(c)c.remove();room.classList.remove('office-3d-on');room.classList.add('office-iso');officeRender();} });
  // --- Phòng GLB theo ảnh mẫu (nạp bất đồng bộ): có file thì thay vỏ phòng thủ tục, robot + trạng thái thật giữ nguyên ---
  // --- Thân TAM01 cho đội bot tài khoản: nạp 1 lần, nhân bản theo xương cho từng bot ---
- let tamTemplate=null,tamClipList=null,tamCloneFn=null,tamBusy=false;
- const TAM_NATIVE_H=1.6137,TAM_TARGET_H=1.9;
  async function officeEnsureTam(){
   if(tamTemplate||tamBusy)return; tamBusy=true;
   try{
-   const [sk,gl]=await Promise.all([import('/vendor/addons/SkeletonUtils.js'),import('/vendor/addons/GLTFLoader.js')]);
+   const [sk,gl]=await Promise.all([import('/vendor/addons/SkeletonUtils.js'),import('/vendor/addons/GLTFLoader.js'),officeMotionPromise]);
    const g=await new gl.GLTFLoader().loadAsync('/assets/tam19.glb');
    tamTemplate=g.scene; tamClipList=g.animations||[]; tamCloneFn=sk.clone;
    window.__officeTamClips=tamClipList.map(c=>c.name);
-   for(const A of Object.values(agents))if(A.a.fleet)officeAttachTam(A);
+   for(const A of Object.values(agents))officeAttachTam(A);
   }catch(e){console.warn('Không nạp được thân TAM01, bot dùng thân mặc định:',e);}
   tamBusy=false;
  }
  function officeAttachTam(A){
-  if(!tamTemplate||!tamCloneFn||A.model)return;
+  if(!tamTemplate||!tamCloneFn||(A.model&&A.model.source==='upload'))return;
+  if(A.model&&A.model.source==='stock')return;
   try{
    const inst=tamCloneFn(tamTemplate);
    const col=new THREE.Color(A.a.color||'#57e6ff');
@@ -1888,15 +1987,17 @@ function office3DBuild(THREE,room){
     if(!c&&clipLogic){const f=clipLogic.officeFindClip(names,want); if(f)c=tamClipList.find(x=>x.name===f);}
     if(c)clips[want]=c;
    }
+   const seatClips=officeMotion&&officeMotion.officeMakeTam19SeatClips(THREE,inst);
+   if(seatClips)Object.assign(clips,seatClips);
    A.mixer=new THREE.AnimationMixer(inst);
-   A.model={clips,current:null,action:null};
+   A.model={clips,current:null,action:null,source:'stock',hasSeatClips:Boolean(seatClips)};
    // 0.9.52: làm việc tại bàn là NGỒI ghế — clip mặc định InspectTablet
    // không thuộc nhóm bàn đứng, nên vòng lặp chuyển động áp thế ngồi
    // (bend + hạ thân lên ghế của app). Nhóm clip bàn đứng P16 chỉ còn là
    // đường dự phòng cho model không có clip ngồi nào: khi đó robot đứng ở
    // bàn đứng tích hợp của chính model và bend bị tắt như cũ.
    A.workClipName=clips.work?clips.work.name:null;
-   A.standingDesk=['WorkCycle','Typing','Mouse','TabletTouch'].includes(A.workClipName||'');
+   A.standingDesk=false;
    if(A.procBody)A.procBody.visible=false;
    window.__officeTamAttached=Object.values(agents).filter(x=>x.model&&x.a.fleet).length;
   }catch(e){console.warn('Gắn thân TAM01 lỗi cho',A.a.id,e);}
@@ -1909,17 +2010,22 @@ function office3DBuild(THREE,room){
   // nhất: bot đổi TRẠM (sạc xong ra bàn, hoặc chuyển trạm) không làm thay
   // chữ ký ID — nếu giữ A.a cũ, điều kiện ownDesk của vòng lặp chuyển động
   // so theo trạm cũ nên robot tới bàn mới mà không bao giờ ngồi (0.9.52).
-  if(sig===rosterSig3D){for(const A of Object.values(agents)){const fresh=roster.find(x=>x.id===A.a.id); if(fresh)A.a=fresh; if(A.a.fleet&&!A.model)officeAttachTam(A);} return;}
+  if(sig===rosterSig3D){for(const A of Object.values(agents)){const fresh=roster.find(x=>x.id===A.a.id); if(fresh)A.a=fresh; if(!A.model)officeAttachTam(A);} return;}
   rosterSig3D=sig;
   const want=new Set(roster.map(a=>a.id));
-  for(const id of Object.keys(agents))if(!want.has(id)){scene.remove(agents[id].grp); delete agents[id];}
+  for(const id of Object.keys(agents))if(!want.has(id)){
+   scene.remove(agents[id].grp);if(agents[id].path)scene.remove(agents[id].path);
+   delete agents[id];
+  }
   for(const a of roster){
    if(agents[a.id]){agents[a.id].a=a; continue;}
    const built=buildAgent(a); const home=officeWorld(OFFICE_STATIONS[a.station]||OFFICE_STATIONS.lounge);
    built.grp.position.set(home.x,0,home.z); built.target.copy(built.grp.position); built.baseY=0; built.yCur=0;
-   agents[a.id]=built;
+   officeWrapProcedural(built);officeMakePath(built);agents[a.id]=built;
   }
-  if(roster.some(a=>a.fleet))officeEnsureTam();
+  // Attach stock GLB immediately to newly arrived bots once the template is ready.
+  if(tamTemplate){for(const A of Object.values(agents))if(!A.model)officeAttachTam(A);}
+  else officeEnsureTam();
  }
  window.__officeRoomMode='procedural';
  import('/vendor/addons/GLTFLoader.js').then(async ({GLTFLoader})=>{
@@ -1971,3 +2077,6 @@ function office3DBuild(THREE,room){
   }catch(err){ console.warn('Không nạp được phòng GLB, dùng phòng thủ tục:',err); officeEnablePost(); }
  }).catch(()=>{});
 }
+
+/* SPACE STUDIO R2: sanitized read-only account status bridge. */
+window.__ideaSpaceReadFleet=()=>officeRosterCast().filter(a=>a.fleet).map(a=>({id:String(a.id),name:String(a.name||a.id),provider:String(a.fleet.provider||''),state:String(a.fleet.state||'unknown'),station:String(a.station||''),placeholder:Boolean(a.fleet.standby)}));

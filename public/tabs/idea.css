@@ -109,3 +109,11 @@
 .meeting-time{font-size:11px;color:#8fa3c8;white-space:nowrap}
 .idea-meeting-note{font-size:12px;margin:4px 0 0}
 @keyframes meetingPulse{50%{opacity:.55}}
+
+/* R8: role selections remain readable on desktop and mobile. */
+.work-team-group{border:1px solid var(--border,#31516b);border-radius:10px;margin:12px 0;padding:10px;max-height:230px;overflow:auto}.work-team-group label{display:flex;align-items:center;gap:8px;padding:6px;overflow-wrap:anywhere}.work-team-group input{width:auto;flex:none}.work-roles b{overflow-wrap:anywhere}.cc-team-members{margin-top:12px;font-size:12px;overflow-wrap:anywhere}.cc-team-members>div{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:6px}
+
+/* R8 media selection stays within reception; no changes to room styling. */
+.work-media-setup{margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:12px}.work-image-chip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--border);padding:5px 8px;margin:4px;border-radius:8px;max-width:100%;overflow-wrap:anywhere}.work-image-chip button{padding:0 6px}.work-media-setup audio{max-width:100%;margin:8px 0}.work-media-setup label{display:block;margin:10px 0}
+
+.idea-project-activity{flex:0 0 auto;min-height:32px;box-sizing:border-box;font-size:12px;line-height:1.5;border-left:2px solid #51becb;padding:7px 10px;margin:6px 0;color:var(--muted,#b2cbdc);max-height:84px;overflow:auto;white-space:pre-wrap}.idea-project-activity[hidden]{display:none}

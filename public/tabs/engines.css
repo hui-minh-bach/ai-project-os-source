@@ -57,3 +57,12 @@
 #page-engines .diagnosticIcon svg{width:47px;height:49px;display:block;margin-top:4px}#page-engines .engineActions .downloadIcon svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #page-engines .workerProgress{height:10px;background:#0a2a3f;border:1px solid #124d6c;border-radius:6px;overflow:hidden;margin:10px 0 4px}#page-engines .workerProgressBar{height:100%;background:linear-gradient(90deg,#1e9e8a,#27e7d2);transition:width .4s ease}
 #page-engines .engine.workerCard{height:auto;min-height:282px}#page-engines .engine.workerCard .engineDescription{min-height:0}
+/* Optional free local workflow: preserves the existing engine design system. */
+#page-engines .engineWorkflowImport{margin-top:14px;padding:15px 17px;border:1px solid #115776;border-radius:12px;background:linear-gradient(120deg,#082c3b,#071d2f);color:#e5f5ff}
+#page-engines .engineWorkflowImport h4{margin:0 0 7px;font-size:15px}
+#page-engines .engineWorkflowImport p{margin:5px 0 10px;line-height:1.5;color:#bdd9eb;font-size:13px}
+#page-engines .engineWorkflowControls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#page-engines .engineWorkflowControls input{flex:1;min-width:190px;color:inherit;font-size:13px}
+#page-engines .engineWorkflowControls button{min-height:37px}
+#page-engines .engineWorkflowImport code{color:#2af0d4;overflow-wrap:anywhere}
+#page-engines #freeStackWorkflowResult{min-height:19px;margin:10px 0 0}

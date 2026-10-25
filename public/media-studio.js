@@ -1,5 +1,5 @@
 /* Exact CoreServices v1 browser consumer through same-origin host only. */
-const mediaUI={mode:'analyze',source:'',sourceLabel:'',sourceProjectId:null,planSource:null,audioSource:'',captionsSource:'',musicSource:'',busy:false,tasks:[],artifacts:[],lastLoaded:0};
+const mediaUI={mode:'analyze',source:'',sourceLabel:'',sourceProjectId:null,storyImages:[],storyImageProject:null,storyUploading:false,planSource:null,audioSource:'',captionsSource:'',musicSource:'',busy:false,tasks:[],artifacts:[],lastLoaded:0};
 function mediaFeedback(text,level=''){const el=$('#mediaFeedback');if(el){el.textContent=text;el.className='mediaHint '+(level?'media'+level:'');}}
 function mediaSwitchMode(mode){if(!['analyze','edit-plan','render','effects','subtitle-edit','story','voiceover','tts-video','retheme','publish-draft'].includes(mode))return;mediaUI.mode=mode;
   $$('[data-media-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mediaMode===mode));
@@ -141,7 +141,7 @@ function mediaPayload(){const source=mediaUI.source,mode=mediaUI.mode;let params
   else if(mode==='effects'){const fx=$$('#mediaFxPanel input[type=checkbox]:checked').map(c=>c.value);if(!fx.length)throw new Error('Tick chọn ít nhất một hiệu ứng.');if(fx.includes('title')&&!$('#mediaFxTitle').value.trim())throw new Error('Nhập chữ vào ô Tiêu đề cho hiệu ứng Tiêu đề mở đầu.');if(fx.includes('lower-third')&&!$('#mediaFxName').value.trim())throw new Error('Nhập chữ vào ô Thẻ tên cho hiệu ứng Thẻ tên.');params={source,effects:fx,title:$('#mediaFxTitle').value.trim()||undefined,name:$('#mediaFxName').value.trim()||undefined};}
   else if(mode==='retheme'){const scriptSource=$('#mediaRethemeScriptSource').value;const topic=$('#mediaRethemeTopic').value.trim();const scriptText=$('#mediaRethemeScriptText').value.trim();if(scriptSource==='model'&&!topic)throw new Error('Nhập chủ đề mới để AI viết kịch bản, hoặc chọn “Tôi tự dán kịch bản”.');if(scriptSource==='supplied'&&!scriptText)throw new Error('Dán kịch bản của bạn vào ô kịch bản.');params={source,scriptSource,topic:topic||undefined,notes:$('#mediaRethemeNotes').value.trim()||undefined,scriptText:scriptText||undefined,targetLanguage:$('#mediaRethemeLanguage').value,hardsubCover:$('#mediaRethemeHardsub')?.value||'blur',hardsubRegionPct:Number($('#mediaRethemeHardsubHeight')?.value||12),karaokeCaptions:$('#mediaRethemeKaraoke')?$('#mediaRethemeKaraoke').checked:true,captionPreset:$('#mediaRethemeCaptionPreset')?.value||'sweep',quality:$('#mediaRethemeQuality')?.value||'high',ttsProvider:$('#mediaRethemeTts')?.value||'local',voice:$('#mediaRethemeTts')?.value==='fpt'?($('#mediaRethemeFptVoice')?.value||undefined):undefined,captionsSource:mediaUI.captionsSource||undefined};}
   else if(mode==='subtitle-edit'){const segments=mediaJson('mediaSegments',null);if(!Array.isArray(segments)||!segments.length)throw new Error('Cần JSON mảng các đoạn phụ đề.');params={segments,changes:mediaJson('mediaChanges',[])};}
-  else if(mode==='story'){const text=$('#mediaStoryText').value.trim();if(!text)throw new Error('Cần nội dung truyện.');params={text,mode:$('#mediaStoryMode').value,resolution:$('#mediaStoryRes').value,voice:$('#mediaTtsVoice').value.trim()||undefined,rights:$('#mediaStoryRights').value,transition:$('#mediaStoryTransition')?.value||'crossfade',transitionSeconds:0.4,quality:$('#mediaStoryQuality')?.value||'high',allowProviderImages:!!$('#mediaStoryAiArt')?.checked};}
+  else if(mode==='story'){if($('#mediaStoryProduct').value==='video'){if(mediaUI.storyUploading)throw new Error('Ảnh đang tải.');if(!$('#mediaStoryVisual').value)throw new Error('Chọn nguồn ảnh minh họa trước.');if($('#mediaStoryVisual').value==='uploads'&&!mediaUI.storyImages.length)throw new Error('Tải ảnh của bạn trước.');}const text=$('#mediaStoryText').value.trim();if(!text)throw new Error('Cần nội dung truyện.');params={text,mode:$('#mediaStoryMode').value,resolution:$('#mediaStoryRes').value,voice:($('#mediaStoryTtsProvider').value==='windows'?$('#mediaStoryWindowsVoice').value:$('#mediaTtsVoice').value.trim())||undefined,renderEngine:$('#mediaStoryRenderer').value,effects:$('#mediaStoryEffects').value,rights:$('#mediaStoryRights').value,transition:$('#mediaStoryTransition')?.value||'cut',transitionSeconds:0.4,quality:$('#mediaStoryQuality')?.value||'high',ttsProvider:$('#mediaStoryTtsProvider').value,visualMode:$('#mediaStoryVisual').value,imageProvider:$('#mediaStoryImageProvider').value,imageSources:mediaUI.storyImages.map(x=>x.source),confirmImageQuota:!!$('#mediaStoryAiArt').checked,confirmPaidImages:!!$('#mediaStoryAiArt').checked};}
   else if(mode==='publish-draft'){const title=$('#mediaDraftTitle').value.trim();if(!title)throw new Error('Nhập tiêu đề bản nháp.');params={video:source,title,channel:$('#mediaDraftChannel').value,rights:$('#mediaDraftRights').value};}
   if(source&&params.source===source&&mediaUI.sourceLabel)params.sourceLabel=mediaUI.sourceLabel.slice(0,160);
   return {operation:mode==='story'&&$('#mediaStoryProduct').value==='outline'?'media.story-outline':'media.'+mode,params};
@@ -502,3 +502,52 @@ async function mediaTlFilmstrip(){
     finally{btn.disabled=false;}
   });
 })();
+
+// R8: same voice setup and real image uploads in the dedicated studio.
+$('#mediaStoryVoiceSetup').addEventListener('click',()=>{if(window.showLocalVoiceSetup)window.showLocalVoiceSetup().catch(e=>mediaFeedback(e.message,'Error'));});
+$('#mediaStoryVoicePreview').addEventListener('click',async e=>{const b=e.currentTarget,provider=$('#mediaStoryTtsProvider').value,paid=['heygen','fpt'].includes(provider);if(paid&&!confirm('Dùng hạn mức/chi phí giọng đã chọn để nghe thử?'))return;b.disabled=true;try{const j=await api('/api/production/voice/preview',{method:'POST',body:JSON.stringify({ttsProvider:provider,voice:$('#mediaTtsVoice').value.trim()||undefined,confirmPaidVoice:paid})});$('#mediaStoryVoiceAudio').innerHTML='<audio controls src="'+esc(j.audio)+'"></audio><small>'+esc(j.provider)+'</small>';}catch(err){mediaFeedback(err.message,'Error');}finally{b.disabled=false;}});
+// Per-project local selection only: the actual bytes live in the protected
+// local media workspace. Do not persist credentials, binary data or paid consent.
+const mediaImageDraftKey=pid=>'aios-story-images:'+pid;
+function restoreMediaStoryImages(pid){
+ if(!pid)return [];
+ try{const value=JSON.parse(localStorage.getItem(mediaImageDraftKey(pid))||'[]');
+  return Array.isArray(value)?value.filter(x=>x&&typeof x.name==='string'&&x.name.length<=160&&typeof x.source==='string'&&/^uploads\/[a-f0-9-]{36}\.(png|jpg|jpeg|webp)$/.test(x.source)).slice(0,24):[];
+ }catch{return [];}
+}
+function saveMediaStoryImages(){const pid=mediaUI.storyImageProject;if(!pid)return;try{localStorage.setItem(mediaImageDraftKey(pid),JSON.stringify(mediaUI.storyImages));}catch{}}
+function mediaStoryImageList(){$('#mediaStoryImageFiles').innerHTML=mediaUI.storyImages.map((x,i)=>'<span class="work-image-chip">'+esc(x.name)+' <button type="button" data-story-image-remove="'+i+'">×</button></span>').join('');}
+$('#mediaStoryImages').addEventListener('change',async e=>{if(mediaUI.storyUploading)return;mediaUI.storyUploading=true;const pid=state.project?.id;try{const files=Array.from(e.target.files||[]);if(files.length+mediaUI.storyImages.length>24)throw new Error('Tối đa 24 ảnh.');for(const file of files){if(!/\.(png|jpe?g|webp)$/i.test(file.name)||file.size>20000000)throw new Error('Ảnh phải là PNG/JPEG/WebP, tối đa 20 MB.');const r=await fetch('/api/integrations/media/upload',{method:'POST',headers:{'x-media-filename':encodeURIComponent('illustration'+file.name.slice(file.name.lastIndexOf('.')))},body:file}),j=await r.json();if(!r.ok)throw new Error(j.error||'Lỗi tải ảnh');if(pid!==state.project?.id)throw new Error('Đã đổi dự án.');mediaUI.storyImages.push({source:j.source,name:file.name});saveMediaStoryImages();}$('#mediaStoryVisual').value='uploads';}catch(err){mediaFeedback(err.message,'Error');}finally{e.target.value='';mediaUI.storyUploading=false;mediaStoryImageList();}});
+$('#mediaStoryImageFiles').addEventListener('click',e=>{const b=e.target.closest('[data-story-image-remove]');if(b){mediaUI.storyImages.splice(Number(b.dataset.storyImageRemove),1);saveMediaStoryImages();mediaStoryImageList();}});
+document.addEventListener('project-change',()=>{if(mediaUI.storyImageProject!==state.project?.id){mediaUI.storyImageProject=state.project?.id;mediaUI.storyImages=restoreMediaStoryImages(mediaUI.storyImageProject);mediaStoryImageList();}});
+// Import bridge from Idea Studio. This is a real local file in the media workspace;
+// adding an image/video does not imply AI has examined it or produced a video.
+document.addEventListener('aios-idea-media-uploaded',event=>{
+ const d=event.detail;
+ if(!d||!d.source||!d.projectId||d.projectId!==state.project?.id)return;
+ if(d.kind==='image'){
+  if(mediaUI.storyImageProject!==d.projectId){mediaUI.storyImageProject=d.projectId;mediaUI.storyImages=restoreMediaStoryImages(d.projectId);}
+  if(mediaUI.storyImages.length>=24){mediaFeedback('Ảnh đã được lưu nhưng Media Studio chỉ cho phép 24 ảnh mỗi lượt.','Error');return;}
+  mediaUI.storyImages.push({source:d.source,name:d.name});saveMediaStoryImages();
+  $('#mediaStoryVisual').value='uploads';mediaStoryImageList();
+ }else if(d.kind==='video'){
+  if(mediaUI.source!==d.source)mediaClearPlanOnSourceChange();
+  mediaUI.source=d.source;mediaUI.sourceLabel=d.name;mediaUI.sourceProjectId=d.projectId;
+  mediaSourceRefresh();mediaDirectorSourceRefresh();
+ }
+});
+
+
+// Explicit installed Windows voice discovery and preview, never an API fallback.
+$('#mediaStoryRefreshWindows')?.addEventListener('click',async e=>{
+ const b=e.currentTarget,status=$('#mediaStoryWindowsStatus');b.disabled=true;
+ try{const r=await api('/api/production/windows-voices'),select=$('#mediaStoryWindowsVoice'),old=select.value,voices=(r.voices||[]).filter(v=>v.enabled!==false&&String(v.culture).startsWith('vi'));
+ select.replaceChildren(...voices.map(v=>new Option(v.name+' / '+v.engine,v.id)));
+ if(voices.some(v=>v.id===old))select.value=old;
+ if(!r.ready)throw new Error('Chua co giong Viet Windows. Vao Windows Settings > Speech > Manage voices, sau do kiem tra lai. Khong can Piper.');
+ const p=await api('/api/production/voice/preview',{method:'POST',body:JSON.stringify({ttsProvider:'windows',voice:select.value})});
+ const audio=document.createElement('audio');audio.controls=true;audio.src=p.audio;status.replaceChildren(audio);$('#mediaStoryTtsProvider').value='windows';
+ }catch(err){status.textContent=err.message;}finally{b.disabled=false;}
+});
+function storyRendererFields(){const concat=$('#mediaStoryRenderer')?.value==='concat';if($('#mediaStoryTransition'))$('#mediaStoryTransition').disabled=concat;if($('#mediaStoryEffects'))$('#mediaStoryEffects').disabled=!concat;}
+$('#mediaStoryRenderer')?.addEventListener('change',storyRendererFields);storyRendererFields();

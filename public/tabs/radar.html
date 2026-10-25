@@ -1,9 +1,11 @@
 <section id="page-radar" class="page" aria-label="Radar tin">
-<div class="panel" style="margin-bottom:14px"><h2 style="margin:0 0 4px">📡 Radar tin theo lĩnh vực</h2><p class="muted" style="margin:0">Chọn lĩnh vực của ông — hệ thống quét tin, chấm điểm và xếp <b>Tin nổi bật</b>. Bấm vào một tin là đội AI tự làm video hoặc soạn bài phân tích kèm caption + hashtag; xong việc sẽ về cổng Sếp duyệt trước khi đăng.</p>
+<div class="panel" style="margin-bottom:14px"><h2 style="margin:0 0 4px">📡 Radar tin theo lĩnh vực</h2><p class="muted" style="margin:0">Chọn tin → chốt yêu cầu tại Trưởng phòng → AI thực hiện → nhận sản phẩm ngay trong Idea Studio. Không tự đăng ra ngoài.</p>
 <div id="radarTiles" style="display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin"></div>
 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:2px"><label for="radarField"><b>Lĩnh vực</b></label><select id="radarField" style="min-width:260px"></select><button id="radarScan" class="ghost" type="button">↻ Quét tin mới</button><span id="radarStatus" role="status" class="muted"></span></div>
+<div class="radar-tools"><label for="radarAge">Độ mới</label><select id="radarAge"><option value="24">24 giờ</option><option value="48" selected>48 giờ</option><option value="168">7 ngày</option><option value="720">30 ngày</option><option value="0">Toàn bộ lịch sử</option></select><button class="ghost" id="radarAddField" type="button">+ Thêm lĩnh vực</button><button class="ghost" id="radarEditField" type="button" hidden>Sửa lĩnh vực</button></div>
+<pre id="radarScanDetails" class="radar-errors" role="status"></pre><details><summary>Nguồn tin và trạng thái lấy tin</summary><div id="radarSources"></div><button class="ghost" id="radarAddSource" type="button">+ Nguồn RSS/Atom</button><p class="muted">Kết quả chỉ trong các nguồn đã chọn; không cam kết bao phủ toàn bộ Internet.</p></details>
 <p id="radarLawNote" class="muted" style="margin:8px 0 0" hidden>⚖️ Lĩnh vực Pháp luật: chỉ tin từ nguồn chính thống (chinhphu.vn, baochinhphu.vn, vbpl.vn, Bộ Tư pháp, Quốc hội, Tòa án, Viện kiểm sát) mới được đánh dấu rõ nguồn; tin pháp luật từ nguồn khác sẽ ghi “chưa xác minh nguồn”.</p></div>
-<div style="display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:14px;align-items:start">
+<div class="radar-result-grid">
 <div class="panel"><h3 id="radarListTitle" style="margin-top:0">Tin theo lĩnh vực</h3><div id="radarCards"><div class="empty">Đang tải tin…</div></div></div>
 <div class="panel"><h3 style="margin-top:0">⭐ Tin nổi bật</h3><div id="radarFeatured"><div class="empty">Đang tải…</div></div></div>
 </div>

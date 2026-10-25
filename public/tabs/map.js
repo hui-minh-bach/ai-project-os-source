@@ -16,7 +16,11 @@ async function renderMap(){
  $('#mapRisks').innerHTML=s.risks.map((r,i)=>`<div class="map-risk"><i class="${i?'active':'warning'}"></i><div><strong>${esc(r.text)}</strong><p>${esc(r.detail)}</p></div><button class="ghost" data-map-go="${r.tab}">Xem chi tiết</button></div>`).join('')||'<div class="map-risk"><i></i><div><strong>Chưa phát hiện vấn đề từ dữ liệu hiện có</strong><p>Không thay thế kiểm tra vận hành dịch vụ.</p></div><button class="ghost" data-map-go="guide">Hướng dẫn</button></div>';
  }catch(e){if(sequence!==mapRequest)return;$('#projectMap').innerHTML=`<div class="map-empty">Không tải được bản đồ: ${esc(e.message)}. Hãy làm mới.</div>`;['mapCurrent','mapDeployment','mapServices','mapRisks'].forEach(id=>$('#'+id).innerHTML='<p class="map-empty">Dữ liệu chưa khả dụng.</p>');}
 }
-$('#page-map').addEventListener('click',e=>{const b=e.target.closest('[data-map-go]');if(b)page(b.dataset.mapGo)});
+$('#page-map').addEventListener('click',e=>{
+ const source=e.target.closest('[data-map-source]');
+ if(source){const kind=source.dataset.mapSource;if(!['new','github','files'].includes(kind))return;try{localStorage.setItem('aios-idea-source',kind);}catch{}page('idea');return;}
+ const b=e.target.closest('[data-map-go]');if(b)page(b.dataset.mapGo);
+});
 $('#refreshMap').onclick=()=>renderMap();
 $('#mapFullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if($('#mapCanvas').requestFullscreen)await $('#mapCanvas').requestFullscreen();else toast('Trình duyệt này không hỗ trợ toàn màn hình.')}catch{toast('Không thể mở toàn màn hình trong môi trường này.')}};
 $('#mapExport').onclick=async()=>{if(!state.project){toast('Chọn dự án trước khi xuất sơ đồ.');return}try{const response=await fetch(`/api/projects/${encodeURIComponent(state.project.id)}/map/export`);if(!response.ok)throw new Error('Không thể xuất sơ đồ.');const url=URL.createObjectURL(await response.blob()),a=document.createElement('a');a.href=url;a.download='project-map.svg';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Đã tạo sơ đồ SVG từ trạng thái hiện tại.')}catch(e){toast(e.message)}};

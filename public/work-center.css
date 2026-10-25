@@ -1,0 +1,32 @@
+.work-center,.work-products{margin-top:16px;padding:16px;border:1px solid var(--line,#24506b);border-radius:14px;background:var(--panel,rgba(8,31,50,.65));min-width:0}
+.work-center h3,.work-products h3{margin:0 0 10px}.work-center h4,.work-product h4{margin:8px 0}.work-center p,.work-products p{line-height:1.55}
+.work-roles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.work-roles div{padding:9px;border:1px solid var(--line,#24506b);border-radius:9px;min-width:0}.work-roles small,.work-roles b{display:block;overflow-wrap:anywhere}.work-roles b{font-size:12px;margin-top:4px}
+.work-receipt,.work-request,.work-spec,.work-task-list article{padding:12px;margin-top:10px;border:1px solid var(--line,#24506b);border-radius:10px;overflow-wrap:anywhere}.work-receipt small,.work-task-list small{display:block;opacity:.75}.work-error{color:var(--danger,#ffb7bf);background:rgba(150,30,50,.15);padding:10px;border-radius:8px;overflow-wrap:anywhere}
+.work-consent{display:flex!important;gap:10px;align-items:flex-start;line-height:1.55;margin:14px 0!important}.work-consent input{width:auto!important;flex:0 0 auto;margin-top:5px}.work-center pre,.work-products pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.6;max-height:450px;overflow:auto}.work-center button{margin:5px 5px 5px 0}.work-product{padding:14px 0;border-top:1px solid var(--line,#24506b)}.work-product video,.work-product audio,.work-product img{display:block;width:100%;max-width:100%;margin:12px 0;border-radius:9px}.work-product .work-qr{max-width:150px;background:white}.work-download{display:inline-block;margin-top:8px;padding:8px 14px;border:1px solid var(--line,#24506b);border-radius:8px}.work-cloud{margin-top:14px}.work-cloud summary{cursor:pointer;font-weight:600;padding:10px}#deliveryProducts{display:none!important}.work-task-list article span{display:block;font-size:12px;color:var(--accent,#7fdbed)}
+.radar-result-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}.radar-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.radar-tools select{width:auto;min-width:120px}.radar-errors{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--danger,#ffb7bf);font:inherit;max-height:200px;overflow:auto}.radar-source{display:flex;flex-wrap:wrap;gap:12px;padding:10px 0;border-bottom:1px solid var(--line,#24506b)}.radar-source label{display:flex;align-items:center;gap:8px}.radar-source input{width:auto!important}.radar-source small{overflow-wrap:anywhere}#radarStatus{max-width:100%;line-height:1.5}#radarSources{margin:12px 0}
+@media(max-width:1100px){.radar-result-grid{grid-template-columns:1fr}.work-roles{grid-template-columns:1fr}.work-center,.work-products{padding:12px}}
+/* R9: uncluttered inbox, job timeline and actual downloadable files */
+.work-inbox-header{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.work-inbox-header .muted{max-width:780px;margin:0 0 10px}
+.work-events{margin-top:13px;border:1px solid var(--line,#24506b);border-radius:10px;padding:10px 13px}
+.work-events summary{cursor:pointer;font-weight:650}
+.work-events ol{padding-left:20px;max-height:320px;overflow:auto;margin:12px 0 2px}
+.work-events li{padding:9px 3px;border-bottom:1px solid rgba(107,156,184,.2);overflow-wrap:anywhere}
+.work-events li:last-child{border:0}
+.work-events li small{display:block;opacity:.62;margin-top:3px}
+.work-inbox-file{display:flex;flex-direction:column;gap:9px}
+.work-inbox-file .work-file-meta{display:flex;align-items:start;flex-direction:column;gap:3px}
+.work-inbox-file .work-file-meta strong{overflow-wrap:anywhere}
+.work-inbox-file .work-file-meta span{font-size:12px;opacity:.68}
+.work-inbox-file video{max-height:400px;object-fit:contain;background:#071325}
+.work-inbox-file img{max-height:410px;object-fit:contain}
+.work-inbox-file audio{max-width:540px}
+@media(max-width:640px){.work-inbox-header{flex-direction:column}.work-inbox-header button{align-self:flex-start}}
+/* v0.9.69: client-order intake stays mounted while job progress refreshes. */
+.client-order-intake{margin-top:18px;padding:19px;border:1px solid var(--line,#24506b);border-radius:14px;background:var(--panel,rgba(8,31,50,.65));display:flex;flex-direction:column;gap:9px;min-width:0}
+.client-order-intake h3{margin:0;font-size:1.06rem}.client-order-intake p{margin:0 0 4px;line-height:1.55}
+.client-order-intake label{display:block;font-size:.9rem;font-weight:650}
+.client-order-intake textarea,.client-order-intake input{display:block;width:100%;max-width:100%;box-sizing:border-box;min-width:0;border-radius:9px;border:1px solid var(--line,#24506b);background:rgba(5,23,42,.34);color:var(--text,#ecf7ff);padding:11px 12px;font:inherit}
+.client-order-intake textarea{min-height:110px;resize:vertical;line-height:1.6}
+.client-order-buttons{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}.client-order-buttons button{min-height:43px}
+@media(max-width:640px){.client-order-intake{padding:13px}.client-order-buttons>*{flex:1 1 100%}}

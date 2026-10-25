@@ -110,3 +110,10 @@ $('#customerDoctorRun').onclick=async()=>{
  finally{btn.disabled=false;customerDoctorBusy=false;}
 };
 $('#copyErrorPrompt').onclick=async()=>{const t=$('#errorPromptTemplate').textContent;const st=$('#copyErrorPromptStatus');try{await navigator.clipboard.writeText(t);st.textContent='Đã sao chép. Dán (Ctrl+V) vào ô chat của AI cùng ảnh chụp lỗi.'}catch{st.textContent='Không tự sao chép được — hãy bôi đen đoạn mẫu ở trên và nhấn Ctrl+C.'}};
+
+// Shared entry points use fixed page names; no credentials are carried in URLs.
+document.addEventListener('click',event=>{
+ const help=event.target.closest('[data-guide-link]');
+ if(help){page('guide');const target=document.getElementById(help.dataset.guideLink||'guide-multiplatform');if(target){if(target.tagName==='DETAILS')target.open=true;target.scrollIntoView({block:'start',behavior:'smooth'});}return;}
+ const nav=event.target.closest('[data-guide-page]');if(nav&&['connections','idea','publish'].includes(nav.dataset.guidePage))page(nav.dataset.guidePage);
+});

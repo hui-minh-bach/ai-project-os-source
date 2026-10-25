@@ -55,3 +55,30 @@ function editCustomEngine(e={}){modal(`<h2>${e.id?'Sửa':'Thêm'} engine tùy c
 $('#engineGrid').addEventListener('click',async event=>{const b=event.target.closest('[data-engine-action]');if(!b)return;const e=state.engines.find(x=>x.id===b.dataset.id);try{if(b.dataset.engineAction==='install-runtime'){b.disabled=true;b.textContent='⏳ Đang cài OpenCode… (tải gói npm ~100MB)';try{await api('/api/engines/opencode/install-runtime',{method:'POST',body:'{}'});toast('OpenCode đã cài xong — engine sẵn sàng khi bật Host UNSAFE cho external agent.');await loadEngines();}catch(err){toast(err.message);b.disabled=false;b.textContent='Cài runtime (npm)';}return;}if(b.dataset.engineAction==='custom')return await showCustomEngines();if(b.dataset.engineAction==='details')return engineDetail(e);if(b.dataset.engineAction==='check'){await loadEngines();return engineDetail(state.engines.find(x=>x.id===e.id));}if(b.dataset.engineAction==='install'){modal(`<h2>${e.sourceDownloaded?'Cập nhật':'Tải'} source · ${esc(e.name)}</h2><p class="engineModalNote">Chỉ tải repository allowlist vào thư mục engines trên máy. Không cài runtime và không chạy code. Source có thay đổi local hoặc origin khác sẽ được giữ nguyên.</p><p class="engineEvidence">${esc(e.repo)}</p><button class="primary" id="confirmEngineSource">${e.sourceDownloaded?'Cập nhật':'Tải'} source</button><p id="engineSourceResult" class="engineModalNote" role="status"></p>`);$('#confirmEngineSource').onclick=async()=>{const button=$('#confirmEngineSource');button.disabled=true;$('#engineSourceResult').textContent='Đang xử lý repository…';try{const r=await api('/api/engines/'+encodeURIComponent(e.id)+'/install',{method:'POST',body:'{}'});$('#engineSourceResult').textContent=r.note+' '+r.path;await loadEngines();}catch(err){$('#engineSourceResult').textContent=err.message;}finally{button.disabled=false}};}}catch(err){toast(err.message)}});
 $('#engineDiagnostics').onclick=async event=>{const b=event.target.closest('[data-diagnostic]');if(b)try{await refreshEngineDiagnostics(b.dataset.diagnostic);}catch{}};
 document.addEventListener('page-change',async event=>{if(event.detail.page==='engines'&&!engineDiagnosticState)try{await refreshEngineDiagnostics();}catch{}});
+
+// Read-only readiness view for the optional, independent free tools.
+async function showFreeStack(){
+ const grid=$('#freeStackGrid');if(!grid)return;
+ grid.textContent='Đang kiểm tra công cụ local, không gọi API có phí…';
+ try{
+  const data=await api('/api/free-stack/status');
+  grid.innerHTML=(data.tools||[]).map(t=>`<article class="engine"><div class="engineTitle"><h3>${esc(t.name)}</h3><div class="engineBadges"><span class="engineBadge ${t.ready?'safe':''}">${esc(t.statusLabel||(t.ready?'✓ Sẵn sàng':'Chưa sẵn sàng'))}</span><span class="engineBadge runtime">${esc(t.license)}</span></div></div><p class="engineDescription">${esc(t.note||'')}</p><a href="${esc(t.url)}" rel="noopener noreferrer" target="_blank">Repository / hướng dẫn ↗</a></article>`).join('')+'<p class="engineTruth" role="status">'+esc(data.narration?.message||'')+'</p>';
+ }catch(e){grid.textContent='Không kiểm tra được: '+e.message;}
+}
+$('#freeStackRefresh')?.addEventListener('click',showFreeStack);
+
+// Store only a validated local ComfyUI API graph, never browser-provided paths.
+$('#freeStackWorkflowImport')?.addEventListener('click',async()=>{
+ const file=$('#freeStackWorkflowFile')?.files?.[0];
+ const out=$('#freeStackWorkflowResult'),button=$('#freeStackWorkflowImport');
+ if(!file){if(out)out.textContent='Chọn file .json được xuất bằng API Format trước.';return;}
+ if(file.size>2*1024*1024){if(out)out.textContent='Workflow vượt quá 2 MB.';return;}
+ button.disabled=true;
+ try{
+  if(out)out.textContent='Đang kiểm tra và lưu workflow vào máy...';
+  const result=await api('/api/free-stack/comfyui/workflow',{method:'POST',body:JSON.stringify({workflow:await file.text()})});
+  if(out)out.textContent=`Đã lưu ${result.nodes} node. Kiểm tra công cụ miễn phí để xác nhận ComfyUI đang chạy tại localhost:8188.`;
+  await showFreeStack();
+ }catch(e){if(out)out.textContent='Chưa lưu: '+e.message;}
+ finally{button.disabled=false;}
+});

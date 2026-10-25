@@ -343,3 +343,29 @@
 @keyframes officePodPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,209,102,.45)}50%{box-shadow:0 0 0 7px rgba(255,209,102,0)}}
 .office-room.office-has-selection .office-station{cursor:pointer}
 .office-room.office-has-selection .office-station:hover{border-color:#ffd166;color:#ffe9a8}
+
+/* Idea Studio V1 / 2.5D chair preview: only on explicit manual click.
+ * Keep original B2 art; swap the removed-chair plate only while demo runs.
+ * Native Three.js robot sits between animated chair and furniture occlusion. */
+.office-room.office-iso.office-chair-demo-active{
+ background:
+  linear-gradient(180deg,rgba(10,16,38,.06) 0%,rgba(10,16,38,.10) 100%),
+  url('/assets/chair-demo/office-iso-no-chair.jpg') center/cover no-repeat,
+  linear-gradient(180deg,#16224a 0%,#0d1734 100%);
+}
+.office-room.office-chair-demo-active .office-agent,
+.office-room.office-chair-demo-active .office-station,
+.office-room.office-chair-demo-active .office-fg-layer,
+.office-room.office-chair-demo-active .office-bot-card,
+.office-room.office-chair-demo-active .office-flow-layer,
+.office-room.office-chair-demo-active .office-pod-hots{visibility:hidden}
+.office-chair-demo-layer{position:absolute;inset:0;pointer-events:none;z-index:110;overflow:hidden}
+.office-chair-demo-shadow{position:absolute;width:3.65%;height:1.6%;border-radius:50%;background:rgba(3,14,22,.30);filter:blur(3px);z-index:1}
+.office-chair-demo-chair{position:absolute;display:block;object-fit:fill;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.18))}
+.office-chair-demo-avatar{position:absolute;display:block;overflow:hidden;z-index:4;filter:drop-shadow(0 2px 3px rgba(1,18,35,.3))}
+.office-chair-demo-avatar canvas{display:block;width:100%;height:100%}
+.office-chair-demo-foreground{position:absolute;display:block;z-index:5;pointer-events:none}
+.office-chair-demo-label{position:absolute;top:2%;right:1.4%;z-index:7;max-width:54%;padding:4px 8px;border:1px solid rgba(83,210,220,.42);background:rgba(5,20,37,.79);border-radius:8px;color:#d4f5fb;font-size:clamp(7px,1.15vw,12px);font-weight:700;letter-spacing:.01em;text-align:right}
+@media(prefers-reduced-motion:reduce){.office-chair-demo-avatar{filter:none}}
+
+@media(max-width:900px){.office-head{flex-wrap:wrap}.office-head>span{flex-wrap:wrap;justify-content:flex-start}}

@@ -23,3 +23,15 @@
 .az-help li{margin:5px 0;line-height:1.5}
 .az-help pre{white-space:pre-wrap;border:1px solid #235b7a;border-radius:8px;padding:10px;font-size:12px;line-height:1.55;background:rgba(10,38,58,.35)}
 .az-ai-links{margin:10px 0}
+
+/* Multiplatform instructions are scoped to the guide; other app panels retain their layout. */
+#guide-multiplatform{line-height:1.65}
+#guide-multiplatform h2{margin:0 0 12px}
+#guide-multiplatform p{max-width:90ch;margin:12px 0}
+#guide-multiplatform details{border:1px solid var(--line);border-radius:10px;margin:14px 0;padding:12px 16px}
+#guide-multiplatform summary{cursor:pointer;font-size:16px;line-height:1.5;padding:3px 0}
+#guide-multiplatform ol,#guide-multiplatform ul{max-width:90ch;padding-left:25px}
+#guide-multiplatform li{margin:10px 0}
+#guide-multiplatform a{color:var(--blue);text-underline-offset:3px;overflow-wrap:anywhere}
+#guide-multiplatform .inline{flex-wrap:wrap;gap:8px}
+@media(max-width:760px){#guide-multiplatform details{padding:10px}#guide-multiplatform{font-size:15px}}
