@@ -1,3 +1,6 @@
+import { architectureHistory, architectureMarkdown } from './lib/project-architecture.mjs';
+import { APP_ID, APP_NAME, APP_VERSION } from './lib/app-identity.mjs';
+import { projectPrdHistory, projectPrdById } from './lib/project-prd.mjs';
 import { projectMapSnapshot, exportMapSvg } from './lib/project-map.mjs';
 import { deleteAccountProfile, verifyAccountModel, startAccountLogin, refreshAccount, cancelAccountLogin, logoutAccount, readAccountUsage, accountAvailability, closeAccountSessions } from './lib/account-auth.mjs';
 import { usageSummary } from './lib/usage.mjs';
@@ -15,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { redactVaultSecrets, vaultStatus, unlockVault, lockVault, listConnections, saveConnection, deleteConnection, renameConnection, findServiceCredential } from './lib/vault.mjs';
 import { testConnection, listModels } from './lib/providers.mjs';
 import { AI_KINDS, modelAvailability, verifiedBinding, invalidateModels } from './lib/model-bindings.mjs';
-import { updateProjectBrief, clearFounderChat, analyzeIdea, sendBriefToCouncil, saveProjectDomain, projectModelRoles, updateProjectModelRoles, listProjects, createProject, getProject, updateProjectSettings, founderChat, runCouncil, councilHistory, confirmCouncilSpecification, recoverInterruptedCouncils, analyzeStack, buildPlan, createTask, updateTask, archiveTask, runTask, runReadyBatch, readyTasks, recoverInterruptedTasks, recoverInterruptedFounderChats } from './lib/projects.mjs';
+import { projectDeploymentSettings, confirmProjectDeploymentImpact, createProjectManualHandover, projectManualHandoverArchive, createProjectRelease, updateProjectRelease, assignProjectReleaseTasks, listProjectReleases, viewProjectRelease, projectReleaseEvidenceAction, confirmProjectReleaseDeployment, projectReleaseNote, bindTaskArchitecture, proposeArchitecture, confirmCouncilArchitecture, updateProjectBrief, clearFounderChat, analyzeIdea, sendBriefToCouncil, saveProjectDomain, projectModelRoles, updateProjectModelRoles, listProjects, createProject, getProject, updateProjectSettings, founderChat, runCouncil, councilHistory, confirmCouncilSpecification, recoverInterruptedCouncils, analyzeStack, buildPlan, createTask, updateTask, archiveTask, runTask, runReadyBatch, readyTasks, recoverInterruptedTasks, recoverInterruptedFounderChats } from './lib/projects.mjs';
 import { snapshot, workspaceSummary } from './lib/workspace.mjs';
 import { listSkills, saveCustomSkill, setSkillEnabled, deleteCustomSkill, sampleSkillMapping } from './lib/skills.mjs';
 import { importSkillUpload, importRepoZip, importRepoGit, listImportedRepos, deleteImportedRepo } from './lib/skill-import.mjs';
@@ -48,7 +51,7 @@ import { localWorkers } from './lib/local-workers.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.62';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION=APP_VERSION;
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -162,7 +165,7 @@ const server=http.createServer(async(req,res)=>{try{
     if(localAccess.validTicket(u.searchParams.get('launch')))return localAccess.grant(res);
     return send(res,403,{error:'Mã mở ứng dụng đã hết hạn hoặc không hợp lệ. Mở lại bằng AI-Project-OS.exe.'});
   }
-  if(req.method==='GET'&&u.pathname==='/api/health')return send(res,200,{ok:true,localOnly:true,version:VERSION});
+  if(req.method==='GET'&&u.pathname==='/api/health')return send(res,200,{ok:true,localOnly:true,productId:APP_ID,name:APP_NAME,version:VERSION});
   if(!localAccess.validSession(req))return send(res,401,{error:'Phiên trình duyệt chưa được cấp quyền. Đóng tab này và mở ứng dụng bằng AI-Project-OS.exe hoặc RUN-WINDOWS.cmd.'});
   if(mutating(req.method)&&!sameLocalOrigin(req))return send(res,403,{error:'Cross-origin request blocked.'});
   if(mutating(req.method)&&req.headers['sec-fetch-site']&&!['same-origin','none'].includes(req.headers['sec-fetch-site']))return send(res,403,{error:'Cross-site request blocked.'});
@@ -516,6 +519,56 @@ const server=http.createServer(async(req,res)=>{try{
   if(req.method==='GET'&&u.pathname==='/api/projects')return send(res,200,listProjects());
   if(req.method==='POST'&&u.pathname==='/api/projects')return send(res,200,createProject(await readBody(req)));
   const rp=routeProject(u.pathname);
+  if(rp&&req.method==='GET'&&rp.action==='prd')return send(res,200,projectPrdHistory(getProject(rp.id)));
+  if(rp&&req.method==='GET'&&/^prd\/[^/]+$/.test(rp.action)){
+    const doc=projectPrdById(getProject(rp.id),decodeURIComponent(rp.action.slice(4)));
+    return doc?send(res,200,doc):send(res,404,{error:'Chưa có PRD đã được duyệt cho phiên bản này.'});
+  }
+  if(rp&&req.method==='GET'&&/^prd\/[^/]+\/markdown$/.test(rp.action)){
+    const doc=projectPrdById(getProject(rp.id),decodeURIComponent(rp.action.slice(4,-9)));
+    if(!doc)return send(res,404,{error:'Chưa có PRD đã được duyệt cho phiên bản này.'});
+    const body=Buffer.from(doc.markdown,'utf8');
+    res.writeHead(200,{'content-type':'text/markdown; charset=utf-8','content-length':body.length,
+      'content-disposition':`attachment; filename="PRD-v${Number(doc.version)}.md"`,
+      'cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer',
+      'content-security-policy':"default-src 'none'; frame-ancestors 'none'"});res.end(body);return;
+  }
+  if(rp&&req.method==='GET'&&rp.action==='architecture')return send(res,200,architectureHistory(getProject(rp.id)));
+  if(rp&&req.method==='POST'&&rp.action==='architecture/propose'){const b=await readBody(req);return send(res,200,await proposeArchitecture(rp.id,b.connectionId,{changeProposalId:b.changeProposalId}));}
+  if(rp&&req.method==='POST'&&rp.action==='council/confirm-architecture')return send(res,200,confirmCouncilArchitecture(rp.id,await readBody(req)));
+  if(rp&&req.method==='GET'&&/^architecture\/[^/]+\/markdown$/.test(rp.action)){
+    const id=decodeURIComponent(rp.action.split('/')[1]),doc=architectureHistory(getProject(rp.id)).history.find(a=>a.id===id&&a.status==='approved');
+    if(!doc)return send(res,404,{error:'Chưa có kiến trúc đã duyệt.'});
+    res.setHeader('content-disposition',`attachment; filename="ARCHITECTURE-v${doc.version}.md"`);
+    return send(res,200,architectureMarkdown(doc),'text/markdown; charset=utf-8');
+  }
+  if(rp&&req.method==='GET'&&rp.action==='deployment-target')return send(res,200,projectDeploymentSettings(rp.id));
+  if(rp&&req.method==='POST'&&rp.action==='deployment-target/impact')return send(res,200,confirmProjectDeploymentImpact(rp.id,await readBody(req)));
+  if(rp&&req.method==='POST'&&/^releases\/[^/]+\/manual-handover$/.test(rp.action))return send(res,200,await createProjectManualHandover(rp.id,rp.action.split('/')[1],await readBody(req)));
+  if(rp&&req.method==='GET'&&/^releases\/[^/]+\/manual-handover\/[^/]+\/archive$/.test(rp.action)){
+    const [,releaseId,,packageId]=rp.action.split('/'),bundle=projectManualHandoverArchive(rp.id,releaseId,packageId);
+    res.setHeader('content-disposition',`attachment; filename="HANDOVER-${bundle.record.version}-${bundle.record.id.slice(0,8)}.zip"`);return send(res,200,bundle.data,'application/zip');
+  }
+  if(rp&&req.method==='GET'&&rp.action==='releases')return send(res,200,await listProjectReleases(rp.id));
+  if(rp&&req.method==='POST'&&rp.action==='releases')return send(res,200,createProjectRelease(rp.id,await readBody(req)));
+  if(rp&&/^releases\/[^/]+$/.test(rp.action)){
+    const releaseId=rp.action.split('/')[1];
+    if(req.method==='GET')return send(res,200,await viewProjectRelease(rp.id,releaseId));
+    if(req.method==='PATCH')return send(res,200,updateProjectRelease(rp.id,releaseId,await readBody(req)));
+  }
+  if(rp&&req.method==='POST'&&/^releases\/[^/]+\/(tasks|acceptance|handover|deployed|notes)$/.test(rp.action)){
+    const [,releaseId,action]=rp.action.split('/'),body=await readBody(req);
+    if(action==='tasks')return send(res,200,assignProjectReleaseTasks(rp.id,releaseId,body));
+    if(action==='deployed')return send(res,200,confirmProjectReleaseDeployment(rp.id,releaseId,body));
+    return send(res,200,await projectReleaseEvidenceAction(rp.id,releaseId,action,body));
+  }
+  if(rp&&req.method==='GET'&&/^releases\/[^/]+\/notes\/[^/]+\/markdown$/.test(rp.action)){
+    const [,releaseId,,noteId]=rp.action.split('/'),note=projectReleaseNote(rp.id,releaseId,noteId);
+    if(!note)return send(res,404,{error:'Không tìm thấy Release Notes.'});
+    const release=await viewProjectRelease(rp.id,releaseId);
+    res.setHeader('content-disposition',`attachment; filename="RELEASE-NOTES-${release.version}-r${note.revision}.md"`);
+    return send(res,200,note.markdown,'text/markdown; charset=utf-8');
+  }
   if(rp&&req.method==='GET'&&rp.action==='map')return send(res,200,projectMapSnapshot(rp.id));
   if(rp&&req.method==='GET'&&rp.action==='map/export')return send(res,200,exportMapSvg(projectMapSnapshot(rp.id)),'image/svg+xml; charset=utf-8');
   if(rp&&req.method==='GET'&&rp.action==='')return send(res,200,getProject(rp.id));
@@ -548,13 +601,14 @@ const server=http.createServer(async(req,res)=>{try{
   if(rp&&req.method==='POST'&&rp.action==='tasks')return send(res,200,createTask(rp.id,await readBody(req)));
   if(rp&&req.method==='PATCH'&&/^tasks\/T[1-9]\d{0,3}$/.test(rp.action))return send(res,200,updateTask(rp.id,rp.action.split('/')[1],await readBody(req)));
   if(rp&&req.method==='DELETE'&&/^tasks\/T[1-9]\d{0,3}$/.test(rp.action))return send(res,200,archiveTask(rp.id,rp.action.split('/')[1]));
+  if(rp&&req.method==='POST'&&/^tasks\/T[1-9]\d{0,3}\/architecture-bind$/.test(rp.action))return send(res,200,bindTaskArchitecture(rp.id,rp.action.split('/')[1],await readBody(req)));
   if(rp&&req.method==='GET'&&rp.action==='ready-tasks')return send(res,200,readyTasks(rp.id));
   if(rp&&req.method==='POST'&&rp.action==='run-task'){const b=await readBody(req);return send(res,200,await runTask(rp.id,b.taskId,b.workerId,b.reviewerId,b.engineId));}
   if(rp&&req.method==='POST'&&rp.action==='run-ready'){const b=await readBody(req);return send(res,200,await runReadyBatch(rp.id,b));}
 
   if(req.method==='GET'){
     const rel=u.pathname==='/'?'index.html':u.pathname.slice(1);const p=path.resolve(PUB,rel);
-    if(p===path.join(PUB,'index.html')||p.startsWith(PUB+path.sep)){if(fs.existsSync(p)&&fs.statSync(p).isFile())return send(res,200,(p===path.join(PUB,'index.html')?fs.readFileSync(p,'utf8').replace(/<!-- TAB:([a-z]+) -->/g,(_,tab)=>fs.readFileSync(path.join(PUB,'tabs',tab+'.html'),'utf8').replace('<!-- TAB:media-studio -->',fs.readFileSync(path.join(PUB,'tabs','media-studio.html'),'utf8'))):fs.readFileSync(p)),mime[path.extname(p)]||'application/octet-stream');}
+    if(p===path.join(PUB,'index.html')||p.startsWith(PUB+path.sep)){if(fs.existsSync(p)&&fs.statSync(p).isFile())return send(res,200,(p===path.join(PUB,'index.html')?fs.readFileSync(p,'utf8').replaceAll('{{APP_VERSION}}',VERSION).replace(/<!-- TAB:([a-z]+) -->/g,(_,tab)=>fs.readFileSync(path.join(PUB,'tabs',tab+'.html'),'utf8').replace('<!-- TAB:media-studio -->',fs.readFileSync(path.join(PUB,'tabs','media-studio.html'),'utf8'))):fs.readFileSync(p)),mime[path.extname(p)]||'application/octet-stream');}
   }
   return send(res,404,{error:'Not found'});
 }catch(e){return send(res,500,{error:redactVaultSecrets(e?.message||e)});}});
@@ -562,6 +616,6 @@ server.on('error',e=>{if(e?.code==='EADDRINUSE'){console.error(`Port ${PORT} đa
 server.on('close',()=>{localAccess.discard();closeAccountSessions();integrations.stop();});
 process.once('SIGTERM',()=>{closeAccountSessions();server.close();});
 process.once('SIGINT',()=>{closeAccountSessions();server.close();});
-server.listen(PORT,HOST,()=>{localAccess.expose();console.log(`AI Project OS Local v${VERSION}: http://${HOST}:${PORT} (access via launcher)`);});
+server.listen(PORT,HOST,()=>{localAccess.expose();console.log(`${APP_NAME} v${VERSION}: http://${HOST}:${PORT} (access via launcher)`);});
 const orchestratorTimer=setInterval(()=>{orchestrator.tick().catch(e=>console.warn('Orchestrator tick:',e.message));},60000);
 orchestratorTimer.unref();

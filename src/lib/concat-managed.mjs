@@ -35,7 +35,7 @@ export function installedCandidates(env=process.env){
 export function findInstalledConcat(env=process.env){return installedCandidates(env).find(own)||null}
 export function bundledSetup(root){return path.join(root,'vendor','concat',CONCAT_RELEASE.filename)}
 export function cacheSetup(env=process.env){
-  return path.join(env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local'),'AIProjectOSLocal','deps',CONCAT_RELEASE.filename);
+  return path.join(env.LOCALAPPDATA||path.join(os.homedir(),'AppData','Local'),'AIProjectOSPersonal','deps',CONCAT_RELEASE.filename);
 }
 export function concatInstallStatus({root,env=process.env,platform=process.platform}={}){
   return {platform,available:platform==='win32'&&process.arch==='x64',installed:!!findInstalledConcat(env),

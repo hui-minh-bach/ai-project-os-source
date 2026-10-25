@@ -1,0 +1,17 @@
+{
+  "browser": "Google Chrome headless / CDP",
+  "fixture": "Local synthetic AI, no live credentials or user data",
+  "checks": [
+    "Idea stage: optional Deployment Target saved separately from Application Type, compatible change retains approved architecture",
+    "Project Map settings use the same canonical target; explicit PO non-material impact decision preserves the architecture baseline and updates Idea field",
+    "Project Map: create v0.1.0 and assign two existing tasks as feature/fix; zero verified completion",
+    "Partial Release Notes: verified feature included, unfinished fix excluded from completed items",
+    "Actual Native Workers and npm tests: Build Complete and Tested true, handover/deployed remain false without PO acceptance",
+    "PO acceptance of existing task criteria and explicit handover freeze immutable release evidence; no automatic Deployed",
+    "Actual UI package request creates a verified static artifact ZIP from frozen release commit; Deployed remains unconfirmed",
+    "Downloaded ZIP was hash-checked, extracted and actually run on loopback; artifact/config/version/test results/install guide/release notes/rollback present",
+    "Project Settings and handover use current light/dark styles and responsive 390px viewport",
+    "Windows runtime change requires new architecture decision, disables new packaging, preserves historical archive and does not create installer or deployment"
+  ],
+  "status": "PASS"
+}

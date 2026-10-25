@@ -10,11 +10,13 @@ test('doctor checks local project/storage without network or paid APIs',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aios-doctor-test-'));
   try {
     const report=systemDoctor({root,dataDir:path.join(dir,'data'),backupDir:path.join(dir,'backup'),smoke:false});
-    assert.equal(report.version,"0.9.62");
+    assert.equal(report.version,"0.9.63-personal.1");
     assert.equal(report.capabilities.projectManagement,true);
     assert.equal(report.capabilities.backup,true);
     assert.equal(report.capabilities.cloudSpeechVerified,false);
-    assert.equal(report.checks.find(x=>x.id==='encode').status,'info');
+    // FFmpeg is optional: quick mode is info only when its binaries are available.
+    const mediaReady=report.checks.find(x=>x.id==='media').status==='pass';
+    assert.equal(report.checks.find(x=>x.id==='encode').status,mediaReady?'info':'warning');
     assert.ok(!fs.readdirSync(path.join(dir,'data')).some(x=>x.includes('aios-doctor')),'temporary health files must be deleted');
   } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });

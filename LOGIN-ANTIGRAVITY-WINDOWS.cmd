@@ -29,7 +29,7 @@ rem Per-connection profile (v0.9.56): the app passes AIOS_AGY_PROFILE (the
 rem exact session folder of the account being signed in) and AIOS_AGY_ACCOUNT
 rem (its display name for the window title). Run by hand without the app,
 rem the legacy folder below is used — the first account's home.
-set "USERPROFILE=%LOCALAPPDATA%\AIProjectOSLocal\data\cli-profiles\antigravity"
+set "USERPROFILE=%LOCALAPPDATA%\AIProjectOSPersonal\data\cli-profiles\antigravity"
 if defined AIOS_AGY_PROFILE set "USERPROFILE=%AIOS_AGY_PROFILE%"
 set "HOME=%USERPROFILE%"
 if defined AIOS_AGY_ACCOUNT title Dang nhap Antigravity - %AIOS_AGY_ACCOUNT%

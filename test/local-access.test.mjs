@@ -16,5 +16,5 @@ test('local browser grant requires a single unpredictable ticket and creates a s
   assert.equal(responseHeaders.location,'/');
   const cookie=responseHeaders['set-cookie'].split(';')[0];
   assert.equal(access.validSession({headers:{cookie}}),true);
-  assert.equal(access.validSession({headers:{cookie:'aios_session=invalid'}}),false);
+  assert.equal(access.validSession({headers:{cookie:'aios_personal_session=invalid'}}),false);
 });

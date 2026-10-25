@@ -1,3 +1,4 @@
+import { deploymentTarget } from './deployment-target.mjs';
 export const IDEA_FEATURES = Object.freeze(['auth','database','payments','dashboard','mobile','storage','domain','backend']);
 export const PRODUCT_TYPES = Object.freeze(['web-saas','website','mobile-app','desktop-app','api','automation','other']);
 function text(value, key, max, required=false) {
@@ -34,6 +35,6 @@ export function normalizeAnalyzedBrief(raw) {
   out.stack=normalizeIdeaStack(raw.stack);return out;
 }
 export function briefContext(p) {
-  return JSON.stringify({name:p.name,idea:p.idea,productType:p.productType||'',audience:p.audience||'',goals:p.goals||'',mainFeatures:p.mainFeatures||[],messages:(p.messages||[]).slice(-20).map(m=>({role:m.role,content:m.content}))});
+  return JSON.stringify({name:p.name,idea:p.idea,productType:p.productType||'',deploymentTarget:deploymentTarget(p),deploymentAuthorization:'manual-only; no automatic deployment',audience:p.audience||'',goals:p.goals||'',mainFeatures:p.mainFeatures||[],messages:(p.messages||[]).slice(-20).map(m=>({role:m.role,content:m.content}))});
 }
 export const IDEA_BRIEF_SCHEMA='{"summary":string,"problem":string,"audience":string,"goals":string[],"features":string[],"userFlows":string[],"constraints":string[],"openQuestions":string[],"successCriteria":string[],"stack":{"needsGithub":boolean,"needsVercel":boolean,"needsDatabase":boolean,"needsAuth":boolean,"needsStorage":boolean,"needsPayments":boolean,"needsDomain":boolean,"needsBackend":boolean,"recommended":{"source":"github|none|other","deploy":"vercel|none|other","database":"supabase|none|other"},"reasons":string[],"setupOrder":string[]}}';

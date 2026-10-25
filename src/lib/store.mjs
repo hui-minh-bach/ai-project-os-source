@@ -2,19 +2,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { personalDataDir } from './app-identity.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-// Store customer data outside the application directory on Windows so upgrades
-// never erase projects, media, credentials or model settings. Other platforms
-// preserve the legacy per-project location unless explicitly configured.
-const overrideDir = process.env.AI_PROJECT_OS_DATA_DIR;
-if (overrideDir && !path.isAbsolute(overrideDir)) throw new Error('AI_PROJECT_OS_DATA_DIR must be an absolute path.');
-export const DATA_DIR = overrideDir ? path.resolve(overrideDir)
-  : process.platform === 'win32' ? path.join(process.env.LOCALAPPDATA || process.env.APPDATA || process.env.USERPROFILE || ROOT, 'AIProjectOSLocal', 'data')
-  : path.join(ROOT, '.data');
-export const BACKUP_DIR = process.env.AI_PROJECT_OS_BACKUP_DIR
-  ? path.resolve(process.env.AI_PROJECT_OS_BACKUP_DIR)
+export const DATA_DIR = personalDataDir();
+if (DATA_DIR === path.join(ROOT, '.data')) throw new Error('Không mở dữ liệu bản gốc tại .data; hãy nhập bản sao lưu vào thư mục Personal riêng.');
+const backupOverride = process.env.AI_PROJECT_OS_PERSONAL_BACKUP_DIR || process.env.AI_PROJECT_OS_BACKUP_DIR;
+export const BACKUP_DIR = backupOverride
+  ? path.resolve(backupOverride)
   : path.join(path.dirname(DATA_DIR), 'backups');
+
+if (BACKUP_DIR.split(/[\\/]/).some(p => p.toLowerCase() === 'aiprojectoslocal')) throw new Error('Không ghi backup vào thư mục bản gốc.');
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 

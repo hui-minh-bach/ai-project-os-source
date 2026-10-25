@@ -1,0 +1,12 @@
+{
+  "browser": "Google Chrome headless / CDP",
+  "fixture": "Local synthetic AI, no live credentials or user data",
+  "checks": [
+    "Actual UI run: breaking API blocked with Reviewer disabled; runtime receipt and Change Proposal link visible",
+    "AI Council shows pending Architecture Change Proposal, findings and pinned candidate commit; no bypass approval button",
+    "AI proposes revised architecture; original approved baseline retained and PO approval remains pending",
+    "Actual UI run: compliant CSS PASS at coding and merge boundaries and merges with Reviewer disabled",
+    "Task binding endpoint requires browser session and explicit PO consent"
+  ],
+  "status": "PASS"
+}

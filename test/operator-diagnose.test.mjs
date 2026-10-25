@@ -42,7 +42,7 @@ test('operator diagnosis endpoints: token-gated, read-only, secret-free', async 
     const granted = await fetch(`${base}/?launch=${LAUNCH_TOKEN}`, { redirect: 'manual' });
     assert.equal(granted.status, 303);
     const cookie = (granted.headers.get('set-cookie') || '').split(';')[0];
-    assert.ok(cookie.startsWith('aios_session='));
+    assert.ok(cookie.startsWith('aios_personal_session='));
     const session = (url, method = 'GET', body = null) => fetch(base + url, { method, headers: { 'content-type': 'application/json', Cookie: cookie }, ...(body ? { body: JSON.stringify(body) } : {}) });
     const minted = await (await session('/api/operator/token', 'POST', { scopes: { run: true, note: true } })).json();
     assert.match(minted.token, /^aios-op-[0-9a-f]{48}$/);

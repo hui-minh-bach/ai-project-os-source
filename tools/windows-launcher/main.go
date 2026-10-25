@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"encoding/json"
 	"io"
 	"os"
 	"os/exec"
@@ -15,7 +16,26 @@ import (
 	"time"
 )
 
-const version = "0.8.5"
+type releaseIdentity struct {
+	ProductID string `json:"productId"`
+	Product   string `json:"product"`
+	Version   string `json:"version"`
+}
+
+func readIdentity(root string) (releaseIdentity, error) {
+	var identity releaseIdentity
+	data, err := os.ReadFile(filepath.Join(root, "RELEASE.json"))
+	if err != nil {
+		return identity, err
+	}
+	if err = json.Unmarshal(data, &identity); err != nil {
+		return identity, err
+	}
+	if identity.ProductID != "ai-project-os-personal" || identity.Version == "" || identity.Product == "" {
+		return identity, fmt.Errorf("RELEASE.json khong thuoc Personal Edition")
+	}
+	return identity, nil
+}
 
 func pause() {
 	if stat, err := os.Stdin.Stat(); err == nil && stat.Mode()&os.ModeCharDevice != 0 {
@@ -83,7 +103,6 @@ func diagnostics(root, node string) error {
 	return nil
 }
 func main() {
-	fmt.Printf("\nAI Project OS Local Worker %s (Windows portable)\n", version)
 	fmt.Println("This window keeps the local service running. Close it after using the app.")
 	root, err := programRoot()
 	if err != nil {
@@ -91,6 +110,14 @@ func main() {
 		pause()
 		os.Exit(1)
 	}
+	identity, err := readIdentity(root)
+	if err != nil {
+		fmt.Println("ERROR:", err)
+		pause()
+		os.Exit(1)
+	}
+	version := identity.Version
+	fmt.Printf("\n%s v%s (Windows portable)\n", identity.Product, version)
 	node, err := nodeBinary(root)
 	if err != nil {
 		fmt.Println("ERROR:", err)
@@ -116,7 +143,7 @@ func main() {
 			os.Exit(2)
 		}
 	}
-	logfile := filepath.Join(os.Getenv("LOCALAPPDATA"), "AIProjectOSLocal", "logs")
+	logfile := filepath.Join(os.Getenv("LOCALAPPDATA"), "AIProjectOSPersonal", "logs")
 	if os.Getenv("LOCALAPPDATA") == "" {
 		logfile = filepath.Join(root, "logs")
 	}

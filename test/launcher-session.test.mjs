@@ -14,19 +14,24 @@ async function port(){const s=net.createServer();s.listen(0,'127.0.0.1');await o
 test('real launcher provides an ephemeral browser session; direct local URL is denied',async()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aios-launch-test-'));
   const p=await port(),dataDir=path.join(dir,'data');
+  fs.mkdirSync(dataDir,{recursive:true});
+  const pendingPath=path.join(dataDir,'pending-update.json');
+  const legacyPending=JSON.stringify({version:'99.0.0',file:path.join(dir,'upstream.zip'),sha256:'0'.repeat(64)});
+  fs.writeFileSync(pendingPath,legacyPending);
   const child=spawn(process.execPath,['src/launcher.mjs'],{cwd:ROOT,
-    env:{...process.env,AI_PROJECT_OS_PORT:String(p),AI_PROJECT_OS_DATA_DIR:dataDir},
+    env:{...process.env,AI_PROJECT_OS_NO_BROWSER:'1',AI_PROJECT_OS_PORT:String(p),AI_PROJECT_OS_DATA_DIR:dataDir},
     stdio:'ignore'});
   let log='';
   try{
     let ready=false;
     for(let i=0;i<80;i++){
       if(child.exitCode!==null)throw Error('Launcher exited: '+log);
-      try{const r=await fetch(`http://127.0.0.1:${p}/api/health`);if(r.ok&&(await r.json()).version==="0.9.62"){ready=true;break;}}
+      try{const r=await fetch(`http://127.0.0.1:${p}/api/health`);if(r.ok&&(await r.json()).version==="0.9.63-personal.1"){ready=true;break;}}
       catch{}
       await sleep(120);
     }
     assert.equal(ready,true,log);
+    assert.equal(fs.readFileSync(pendingPath,'utf8'),legacyPending,'launcher preserves and blocks legacy pending');
     let r=await fetch(`http://127.0.0.1:${p}/api/projects`);assert.equal(r.status,401);
     const ticketPath=path.join(dir,'run',`session-${p}.json`);
     for(let i=0;i<20&&!fs.existsSync(ticketPath);i++)await sleep(100);
@@ -35,7 +40,7 @@ test('real launcher provides an ephemeral browser session; direct local URL is d
     assert.match(ticket.token,/^[0-9a-f]{64}$/);
     r=await fetch(`http://127.0.0.1:${p}/?launch=${ticket.token}`,{redirect:'manual'});
     assert.equal(r.status,303);const cookie=r.headers.get('set-cookie')?.split(';')[0];
-    assert.match(cookie||'',/^aios_session=/);
+    assert.match(cookie||'',/^aios_personal_session=/);
     const reused=await fetch(`http://127.0.0.1:${p}/?launch=${ticket.token}`,{redirect:'manual'});
     assert.equal(reused.status,403,'Previously redeemed URL ticket must be rejected');
     const rotated=JSON.parse(fs.readFileSync(ticketPath,'utf8'));
@@ -45,6 +50,10 @@ test('real launcher provides an ephemeral browser session; direct local URL is d
     r=await fetch(`http://127.0.0.1:${p}/api/projects`,{headers:{Cookie:cookie}});assert.equal(r.status,200);
     r=await fetch(`http://127.0.0.1:${p}/api/projects`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({name:'Launch session project',idea:'Testing local launch'})});assert.equal(r.status,200);
     const created=await r.json();assert.equal(created.name,'Launch session project');
+    r=await fetch(`http://127.0.0.1:${p}/api/update/status`,{headers:{Cookie:cookie}});const update=await r.json();assert.equal(update.enabled,false);assert.equal(update.pending.blocked,true);
+    r=await fetch(`http://127.0.0.1:${p}/api/update/config`,{method:'POST',headers:{Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({url:'https://github.com/hui-minh-bach/ai-project-os-source/releases/latest/download/update-manifest.json'})});assert.ok(r.status>=400);
+    r=await fetch(`http://127.0.0.1:${p}/`,{headers:{Cookie:cookie}});const html=await r.text();assert.ok(html.includes('Personal Edition'));assert.ok(html.includes('0.9.63-personal.1'));assert.ok(!html.includes('{{APP_VERSION}}'));
+
   }finally{
     if(child.exitCode===null){child.kill('SIGTERM');await Promise.race([once(child,'exit'),sleep(3500)]);}
     fs.rmSync(dir,{recursive:true,force:true});

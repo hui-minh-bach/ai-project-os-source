@@ -1,3 +1,4 @@
+import { APP_NAME, APP_VERSION } from '../src/lib/app-identity.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -20,35 +21,16 @@ function promptSecret(message){
     process.stdin.on('data',onData);
   });
 }
-function explain(){console.log(`AI Project OS v0.6 — công cụ dữ liệu khách hàng\n\nDữ liệu: ${DATA_DIR}\nBản sao lưu: ${BACKUP_DIR}\n\nLệnh: backup | list | restore <duong-dan-file.aiosbackup> | migrate`);}
-function walkLegacy(source,stage){
-  for(const item of fs.readdirSync(source,{withFileTypes:true})){
-    const name=item.name;
-    if(item.isSymbolicLink())throw new Error('Dữ liệu cũ có symlink; không tự chuyển.');
-    if(!/^[-.a-zA-Z0-9_ ]+$/.test(name))throw new Error('Có tên dữ liệu không an toàn; liên hệ quản trị viên.');
-    if(name.endsWith('.tmp'))continue;
-    const from=path.join(source,name),to=path.join(stage,name);
-    if(item.isDirectory()){fs.mkdirSync(to,{recursive:true,mode:0o700});walkLegacy(from,to);}
-    else if(item.isFile())fs.copyFileSync(from,to,fs.constants.COPYFILE_EXCL);
-  }
-}
-function migrate(){
-  const old=path.resolve(import.meta.dirname,'..','.data');
-  if(old===DATA_DIR)throw new Error('Dữ liệu đang được lưu trong thư mục cũ. Không cần di chuyển.');
-  if(!fs.existsSync(old)||!fs.readdirSync(old).some(x=>x!=='.gitkeep'))throw new Error('Không tìm thấy dữ liệu cũ để chuyển.');
-  if(fs.existsSync(DATA_DIR)&&fs.readdirSync(DATA_DIR).some(x=>x!=='.gitkeep'))throw new Error('Đích đã có dữ liệu. Không ghi đè! Hãy sao lưu trước và nhờ hỗ trợ hợp nhất.');
-  const stage=DATA_DIR+'.migration-'+Date.now();
-  fs.mkdirSync(stage,{recursive:true,mode:0o700});
-  try{walkLegacy(old,stage);fs.rmSync(DATA_DIR,{force:true,recursive:true});fs.renameSync(stage,DATA_DIR);}
-  catch(e){fs.rmSync(stage,{force:true,recursive:true});throw e;}
-  console.log('Đã sao chép dữ liệu cũ sang:',DATA_DIR,'\nBản gốc vẫn giữ nguyên trong:',old);
-}
+function explain(){console.log(`${APP_NAME} v${APP_VERSION} — công cụ dữ liệu\n\nDữ liệu: ${DATA_DIR}\nBản sao lưu: ${BACKUP_DIR}\n\nLệnh: backup | list | restore <duong-dan-file.aiosbackup> | migrate`);}
 async function requireStopped(){
   const configuredPort=Number(process.env.AI_PROJECT_OS_PORT||4321);
   if(!Number.isSafeInteger(configuredPort)||configuredPort<1024||configuredPort>65535)throw new Error('AI_PROJECT_OS_PORT không hợp lệ.');
-  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),1300);
-  try{const r=await fetch(`http://127.0.0.1:${configuredPort}/api/health`,{signal:controller.signal});if(r.ok)throw new Error('AI Project OS vẫn đang chạy. Hãy tắt cửa sổ ứng dụng trước.');}
-  catch(e){if(e.message?.includes('vẫn đang chạy'))throw e;}finally{clearTimeout(timeout);}
+  const ports = process.env.AI_PROJECT_OS_PORT ? [configuredPort] : Array.from({length:10},(_,i)=>configuredPort+i);
+  for (const port of ports) {
+    try { const r=await fetch(`http://127.0.0.1:${port}/api/health`,{signal:AbortSignal.timeout(1300)});
+      if(r.ok)throw new Error('AI Project OS vẫn đang chạy. Hãy tắt cả bản gốc và Personal trước khi thao tác dữ liệu.');
+    } catch(e) { if(e.message?.includes('vẫn đang chạy'))throw e; }
+  }
 }
 try{
   if(ACTION==='list'){explain();const backups=listBackups();for(const b of backups)console.log(b.name,Math.round(b.size/1024)+' KB');}
@@ -65,6 +47,6 @@ try{
     const result=await restoreEncryptedBackup({file,password});
     console.log('Phục hồi thành công:',result.files,'file. Dữ liệu cũ:',result.rollback||'chưa có');
   }else if(ACTION==='migrate'){
-    await requireStopped();migrate();
+    throw new Error('Personal không tự sao chép dữ liệu bản gốc. Hãy tạo .aiosbackup bằng bản gốc, đóng ứng dụng, rồi dùng restore <file.aiosbackup> tại Personal; dữ liệu đích được giữ để rollback.');
   }else explain();
 }catch(e){console.error('KHÔNG THÀNH CÔNG:',e.message);process.exitCode=1;}finally{release();}

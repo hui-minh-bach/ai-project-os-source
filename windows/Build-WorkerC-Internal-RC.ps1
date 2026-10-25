@@ -12,6 +12,9 @@ $expectedNode='2b0ff57b049cda1bbcea2240eec20467018713c1efe1f7360c2681859b90ed71'
 if($NodeVersion -ne '22.23.3'){throw 'Node runtime pin or SHA must be reviewed together.'}
 if(!(Test-Path -LiteralPath $ISCC)){throw 'Inno Setup 6 ISCC.exe is required on this Windows build host.'}
 $source=(Resolve-Path -LiteralPath $SourceRoot).Path
+$release=Get-Content -LiteralPath (Join-Path $source 'RELEASE.json') -Raw | ConvertFrom-Json
+if($release.productId -ne 'ai-project-os-personal' -or !$release.version){throw 'Personal release identity required.'}
+$productVersion=[string]$release.version
 # Assemble the separate AGPL editor into ONE Windows installer at build time.
 # This fails closed when the official release or notices cannot be verified.
 & (Join-Path $PSScriptRoot "Prepare-Concat-Bundle.ps1") -SourceRoot $source
@@ -35,7 +38,7 @@ try{
  New-Item -ItemType Directory -Path $payload | Out-Null
  # Accept only the source tree; never embed generated user work, vaults, or production credentials.
  foreach($item in Get-ChildItem -LiteralPath $source -Force){
-  if($item.Name -in @('.git','.data','node_modules','backups','runtime-win-x64','runtime-win-arm64','output')){continue}
+  if($item.Name -in @('.git','.data','node_modules','backups','runtime-win-x64','runtime-win-arm64','output','personal-update-trust.json')){continue}
   Copy-Item -LiteralPath $item.FullName -Destination $payload -Recurse -Force
  }
  $sensitive=@(Get-ChildItem -LiteralPath $payload -File -Recurse | Where-Object {
@@ -54,12 +57,12 @@ try{
   @{path=$_.FullName.Substring($payload.Length+1).Replace('\','/');sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
  })
  @{type='INTERNAL_UNSIGNED_QA_PAYLOAD';files=$hashes} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $payload 'QA_PAYLOAD_SHA256.json') -Encoding UTF8
- $receipt=@{version='0.8.5-rc';internalUnsigned=$true;nodeVersion=$NodeVersion;nodeArchiveSha256=$actual;builtAt=(Get-Date).ToUniversalTime().ToString('o')}
+ $receipt=@{version=$productVersion;internalUnsigned=$true;nodeVersion=$NodeVersion;nodeArchiveSha256=$actual;builtAt=(Get-Date).ToUniversalTime().ToString('o')}
  $receipt | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $staging 'QA_BUILD_RECEIPT.json') -Encoding UTF8
  $iss=Join-Path $PSScriptRoot 'WorkerC-Internal-RC.iss'
- & $ISCC "/DPayloadDir=$payload" '/DProductVersion=0.8.5-rc' $iss
+ & $ISCC "/DPayloadDir=$payload" "/DProductVersion=$productVersion" $iss
  if($LASTEXITCODE -ne 0){throw "ISCC failed with exit code $LASTEXITCODE"}
- $installer=Join-Path $PSScriptRoot 'output\AIProjectOS-0.8.5-rc-UNSIGNED-INTERNAL-RC.exe'
+ $installer=Join-Path $PSScriptRoot "output\AIProjectOSPersonal-$productVersion-UNSIGNED-INTERNAL-RC.exe"
  if(!(Test-Path -LiteralPath $installer)){throw 'Installer output missing after compiler exit.'}
  $sha=(Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
  Write-Host "INTERNAL QA ONLY (UNSIGNED). Installer SHA256=$sha"

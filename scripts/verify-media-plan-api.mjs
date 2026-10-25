@@ -20,7 +20,7 @@ try{
  assert.ok(ok,'Local Worker startup failed');
  let r=await fetch(base+'/?launch='+ticket,{redirect:'manual'});
  assert.equal(r.status,303);
- const cookie=r.headers.get('set-cookie')?.split(';')[0];assert.ok(cookie?.startsWith('aios_session='));
+ const cookie=r.headers.get('set-cookie')?.split(';')[0];assert.ok(cookie?.startsWith('aios_personal_session='));
  const call=async(endpoint,method='GET',data=null)=>{const headers={cookie};if(data&&!Buffer.isBuffer(data))headers['content-type']='application/json';return fetch(base+endpoint,{method,headers,...(data?{body:Buffer.isBuffer(data)?data:JSON.stringify(data)}:{})});};
  r=await call('/api/projects','POST',{name:'Stale Media Binding',idea:'Regression for source-aware export'});assert.ok(r.ok);const project=await r.json();
  const sample=fs.readFileSync(path.join(ROOT,'integrations/media-engine/artifacts/samples/source.mp4'));

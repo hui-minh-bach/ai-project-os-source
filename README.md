@@ -1,3 +1,15 @@
+# AI Project OS — Personal Edition
+
+Bản cá nhân **0.9.63-personal.1**, dựa trên upstream 0.9.62. Step 1 bổ sung định danh riêng, dữ liệu per-user riêng và vô hiệu hóa kênh cập nhật upstream. Chưa đóng gói Windows Portable mới.
+
+Xem [hướng dẫn Step 1, cập nhật, nhập dữ liệu và rollback](docs/personal/STEP-1-FOUNDATION.md).
+
+Tài liệu yêu cầu dự án (PRD) chính thức xuất hiện trong AI Council sau khi PO chốt Specification; xem [hướng dẫn PRD](docs/personal/PROJECT-PRD.md). Không trỏ Personal vào thư mục dữ liệu của bản gốc. `npm test` chạy với dữ liệu tạm riêng.
+
+Phần bên dưới giữ tài liệu upstream để tham khảo các chức năng hiện có; các thông tin phiên bản/đóng gói cũ không phải chứng nhận phát hành Personal.
+
+---
+
 # AI Project OS v0.8.4 — Concat managed setup (INTERNAL RC)
 
 **Một ứng dụng điều khiển, không còn yêu cầu khách tự đi tải Concat**: mở `AI-Project-OS.exe`, mở Vault, vào **Video & Story Studio → Kế hoạch dựng → Kết nối trình biên tập Concat**, bấm **Cài + kết nối Concat tự động**. Đồng ý với cài đặt ứng dụng Concat AGPL riêng. Nếu Concat đã cài thì ứng dụng chỉ cấu hình kết nối; nếu chưa thì tự xác minh SHA-256 của bộ cài chính thức, cấu hình localhost, lưu token vào Vault và khởi động Concat.

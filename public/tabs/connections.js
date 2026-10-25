@@ -383,10 +383,14 @@ async function renderUpdatePanel(){
   const box=$('#updatePanel');if(!box)return;
   try{
     const upd=await api('/api/update/status');
+    if(!upd.enabled){
+      box.innerHTML=`<div class="cc-dialog-status">Personal Edition · v${esc(upd.currentVersion)}</div><p class="cc-dialog-note">Cập nhật thủ công. Kênh tác giả gốc đã bị vô hiệu hóa. Kênh Personal chỉ hoạt động khi có cấu hình tin cậy và khóa xác minh riêng.</p>${upd.pending?'<p class="cc-dialog-note" role="status">Có gói chờ được giữ lại để kiểm tra. Gói này bị chặn và sẽ không được áp dụng khi khởi động lại.</p>':''}`;
+      return;
+    }
     box.innerHTML=`
-      <div class="cc-dialog-status">Bản hiện tại: v${esc(upd.currentVersion)}${upd.pending?` · ĐÃ TẢI v${esc(upd.pending.version)} — khởi động lại ứng dụng để áp dụng`:''}${upd.lastUpdate?` · Lần cập nhật gần nhất: v${esc(upd.lastUpdate.version)} (${esc(String(upd.lastUpdate.at||'').slice(0,10))})`:''}${upd.lastFailure?` · Lần áp dụng lỗi gần nhất: ${esc(upd.lastFailure.code||'')} (đã tự khôi phục bản cũ)`:''}</div>
-      <label for="updUrl">Địa chỉ manifest cập nhật (nhà phát hành cung cấp)</label>
-      <input id="updUrl" value="${esc(upd.url||'')}" placeholder="https://…/update-manifest.json">
+      <div class="cc-dialog-status">Bản hiện tại: v${esc(upd.currentVersion)}${upd.pending?` · ${upd.pending.blocked?'ĐÃ CHẶN':'ĐÃ TẢI'} v${esc(upd.pending.version)}${upd.pending.blocked?' — không thuộc kênh tin cậy':' — khởi động lại ứng dụng để áp dụng'}`:''}${upd.lastUpdate?` · Lần cập nhật gần nhất: v${esc(upd.lastUpdate.version)} (${esc(String(upd.lastUpdate.at||'').slice(0,10))})`:''}${upd.lastFailure?` · Lần áp dụng lỗi gần nhất: ${esc(upd.lastFailure.code||'')} (đã tự khôi phục bản cũ)`:''}</div>
+      <label for="updUrl">Địa chỉ manifest cập nhật (kênh Personal đã tin cậy)</label>
+      <input id="updUrl" readonly value="${esc(upd.url||'')}" placeholder="https://…/update-manifest.json">
       <div class="cc-dialog-actions"><button id="updSaveUrl" class="ghost">Lưu địa chỉ</button><button id="updCheck" class="ghost">Kiểm tra cập nhật</button><button id="updDownload" class="primary">Tải bản mới (áp dụng khi khởi động lại)</button></div>
       <div id="updPanelMsg" class="cc-dialog-note" role="status"></div>`;
     const msg=t=>{const m=$('#updPanelMsg');if(m)m.textContent=t};

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DATA_DIR } from './store.mjs';
+import { architectureGuardEnabled, inspectArchitecture, assertCompliance, assertTaskArchitecture, failureReceipt } from './architecture-guard.mjs';
+import { DATA_DIR, readJson } from './store.mjs';
 import { workspaceDir } from './workspace.mjs';
 import { run, must, commandExists } from './shell.mjs';
 import { ensureSecureGitignore, ensureGitIdentity, assertNoSensitiveStaged } from './git-security.mjs';
@@ -67,8 +68,25 @@ export async function commitTask(worktree,message){
   return (await must('git',['rev-parse','HEAD'],{cwd:worktree.dir})).stdout.trim();
 }
 
-export async function mergeTask(projectId,worktree,{guard,lockSpecification}={}){
+export async function mergeTask(projectId,worktree,{guard,lockSpecification,architecture}={}){
   return withGitLock(projectId,async()=>{
+    guard?.();
+    const initialProject=readJson('projects.json',[]).find(p=>p.id===projectId),managed=architectureGuardEnabled(initialProject||{});
+    const inspect=async(cwd,baseSha,targetSha,stage)=>{
+      const p=readJson('projects.json',[]).find(p=>p.id===projectId);
+      if(!managed&&!architectureGuardEnabled(p||{}))return;
+      const task=p?.tasks?.find(t=>t.id===architecture?.taskId),execution=task?.executionRuns?.find(r=>r.id===architecture?.runId);
+      if(!task||!execution||!['preparing','running','repairing','testing','reviewing','merging'].includes(task.status)||execution!==task.executionRuns.at(-1)||execution.commitSha!==pinnedHead||execution.worktree!==worktree.dir||execution.branch!==worktree.branch){
+        const r=failureReceipt(p,task,new Error('Merge thiếu execution/reference/HEAD đã xác minh; không cho bypass task runner.'),stage);architecture?.onReceipt?.(r);assertCompliance(r);
+      }
+      const r=await inspectArchitecture({project:p,task,run:execution,cwd,baseSha,targetSha,stage});architecture?.onReceipt?.(r);assertCompliance(r);
+      // Recheck after awaited Git reads; approval may change during the scan.
+      const latest=readJson('projects.json',[]).find(p=>p.id===projectId),latestTask=latest?.tasks?.find(t=>t.id===task.id);
+      try{assertTaskArchitecture(latest,latestTask,execution);}catch(e){const invalid=failureReceipt(latest,latestTask,e,stage);architecture?.onReceipt?.(invalid);assertCompliance(invalid);}
+    };
+    const pinnedHead=(await must('git',['rev-parse',worktree.branch],{cwd:worktree.main})).stdout.trim();
+    if(managed){const dirty=(await must('git',['status','--porcelain'],{cwd:worktree.dir})).stdout;if(dirty)assertCompliance(failureReceipt(initialProject,null,new Error('Worktree có thay đổi chưa commit trước merge.'),'merge-preflight'));}
+    await inspect(worktree.dir,worktree.baseSha,pinnedHead,'merge-preflight');
     guard?.();
     const main=await ensureBaselineUnlocked(projectId);
     guard?.();
@@ -77,15 +95,30 @@ export async function mergeTask(projectId,worktree,{guard,lockSpecification}={})
     // The guard runs inside the project Git lock, after every preceding await.
     // A task queued behind another merge cannot merge an obsolete specification.
     const beforeSha=(await must('git',['rev-parse','HEAD'],{cwd:main})).stdout.trim();
+    await inspect(worktree.dir,worktree.baseSha,pinnedHead,'merge-locked');
+    if((await must('git',['rev-parse',worktree.branch],{cwd:main})).stdout.trim()!==pinnedHead)throw new Error('Architecture: branch HEAD đổi trước merge.');
     guard?.();const unlock=lockSpecification?.()||(()=>{});
     try{
-      const r=await run('git',['merge','--no-ff','--no-edit',worktree.branch],{cwd:main});
+      const r=await run('git',['merge','--no-ff','--no-edit',...(managed?['--no-commit']:[]),pinnedHead],{cwd:main});
       if(r.code!==0){
         const abort=await run('git',['merge','--abort'],{cwd:main});
         return {ok:false,conflict:true,error:(r.stderr||r.stdout).slice(-5000),abort:{ok:abort.code===0,exitCode:abort.code}};
       }
+      if(managed){
+        let candidateTree=null;
+        try{
+          guard?.();candidateTree=(await must('git',['write-tree'],{cwd:main})).stdout.trim();
+          await inspect(main,beforeSha,candidateTree,'merge-candidate');guard?.();
+          await assertNoSensitiveStaged(main);
+          if((await must('git',['write-tree'],{cwd:main})).stdout.trim()!==candidateTree)throw new Error('Architecture: merge index đổi trong khi kiểm tra.');
+          guard?.();await must('git',['commit','--no-edit'],{cwd:main});
+        }catch(e){
+          const rollback=await run('git',['reset','--merge',beforeSha],{cwd:main});
+          e.rollback={source:'runtime',ok:rollback.code===0,exitCode:rollback.code,beforeSha,discardedMergeSha:null,candidateTree,error:(rollback.stderr||'').slice(-1500)};throw e;
+        }
+      }
       const sha=(await must('git',['rev-parse','HEAD'],{cwd:main})).stdout.trim();
-      try{guard?.();}catch(e){
+      try{guard?.();await inspect(main,beforeSha,sha,'merge-result');guard?.();}catch(e){
         // API brief/spec writes are held during this window. This also catches
         // out-of-band state changes; reset --merge preserves unrelated edits.
         const rollback=await run('git',['reset','--merge',beforeSha],{cwd:main});

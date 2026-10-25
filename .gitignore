@@ -4,3 +4,6 @@ node_modules/
 .env
 .env.*
 *.log
+
+# Local Personal update trust is configured explicitly, never distributed by accident.
+personal-update-trust.json

@@ -9,8 +9,9 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DATA_DIR } from './store.mjs';
+import { APP_ID, SESSION_COOKIE } from './app-identity.mjs';
 
-const COOKIE='aios_session';
+const COOKIE=SESSION_COOKIE;
 const SESSION_DIR=path.join(path.dirname(DATA_DIR),'run');
 function safeEqual(a,b){
   if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;
@@ -25,7 +26,7 @@ export function createLocalAccess({port,version,launchToken=process.env.AI_PROJE
   let alive=false;
   const expose=()=>{
     fs.mkdirSync(SESSION_DIR,{recursive:true,mode:0o700});
-    fs.writeFileSync(file,JSON.stringify({pid:process.pid,port,version,token:ticket}),{mode:0o600});
+    fs.writeFileSync(file,JSON.stringify({productId:APP_ID,pid:process.pid,port,version,token:ticket}),{mode:0o600});
     alive=true;
   };
   const discard=()=>{
@@ -42,7 +43,7 @@ export function createLocalAccess({port,version,launchToken=process.env.AI_PROJE
     if(alive){
       const tmp=file+'.'+crypto.randomBytes(8).toString('hex')+'.tmp';
       try{
-        fs.writeFileSync(tmp,JSON.stringify({pid:process.pid,port,version,token:next}),{mode:0o600});
+        fs.writeFileSync(tmp,JSON.stringify({productId:APP_ID,pid:process.pid,port,version,token:next}),{mode:0o600});
         fs.renameSync(tmp,file);
       }catch{
         try{fs.rmSync(tmp,{force:true});}catch{}
@@ -72,6 +73,6 @@ export function createLocalAccess({port,version,launchToken=process.env.AI_PROJE
 export function readLocalSessionTicket({port,version}={}) {
   try {
     const j=JSON.parse(fs.readFileSync(ticketFile(port),'utf8'));
-    return j.port===port&&j.version===version&&Number.isInteger(j.pid)&&j.pid>0&&/^[0-9a-f]{64}$/.test(j.token)?j.token:null;
+    return j.productId===APP_ID&&j.port===port&&j.version===version&&Number.isInteger(j.pid)&&j.pid>0&&/^[0-9a-f]{64}$/.test(j.token)?j.token:null;
   }catch{return null;}
 }

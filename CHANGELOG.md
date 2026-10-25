@@ -1,3 +1,17 @@
+## Project Documentation — PRD (Step 2/3)
+
+- PRD chính thức theo từng Specification đã được PO chốt; lịch sử và xuất Markdown.
+- Worker, Reviewer và Project Manager nhận đúng PRD version/hash; tài liệu chính thức chỉ đọc qua API.
+- Giao diện PRD trong AI Council, liên kết từ Idea Studio; giữ theme và bố cục hiện có.
+
+## 0.9.63-personal.1 — Personal Edition Foundation
+
+- Định danh/version Personal; thư mục dữ liệu, phiên browser và launcher log riêng.
+- Tắt kênh upstream; giữ và chặn pending cũ, kể cả sau restore.
+- Kênh Personal tương lai yêu cầu trust riêng, chữ ký Ed25519 và SHA-256 được kiểm lại trước apply.
+- Gia cố ZIP và rollback; bổ sung kiểm thử bảo mật/hồi quy và trình chạy test cô lập dữ liệu.
+- Nhập dữ liệu chủ động qua backup mã hóa, có xác nhận và rollback. Chưa triển khai Step 2 hoặc build Portable mới.
+
 # v0.8.5 Internal RC – Media workflow corrections from customer recording (2026-10-16)
 
 - Fixed misleading 3-step Video Studio flow: "Only plan" and "Render JSON" do **not** execute Whisper, Concat, voice or music options; they now refuse these selected options with an exact route to "Dựng MP4 theo mô tả".

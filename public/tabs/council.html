@@ -1,4 +1,4 @@
-<section id="page-council" class="page" aria-label="AI Council">
+<section id="page-council" class="page" aria-label="AI Council"><section class="architecture-panel" id="councilArchitecture" aria-live="polite"></section>
   <div class="council-top">
     <article class="council-panel council-project"><h2><span class="council-heading-icon" id="councilBriefIcon" aria-hidden="true"></span>Tóm tắt dự án cần phản biện</h2><div id="councilProjectSummary" class="council-project-body"></div></article>
     <article class="council-panel council-consensus"><h2><span class="council-heading-icon purple" id="councilConsensusIcon" aria-hidden="true"></span>Đồng thuận hiện tại</h2><div id="councilConsensus" class="council-consensus-body" aria-live="polite"></div></article>
@@ -8,6 +8,10 @@
   <article class="council-panel council-chair">
     <div class="council-chair-header"><span class="council-chair-crown" id="councilChairIcon" aria-hidden="true"></span><div class="council-chair-title"><div class="council-chair-title-line"><h2>Chair Summary</h2><span id="councilChairProvider" aria-hidden="true"></span><label class="council-sr-only" for="chairSelect">Model Chair cho phiên tiếp theo</label><select id="chairSelect" aria-label="Model Chair cho phiên tiếp theo"></select></div><p id="councilChairSubtitle">Tổng hợp các phản biện độc lập và đưa ra quyết định cuối cùng.</p></div><span id="councilChairTime" class="council-time"></span></div>
     <div class="council-chair-body"><div id="councilSpecification" class="council-specification"></div><div class="council-chair-decision"><div id="councilChairSummary"></div><div class="council-actions"><button id="confirmCouncil" class="council-confirm" disabled></button><button id="runCouncil" class="council-rerun"></button><button id="councilBuildPlan" class="council-plan" disabled></button></div></div></div>
+  </article>
+  <article id="projectPrdPanel" class="panel" aria-labelledby="projectPrdTitle">
+    <div class="panelHead"><div><h2 id="projectPrdTitle">Tài liệu yêu cầu dự án (PRD)</h2><p>Từ Specification đã được Product Owner chốt trong AI Council.</p></div></div>
+    <div id="projectPrdContent" class="empty" role="status" aria-live="polite">Đang tải PRD…</div>
   </article>
   <details class="council-history"><summary id="councilHistoryLabel">Lịch sử phản biện</summary><div id="councilHistory"></div></details>
   <div id="councilMembers" hidden></div>

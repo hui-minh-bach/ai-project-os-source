@@ -1,3 +1,4 @@
+import { APP_ID, APP_NAME, APP_VERSION } from './lib/app-identity.mjs';
 import { spawn } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -11,26 +12,26 @@ import { fileURLToPath } from 'node:url';
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PORT=Number(process.env.AI_PROJECT_OS_PORT||4321);
 const EXPLICIT_PORT=Boolean(process.env.AI_PROJECT_OS_PORT);
-// The expected version comes from RELEASE.json so a signed update that bumps
-// the version is accepted by the launcher instead of being mistaken for a
-// stale foreign process.
-const EXPECTED=(()=>{try{return String(JSON.parse(fs.readFileSync(path.join(ROOT,'RELEASE.json'),'utf8')).version||'')}catch{return ''}})();
 // Apply a staged, signature-verified update BEFORE starting the server.
 // applyPendingUpdate never throws for a bad package: it rolls back and
 // records the failure, and this launcher keeps running the old version.
 try{
   const {applyPendingUpdate}=await import('./lib/updater.mjs');
   const {DATA_DIR}=await import('./lib/store.mjs');
-  const r=applyPendingUpdate({appRoot:ROOT,dataDir:DATA_DIR,log:m=>console.log(m)});
+  const r=applyPendingUpdate({appRoot:ROOT,dataDir:DATA_DIR,currentVersion:APP_VERSION,log:m=>console.log(m)});
+  if(r.reason==='UPDATE_ROLLBACK_FAILED'){console.error('Khôi phục cập nhật thất bại. Dừng khởi động; bản sao lưu:',r.backupDir);process.exit(1);}
   if(r.applied)console.log(`Đã áp dụng bản cập nhật v${r.version} (${r.files} tệp). Sao lưu bản cũ tại: ${r.backupDir}`);
   else if(r.reason&&r.reason!=='none')console.warn('Không áp dụng được bản cập nhật đã tải:',r.message||r.reason,'(vẫn chạy bản hiện tại)');
 }catch(e){console.warn('Bỏ qua bước áp dụng cập nhật:',e.message);}
+// Read after apply: a newly installed version must be used for health checks.
+const EXPECTED=(()=>{const r=JSON.parse(fs.readFileSync(path.join(ROOT,'RELEASE.json'),'utf8'));if(r.productId!==APP_ID||!r.version)throw new Error('RELEASE.json không thuộc Personal Edition.');return r.version;})();
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535){console.error('Cổng ứng dụng không hợp lệ (1024–65535).');process.exit(1);}
 const url=port=>`http://127.0.0.1:${port}`;
 function health(port){return new Promise(resolve=>{const req=http.get(url(port)+'/api/health',{timeout:1000,headers:{Host:`127.0.0.1:${port}`}},res=>{let s='';res.on('data',d=>s+=d);res.on('end',()=>{try{const j=JSON.parse(s);resolve(res.statusCode===200&&j?.ok&&j?.localOnly?j:null)}catch{resolve(null)}})});req.on('timeout',()=>{req.destroy();resolve(null)});req.on('error',()=>resolve(null));});}
 function portOccupied(port){return new Promise(resolve=>{const req=http.get(url(port)+'/',{timeout:700},res=>{res.resume();resolve(true)});req.on('timeout',()=>{req.destroy();resolve(false)});req.on('error',()=>resolve(false));});}
 function openBrowser(token,port){
+  if(process.env.AI_PROJECT_OS_NO_BROWSER==='1')return;
   try{
     if(!token||!/^[0-9a-f]{64}$/.test(token))throw new Error('Missing local launch ticket');
     const target=url(port)+'/?launch='+token;
@@ -44,13 +45,13 @@ function openBrowser(token,port){
 let selectedPort=null;
 for(const candidate of (EXPLICIT_PORT?[PORT]:Array.from({length:10},(_,i)=>PORT+i).filter(p=>p<=65535))){
   const existing=await health(candidate);
-  if(existing?.version&&existing.version!==EXPECTED){
+  if(existing?.productId===APP_ID&&existing?.version&&existing.version!==EXPECTED){
     console.error(`Đang có AI Project OS v${existing.version} chạy trên cổng ${candidate}. Hãy đóng bản cũ rồi mở lại v${EXPECTED} để tránh dùng nhầm phiên bản.`);
     process.exit(1);
   }
-  if(existing?.version===EXPECTED){
+  if(existing?.productId===APP_ID&&existing?.version===EXPECTED){
     const ticket=readLocalSessionTicket({port:candidate,version:EXPECTED});
-    if(ticket){console.log(`AI Project OS v${EXPECTED} đang chạy trên cổng ${candidate}.`);openBrowser(ticket,candidate);process.exit(0);}
+    if(ticket){console.log(`${APP_NAME} v${EXPECTED} đang chạy trên cổng ${candidate}.`);openBrowser(ticket,candidate);process.exit(0);}
     // No local ownership proof: do not open the browser or reuse this port.
     if(EXPLICIT_PORT){console.error('Dịch vụ hiện tại không có phiên truy cập xác minh. Đóng phiên cũ và mở lại.');process.exit(1);}
     continue;
@@ -62,7 +63,7 @@ for(const candidate of (EXPLICIT_PORT?[PORT]:Array.from({length:10},(_,i)=>PORT+
   selectedPort=candidate;break;
 }
 if(selectedPort===null){console.error('Không tìm thấy cổng local trống trong dải cho phép. Hãy đóng chương trình đang chiếm cổng và thử lại.');process.exit(1);}
-console.log(`AI Project OS: khởi động trên 127.0.0.1:${selectedPort}`);
+console.log(`${APP_NAME}: khởi động trên 127.0.0.1:${selectedPort}`);
 
 const launchToken=crypto.randomBytes(32).toString('hex');
 const child=spawn(process.execPath,[path.join(ROOT,'src/server.mjs')],{cwd:ROOT,stdio:'inherit',windowsHide:false,env:{...process.env,AI_PROJECT_OS_PORT:String(selectedPort),AI_PROJECT_OS_LAUNCH_TOKEN:launchToken}});
@@ -72,6 +73,6 @@ let stopping=false;
 for(const sig of ['SIGINT','SIGTERM'])process.on(sig,()=>{stopping=true;try{child.kill(sig)}catch{};const emergency=setTimeout(()=>{try{child.kill('SIGKILL')}catch{}},2000);emergency.unref();});
 child.on('exit',code=>process.exit(code??0));
 let ready=false;
-for(let i=0;i<40;i++){await sleep(250);const h=await health(selectedPort);if(h?.version===EXPECTED){ready=true;break;}if(child.exitCode!==null)break;}
+for(let i=0;i<40;i++){await sleep(250);const h=await health(selectedPort);if(h?.productId===APP_ID&&h?.version===EXPECTED){ready=true;break;}if(child.exitCode!==null)break;}
 if(!ready){console.error(`Server không khởi động đúng v${EXPECTED}. Không tự mở trình duyệt.`);try{child.kill()}catch{};process.exitCode=1;}
 else if(!stopping)openBrowser(launchToken,selectedPort);

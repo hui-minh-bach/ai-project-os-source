@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import test, { after } from 'node:test';
 import { isolatedRuntime } from './helpers/isolated-runtime.mjs';
 const runtime = isolatedRuntime('team');
@@ -98,7 +99,7 @@ for(const stage of ['worker','reviewer'])test(`brief change during deferred ${st
   try{
     const c=connection(mock.url),p=createProject({name:'Stale '+stage});prepareTaskPlan(p.id,[task()]);roles(p.id,c);const pending=runTask(p.id,'T1');const assertion=assert.rejects(pending,/thay đổi|khớp/i);
     await held.arrival;updateProjectBrief(p.id,{goals:'Changed while '+stage+' awaited'});held.release();await assertion;
-    const t=getProject(p.id).tasks[0];assert.equal(t.status,'stale');assert.equal(t.executionRuns[0].outcome,'stale');assert.equal(t.cleanup.worktreeRemoved,true);assert.equal(t.cleanup.branchDeleted,true);assert.equal(fs.existsSync(path.join(workspaceDir(p.id),'t1.html')),false);assert.ok(t.agentLog.some(l=>l.kind==='agent'));
+    const t=getProject(p.id).tasks[0];assert.equal(t.status,'stale');assert.equal(t.executionRuns[0].outcome,'stale');assert.equal(t.cleanup.worktreeRemoved,true);assert.equal(t.cleanup.branchDeleted,false);assert.equal(t.cleanup.branchRetained,true);assert.equal(fs.existsSync(path.join(workspaceDir(p.id),'t1.html')),false);assert.ok(t.agentLog.some(l=>l.kind==='agent'));
     if(stage==='reviewer'){assert.equal(t.reviews.length,1);assert.equal(t.reviews[0].status,'APPROVED');assert.equal(t.commits.length,1);}
   }finally{held.release();mock.close();}
 });
@@ -138,7 +139,7 @@ test('trusted npm receipts record actual pass, failure, timeout, Safe block and 
 
 test('failed runtime test blocks merge even when model Reviewer says approved',{timeout:30000},async()=>{
   reset();const mock=await provider(req=>req.system.includes('coding worker')&&!req.prompt.includes('Tool result:')?{tool:'write',path:'package.json',content:JSON.stringify({scripts:{test:'node -e "process.exit(7)"'}})}:defaultReply(req));
-  try{const c=connection(mock.url),p=createProject({name:'Runtime failure'});prepareTaskPlan(p.id,[task()]);roles(p.id,c);updateProjectSettings(p.id,{sandboxMode:'host',autoRepair:false});const result=await runTask(p.id,'T1');const t=getProject(p.id).tasks[0];assert.equal(result.merged,false);assert.equal(t.status,'review');assert.equal(t.latestTestReceipt.status,'FAIL');assert.equal(t.latestTestReceipt.exitCode,7);assert.equal(t.review.approved,false);assert.equal(fs.existsSync(path.join(workspaceDir(p.id),'package.json')),false);}finally{mock.close();}
+  try{const c=connection(mock.url),p=createProject({name:'Runtime failure'});prepareTaskPlan(p.id,[task()],{}, {compliancePolicy:{modules:[{componentId:'frontend',paths:['.'],allowedImports:[]}],dependencies:[],rules:[],protectedFiles:[{path:'package.json',kind:'config',sha256:crypto.createHash('sha256').update(JSON.stringify({scripts:{test:'node -e \"process.exit(7)\"'}})).digest('hex')}]}});roles(p.id,c);updateProjectSettings(p.id,{sandboxMode:'host',autoRepair:false});const result=await runTask(p.id,'T1');const t=getProject(p.id).tasks[0];assert.equal(result.merged,false);assert.equal(t.status,'review');assert.equal(t.latestTestReceipt.status,'FAIL');assert.equal(t.latestTestReceipt.exitCode,7);assert.equal(t.review.approved,false);assert.equal(fs.existsSync(path.join(workspaceDir(p.id),'package.json')),false);}finally{mock.close();}
 });
 
 test('parallel budget enforces two active isolated workers before third run',{timeout:30000},async()=>{
@@ -155,9 +156,9 @@ for(const rollbackFail of [false,true])test(`post-merge stale check ${rollbackFa
     const c=connection(mock.url),p=createProject({name:'Post merge guard'});prepareTaskPlan(p.id,[task()]);roles(p.id,c);const pending=runTask(p.id,'T1');assertion=assert.rejects(pending,/thay đổi|khớp/i);await waitUntil(()=>fs.existsSync(started));
     assert.throws(()=>updateProjectBrief(p.id,{goals:'Blocked in merge window'}),/Main đang commit/i);
     const projects=readJson('projects.json',[]);projects.find(x=>x.id===p.id).briefRevision++;writeJson('projects.json',projects);fs.writeFileSync(released,'release');await assertion;
-    const t=getProject(p.id).tasks[0];assert.equal(t.rollback.ok,!rollbackFail);assert.equal(t.rollback.source,'runtime');assert.equal(t.rollback.exitCode,rollbackFail?8:0);assert.equal(t.cleanup.worktreeRemoved,true);assert.equal(t.cleanup.branchDeleted,!rollbackFail);assert.equal(t.cleanup.branchRetained,rollbackFail);
+    const t=getProject(p.id).tasks[0];assert.equal(t.rollback.ok,!rollbackFail);assert.equal(t.rollback.source,'runtime');assert.equal(t.rollback.exitCode,rollbackFail?8:0);assert.equal(t.cleanup.worktreeRemoved,true);assert.equal(t.cleanup.branchDeleted,false);assert.equal(t.cleanup.branchRetained,true);
     assert.equal(t.status,rollbackFail?'merge-rollback-failed':'stale');assert.equal(t.mainState,rollbackFail?'unknown':'restored');assert.equal(fs.existsSync(path.join(workspaceDir(p.id),'t1.html')),rollbackFail);assert.equal(t.commits.length,1);assert.equal(t.reviews[0].status,'APPROVED');
-    const head=(await run(realGit,['rev-parse','HEAD'],{cwd:workspaceDir(p.id)})).stdout.trim();assert.equal(head,rollbackFail?t.rollback.discardedMergeSha:t.rollback.beforeSha);
+    const head=(await run(realGit,['rev-parse','HEAD'],{cwd:workspaceDir(p.id)})).stdout.trim();assert.equal(head,rollbackFail?(t.rollback.discardedMergeSha||t.rollback.beforeSha):t.rollback.beforeSha);
   }finally{fs.writeFileSync(released,'release');if(assertion)await assertion.catch(()=>{});process.env.PATH=oldPath;mock.close();fs.rmSync(bin,{recursive:true,force:true});}
 });
 

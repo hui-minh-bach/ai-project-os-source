@@ -1,7 +1,7 @@
 {
-  "product": "AI Project OS Local Worker",
-  "version": "0.9.62",
-  "channel": "v0.9.62-works",
+  "product": "AI Project OS — Personal Edition",
+  "version": "0.9.63-personal.1",
+  "channel": "personal-development",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -18,7 +18,7 @@
     "heygen_tts": "optional_external_paid_api_only_when_selected",
     "cinematic_ai_video": "not_available",
     "license": "removed_by_owner_decision_2026-10-17_no_licensing_no_trial_no_activation_free_distribution_via_github",
-    "auto_update": "implemented_signed_manifest_ed25519_plus_sha256_staged_download_applied_by_launcher_on_next_start_with_per_file_backup_and_automatic_rollback_tools/update-publish.mjs_signs_manifests_owner_key_frozen_now_used_for_update_signing_only_e2e_verified_2026-10-19_scratch_copy_test_keypair_check_download_stage_then_real_launcher_applied_with_per_file_backups_and_a_poisoned_package_rolled_back_cleanly",
+    "auto_update": "personal_only_explicit_installation_trust_ed25519_sha256_disabled_by_default",
     "official_cli_login": "codex_chatgpt_claude_code_and_google_antigravity",
     "official_cli_installer": "Windows managed npm Codex/Claude, WinGet Antigravity",
     "cli_login_live_verified": "not_tested_without_real_customer_accounts",
@@ -239,5 +239,13 @@
     "signed_installer": false,
     "support_and_license_ready": false,
     "no_production_push": true
+  },
+  "productId": "ai-project-os-personal",
+  "upstreamVersion": "0.9.62",
+  "personalEdition": {
+    "stage": "foundation",
+    "windowsPortableBuilt": false,
+    "dataNamespace": "AIProjectOSPersonal",
+    "upstreamUpdatesAllowed": false
   }
 }

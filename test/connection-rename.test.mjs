@@ -41,7 +41,7 @@ test('connection rename: endpoint renames any connection, rejects empty/unknown,
     const granted = await fetch(`http://127.0.0.1:${port}/?launch=${LAUNCH_TOKEN}`, { redirect: 'manual' });
     assert.equal(granted.status, 303, 'launcher ticket grants a session');
     const cookie = (granted.headers.get('set-cookie') || '').split(';')[0];
-    assert.ok(cookie.startsWith('aios_session='), 'session cookie issued');
+    assert.ok(cookie.startsWith('aios_personal_session='), 'session cookie issued');
     const H = { cookie, 'content-type': 'application/json' };
     const call = (p, body) => fetch(`http://127.0.0.1:${port}${p}`, { method: 'POST', headers: H, body: JSON.stringify(body) });
 

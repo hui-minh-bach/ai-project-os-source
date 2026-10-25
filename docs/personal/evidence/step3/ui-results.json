@@ -1,0 +1,14 @@
+{
+  "browser": "Google Chrome headless / CDP",
+  "fixture": "Local synthetic AI, no live credentials or user data",
+  "checks": [
+    "Idea Studio: proposed status, Tech Stack, two components and relationship rendered",
+    "AI Council: approval disabled until PO consent, real approval request creates Approved baseline",
+    "No generic baseline modification endpoint; PATCH / DELETE / POST return 404",
+    "Authenticated versioned Markdown export; unauthenticated architecture API returns 401",
+    "Project Map: approved v1 / Specification v1 graph matches Idea Studio",
+    "Brief change marks architecture Outdated and retains approved historical export",
+    "390px mobile viewport: architecture panel fits available width"
+  ],
+  "status": "PASS"
+}

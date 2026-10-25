@@ -1,0 +1,14 @@
+#page-council #projectPrdPanel{color:var(--text);scroll-margin-top:18px}
+#projectPrdPanel .prd-meta,#projectPrdPanel .prd-actions,#projectPrdPanel .prd-history{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+#projectPrdPanel .prd-meta{margin:10px 0;color:var(--muted)}
+#projectPrdPanel .prd-actions{margin:12px 0}
+#projectPrdPanel .prd-actions a{display:inline-block;text-decoration:none}
+#projectPrdPanel .prd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+#projectPrdPanel .prd-section{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+#projectPrdPanel .prd-section h3{margin:0 0 8px;font-size:14px}
+#projectPrdPanel .prd-section p,#projectPrdPanel .prd-section li{overflow-wrap:anywhere;white-space:pre-wrap}
+#projectPrdPanel .prd-section ul{margin:0;padding-left:20px}
+#projectPrdPanel .prd-history{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+#projectPrdPanel .prd-history button[aria-current="true"]{border-color:var(--accent);color:var(--accent)}
+#projectPrdPanel .prd-status{color:var(--muted);margin:8px 0}
+@media(max-width:760px){#projectPrdPanel .prd-grid{grid-template-columns:1fr}}

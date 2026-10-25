@@ -1,0 +1,19 @@
+import fs from 'node:fs';
+import path from 'node:path';
+export const handoverSupport={targets:['not-specified','local-only','on-premises','cloud-manual'],rationale:'Website tĩnh không có backend, DB hoặc credential; giữ cùng static artifacts và dùng hướng dẫn server/TLS thủ công ở đích.'};
+export function manualHandoverFixture(deps){
+const {projects,readJson,writeJson,prepareTaskPlan,workspaceDir,must}=deps;
+const support=handoverSupport;
+function edit(id,fn){const list=readJson('projects.json',[]);fn(list.find(p=>p.id===id));writeJson('projects.json',list);}
+return async function fixture({target='local-only',files={},supportPolicy=true,freeze=true,notes=[]}={}){
+ const p=projects.createProject({name:'Application produced by agents',productType:'website',deploymentTarget:target});prepareTaskPlan(p.id,[{id:'T1',title:'Static application',role:'frontend',description:'Serve a static page',doneWhen:'Page opens',status:'todo',dependsOn:[],engineId:'native'}],{},supportPolicy?{deploymentSupport:support}:{});
+ const cwd=workspaceDir(p.id),git=args=>must('git',args,{cwd});await git(['init','-b','main']);await git(['config','user.name','Handover Fixture']);await git(['config','user.email','handover@example.test']);fs.writeFileSync(path.join(cwd,'README.md'),'Generated app fixture');await git(['add','.']);await git(['commit','-m','baseline']);await git(['checkout','-b','fixture-app']);
+ const contents={'index.html':'<!doctype html><html><head><link rel="stylesheet" href="style.css"></head><body><h1>Verified static artifact</h1></body></html>','style.css':'body { color: navy; }',...files};
+ for(const [file,data] of Object.entries(contents)){fs.mkdirSync(path.dirname(path.join(cwd,file)),{recursive:true});fs.writeFileSync(path.join(cwd,file),data);}
+ await git(['add','.']);await git(['commit','-m','app artifacts']);const worker=(await git(['rev-parse','HEAD'])).stdout.trim();await git(['checkout','main']);await git(['merge','--no-ff','--no-edit','fixture-app']);const merge=(await git(['rev-parse','HEAD'])).stdout.trim();
+ edit(p.id,p=>{const t=p.tasks[0],s=p.specifications[0],ref=t.architectureReference;t.status='done';t.mergeSha=merge;t.commitSha=worker;t.acceptanceCriteria[0]={...t.acceptanceCriteria[0],status:'met',source:'reviewer',evidence:{runId:'handover-fixture-run'}};t.executionRuns=[{id:'handover-fixture-run',planId:t.planId,specificationId:s.id,requirementsVersion:s.version,requirementsHash:s.approvedRequirementsHash,architectureHash:ref.architectureHash,architectureReference:structuredClone(ref),settings:{reviewRequired:true},status:'done',outcome:'done',mergeSha:merge,commitSha:worker,commits:[{sha:worker}],testReceipts:[{id:'fixture-test',source:'runtime',kind:'test',status:'PASS',exitCode:0}],reviews:[{status:'APPROVED',approved:true,acceptance:[{criterionId:'AC1',met:true,explanation:'Fixture page assertion'}]}],architectureReceipts:[{id:'fixture-guard',source:'runtime',kind:'architecture-compliance',stage:'merge-result',targetSha:merge,reference:ref,status:'PASS',findings:[]}]}];});
+ projects.createProjectRelease(p.id,{version:'v0.1.0',knownIssues:notes});const r=projects.getProject(p.id).releases[0];projects.assignProjectReleaseTasks(p.id,r.id,{tasks:[{taskId:'T1',planId:projects.getProject(p.id).planId,kind:'feature'}]});
+ if(freeze){const d=await projects.viewProjectRelease(p.id,r.id);await projects.projectReleaseEvidenceAction(p.id,r.id,'handover',{explicitApproval:true,evidenceHash:d.evidenceHash});}
+ return {id:p.id,releaseId:r.id,cwd,merge,get:()=>projects.getProject(p.id),view:()=>projects.viewProjectRelease(p.id,r.id),async build(adapterId='static-web-v1',extra={}){const d=await this.view();await projects.createProjectManualHandover(p.id,r.id,{adapterId,snapshotHash:d.contentHash,targetRevision:projects.getProject(p.id).deploymentTargetRevision,...extra});return projects.getProject(p.id).releases[0].manualHandoverPackages.at(-1);}};
+};
+}

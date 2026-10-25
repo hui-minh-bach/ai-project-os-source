@@ -20,7 +20,7 @@ async function run(){
  for(let i=0;i<100;i++){try{const h=await fetch(base+'/api/health');if(h.ok&&(await h.json()).version===expectedVersion){started=true;break;}}catch{}await sleep(150);}
   assert(started,'Local Worker did not start');
   let r=await fetch(base+'/?launch='+launch,{redirect:'manual'});assert(r.status===303,'Login ticket failed');
-  const cookie=r.headers.get('set-cookie')?.split(';')[0];assert(cookie?.startsWith('aios_session='),'Login session not granted');
+  const cookie=r.headers.get('set-cookie')?.split(';')[0];assert(cookie?.startsWith('aios_personal_session='),'Login session not granted');
   const request=async(endpoint,method='GET',data)=>{
    const headers={cookie};if(data&&!Buffer.isBuffer(data))headers['content-type']='application/json';
    return fetch(base+endpoint,{method,headers,body:data?(Buffer.isBuffer(data)?data:JSON.stringify(data)):undefined});

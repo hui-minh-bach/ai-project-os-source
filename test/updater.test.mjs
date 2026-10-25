@@ -12,6 +12,8 @@ import {
 } from '../src/lib/updater.mjs';
 
 const kp = generateLicenseKeyPair();
+const trust = { enabled:true, schemaVersion:1, product:'ai-project-os-personal', channel:'personal-stable', manifestUrl:'https://personal.example/update-manifest.json', publicKeyPem:kp.publicKeyPem };
+const fetchImpl = async (url, options) => { const r = await fetch(base + new URL(url).pathname, options); return {ok:r.ok, json:()=>r.json(), body:r.body}; };
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'aios-upd-'));
 
 test('version compare', () => {
@@ -22,7 +24,7 @@ test('version compare', () => {
 });
 
 test('manifest signature: valid passes, tampered rejected', () => {
-  const m = signManifest(kp.privateKeyPem, { version: '0.9.0', url: 'https://x/a.zip', sha256: 'ab'.repeat(32), size: 10 });
+  const m = signManifest(kp.privateKeyPem, { channel: 'personal-stable', version: '0.9.0', url: 'https://x/a.zip', sha256: 'ab'.repeat(32), size: 10 });
   assert.equal(verifyManifest(m, kp.publicKeyPem).version, '0.9.0');
   assert.throws(() => verifyManifest({ ...m, sha256: 'cd'.repeat(32) }, kp.publicKeyPem), (e) => e.code === 'UPDATE_MANIFEST_SIGNATURE');
 });
@@ -46,7 +48,7 @@ before(async () => {
   const sha = crypto.createHash('sha256').update(zipBuf).digest('hex');
   server = http.createServer((req, res) => {
     if (req.url === '/update-manifest.json') {
-      manifest = signManifest(kp.privateKeyPem, { version: '0.9.0', url: base + '/pkg.zip', sha256: sha, size: zipBuf.length });
+      manifest = signManifest(kp.privateKeyPem, { channel: 'personal-stable', version: '0.9.0', url: 'https://personal.example/pkg.zip', sha256: sha, size: zipBuf.length });
       res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(manifest));
     } else if (req.url === '/pkg.zip') { res.writeHead(200, { 'content-type': 'application/zip' }); res.end(zipBuf); }
     else { res.writeHead(404); res.end(); }
@@ -58,15 +60,15 @@ after(() => server.close());
 
 test('updater: check finds signed update, download stages a verified zip', async () => {
   const dataDir = tmp();
-  const up = createUpdater({ dataDir, currentVersion: '0.8.5', publicKeyPem: kp.publicKeyPem });
-  up.setConfig({ url: base + '/update-manifest.json' });
+  const up = createUpdater({ dataDir, currentVersion: '0.8.5', policy: trust, fetchImpl });
+  up.setConfig({ url: trust.manifestUrl });
   const c = await up.check();
   assert.equal(c.available, true);
   assert.equal(c.manifest.version, '0.9.0');
   const d = await up.download();
   assert.equal(d.downloaded, true);
   assert.equal(up.status().pending.version, '0.9.0');
-  const up2 = createUpdater({ dataDir, currentVersion: '0.9.0', publicKeyPem: kp.publicKeyPem });
+  const up2 = createUpdater({ dataDir, currentVersion: '0.9.0', policy: trust, fetchImpl });
   const c2 = await up2.check();
   assert.equal(c2.available, false);
 });
@@ -75,10 +77,10 @@ test('apply: updates + adds files with backup; corrupt staged zip rolls back cle
   const dataDir = tmp(), appRoot = tmp();
   fs.mkdirSync(path.join(appRoot, 'src'), { recursive: true });
   fs.writeFileSync(path.join(appRoot, 'src/server.mjs'), 'OLD SERVER');
-  const up = createUpdater({ dataDir, currentVersion: '0.8.5', publicKeyPem: kp.publicKeyPem });
-  up.setConfig({ url: base + '/update-manifest.json' });
+  const up = createUpdater({ dataDir, currentVersion: '0.8.5', policy: trust, fetchImpl });
+  up.setConfig({ url: trust.manifestUrl });
   await up.download();
-  const r = applyPendingUpdate({ appRoot, dataDir });
+  const r = applyPendingUpdate({ appRoot, dataDir, currentVersion:'0.8.5', policy:trust });
   assert.equal(r.applied, true);
   assert.equal(fs.readFileSync(path.join(appRoot, 'src/server.mjs'), 'utf8'), 'NEW SERVER');
   assert.equal(fs.readFileSync(path.join(appRoot, 'NEWFILE.txt'), 'utf8'), 'added');
@@ -87,7 +89,7 @@ test('apply: updates + adds files with backup; corrupt staged zip rolls back cle
   await up.download();
   const pend = JSON.parse(fs.readFileSync(path.join(dataDir, 'pending-update.json'), 'utf8'));
   fs.writeFileSync(pend.file, 'tampered');
-  const r2 = applyPendingUpdate({ appRoot, dataDir });
+  const r2 = applyPendingUpdate({ appRoot, dataDir, currentVersion:'0.8.5', policy:trust });
   assert.equal(r2.applied, false);
   assert.equal(r2.reason, 'UPDATE_HASH');
   assert.equal(fs.readFileSync(path.join(appRoot, 'src/server.mjs'), 'utf8'), 'NEW SERVER');

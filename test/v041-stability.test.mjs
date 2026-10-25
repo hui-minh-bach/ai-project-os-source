@@ -8,7 +8,7 @@ import { unlockVault, saveConnection, lockVault, listConnections } from '../src/
 import { ask } from '../src/lib/providers.mjs';
 import { createProject, founderChat, runCouncil, confirmCouncilSpecification, analyzeStack, buildPlan, runReadyBatch, getProject } from '../src/lib/projects.mjs';
 import { recordModels } from '../src/lib/model-bindings.mjs';
-import { memberResponse, chairResponse, prepareCouncilHandoff, prepareTaskPlan } from './helpers/council-fixtures.mjs';
+import { memberResponse, chairResponse, prepareCouncilHandoff, prepareApprovedArchitecture, prepareTaskPlan } from './helpers/council-fixtures.mjs';
 import { workspaceDir } from '../src/lib/workspace.mjs';
 import { connectCli } from '../src/lib/cli-connections.mjs';
 import { listSupabaseProjects, attachSupabaseProject } from '../src/lib/supabase.mjs';
@@ -37,7 +37,7 @@ async function mockServer(){
     else if(system.includes('COUNCIL_CHAIR_V1')) text=JSON.stringify(chairResponse());
     else if(all.includes('solution architect')) text=JSON.stringify({needsDatabase:false,needsAuth:false,needsStorage:false,needsPayments:false,needsDomain:false,needsBackend:false,recommended:{source:'github',deploy:'vercel',database:'none'},reasons:['static'],setupOrder:['github','vercel']});
     else if(all.includes('AI Project Manager')) text=JSON.stringify({tasks:[{title:'Feature A',role:'frontend',description:'Create feature-a.txt',dependsOn:[],doneWhen:'exists'},{title:'Feature B',role:'backend',description:'Create feature-b.txt',dependsOn:[],doneWhen:'exists'}]});
-    else if(all.includes('senior reviewer độc lập')) text=all.includes('REJECT_SPEC')?JSON.stringify({approved:false,summary:'needs human review',risks:['intentional'],fixes:[]}):JSON.stringify({approved:true,summary:'approved',risks:[],fixes:[]});
+    else if(all.includes('senior reviewer độc lập')) text=all.replaceAll('\\_','_').includes('REJECT_SPEC')?JSON.stringify({approved:false,summary:'needs human review',risks:['intentional'],fixes:[]}):JSON.stringify({approved:true,summary:'approved',risks:[],fixes:[]});
     else if(all.includes('coding worker')){
       const isA=all.includes('Feature A'),isB=all.includes('Feature B'),reject=all.includes('Reject Task');
       if(all.includes('Tool result:')) text='```json\n{\n  "tool": "done",\n  "summary": "completed"\n}\n```';
@@ -70,7 +70,7 @@ test('mock OpenAI + Gemini + Claude complete council and two parallel tasks stab
     assert.equal(await ask(an.id,{system:'plain',prompt:'plain'}),'OK');
     const p=createProject({name:'Parallel Mock',idea:'Build static demo'});
     for(const c of [oa,ge,an])recordModels(c,[c.model]);
-    await founderChat(p.id,oa.id,'go');prepareCouncilHandoff(p.id);const council=await runCouncil(p.id,[oa.id,ge.id,an.id],oa.id);confirmCouncilSpecification(p.id,council.specification.id);await analyzeStack(p.id,ge.id);await buildPlan(p.id,an.id);
+    await founderChat(p.id,oa.id,'go');prepareCouncilHandoff(p.id);const council=await runCouncil(p.id,[oa.id,ge.id,an.id],oa.id);confirmCouncilSpecification(p.id,council.specification.id);prepareApprovedArchitecture(p.id);await analyzeStack(p.id,ge.id);await buildPlan(p.id,an.id);
     const batch=await runReadyBatch(p.id,{workerId:oa.id,reviewerId:an.id,engineId:'native',limit:2});
     assert.equal(batch.ok,true);assert.deepEqual(batch.runs.map(x=>x.status),['done','done']);
     const done=getProject(p.id);assert.deepEqual(done.tasks.map(x=>x.status),['done','done']);

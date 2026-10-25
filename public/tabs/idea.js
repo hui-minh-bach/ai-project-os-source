@@ -23,8 +23,8 @@ function ideaIcon(name){return `<svg viewBox="0 0 24 24" aria-hidden="true">${id
 $$('#page-idea [data-idea-icon]').forEach(e=>e.innerHTML=ideaIcon(e.dataset.ideaIcon));
 const ideaFeatures=[['auth','Auth (Đăng nhập)'],['database','Database'],['payments','Payments (Thanh toán)'],['dashboard','Dashboard'],['mobile','Mobile-friendly'],['storage','Storage'],['domain','Domain'],['backend','Backend']];
 const ideaStackCards=[['needsGithub','github','GitHub','Lưu trữ mã nguồn'],['needsVercel','vercel','Vercel','Triển khai & hosting'],['needsDatabase','database','Database','Lưu trữ dữ liệu'],['needsAuth','auth','Auth','Xác thực người dùng'],['needsStorage','storage','Storage','Lưu trữ file (ảnh, tài liệu)'],['needsDomain','domain','Domain','Tên miền riêng']];
-let ideaDraft=false,ideaDirty=false,ideaBusy=false,ideaActiveProject=null,ideaShowMore=false,ideaSelectedFeatures=new Set(),ideaRole=null,ideaRoleRequest=0;
-function ideaFields(){return {name:$('#projectName').value.trim(),productType:$('#ideaProductType').value,audience:$('#ideaAudience').value.trim(),goals:$('#ideaGoals').value.trim(),mainFeatures:[...ideaSelectedFeatures]};}
+let ideaTargetDirty=false,ideaDraft=false,ideaDirty=false,ideaBusy=false,ideaActiveProject=null,ideaShowMore=false,ideaSelectedFeatures=new Set(),ideaRole=null,ideaRoleRequest=0;
+function ideaFields(){return {name:$('#projectName').value.trim(),productType:$('#ideaProductType').value,deploymentTarget:$('#ideaDeploymentTarget').value,audience:$('#ideaAudience').value.trim(),goals:$('#ideaGoals').value.trim(),mainFeatures:[...ideaSelectedFeatures]};}
 function ideaError(message=''){$('#ideaError').hidden=!message;$('#ideaError').textContent=message;}
 function ideaMarkDirty(){ideaDirty=true;$('#ideaSaveStatus').textContent='Có thay đổi chưa lưu';ideaRenderStack(null);ideaRenderBrief(null);}
 function ideaRenderFeatures(){
@@ -52,7 +52,7 @@ function ideaRenderRole(){
  $('#ideaSendCouncil').disabled=ideaBusy;const _aj=$('#ideaAcceptJob');if(_aj)_aj.disabled=ideaBusy;
  $('#ideaClearChat').disabled=ideaBusy||ideaDraft||!state.project?.messages?.length;
  $('#ideaNewProject').disabled=ideaBusy;$('#ideaAttach').disabled=ideaBusy;$('#chatInput').disabled=ideaBusy;
- for(const id of ['projectName','ideaProductType','ideaAudience','ideaGoals'])$('#'+id).disabled=ideaBusy;
+ for(const id of ['projectName','ideaProductType','ideaDeploymentTarget','ideaAudience','ideaGoals'])$('#'+id).disabled=ideaBusy;
  $$('#ideaFeatureChoices button').forEach(b=>b.disabled=ideaBusy);
  $('#createProject').disabled=ideaBusy;
 }
@@ -62,20 +62,22 @@ async function ideaLoadRole(){
 }
 function renderIdeaProject(){
  const actual=state.project;const changed=actual?.id!==ideaActiveProject;
- if(changed){ideaDraft=false;ideaDirty=false;ideaActiveProject=actual?.id||null;$('#chatInput').value='';ideaError();}
+ if(changed){ideaDraft=false;ideaDirty=false;ideaTargetDirty=false;ideaActiveProject=actual?.id||null;$('#chatInput').value='';ideaError();}
  const p=ideaDraft?null:actual;
- if(!ideaDirty){$('#projectName').value=p?.name||'';$('#ideaProductType').value=p?.productType||'';$('#ideaAudience').value=p?.audience||'';$('#ideaGoals').value=p?.goals||'';ideaSelectedFeatures=new Set(p?.mainFeatures||[]);$('#ideaSaveStatus').textContent=p?'Đã lưu trên máy':'Chưa có dự án';ideaRenderFeatures();}
+ if(!ideaDirty){$('#projectName').value=p?.name||'';$('#ideaProductType').value=p?.productType||'';$('#ideaDeploymentTarget').value=p?.deploymentTarget||'not-specified';$('#ideaAudience').value=p?.audience||'';$('#ideaGoals').value=p?.goals||'';ideaSelectedFeatures=new Set(p?.mainFeatures||[]);$('#ideaSaveStatus').textContent=p?'Đã lưu trên máy':'Chưa có dự án';ideaRenderFeatures();}
+ if(!ideaTargetDirty)$('#ideaDeploymentTarget').value=p?.deploymentTarget||'not-specified';
  ideaRenderChat(p);ideaRenderStack(p?.stack);ideaRenderBrief(p?.analyzedBrief);ideaLoadRole();renderStack(p?.stack);
 }
 async function ideaSave(){
  if(!['name','productType','audience','goals'].every(k=>ideaFields()[k]))throw new Error('Hãy điền đầy đủ thông tin bắt buộc.');
  const fields=ideaFields();const p=await api(ideaDraft||!state.project?'/api/projects':`/api/projects/${encodeURIComponent(state.project.id)}/brief`,{method:'POST',body:JSON.stringify(fields)});
- ideaDirty=false;ideaDraft=false;state.project=p;await loadProjects();return state.project;
+ ideaDirty=false;ideaTargetDirty=false;ideaDraft=false;state.project=p;await loadProjects();return state.project;
 }
 async function ideaAction(run){if(ideaBusy)return;ideaBusy=true;ideaError();ideaRenderRole();try{await run();}catch(e){ideaError(e.message);toast(e.message);}finally{ideaBusy=false;ideaRenderRole();}}
 $('#ideaBriefForm').onsubmit=e=>{e.preventDefault();ideaAction(async()=>{await ideaSave();toast('Đã lưu ý tưởng');});};
-for(const id of ['projectName','ideaProductType','ideaAudience','ideaGoals'])$('#'+id).addEventListener('input',ideaMarkDirty);
-$('#ideaNewProject').onclick=()=>{ideaDraft=true;ideaDirty=true;ideaRole=null;for(const id of ['projectName','ideaProductType','ideaAudience','ideaGoals'])$('#'+id).value='';ideaSelectedFeatures.clear();ideaRenderFeatures();ideaRenderChat(null);ideaRenderStack(null);ideaRenderBrief(null);$('#chatInput').value='';$('#ideaSaveStatus').textContent='Dự án mới · chưa lưu';ideaError();ideaRenderRole();$('#projectName').focus();};
+for(const id of ['projectName','ideaProductType','ideaDeploymentTarget','ideaAudience','ideaGoals'])$('#'+id).addEventListener('input',ideaMarkDirty);
+$('#ideaDeploymentTarget').addEventListener('input',()=>{ideaTargetDirty=true;});
+$('#ideaNewProject').onclick=()=>{ideaTargetDirty=true;ideaDraft=true;ideaDirty=true;ideaRole=null;for(const id of ['projectName','ideaProductType','ideaAudience','ideaGoals'])$('#'+id).value='';$('#ideaDeploymentTarget').value='not-specified';ideaSelectedFeatures.clear();ideaRenderFeatures();ideaRenderChat(null);ideaRenderStack(null);ideaRenderBrief(null);$('#chatInput').value='';$('#ideaSaveStatus').textContent='Dự án mới · chưa lưu';ideaError();ideaRenderRole();$('#projectName').focus();};
 $('#sendChat').onclick=()=>ideaAction(async()=>{
  const message=$('#chatInput').value.trim();if(!message)throw new Error('Hãy nhập tin nhắn.');const p=await ideaEnsureProject();
  try{await api(`/api/projects/${encodeURIComponent(p.id)}/chat`,{method:'POST',body:JSON.stringify({message})});$('#chatInput').value='';}
@@ -85,6 +87,7 @@ $('#chatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){
 $('#ideaClearChat').onclick=()=>{if(ideaBusy)return;modal('<h2>Xóa cuộc trò chuyện?</h2><p>Hội thoại Founder và bản phân tích của dự án sẽ được xóa. Thông tin ý tưởng vẫn được giữ lại.</p><div class="inline"><button class="ghost" id="ideaCancelClear">Giữ hội thoại</button><button class="primary" id="ideaConfirmClear">Xóa hội thoại</button></div>');$('#ideaCancelClear').onclick=()=>$('#modal').classList.add('hidden');$('#ideaConfirmClear').onclick=()=>{$('#modal').classList.add('hidden');ideaAction(async()=>{if(!state.project||ideaDraft)return;await api(`/api/projects/${encodeURIComponent(state.project.id)}/chat/clear`,{method:'POST',body:'{}'});await chooseProject(state.project.id);toast('Đã xóa hội thoại Founder');});};};
 $('#ideaAnalyze').onclick=()=>ideaAction(async()=>{const p=await ideaEnsureProject();await api(`/api/projects/${encodeURIComponent(p.id)}/analyze-idea`,{method:'POST',body:'{}'});await chooseProject(p.id);toast('Đã phân tích ý tưởng và tạo project brief');});
 $('#ideaSendCouncil').onclick=()=>ideaAction(async()=>{const p=await ideaSave();await api(`/api/projects/${encodeURIComponent(p.id)}/send-council`,{method:'POST',body:'{}'});await chooseProject(p.id);page('council');toast('Đã gửi project brief sang AI Council');});
+$('#ideaOpenPrd').onclick=()=>{page('council');$('#projectPrdPanel')?.scrollIntoView({behavior:'smooth',block:'start'});};
 $('#ideaAttach').onclick=()=>$('#ideaAttachment').click();
 $('#ideaAttachment').onchange=async()=>{const file=$('#ideaAttachment').files[0];if(!file)return;try{if(file.size>65536)throw new Error('Tài liệu phải nhỏ hơn 64 KB.');const content=await file.text();if(content.includes('\u0000'))throw new Error('Chỉ hỗ trợ tài liệu văn bản.');const value=[$('#chatInput').value,`Tài liệu: ${file.name}\n${content}`].filter(Boolean).join('\n\n');if(value.length>16000)throw new Error('Tin nhắn kèm tài liệu vượt 16.000 ký tự.');$('#chatInput').value=value;ideaError();$('#chatInput').focus();}catch(e){ideaError(e.message);}finally{$('#ideaAttachment').value='';}};
 document.addEventListener('connections-change',()=>{if(!ideaDraft)ideaLoadRole();});
@@ -144,7 +147,7 @@ document.addEventListener('page-change',e=>{
 async function ideaEnsureProject(){
  const f=ideaFields();
  if(['name','productType','audience','goals'].every(k=>f[k]))return ideaSave();
- const payload={name:f.name||'Dự án mới',productType:f.productType||'',audience:f.audience||'',goals:f.goals||'',mainFeatures:f.mainFeatures};
+ const payload={name:f.name||'Dự án mới',productType:f.productType||'',deploymentTarget:f.deploymentTarget||'not-specified',audience:f.audience||'',goals:f.goals||'',mainFeatures:f.mainFeatures};
  const p=ideaDraft||!state.project?await api('/api/projects',{method:'POST',body:JSON.stringify(payload)}):await api(`/api/projects/${encodeURIComponent(state.project.id)}/brief`,{method:'POST',body:JSON.stringify(payload)});
- ideaDirty=false;ideaDraft=false;state.project=p;await loadProjects();return p;
+ ideaDirty=false;ideaTargetDirty=false;ideaDraft=false;state.project=p;await loadProjects();return p;
 }

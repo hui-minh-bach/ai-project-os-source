@@ -1,0 +1,14 @@
+{
+  "browser": "Google Chrome headless / CDP",
+  "fixture": "Local synthetic AI, no live credentials or user data",
+  "checks": [
+    "Project Map: create v0.1.0 and assign two existing tasks as feature/fix; zero verified completion",
+    "Partial Release Notes: verified feature included, unfinished fix excluded from completed items",
+    "Actual Native Workers and npm tests: Build Complete and Tested true, handover/deployed remain false without PO acceptance",
+    "PO acceptance of existing task criteria and explicit handover freeze immutable release evidence; no automatic Deployed",
+    "Deployed set only by explicit simulated PO attestation, with target, evidence and pinned handover commit; versioned notes retain prior revision",
+    "Release panel verified in dark/light themes and 390px mobile viewport",
+    "v1.0.0 planning retains v0.1.0 deployed snapshot, task associations and both historical notes"
+  ],
+  "status": "PASS"
+}
