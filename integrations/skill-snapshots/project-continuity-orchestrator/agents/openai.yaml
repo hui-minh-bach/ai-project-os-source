@@ -1,0 +1,15 @@
+interface:
+  display_name: Project Continuity Orchestrator
+  short_description: Finish authorized work with checkpoints and real-output verification.
+  default_prompt: Continue the authorized project through actual outputs, verification,
+    and complete source handoff. Read the checkpoint first and do not ask again about
+    already-approved steps.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

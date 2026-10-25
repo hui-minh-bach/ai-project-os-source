@@ -1,0 +1,4 @@
+interface:
+  display_name: "Resolve Recipients"
+  short_description: "Find the right people before acting"
+  default_prompt: "Use $resolve-recipients to identify and verify the correct people before sending or scheduling."
