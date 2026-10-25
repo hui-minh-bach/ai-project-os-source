@@ -1,0 +1,21 @@
+{
+  "reviewer": "same assistant, not independent reviewer",
+  "scope": "sampled offline VTK views from current source with six synthetic accounts",
+  "views": [
+    "hero.png",
+    "robot-close.png",
+    "video-contact-sheet.jpg"
+  ],
+  "observations": [
+    "Approved R2 room geometry and desk placement remain intact.",
+    "Six account avatars and names are visible in hero view.",
+    "Labels remain anchored after focus/hero camera round trip in regenerated export.",
+    "Completion fixture exits its chair and walks while other account robots retain their own poses."
+  ],
+  "notEstablished": [
+    "Windows WebGL appearance or FPS",
+    "Live execution against user provider credentials",
+    "Rigid-body physics or exhaustive collision coverage",
+    "Unlimited visible avatars in finite room space"
+  ]
+}

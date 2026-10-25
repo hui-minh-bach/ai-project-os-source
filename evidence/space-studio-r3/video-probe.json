@@ -1,0 +1,12 @@
+{
+  "scope": "193 frames of offline source animation, synthetic fixture accounts, not a Windows recording",
+  "decode": "pass",
+  "stream": {
+    "codec_name": "h264",
+    "width": 960,
+    "height": 600,
+    "r_frame_rate": "12/1",
+    "duration": "16.083333",
+    "nb_read_frames": "193"
+  }
+}

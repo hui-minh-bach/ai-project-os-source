@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: R7 category CRUD persists and duplicate names rejected
+ok 1 - R7 category CRUD persists and duplicate names rejected
+  ---
+  duration_ms: 10.192656
+  type: 'test'
+  ...
+# Subtest: R7 scan requires chosen category; filters stale, future and undated feed items
+ok 2 - R7 scan requires chosen category; filters stale, future and undated feed items
+  ---
+  duration_ms: 8.651819
+  type: 'test'
+  ...
+# Subtest: R7 only selected category sources are fetched, source errors remain visible
+ok 3 - R7 only selected category sources are fetched, source errors remain visible
+  ---
+  duration_ms: 3.853775
+  type: 'test'
+  ...
+# Subtest: R7 same article can be indexed in two categories without duplicate production cards
+ok 4 - R7 same article can be indexed in two categories without duplicate production cards
+  ---
+  duration_ms: 3.151098
+  type: 'test'
+  ...
+# Subtest: R7 failed sources are not reported as successful empty scans
+ok 5 - R7 failed sources are not reported as successful empty scans
+  ---
+  duration_ms: 2.191636
+  type: 'test'
+  ...
+# Subtest: R7 topic AI only emits a validated search query, not invented news
+ok 6 - R7 topic AI only emits a validated search query, not invented news
+  ---
+  duration_ms: 0.663217
+  type: 'test'
+  ...
+# Subtest: R7 private, metadata and credential URLs blocked before feed fetch
+ok 7 - R7 private, metadata and credential URLs blocked before feed fetch
+  ---
+  duration_ms: 0.483958
+  type: 'test'
+  ...
+# Subtest: R7 changing a managed topic or age updates query without duplicate subscriptions
+ok 8 - R7 changing a managed topic or age updates query without duplicate subscriptions
+  ---
+  duration_ms: 3.934937
+  type: 'test'
+  ...
+# Subtest: R7 disabling all sources is respected, not silently replaced by a new source
+ok 9 - R7 disabling all sources is respected, not silently replaced by a new source
+  ---
+  duration_ms: 2.035921
+  type: 'test'
+  ...
+# Subtest: R7 stored cards paginate beyond 100 with exact totals and no silent loss
+ok 10 - R7 stored cards paginate beyond 100 with exact totals and no silent loss
+  ---
+  duration_ms: 0.804549
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 164.067392

@@ -1,0 +1,71 @@
+{
+  "result": "pass",
+  "checks": [
+    {
+      "name": "Actual app module hides legacy only after mounting ready",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Roster text is safe and feed is read-only GET",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Roster selects matching account in scene",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Repeated navigation does not duplicate mount",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Vault lock clears avatars and visible names",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Refresh restores updated real roster without adding renderer",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Server error freezes visual truth and explicitly marks unknown",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Back toggle disposes and retains approved old room",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Closed scene has no continuing poll",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Leaving Idea tab disposes scene and cancels feed",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Late model load cannot reopen departed tab",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    },
+    {
+      "name": "Renderer failure keeps legacy usable and toggle retryable",
+      "result": "pass",
+      "scope": "DOM/controller/fetch fixture; renderer mocked"
+    }
+  ],
+  "count": 12,
+  "browser": "144.0.7559.96",
+  "graphicsRendered": false,
+  "externalCalls": 0,
+  "scope": "Real integration/controller/feed modules; fetch and renderer mocked for lifecycle isolation",
+  "pageErrors": []
+}

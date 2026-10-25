@@ -1,0 +1,5 @@
+{
+  "scenarios": 7,
+  "pass": 7,
+  "scope": "checkpoint initialization, reset refusal, evidence requirements, path guard, hash integrity; not a scheduler or background worker"
+}

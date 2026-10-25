@@ -1,0 +1,757 @@
+{
+  "scope": "R7 shipped frontend + real local HTTP, Git, tests and FFmpeg.\nSynthetic AI/cloud fixtures only. No paid calls, no external publication.\nBrowser loads actual app HTML/CSS/classic JS in memory with authenticated HTTP\nbridge; 3D ES modules are not loaded. This is Linux Chromium, not Windows QA.",
+  "radarScanRequests": [
+    {
+      "fieldId": "custom-jewellery-browser-category-5afe4fcc",
+      "maxAgeHours": 24
+    }
+  ],
+  "checks": [
+    {
+      "name": "local_media_preflight",
+      "status": "pass",
+      "detail": "FFmpeg and FFprobe detected by actual integration host; no assumed installed speech model."
+    },
+    {
+      "name": "custom_category_api",
+      "status": "pass",
+      "detail": "AI fixture generated only keywords; real custom-category persistence and reload succeeded."
+    },
+    {
+      "name": "article_real_output",
+      "status": "pass",
+      "detail": "Worker text and separate Reviewer stored a real article and downloadable Markdown in the same project. No social publication."
+    },
+    {
+      "name": "missing_voice_before_run",
+      "status": "pass",
+      "detail": "No empty orchestrator run created when narrated output lacks installed voice; user must choose a valid voice or captions explicitly."
+    },
+    {
+      "name": "caption_video_ui",
+      "status": "pass",
+      "detail": "Explicit empty-by-default voice choice -> caption option + consent -> actual FFmpeg MP4/SRT from app, product pane, ranged download/seek contract; no fake narration."
+    },
+    {
+      "name": "receive_not_publish",
+      "status": "pass",
+      "detail": "Receive product closes the same local run and does not create public posts or new runs."
+    },
+    {
+      "name": "website_source_reception",
+      "status": "pass",
+      "detail": "Prepare -> approve spec + explicit Host -> AI writes files, independent review, actual npm test and Git merge -> real ZIP. Shipped counter button executes in browser."
+    },
+    {
+      "name": "prepare_never_executes_approved_code",
+      "status": "pass",
+      "detail": "Analysis on an already approved project only asks for explicit execution confirmation; no task rerun or Host command."
+    },
+    {
+      "name": "discussion_preserves_scope",
+      "status": "pass",
+      "detail": "A new manager conversation after approval did not invalidate the approved specification or task results."
+    },
+    {
+      "name": "continuity_skill_hub",
+      "status": "pass",
+      "detail": "The existing continuity skill remains visible in the real Skill Hub."
+    },
+    {
+      "name": "radar_custom_ui_and_scoped_scan",
+      "status": "pass",
+      "detail": "Add category -> explicit AI keyword suggestion -> save -> select 24 hours -> scan sends exact category/range. Disabled sources remain disabled; edit persists. This tests controls, not live news-provider coverage."
+    },
+    {
+      "name": "nine_tabs_five_themes_two_viewports",
+      "status": "pass",
+      "detail": "90 route/theme/view combinations opened with the shipped frontend. Navigation smoke, not full functional/GPU/Windows acceptance for every tab."
+    },
+    {
+      "name": "vault_lock",
+      "status": "pass",
+      "detail": "Private products and receipt endpoints locked and product links cleared; no tokens included in screenshots."
+    }
+  ],
+  "pageErrors": [],
+  "externalWrites": "none; isolated fixtures",
+  "capabilities": {
+    "videoReady": true,
+    "voices": [
+      {
+        "id": "local",
+        "label": "Piper local",
+        "ready": false,
+        "paid": false
+      },
+      {
+        "id": "windows",
+        "label": "Windows - giọng Việt đã cài",
+        "ready": false,
+        "paid": false
+      },
+      {
+        "id": "kokoro",
+        "label": "Kokoro local",
+        "ready": false,
+        "paid": false
+      },
+      {
+        "id": "heygen",
+        "label": "HeyGen API (tính phí theo tài khoản)",
+        "ready": false,
+        "paid": true
+      },
+      {
+        "id": "fpt",
+        "label": "FPT API (tính phí theo tài khoản)",
+        "ready": false,
+        "paid": true
+      }
+    ],
+    "captionOnly": {
+      "ready": true,
+      "narration": false
+    },
+    "defaultVoice": null,
+    "checks": {
+      "core": "active",
+      "ffmpeg": true,
+      "ffprobe": true
+    },
+    "message": "Có thể dựng video. Chọn giọng đọc hoặc chủ động chọn video chữ không lời đọc."
+  },
+  "uiMatrix": [
+    {
+      "tab": "map",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "ocean",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "emerald",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "aurora",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "arctic",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "amber",
+      "width": 1440,
+      "height": 1000,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "ocean",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "emerald",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "aurora",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "arctic",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "map",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "connections",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "idea",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "studio",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "radar",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "skills",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "engines",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "publish",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    },
+    {
+      "tab": "guide",
+      "theme": "amber",
+      "width": 1024,
+      "height": 800,
+      "routeVisible": true
+    }
+  ],
+  "status": "pass"
+}

@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "version": "0.9.65",
+  "revision": "recovery-r8.0",
+  "at": "2026-10-23T10:32:17.761185+00:00",
+  "baseline": {
+    "file": "AI_Project_OS_v0.9.64_WORKFLOW_R7_FULL_SOURCE.zip",
+    "sha256": "b651413c193e47e7333744f70d330c595c256e449645e308a0c9d6b64fa098e5",
+    "freshTestCounts": {
+      "tests": 674,
+      "pass": 673,
+      "fail": 0,
+      "skipped": 1
+    }
+  },
+  "full_regression": {
+    "tests": 701,
+    "pass": 700,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1
+  },
+  "syntax": {
+    "checked": 184,
+    "failed": 0,
+    "scope": "syntax only; not execution or visual acceptance"
+  },
+  "browser": {
+    "checks": 9,
+    "pageErrors": 0,
+    "status": "pass",
+    "scope": "R8 isolated UI+HTTP audit. Real application HTTP, Git, FFmpeg and audio output.\nSynthetic AI/cloud contracts. Vietnamese audio comes from system eSpeak through\nan explicitly labelled Piper-compatible TEST adapter, NOT a neural Piper model.\nBrowser runs shipped HTML/JS in memory because local navigation can be blocked by\nplatform policy. Production CSP is applied after loading scripts; inline-handler\nblocking and delegated clicks are exercised, not network script delivery/WebGL.",
+    "report": "evidence/recovery-r8/browser/report.json"
+  },
+  "video": {
+    "duration": "11.648005",
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "aac",
+        "width": null,
+        "height": null
+      }
+    ],
+    "voice": "eSpeak diagnostic, not neural Piper"
+  },
+  "protected_assets": {
+    "count": 81,
+    "changed": 0
+  },
+  "code_files_frozen": 357,
+  "implemented": [
+    "CSP-safe idea source buttons (existing text-file/GitHub intake)",
+    "persistent ordered multi-AI role pools and distinct Worker/Reviewer routing",
+    "task rotation with actual two-worker file/test/Git fixture execution",
+    "real uploaded or explicitly chosen AI illustrations; no unrelated fallback",
+    "selected narration provider, preview, optional consented per-user local voice setup",
+    "speech-preserving image transitions",
+    "project-scoped media selection; cost consent reset across project selection",
+    "assignment/progress in Reception and artifact-only products"
+  ],
+  "not_tested": [
+    "Windows 10/11 runtime/installer/GPU",
+    "public download and real Windows Piper ONNX narration",
+    "real AI/image/paid voice accounts, quotas and failover",
+    "actual GitHub account import",
+    "real Vercel/Supabase/cloud billing and cross-user RLS",
+    "full commercial A-Z product scope/signing/pilot"
+  ],
+  "commercialReady": false,
+  "installed_engine_trust": "Exact archived HTTPS release; model SHA pinned; engine signature/checksum not independently verified",
+  "asset_packaging": "No Piper binary, ONNX model, font files, user uploads, test runtime, credentials or .data included; historical application launcher unchanged",
+  "notes": [
+    "Cloud/AI responses were isolated fixtures; actual app HTTP, files, child tests, FFmpeg, WAV/MP4 codecs, range responses and Git executed.",
+    "Diagnostic audio is Vietnamese eSpeak via an explicitly labelled temporary Piper-compatible TEST adapter; not neural-Piper quality evidence.",
+    "No unauthorised external infrastructure or paid API action occurred.",
+    "One optional media quick-edit integration remains skipped in the inherited suite.",
+    "Changed legacy fixture assertions are described in docs/ACCEPTANCE_RECOVERY_R8.md."
+  ]
+}

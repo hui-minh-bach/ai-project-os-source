@@ -1,0 +1,21 @@
+{
+  "revision": "space-studio-r2.1",
+  "geometryOnly": true,
+  "webglRendered": false,
+  "sourceHashes": {
+    "public/space-studio/app-integration.mjs": "7b33b0b78df2bff23d7383b853a51ed8745bec5a25198e0b71b07dd2a2f1909b",
+    "public/space-studio/controller.mjs": "743eb375e139104e38cdf9b90f26c8a3e46b49c6c67484a50d048667e0af973b",
+    "public/space-studio/design.mjs": "3264cf3e84c447cac5d22fa7a18ac7e71bf02482d42ce4f5f0150335416841ba",
+    "public/space-studio/motion.mjs": "55555dfbd20ceb387d60e1e7a989b1b52a3d459a09fe01883ac2d1c6740aa5ea",
+    "public/space-studio/scene.mjs": "8973a82588a0bcb4f956459e1a4417e2d3b058304308c7742609b0819a726537",
+    "public/space-studio/viewer.mjs": "35b417c56eec5979b21bcadf02592bc5aff4da10f68784d56ccea8fdd1c5d4d7"
+  },
+  "meshNodes": 412,
+  "geometries": 347,
+  "materials": 39,
+  "videoFPS": 24,
+  "videoDuration": 36,
+  "poseChecks": 601,
+  "browserErrors": [],
+  "elapsedSeconds": 67.98
+}

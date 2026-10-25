@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "goal": "R7: close the known R5 workflow gaps on R6 while preserving approved room and safe one-button delivery",
+  "created_at": "2026-10-23T07:49:26.607835+00:00",
+  "stages": {
+    "specify": {
+      "status": "done",
+      "note": "Frozen R6 baseline, approved art preserved, known workflow gaps scoped",
+      "evidence": [
+        {
+          "path": ".project-state/contract-r7.md",
+          "sha256": "69a2a277877bbe9ed0f71d5a1a581b291306bcefed2f23385f9f7e14d0b5584e",
+          "bytes": 2009
+        },
+        {
+          "path": "docs/PLAN_WORKFLOW_R7.md",
+          "sha256": "c19050f096bc2afc058f03dcce5525b156c8fd140529cfde45507e86bec2710c",
+          "bytes": 2147
+        }
+      ],
+      "at": "2026-10-23T08:39:08.920121+00:00"
+    },
+    "build": {
+      "status": "done",
+      "note": "Implemented source changes; real model/controller data retained",
+      "evidence": [
+        {
+          "path": "src/lib/work-center-backend.mjs",
+          "sha256": "7e4f211efea3c73024f03c7bd8df642feb54bc71206fe7c8b21436b1ddd75185",
+          "bytes": 4299
+        },
+        {
+          "path": "src/lib/radar-service.mjs",
+          "sha256": "f4dae7d4cfcefb08425a2f626ab6ab46d848af3bbe466ddae5d48b1ee56b1cd5",
+          "bytes": 5043
+        },
+        {
+          "path": "public/space-studio/live-motion.mjs",
+          "sha256": "dd36a975cbc3f8e3a4b1709c1c082ccfb0b0dcd0c41270576d35e9cd01427ba8",
+          "bytes": 11903
+        }
+      ],
+      "at": "2026-10-23T08:39:09.677402+00:00"
+    },
+    "demonstrate": {
+      "status": "done",
+      "note": "Real local browser/file/video/Git checks using isolated AI/cloud; no generated concept substituted",
+      "evidence": [
+        {
+          "path": "evidence/reception-r7/browser/report.json",
+          "sha256": "322cc6d0e747f927083a113e35ed7f688dc062a1571deaec825e33183e4de450",
+          "bytes": 16217
+        },
+        {
+          "path": "evidence/reception-r7/browser/caption-video.mp4",
+          "sha256": "8ed56855d0ebb24cff618e06e49c67009828c1f5b61780a6e3d6b313b2307ba4",
+          "bytes": 111971
+        },
+        {
+          "path": "evidence/reception-r7/cloud-browser/report.json",
+          "sha256": "76229d03308ff0f809c86c3f3ecfc0a32f2b4791913a009f28dc9de07f249672",
+          "bytes": 13748
+        }
+      ],
+      "at": "2026-10-23T08:39:10.483787+00:00"
+    },
+    "integrate": {
+      "status": "done",
+      "note": "Local source integration complete with fresh regression; Windows/live account/commercial gates remain open",
+      "evidence": [
+        {
+          "path": "evidence/reception-r7/verification.json",
+          "sha256": "459464e8765a081f6ec5d42c42477b8b4e6cd6d9733e8b0f150cc0a3fb993960",
+          "bytes": 3359
+        },
+        {
+          "path": "evidence/reception-r7/regression.log",
+          "sha256": "514cc3f9768c03d962d9b08cca214079697f2053e22faa6f24789b89827fa86b",
+          "bytes": 148867
+        },
+        {
+          "path": "evidence/reception-r7/protected-assets.json",
+          "sha256": "08568c4667cefd12dc6136538b95b22376e8e29a184b7f8ea79bc32a22552d4c",
+          "bytes": 18790
+        }
+      ],
+      "at": "2026-10-23T08:39:11.236678+00:00"
+    }
+  },
+  "next_action": "Package this verified source, then perform authorized Windows and real-provider acceptance. Do not claim commercial readiness or replay external effects automatically.",
+  "open": [
+    "Windows and live provider/cloud verification",
+    "Signed installer and pilot operation",
+    "Arbitrary products not declared supported"
+  ],
+  "history": [
+    {
+      "at": "2026-10-23T08:39:08.920143+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Frozen R6 baseline, approved art preserved, known workflow gaps scoped"
+    },
+    {
+      "at": "2026-10-23T08:39:09.677421+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Implemented source changes; real model/controller data retained"
+    },
+    {
+      "at": "2026-10-23T08:39:10.483806+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "Real local browser/file/video/Git checks using isolated AI/cloud; no generated concept substituted"
+    },
+    {
+      "at": "2026-10-23T08:39:11.236696+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Local source integration complete with fresh regression; Windows/live account/commercial gates remain open"
+    }
+  ],
+  "updated_at": "2026-10-23T08:39:11.236699+00:00"
+}

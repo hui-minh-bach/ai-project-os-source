@@ -1,0 +1,664 @@
+TAP version 13
+# Subtest: operator token lifecycle: hash-only storage, scoped verify, revoke
+ok 1 - operator token lifecycle: hash-only storage, scoped verify, revoke
+  ---
+  duration_ms: 32.772217
+  type: 'test'
+  ...
+# Subtest: meeting feed renders recorded run steps with honest labels
+ok 2 - meeting feed renders recorded run steps with honest labels
+  ---
+  duration_ms: 8.288459
+  type: 'test'
+  ...
+# Subtest: R7 local receipt gate is not presented as social publication
+ok 3 - R7 local receipt gate is not presented as social publication
+  ---
+  duration_ms: 0.280494
+  type: 'test'
+  ...
+# Subtest: orchestrator: large external artifacts (filePath, no inline bytes) are materialized and published
+ok 4 - orchestrator: large external artifacts (filePath, no inline bytes) are materialized and published
+  ---
+  duration_ms: 8.569944
+  type: 'test'
+  ...
+# Subtest: orchestrator: news run produces, waits at the gate, then publishes after approval
+ok 5 - orchestrator: news run produces, waits at the gate, then publishes after approval
+  ---
+  duration_ms: 4.00837
+  type: 'test'
+  ...
+# Subtest: orchestrator: busy guard, global stop and daily cap are enforced by code
+ok 6 - orchestrator: busy guard, global stop and daily cap are enforced by code
+  ---
+  duration_ms: 5.527148
+  type: 'test'
+  ...
+# Subtest: orchestrator: tick skips a pipeline that already has an active run
+ok 7 - orchestrator: tick skips a pipeline that already has an active run
+  ---
+  duration_ms: 3.184755
+  type: 'test'
+  ...
+# Subtest: orchestrator: a stale running run is recovered as interrupted on load
+ok 8 - orchestrator: a stale running run is recovered as interrupted on load
+  ---
+  duration_ms: 1.184927
+  type: 'test'
+  ...
+# Subtest: orchestrator: gateway mode fails the run honestly when no model is available
+ok 9 - orchestrator: gateway mode fails the run honestly when no model is available
+  ---
+  duration_ms: 1.277713
+  type: 'test'
+  ...
+# Subtest: orchestrator: tick scans and starts a news run from the oldest unused card
+ok 10 - orchestrator: tick scans and starts a news run from the oldest unused card
+  ---
+  duration_ms: 3.107281
+  type: 'test'
+  ...
+# Subtest: orchestrator refuses to deliver a different task's larger MP4 from the same project
+ok 11 - orchestrator refuses to deliver a different task's larger MP4 from the same project
+  ---
+  duration_ms: 2.842831
+  type: 'test'
+  ...
+# Subtest: R8 official HTTPS download enforces the advertised model SHA and streaming size
+ok 12 - R8 official HTTPS download enforces the advertised model SHA and streaming size
+  ---
+  duration_ms: 19.671188
+  type: 'test'
+  ...
+# Subtest: R8 wrong model hash and oversized unknown-length streams leave no accepted file
+ok 13 - R8 wrong model hash and oversized unknown-length streams leave no accepted file
+  ---
+  duration_ms: 1.778552
+  type: 'test'
+  ...
+# Subtest: R8 voice downloader rejects redirects to private, unknown, credential or HTTP hosts
+ok 14 - R8 voice downloader rejects redirects to private, unknown, credential or HTTP hosts
+  ---
+  duration_ms: 1.692014
+  type: 'test'
+  ...
+# Subtest: R8 fixed trusted release redirect is accepted; status and size headers remain checked
+ok 15 - R8 fixed trusted release redirect is accepted; status and size headers remain checked
+  ---
+  duration_ms: 1.209453
+  type: 'test'
+  ...
+# Subtest: R8 validated Piper ZIP extracts ordinary components without execution
+ok 16 - R8 validated Piper ZIP extracts ordinary components without execution
+  ---
+  duration_ms: 2.106065
+  type: 'test'
+  ...
+# Subtest: R8 Piper extraction rejects traversal, case collisions, encryption, symlinks and CRC corruption
+ok 17 - R8 Piper extraction rejects traversal, case collisions, encryption, symlinks and CRC corruption
+  ---
+  duration_ms: 1.72282
+  type: 'test'
+  ...
+# Subtest: R8 manual local voice configuration needs consent and successful actual-call adapter
+ok 18 - R8 manual local voice configuration needs consent and successful actual-call adapter
+  ---
+  duration_ms: 1.712654
+  type: 'test'
+  ...
+# Subtest: R8 failed smoke synthesis never saves broken settings; non-Vietnamese model blocked
+ok 19 - R8 failed smoke synthesis never saves broken settings; non-Vietnamese model blocked
+  ---
+  duration_ms: 1.490958
+  type: 'test'
+  ...
+# Subtest: R8 install is opt-in, supported-platform gated and never implies engine signature verified
+ok 20 - R8 install is opt-in, supported-platform gated and never implies engine signature verified
+  ---
+  duration_ms: 3.70387
+  type: 'test'
+  ...
+# Subtest: R8 isolated installer contract downloads exactly pinned components then smoke-checks once
+ok 21 - R8 isolated installer contract downloads exactly pinned components then smoke-checks once
+  ---
+  duration_ms: 5.117714
+  type: 'test'
+  ...
+# Subtest: R8 offline voice environment excludes provider and launch credentials
+ok 22 - R8 offline voice environment excludes provider and launch credentials
+  ---
+  duration_ms: 0.639122
+  type: 'test'
+  ...
+# Subtest: successful replies from all AI adapters redact current, unrelated Vault credential and password before project persistence
+ok 23 - successful replies from all AI adapters redact current, unrelated Vault credential and password before project persistence
+  ---
+  duration_ms: 692.378193
+  type: 'test'
+  ...
+# Subtest: mixed raw quote-bearing and JSON-escaped credentials cannot hide later tokens from Founder reply, memory or disk
+ok 24 - mixed raw quote-bearing and JSON-escaped credentials cannot hide later tokens from Founder reply, memory or disk
+  ---
+  duration_ms: 297.656733
+  type: 'test'
+  ...
+# Subtest: quoted, backslash and Unicode-escaped credentials are redacted inside protocol JSON while review booleans and tool fields stay intact
+ok 25 - quoted, backslash and Unicode-escaped credentials are redacted inside protocol JSON while review booleans and tool fields stay intact
+  ---
+  duration_ms: 285.851645
+  type: 'test'
+  ...
+# Subtest: Vault lock during await cannot remove the captured response-redaction context
+ok 26 - Vault lock during await cannot remove the captured response-redaction context
+  ---
+  duration_ms: 289.384292
+  type: 'test'
+  ...
+# Subtest: provider failures arriving after Vault lock expose neither credential nor raw error cause/stack and retain HTTP status
+ok 27 - provider failures arriving after Vault lock expose neither credential nor raw error cause/stack and retain HTTP status
+  ---
+  duration_ms: 262.677567
+  type: 'test'
+  ...
+# Subtest: short legacy fixture credentials do not corrupt JSON paths or unrelated source words
+ok 28 - short legacy fixture credentials do not corrupt JSON paths or unrelated source words
+  ---
+  duration_ms: 268.010244
+  type: 'test'
+  ...
+# Subtest: every public classic script parses (no dead tab scripts)
+ok 29 - every public classic script parses (no dead tab scripts)
+  ---
+  duration_ms: 15.281387
+  type: 'test'
+  ...
+# Subtest: init.js bootstrap loaders are all defined by the tab scripts
+ok 30 - init.js bootstrap loaders are all defined by the tab scripts
+  ---
+  duration_ms: 4.492773
+  type: 'test'
+  ...
+# Subtest: publish connectors: full upload + stats round-trip against the mock platforms
+ok 31 - publish connectors: full upload + stats round-trip against the mock platforms
+  ---
+  duration_ms: 61.197445
+  type: 'test'
+  ...
+# Subtest: publish connectors: missing token blocks honestly
+ok 32 - publish connectors: missing token blocks honestly
+  ---
+  duration_ms: 0.844405
+  type: 'test'
+  ...
+# Subtest: publish connectors: tiktok unapproved app is limited to private on real host semantics
+ok 33 - publish connectors: tiktok unapproved app is limited to private on real host semantics
+  ---
+  duration_ms: 0.240575
+  type: 'test'
+  ...
+# Subtest: oauth helpers build real authorize urls and exchange codes via the token endpoint
+ok 34 - oauth helpers build real authorize urls and exchange codes via the token endpoint
+  ---
+  duration_ms: 7.593403
+  type: 'test'
+  ...
+# Subtest: publish tasks: youtube upload completes through the approval gate and records honestly
+ok 35 - publish tasks: youtube upload completes through the approval gate and records honestly
+  ---
+  duration_ms: 375.963208
+  type: 'test'
+  ...
+# Subtest: publish tasks: a platform without a linked account fails honestly after approval
+ok 36 - publish tasks: a platform without a linked account fails honestly after approval
+  ---
+  duration_ms: 186.361085
+  type: 'test'
+  ...
+# Subtest: procedural illustration v2 renders a 1280x720 PNG, deterministic per seed
+ok 37 - procedural illustration v2 renders a 1280x720 PNG, deterministic per seed
+  ---
+  duration_ms: 1771.134814
+  type: 'test'
+  ...
+# Subtest: AI illustration failure blocks instead of silently substituting procedural scenery
+ok 38 - AI illustration failure blocks instead of silently substituting procedural scenery
+  ---
+  duration_ms: 0.690308
+  type: 'test'
+  ...
+# Subtest: effects pads use full social canvases (1080x1920 / 1920x1080)
+ok 39 - effects pads use full social canvases (1080x1920 / 1920x1080)
+  ---
+  duration_ms: 1.001847
+  type: 'test'
+  ...
+# Subtest: output quality wiring: profiles, loudnorm and Ken Burns variants are in the render paths
+ok 40 - output quality wiring: profiles, loudnorm and Ken Burns variants are in the render paths
+  ---
+  duration_ms: 0.631922
+  type: 'test'
+  ...
+# Subtest: R7 category CRUD persists and duplicate names rejected
+ok 41 - R7 category CRUD persists and duplicate names rejected
+  ---
+  duration_ms: 9.195305
+  type: 'test'
+  ...
+# Subtest: R7 scan requires chosen category; filters stale, future and undated feed items
+ok 42 - R7 scan requires chosen category; filters stale, future and undated feed items
+  ---
+  duration_ms: 8.816717
+  type: 'test'
+  ...
+# Subtest: R7 only selected category sources are fetched, source errors remain visible
+ok 43 - R7 only selected category sources are fetched, source errors remain visible
+  ---
+  duration_ms: 2.748822
+  type: 'test'
+  ...
+# Subtest: R7 same article can be indexed in two categories without duplicate production cards
+ok 44 - R7 same article can be indexed in two categories without duplicate production cards
+  ---
+  duration_ms: 2.220103
+  type: 'test'
+  ...
+# Subtest: R7 failed sources are not reported as successful empty scans
+ok 45 - R7 failed sources are not reported as successful empty scans
+  ---
+  duration_ms: 2.137491
+  type: 'test'
+  ...
+# Subtest: R7 topic AI only emits a validated search query, not invented news
+ok 46 - R7 topic AI only emits a validated search query, not invented news
+  ---
+  duration_ms: 0.814912
+  type: 'test'
+  ...
+# Subtest: R7 private, metadata and credential URLs blocked before feed fetch
+ok 47 - R7 private, metadata and credential URLs blocked before feed fetch
+  ---
+  duration_ms: 0.75961
+  type: 'test'
+  ...
+# Subtest: R7 changing a managed topic or age updates query without duplicate subscriptions
+ok 48 - R7 changing a managed topic or age updates query without duplicate subscriptions
+  ---
+  duration_ms: 2.990618
+  type: 'test'
+  ...
+# Subtest: R7 disabling all sources is respected, not silently replaced by a new source
+ok 49 - R7 disabling all sources is respected, not silently replaced by a new source
+  ---
+  duration_ms: 1.93973
+  type: 'test'
+  ...
+# Subtest: R7 stored cards paginate beyond 100 with exact totals and no silent loss
+ok 50 - R7 stored cards paginate beyond 100 with exact totals and no silent loss
+  ---
+  duration_ms: 0.823123
+  type: 'test'
+  ...
+# Subtest: vault persists reasoningEffort through the meta whitelist
+ok 51 - vault persists reasoningEffort through the meta whitelist
+  ---
+  duration_ms: 291.450238
+  type: 'test'
+  ...
+# Subtest: codex thread config carries model_reasoning_effort only when set
+ok 52 - codex thread config carries model_reasoning_effort only when set
+  ---
+  duration_ms: 1.36342
+  type: 'test'
+  ...
+# Subtest: claude CLI plan adds --effort only when the account has one set
+ok 53 - claude CLI plan adds --effort only when the account has one set
+  ---
+  duration_ms: 5.645913
+  type: 'test'
+  ...
+# Subtest: route + UI contract: effort picker is wired for account kinds
+ok 54 - route + UI contract: effort picker is wired for account kinds
+  ---
+  duration_ms: 1.307237
+  type: 'test'
+  ...
+# Subtest: R7 narrated video never becomes silent or paid automatically
+ok 55 - R7 narrated video never becomes silent or paid automatically
+  ---
+  duration_ms: 1.725944
+  type: 'test'
+  ...
+# Subtest: R7 provider paid voice needs separate explicit choice and consent
+ok 56 - R7 provider paid voice needs separate explicit choice and consent
+  ---
+  duration_ms: 0.178453
+  type: 'test'
+  ...
+# Subtest: R7 installed Windows voice is local, no paid fallback
+ok 57 - R7 installed Windows voice is local, no paid fallback
+  ---
+  duration_ms: 0.216609
+  type: 'test'
+  ...
+# Subtest: R7 missing FFmpeg prevents video creation before an empty run
+ok 58 - R7 missing FFmpeg prevents video creation before an empty run
+  ---
+  duration_ms: 0.170021
+  type: 'test'
+  ...
+# Subtest: R7 Host commands require consent, Safe cannot claim completed tested output
+ok 59 - R7 Host commands require consent, Safe cannot claim completed tested output
+  ---
+  duration_ms: 0.743626
+  type: 'test'
+  ...
+# Subtest: R7 missing Git or Docker image is a real blocked prerequisite, not auto installed
+ok 60 - R7 missing Git or Docker image is a real blocked prerequisite, not auto installed
+  ---
+  duration_ms: 0.468971
+  type: 'test'
+  ...
+# Subtest: R7 media byte ranges include suffix and cap end; reject malformed ranges
+ok 61 - R7 media byte ranges include suffix and cap end; reject malformed ranges
+  ---
+  duration_ms: 1.168653
+  type: 'test'
+  ...
+# Subtest: R7 caption text is bounded and cannot inject ASS override commands
+ok 62 - R7 caption text is bounded and cannot inject ASS override commands
+  ---
+  duration_ms: 0.73952
+  type: 'test'
+  ...
+# Subtest: R7 same unfinished job remains seated across waiting 120 seconds, no fake typing
+ok 63 - R7 same unfinished job remains seated across waiting 120 seconds, no fake typing
+  ---
+  duration_ms: 36.363611
+  type: 'test'
+  ...
+# Subtest: R7 waiting reviewer seat cannot be taken by tenth active account
+ok 64 - R7 waiting reviewer seat cannot be taken by tenth active account
+  ---
+  duration_ms: 72.509245
+  type: 'test'
+  ...
+# Subtest: R7 explicit terminal job still releases a chair
+ok 65 - R7 explicit terminal job still releases a chair
+  ---
+  duration_ms: 21.945101
+  type: 'test'
+  ...
+# Subtest: internal integration build fails closed until live commercial release gates have evidence
+ok 66 - internal integration build fails closed until live commercial release gates have evidence
+  ---
+  duration_ms: 35.977762
+  type: 'test'
+  ...
+# Subtest: even a fabricated self-signed attestations object cannot override unsigned EXE and missing license
+ok 67 - even a fabricated self-signed attestations object cannot override unsigned EXE and missing license
+  ---
+  duration_ms: 0.309686
+  type: 'test'
+  ...
+# Subtest: retheme budgets scale with window length and stay in bounds
+ok 68 - retheme budgets scale with window length and stay in bounds
+  ---
+  duration_ms: 0.758478
+  type: 'test'
+  ...
+# Subtest: free-text script split keeps every word once, in order, proportional to windows
+ok 69 - free-text script split keeps every word once, in order, proportional to windows
+  ---
+  duration_ms: 0.833679
+  type: 'test'
+  ...
+# Subtest: longer window receives the larger share of the script
+ok 70 - longer window receives the larger share of the script
+  ---
+  duration_ms: 0.217951
+  type: 'test'
+  ...
+# Subtest: retheme is registered end to end: handler kind, studio mode, panel
+ok 71 - retheme is registered end to end: handler kind, studio mode, panel
+  ---
+  duration_ms: 1.598376
+  type: 'test'
+  ...
+# Subtest: R8 saves ordered members, deduplicates, reloads descriptors and resolves every role index
+ok 72 - R8 saves ordered members, deduplicates, reloads descriptors and resolves every role index
+  ---
+  duration_ms: 385.596194
+  type: 'test'
+  ...
+# Subtest: R8 partial and old primary saves retain other team members; explicit remove is honored
+ok 73 - R8 partial and old primary saves retain other team members; explicit remove is honored
+  ---
+  duration_ms: 517.139684
+  type: 'test'
+  ...
+# Subtest: R8 optimistic revision rejects stale role replacement without changing stored members
+ok 74 - R8 optimistic revision rejects stale role replacement without changing stored members
+  ---
+  duration_ms: 554.205901
+  type: 'test'
+  ...
+# Subtest: R8 invalid/oversized/unavailable groups fail atomically
+ok 75 - R8 invalid/oversized/unavailable groups fail atomically
+  ---
+  duration_ms: 494.400839
+  type: 'test'
+  ...
+# Subtest: R8 ensure-team preserves groups and allows independent models of one account
+ok 76 - R8 ensure-team preserves groups and allows independent models of one account
+  ---
+  duration_ms: 471.912251
+  type: 'test'
+  ...
+# Subtest: R8 every selected Worker needs a distinct review option before automatic production
+ok 77 - R8 every selected Worker needs a distinct review option before automatic production
+  ---
+  duration_ms: 486.615809
+  type: 'test'
+  ...
+# Subtest: R8 identical Worker/Reviewer binding is rejected before any worktree runs
+ok 78 - R8 identical Worker/Reviewer binding is rejected before any worktree runs
+  ---
+  duration_ms: 471.054398
+  type: 'test'
+  ...
+# Subtest: R8 two independent tasks run on two chosen Worker accounts, C reviews, real tests/Git merge
+ok 79 - R8 two independent tasks run on two chosen Worker accounts, C reviews, real tests/Git merge
+  ---
+  duration_ms: 1432.581505
+  type: 'test'
+  ...
+# Subtest: workspace writes safe relative files
+ok 80 - workspace writes safe relative files
+  ---
+  duration_ms: 2.278178
+  type: 'test'
+  ...
+# Subtest: workspace blocks traversal
+ok 81 - workspace blocks traversal
+  ---
+  duration_ms: 0.255597
+  type: 'test'
+  ...
+# Subtest: workspace blocks env
+ok 82 - workspace blocks env
+  ---
+  duration_ms: 0.259783
+  type: 'test'
+  ...
+# Subtest: high-risk GPT-Pilot is blocked in engine catalog
+ok 83 - high-risk GPT-Pilot is blocked in engine catalog
+  ---
+  duration_ms: 0.218271
+  type: 'test'
+  ...
+# Subtest: skill registry includes security and QA
+ok 84 - skill registry includes security and QA
+  ---
+  duration_ms: 0.730517
+  type: 'test'
+  ...
+# Subtest: home shows a getting-started checklist driven by real state
+ok 85 - home shows a getting-started checklist driven by real state
+  ---
+  duration_ms: 0.890242
+  type: 'test'
+  ...
+# Subtest: concat provisioning stays honest without the bundled installer (slim package path)
+ok 86 - concat provisioning stays honest without the bundled installer (slim package path)
+  ---
+  duration_ms: 0.523582
+  type: 'test'
+  ...
+# Subtest: timeout kills a ready grandchild and settles inherited pipes with an honest result
+ok 87 - timeout kills a ready grandchild and settles inherited pipes with an honest result
+  ---
+  duration_ms: 1961.985593
+  type: 'test'
+  ...
+# Subtest: bounded shell capture preserves multibyte UTF-8 and filtered environment
+ok 88 - bounded shell capture preserves multibyte UTF-8 and filtered environment
+  ---
+  duration_ms: 38.893914
+  type: 'test'
+  ...
+# Subtest: parse SKILL.md frontmatter + body
+ok 89 - parse SKILL.md frontmatter + body
+  ---
+  duration_ms: 13.191958
+  type: 'test'
+  ...
+# Subtest: import a single .md skill end-to-end
+ok 90 - import a single .md skill end-to-end
+  ---
+  duration_ms: 5.305391
+  type: 'test'
+  ...
+# Subtest: import a zip skill pack (SKILL.md files win over plain .md)
+ok 91 - import a zip skill pack (SKILL.md files win over plain .md)
+  ---
+  duration_ms: 6.861265
+  type: 'test'
+  ...
+# Subtest: repo zip: stored, registered, skills scanned; delete removes it
+ok 92 - repo zip: stored, registered, skills scanned; delete removes it
+  ---
+  duration_ms: 16.783642
+  type: 'test'
+  ...
+# Subtest: zip traversal is rejected
+ok 93 - zip traversal is rejected
+  ---
+  duration_ms: 1.100052
+  type: 'test'
+  ...
+# Subtest: git URL validation rejects non-https and credentialed URLs
+ok 94 - git URL validation rejects non-https and credentialed URLs
+  ---
+  duration_ms: 0.517753
+  type: 'test'
+  ...
+# Subtest: skill registry preserves stable IDs and custom CRUD validates identity, schema and built-in protection
+ok 95 - skill registry preserves stable IDs and custom CRUD validates identity, schema and built-in protection
+  ---
+  duration_ms: 18.7415
+  type: 'test'
+  ...
+# Subtest: enabled state survives a fresh process and removes stale IDs from prompt and every sample mapping
+ok 96 - enabled state survives a fresh process and removes stale IDs from prompt and every sample mapping
+  ---
+  duration_ms: 66.477778
+  type: 'test'
+  ...
+# Subtest: Native uses current enabled registry on each actual provider call without replacing frozen binding
+ok 97 - Native uses current enabled registry on each actual provider call without replacing frozen binding
+  ---
+  duration_ms: 242.204145
+  type: 'test'
+  ...
+# Subtest: supported external runner receives enabled skill prompt only and keeps unsafe opt-in
+ok 98 - supported external runner receives enabled skill prompt only and keeps unsafe opt-in
+  ---
+  duration_ms: 227.885992
+  type: 'test'
+  ...
+# Subtest: workflow reserves mapping slot, persists toggle and reaches real Founder/planning/Worker/Reviewer payloads once
+ok 99 - workflow reserves mapping slot, persists toggle and reaches real Founder/planning/Worker/Reviewer payloads once
+  ---
+  duration_ms: 500.681715
+  type: 'test'
+  ...
+# Subtest: continuity skill is visible, actually injected and respects owner toggle
+ok 100 - continuity skill is visible, actually injected and respects owner toggle
+  ---
+  duration_ms: 3.008125
+  type: 'test'
+  ...
+# Subtest: R3 read-only feed uses authenticated no-store GET and maintains one timer
+ok 101 - R3 read-only feed uses authenticated no-store GET and maintains one timer
+  ---
+  duration_ms: 6.176686
+  type: 'test'
+  ...
+# Subtest: R3 invalid schema does not replace the last good snapshot
+ok 102 - R3 invalid schema does not replace the last good snapshot
+  ---
+  duration_ms: 0.779159
+  type: 'test'
+  ...
+# Subtest: R3 old and invalid server timestamps are not called live
+ok 103 - R3 old and invalid server timestamps are not called live
+  ---
+  duration_ms: 1.459101
+  type: 'test'
+  ...
+# Subtest: R3 HTTP session and Vault failures are distinct
+ok 104 - R3 HTTP session and Vault failures are distinct
+  ---
+  duration_ms: 0.71941
+  type: 'test'
+  ...
+# Subtest: R3 suspended feed aborts pending request and ignores its late answer
+ok 105 - R3 suspended feed aborts pending request and ignores its late answer
+  ---
+  duration_ms: 0.631401
+  type: 'test'
+  ...
+# Subtest: R3 late older request cannot overwrite a refreshed fleet
+ok 106 - R3 late older request cannot overwrite a refreshed fleet
+  ---
+  duration_ms: 0.620685
+  type: 'test'
+  ...
+# Subtest: R3 disposed feed never fires data, status or retry callback
+ok 107 - R3 disposed feed never fires data, status or retry callback
+  ---
+  duration_ms: 0.744718
+  type: 'test'
+  ...
+# Subtest: R3 request deadline aborts and reports stale, not fake online accounts
+ok 108 - R3 request deadline aborts and reports stale, not fake online accounts
+  ---
+  duration_ms: 1.970901
+  type: 'test'
+  ...
+# Subtest: R3 pause/resume starts a fresh read, not duplicated permanent polling
+ok 109 - R3 pause/resume starts a fresh read, not duplicated permanent polling
+  ---
+  duration_ms: 1.005653
+  type: 'test'
+  ...
+1..109
+# tests 109
+# suites 0
+# pass 109
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14473.267095

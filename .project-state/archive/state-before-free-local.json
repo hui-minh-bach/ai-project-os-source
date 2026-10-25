@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "goal": "Complete the authorized Windows voice -> image-capable AI handoff -> Concat narrated MP4 pipeline without modifying the approved room",
+  "created_at": "2026-10-23T12:00:11.691411+00:00",
+  "stages": {
+    "specify": {
+      "status": "done",
+      "note": "Fixed scope and preserved R8; no room changes and no paid provider actions.",
+      "evidence": [
+        {
+          "path": ".project-state/contract.md",
+          "sha256": "aee27b266e2dae245fbfa42643b5ef54acc1d0c89b75c54886eb6c0f76231910",
+          "bytes": 809
+        }
+      ],
+      "at": "2026-10-23T12:07:40.848941+00:00"
+    },
+    "build": {
+      "status": "done",
+      "note": "Production source implemented; native Windows and Concat runtime verification remains open.",
+      "evidence": [
+        {
+          "path": "docs/WINDOWS_AI_CONCAT_IMPLEMENTATION.md",
+          "sha256": "bb395b4957539c7338389e6c3edd6bc86140185a16376cd2bb7ae0d3b39c01f0",
+          "bytes": 5422
+        },
+        {
+          "path": "evidence/media-pipeline/syntax.log",
+          "sha256": "20e75f5d85b22cf3d739b8c71b11c16c2ebae8ed693b535f044157d0d48c9471",
+          "bytes": 154
+        }
+      ],
+      "at": "2026-10-23T12:07:41.563416+00:00"
+    },
+    "demonstrate": {
+      "status": "blocked",
+      "note": "Isolated pipeline demonstration passes. Native Windows speech + real image accounts + native Concat output cannot be exercised in this Linux environment.",
+      "evidence": [
+        {
+          "path": "evidence/media-pipeline/browser/report.json",
+          "sha256": "3e83855af15c2d5edc49a8232d7d8852b0561076e7ca84ba60ca31d63875c03f",
+          "bytes": 3490
+        }
+      ],
+      "at": "2026-10-23T12:07:42.274358+00:00"
+    },
+    "integrate": {
+      "status": "done",
+      "note": "Scoped source integration and regression completed. Do not interpret as Windows or commercial acceptance.",
+      "evidence": [
+        {
+          "path": "evidence/media-pipeline/verification.json",
+          "sha256": "2abd489b3b5a76332aeb36b1b196b6c1a0de678df9c32d64867e7d0737a9e179",
+          "bytes": 3604
+        },
+        {
+          "path": "evidence/media-pipeline/regression.log",
+          "sha256": "f42a74e379166fbdc921ca3ab289c2973c805604a694c277bd9f71d080d53fa9",
+          "bytes": 159169
+        }
+      ],
+      "at": "2026-10-23T12:07:42.994129+00:00"
+    }
+  },
+  "next_action": "Native authorized Windows voice, image-account and Concat acceptance remains open; source handoff is packaged.",
+  "history": [
+    {
+      "at": "2026-10-23T12:07:40.848960+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Fixed scope and preserved R8; no room changes and no paid provider actions."
+    },
+    {
+      "at": "2026-10-23T12:07:41.563435+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Production source implemented; native Windows and Concat runtime verification remains open."
+    },
+    {
+      "at": "2026-10-23T12:07:42.274377+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Isolated pipeline demonstration passes. Native Windows speech + real image accounts + native Concat output cannot be exercised in this Linux environment."
+    },
+    {
+      "at": "2026-10-23T12:07:42.994148+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Scoped source integration and regression completed. Do not interpret as Windows or commercial acceptance."
+    }
+  ],
+  "updated_at": "2026-10-23T12:07:42.994152+00:00"
+}

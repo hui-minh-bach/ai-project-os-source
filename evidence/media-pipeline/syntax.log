@@ -1,0 +1,5 @@
+
+> ai-project-os-local@0.9.66 check
+> node scripts/check-syntax.mjs
+
+{"checked":187,"failed":0,"scope":"syntax only; not execution or visual acceptance"}

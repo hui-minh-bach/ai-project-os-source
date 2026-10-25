@@ -1,0 +1,397 @@
+{
+  "schema": 1,
+  "goal": "v0.9.75 add accurate unified in-app multiplatform linking guide, fix outdated manual website steps and contextual help; preserve all service functionality",
+  "created_at": "2026-10-23T12:00:11.691411+00:00",
+  "stages": {
+    "specify": {
+      "status": "done",
+      "note": "Owner asks for in-app multiplatform linking instructions; unify and correct outdated manual cloud setup, preserve actual feature limits, credentials, app behavior and room.",
+      "evidence": [
+        {
+          "path": ".project-state/contract.md",
+          "sha256": "4ed679e6cf17e5d99b6fd31af93c53914daf5735f882e58d1502dbf8d33bc3d8",
+          "bytes": 8336
+        }
+      ],
+      "at": "2026-10-25T09:01:13.278786+00:00"
+    },
+    "build": {
+      "status": "done",
+      "note": "Final unified five-group linking guide, scoped readable CSS, help links from Connections/Publish, current intake controls, explicit Supabase Management PAT checkbox and no mandatory manual cloud deployment. No new OAuth or service authority.",
+      "evidence": [
+        {
+          "path": "public/tabs/guide.html",
+          "sha256": "2a1bcb23a64574922ff0885e65bb91fc8ab58f27ca31431b0403a3d96201290b",
+          "bytes": 47998
+        },
+        {
+          "path": "public/tabs/guide.js",
+          "sha256": "82a6c5b53bd565973f31b592ac706b0ff4b31cb29fa5ac26da9570b13addb25c",
+          "bytes": 10851
+        },
+        {
+          "path": "public/tabs/guide.css",
+          "sha256": "c5958f214ae309700135ae3831a2e7232349c120241fa7f99902ec9de7ab756a",
+          "bytes": 2479
+        }
+      ],
+      "at": "2026-10-25T09:05:05.463358+00:00"
+    },
+    "demonstrate": {
+      "status": "done",
+      "note": "5 normal-app Chromium checks PASS; contextual help, exact section expansion, navigation to reception and manual/API distinction; visual screenshot inspected internally. No model/cloud/social calls or WebGL.",
+      "evidence": [
+        {
+          "path": "evidence/v0975/browser-acceptance.json",
+          "sha256": "b2caa12515ea8d4edd8169287e7066b530e541db59b1add754652ed7a0317c9f",
+          "bytes": 544
+        }
+      ],
+      "at": "2026-10-25T09:01:13.355005+00:00"
+    },
+    "integrate": {
+      "status": "done",
+      "note": "133 modules / 783 tests PASS, none skipped; 207 syntax files PASS; 5 normal-app Chromium guide navigation checks PASS. Clean source startup/session gate, no fixture accounts/jobs, 83 skill refs, 13 repo CRC/SHA, 649 host references and all 83 protected assets identical. No new OAuth or live-account acceptance.",
+      "evidence": [
+        {
+          "path": "evidence/v0975/regression/final-results.json",
+          "sha256": "1e1e3d93d614627fd2827ffa1585e62d7cef60bb363d15a00272ccacaa1eb64b",
+          "bytes": 25539
+        },
+        {
+          "path": "evidence/v0975/summary.json",
+          "sha256": "d07a6dc940919150cb3f39fe5c5cc8d862ef7ed18b2293830e414ac46d598510",
+          "bytes": 710
+        },
+        {
+          "path": "evidence/v0975/clean-package.json",
+          "sha256": "ca6864c56a446c858eb7000ff8ffe65e48b7e804c3de0df4517d6a7580195156",
+          "bytes": 432
+        }
+      ],
+      "at": "2026-10-25T09:05:05.497660+00:00"
+    }
+  },
+  "next_action": "Open Help > Multiplatform linking on owner Windows; account/cloud acceptance remains open",
+  "history": [
+    {
+      "at": "2026-10-23T12:07:40.848960+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Fixed scope and preserved R8; no room changes and no paid provider actions."
+    },
+    {
+      "at": "2026-10-23T12:07:41.563435+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Production source implemented; native Windows and Concat runtime verification remains open."
+    },
+    {
+      "at": "2026-10-23T12:07:42.274377+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Isolated pipeline demonstration passes. Native Windows speech + real image accounts + native Concat output cannot be exercised in this Linux environment."
+    },
+    {
+      "at": "2026-10-23T12:07:42.994148+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Scoped source integration and regression completed. Do not interpret as Windows or commercial acceptance."
+    },
+    {
+      "at": "2026-10-23T13:22:05.916439+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Audited existing paid/free features; selected optional localhost ComfyUI and read-only diagnostics; protected 3D."
+    },
+    {
+      "at": "2026-10-23T13:39:55.933376+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Integrated optional local ComfyUI image workflow, free-first failover and read-only readiness UI; original 81 3D assets unchanged."
+    },
+    {
+      "at": "2026-10-23T13:39:56.621956+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Mock ComfyAPI image generation and authenticated HTTP checks passed; real GPU inference, native Windows voice, Concat and commercial end-to-end not tested."
+    },
+    {
+      "at": "2026-10-23T13:39:57.382476+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "All 115 test files executed in batches (641 pass, 1 skip); original approved 81 3D files identical. Some runners delayed clean exit. Verified source only, not Windows acceptance."
+    },
+    {
+      "at": "2026-10-23T14:16:56.979579+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Scope frozen: paid consent, ComfyUI import, image resume, retain approved 3D."
+    },
+    {
+      "at": "2026-10-23T14:16:57.643759+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Implemented image-scene checkpoint, local workflow import, consent gates and UI."
+    },
+    {
+      "at": "2026-10-23T14:16:58.369641+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Fixture-based FFmpeg actual MP4 works; no actual GPU/Windows TTS here."
+    },
+    {
+      "at": "2026-10-23T14:16:59.130837+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Authenticated HTTP workflow validation, scoped regression and syntax passed; package integrity next."
+    },
+    {
+      "at": "2026-10-24T05:28:20.166603+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "v0.9.67 integrates from latest full source, protects 81 original 3D assets, no GitHub writes"
+    },
+    {
+      "at": "2026-10-24T05:28:20.786391+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "6 factory skills, CSP-safe Radar, real local photo/video upload, per-project media drafts, standalone WebGL error fallback"
+    },
+    {
+      "at": "2026-10-24T05:28:21.472564+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "11 browser/HTTP checks and real narrated FFmpeg fixture pass; native Windows/GPU/Piper/Concat/FLUX accounts not tested here"
+    },
+    {
+      "at": "2026-10-24T05:28:22.079853+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "731/732 tests passed (1 skipped), 81/81 protected assets identical; source-only QA release, native acceptance open"
+    },
+    {
+      "at": "2026-10-24T06:02:04.420327+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "R9 auto reception/manager inbox/seat occupancy contract; two authorized 3D source exceptions, no remote changes"
+    },
+    {
+      "at": "2026-10-24T06:08:26.351620+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "R9 live bots seat at 9 desks, auto-produce one click, real receipt manager inbox and six-file handoff"
+    },
+    {
+      "at": "2026-10-24T06:08:26.960919+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "23 Three.js geometry/DOM, live Xvfb WebGL pixels and 6 HTTP/Chromium media fixture checks pass; native Windows Concat/Piper/User AI accounts not tested"
+    },
+    {
+      "at": "2026-10-24T06:08:27.581513+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "192 syntax; 731 pass, 1 skip, 0 fail across all test modules in seven groups; 6 fixture UI/HTTP checks; source only R9"
+    },
+    {
+      "at": "2026-10-24T06:59:50.007740+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Source v0.9.68 cloned; authorized v0.9.69 contract; existing 3D freeze"
+    },
+    {
+      "at": "2026-10-24T07:18:41.021636+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "v0.9.69 client orders for article/video, real bound AI Worker and independent Reviewer, verified customer ZIP SHA, concurrency limit; 3D protected"
+    },
+    {
+      "at": "2026-10-24T07:18:41.667374+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Real app localhost Chromium and FFmpeg fixture MP4; 6 old news E2E and 4 new client E2E PASS. Native owner Windows/AI/Concat and real sales not tested; visual fixture not commercial-quality"
+    },
+    {
+      "at": "2026-10-24T07:18:42.311383+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "192 syntax, 119 root test modules: 660 pass,1 skip; 2 media-engine modules 19 pass; 4 new+6 old E2E checks. Source package pending manifest/ZIP verification."
+    },
+    {
+      "at": "2026-10-24T08:21:18.768998+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Owner accepts queued 16-worker execution; final inventory is 83 skill packages, 13 public repository source snapshots and 649 host-tool references; no host credentials/services copied."
+    },
+    {
+      "at": "2026-10-24T08:21:18.818332+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Bundled complete available skill files and source archives; added Vault-backed MCP HTTP and skill adaptation; repaired QR delivery, Windows dubbing routing, Facebook API version consistency and isolated app test runner."
+    },
+    {
+      "at": "2026-10-24T08:21:18.859961+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "127 app test modules, 748/748 pass; 26 A-Z HTTP/UI checks, 16 queued synthetic workers, website/source/QR, client article/video, news, dubbed video, three simulated social platforms, MCP and real software WebGL. Live Windows/provider acceptance separate."
+    },
+    {
+      "at": "2026-10-24T08:22:52.722546+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Source archive integrity and normal clean-extracted startup verified; 83 skill APIs, 13 repos, no fixture preload or connected synthetic accounts. Live Windows/provider acceptance remains separate."
+    },
+    {
+      "at": "2026-10-24T08:36:54.029234+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Source archive integrity and normal clean-extracted startup verified; 83 skill APIs, 13 repos, no fixture preload or connected synthetic accounts. Live Windows/provider acceptance remains separate."
+    },
+    {
+      "at": "2026-10-24T08:39:12.303473+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Source archive integrity and normal clean-extracted startup verified; 83 skill APIs, 13 repos, no fixture preload or connected synthetic accounts. Live Windows/provider acceptance remains separate."
+    },
+    {
+      "at": "2026-10-24T09:05:39.346443+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "v0.9.71 distinguishes installed/configured/authenticated Concat API with no autolaunch during diagnostics; separate narration readiness and direct voice recovery; robot name layout bounded near projected heads with leader lines; original geometry unchanged."
+    },
+    {
+      "at": "2026-10-24T09:06:25.535711+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "128 app test modules pass (753 cases pass, one opt-in quick edit skipped in default suite); actual Chromium WebGL/10 GLB robots and UI checks pass, normal authenticated app readiness verified, actual FFmpeg bridge passes; native Windows voice and user Concat not tested."
+    },
+    {
+      "at": "2026-10-24T09:07:40.215172+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "v0.9.71 clean archive startup and 256 runtime-file patch parity pass; 13 repository archives match prior source and pass CRC; original room/asset files unchanged except owner-authorized name overlay; default suite 128 modules pass and opt-in real quick edit rerun passes. Native Windows voice/Concat remains untested."
+    },
+    {
+      "at": "2026-10-25T01:35:04.567167+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "v0.9.72 implements managed/legacy installed Piper discovery, fresh status invalidation and a real local voice check, default local selection, same-run retry, post-setup idempotent continuation, current exact CDN redirect support and missing-model/config completion without redownloading the existing engine."
+    },
+    {
+      "at": "2026-10-25T01:35:55.604829+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Owner asks to repair existing local worker errors; reproduce path/cache/provider/retry faults, complete real speech-to-video, preserve owner data and every 3D file. No paid provider or real publication."
+    },
+    {
+      "at": "2026-10-25T01:35:55.641506+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "129 modules / 764 tests pass, none skipped; actual Vietnamese Piper ONNX CPU and FFmpeg MP4 from Chromium recovery click; missing-config rediscovery and transient synthesis failure recovery pass with same-run/script reuse and idempotency. AI text and image service fixtures clearly labeled; native owner Windows not tested."
+    },
+    {
+      "at": "2026-10-25T01:36:37.435078+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "v0.9.72 final source ZIP CRC and normal fresh-extracted startup pass; 83 skill references read, 13 repo archives CRC verified, 8 capability cards, exact tested runtime-code hashes. Includes actual neural speech/video and 764 test receipts. Native owner Windows acceptance remains separate."
+    },
+    {
+      "at": "2026-10-25T03:25:48.853395+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Owner requested results in place of old intake, actual public model conversation, persistent working seats and image failure repair; preserve room/assets and local-worker fixes."
+    },
+    {
+      "at": "2026-10-25T03:25:48.903451+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Removed intake UI; public messages and separate progress; parent job/served account seating; bounded large-image RPC and capability preflight with safe reasons."
+    },
+    {
+      "at": "2026-10-25T03:26:16.796511+00:00",
+      "stage": "integrate",
+      "status": "in_progress",
+      "note": "Final complete app regression: 131 modules, 772 tests pass, zero skipped. Preparing exact source manifest, clean normal startup and one full ZIP."
+    },
+    {
+      "at": "2026-10-25T03:27:22.761197+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "6 current actual Chromium/HTTP/WebGL checks pass, real FFmpeg MP4 decoded and results/chat survive reload; visual screenshot reviewed. AI/image services and reused QA audio are fixtures; no live account or owner Windows test."
+    },
+    {
+      "at": "2026-10-25T03:27:22.799739+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "131 modules / 772 tests PASS with none skipped, 204 syntax checks; clean filtered source normal startup/session gate PASS, 83 skills/13 repo CRC/649 host references. 80 protected asset files identical; only authorized lifecycle/label code differs. Native owner Windows and live image entitlement remain open."
+    },
+    {
+      "at": "2026-10-25T08:34:10.661809+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Repair owner GitHub import screenshot flow; keep all 3D assets and v0973 fixes; extend social channels with explicit per-draft approval and honest export-only coverage."
+    },
+    {
+      "at": "2026-10-25T08:34:10.697392+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Noninteractive scoped Git credential, asynchronous import jobs, reload resume/direct URL/exact project selection/team copy; 17 social channels with Threads/X text and Zalo OA article adapters; manual token verification and export-only extra channels."
+    },
+    {
+      "at": "2026-10-25T08:37:14.421319+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "9 actual Chromium/HTTP checks PASS: wrong-field prevention, reload during gated auth, actual local Git clone, exact imported project/team and persisted Founder response, 17 channel UI, three explicit social API fixture flows, real text download, reload persistence. Current UI screenshots inspected internally. No WebGL in this scoped run or actual Windows/provider accounts."
+    },
+    {
+      "at": "2026-10-25T08:39:23.920911+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Final code: scoped noninteractive clone auth and progress/reload/project/team repairs; public social channel modes, manual verified token setup, exact per-draft account/credential approval, no replay of uncertain writes, no invented metrics. Existing 3D assets unchanged."
+    },
+    {
+      "at": "2026-10-25T08:39:23.963862+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "133 modules / 783 cases PASS, zero skipped; 207 syntax files pass; 9 browser checks pass; 14 scoped fault/protocol cases pass. Clean normal launch/session gate and no fixture accounts/jobs pass; 83 skill references readable, 13 repo archives CRC/SHA and 649 host references retained; all 83 protected scene/assets byte-identical to .73. Native Windows/private GitHub/social entitlement remains open."
+    },
+    {
+      "at": "2026-10-25T09:01:13.278800+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Owner asks for in-app multiplatform linking instructions; unify and correct outdated manual cloud setup, preserve actual feature limits, credentials, app behavior and room."
+    },
+    {
+      "at": "2026-10-25T09:01:13.320058+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Unified five-group guide, help links in Connections and Publish, current web intake labels, management token vs CLI distinction, six API channels and eleven export-only channels. No new OAuth capabilities."
+    },
+    {
+      "at": "2026-10-25T09:01:13.355017+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "5 normal-app Chromium checks PASS; contextual help, exact section expansion, navigation to reception and manual/API distinction; visual screenshot inspected internally. No model/cloud/social calls or WebGL."
+    },
+    {
+      "at": "2026-10-25T09:01:53.819938+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Unified guide with five groups and readable scoped styling; contextual links from Connections/Publish; corrected old manual cloud steps and intake labels. No OAuth/permission/engine changes."
+    },
+    {
+      "at": "2026-10-25T09:05:05.463370+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Final unified five-group linking guide, scoped readable CSS, help links from Connections/Publish, current intake controls, explicit Supabase Management PAT checkbox and no mandatory manual cloud deployment. No new OAuth or service authority."
+    },
+    {
+      "at": "2026-10-25T09:05:05.497746+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "133 modules / 783 tests PASS, none skipped; 207 syntax files PASS; 5 normal-app Chromium guide navigation checks PASS. Clean source startup/session gate, no fixture accounts/jobs, 83 skill refs, 13 repo CRC/SHA, 649 host references and all 83 protected assets identical. No new OAuth or live-account acceptance."
+    }
+  ],
+  "updated_at": "2026-10-25T09:05:05.497752+00:00"
+}

@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: Story preserves same voice and scenes, exports separate tracks through Concat RPC, validates full MP4 and reuses completed export
+ok 1 - Story preserves same voice and scenes, exports separate tracks through Concat RPC, validates full MP4 and reuses completed export
+  ---
+  duration_ms: 2903.749502
+  type: 'test'
+  ...
+# Subtest: Lost Concat export reply reconciles completed file without creating another project/export
+ok 2 - Lost Concat export reply reconciles completed file without creating another project/export
+  ---
+  duration_ms: 2514.927504
+  type: 'test'
+  ...
+# Subtest: App host resumes failed story with immutable inputs and retained speech/images; Concat is final exporter (fixture)
+ok 3 - App host resumes failed story with immutable inputs and retained speech/images; Concat is final exporter (fixture)
+  ---
+  duration_ms: 3929.269879
+  type: 'test'
+  ...
+# Subtest: A later failed image retains earlier scene images and all successful speech phrases for an explicit retry
+ok 4 - A later failed image retains earlier scene images and all successful speech phrases for an explicit retry
+  ---
+  duration_ms: 1373.214507
+  type: 'test'
+  ...
+# Subtest: orchestrator: large external artifacts (filePath, no inline bytes) are materialized and published
+ok 5 - orchestrator: large external artifacts (filePath, no inline bytes) are materialized and published
+  ---
+  duration_ms: 10.512882
+  type: 'test'
+  ...
+# Subtest: orchestrator: news run produces, waits at the gate, then publishes after approval
+ok 6 - orchestrator: news run produces, waits at the gate, then publishes after approval
+  ---
+  duration_ms: 5.27146
+  type: 'test'
+  ...
+# Subtest: orchestrator: busy guard, global stop and daily cap are enforced by code
+ok 7 - orchestrator: busy guard, global stop and daily cap are enforced by code
+  ---
+  duration_ms: 7.285892
+  type: 'test'
+  ...
+# Subtest: orchestrator: tick skips a pipeline that already has an active run
+ok 8 - orchestrator: tick skips a pipeline that already has an active run
+  ---
+  duration_ms: 3.85806
+  type: 'test'
+  ...
+# Subtest: orchestrator: a stale running run is recovered as interrupted on load
+ok 9 - orchestrator: a stale running run is recovered as interrupted on load
+  ---
+  duration_ms: 1.068736
+  type: 'test'
+  ...
+# Subtest: orchestrator: gateway mode fails the run honestly when no model is available
+ok 10 - orchestrator: gateway mode fails the run honestly when no model is available
+  ---
+  duration_ms: 1.269387
+  type: 'test'
+  ...
+# Subtest: orchestrator: tick scans and starts a news run from the oldest unused card
+ok 11 - orchestrator: tick scans and starts a news run from the oldest unused card
+  ---
+  duration_ms: 4.9752
+  type: 'test'
+  ...
+# Subtest: orchestrator refuses to deliver a different task's larger MP4 from the same project
+ok 12 - orchestrator refuses to deliver a different task's larger MP4 from the same project
+  ---
+  duration_ms: 6.324762
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10846.67283

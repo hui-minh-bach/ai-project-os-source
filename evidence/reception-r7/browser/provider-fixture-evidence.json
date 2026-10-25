@@ -1,0 +1,106 @@
+{
+  "aiCalls": [
+    {
+      "model": "fixture-a",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-c",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-c",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "analysis",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "council-member",
+      "review": false
+    },
+    {
+      "model": "fixture-c",
+      "stage": "council-member",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "council-chair",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "plan",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-c",
+      "stage": "review",
+      "review": true
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    },
+    {
+      "model": "fixture-b",
+      "stage": "worker",
+      "review": false
+    }
+  ],
+  "cloudCalls": [],
+  "resources": {}
+}

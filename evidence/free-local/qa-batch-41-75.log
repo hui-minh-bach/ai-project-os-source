@@ -1,0 +1,1162 @@
+TAP version 13
+# Subtest: one-button HTTP: idea -> analysis/Council -> consent -> model handoff -> real code/tests/Git -> fixture cloud -> QR/source
+ok 1 - one-button HTTP: idea -> analysis/Council -> consent -> model handoff -> real code/tests/Git -> fixture cloud -> QR/source
+  ---
+  duration_ms: 3812.581368
+  type: 'test'
+  ...
+# Subtest: damaged delivery journal fails closed without taking down other app features
+ok 2 - damaged delivery journal fails closed without taking down other app features
+  ---
+  duration_ms: 732.640977
+  type: 'test'
+  ...
+# Subtest: Windows npm invocation keeps shell disabled and uses the actual Node/npm JS entry
+ok 3 - Windows npm invocation keeps shell disabled and uses the actual Node/npm JS entry
+  ---
+  duration_ms: 0.330868
+  type: 'test'
+  ...
+# Subtest: delivery manifest accepts explicit web profiles, never unknown products or SQL
+ok 4 - delivery manifest accepts explicit web profiles, never unknown products or SQL
+  ---
+  duration_ms: 1.390109
+  type: 'test'
+  ...
+# Subtest: schema rejects public buckets, duplicate columns and injected identifiers
+ok 5 - schema rejects public buckets, duplicate columns and injected identifiers
+  ---
+  duration_ms: 1.117557
+  type: 'test'
+  ...
+# Subtest: snapshot deterministic and records actual file hashes
+ok 6 - snapshot deterministic and records actual file hashes
+  ---
+  duration_ms: 10.537299
+  type: 'test'
+  ...
+# Subtest: snapshot rejects private files, credentials and symlinks rather than silently uploading
+ok 7 - snapshot rejects private files, credentials and symlinks rather than silently uploading
+  ---
+  duration_ms: 3.117405
+  type: 'test'
+  ...
+# Subtest: snapshot excludes caches but enforces total/file limits
+ok 8 - snapshot excludes caches but enforces total/file limits
+  ---
+  duration_ms: 1.059541
+  type: 'test'
+  ...
+# Subtest: deployment includes verified source marker and only public configuration
+ok 9 - deployment includes verified source marker and only public configuration
+  ---
+  duration_ms: 2.588945
+  type: 'test'
+  ...
+# Subtest: source ZIP has valid local/central-directory headers and exact stored payloads
+ok 10 - source ZIP has valid local/central-directory headers and exact stored payloads
+  ---
+  duration_ms: 1.859891
+  type: 'test'
+  ...
+# Subtest: QR is generated locally, has quiet zone, rejects tokenized and unsafe URLs
+ok 11 - QR is generated locally, has quiet zone, rejects tokenized and unsafe URLs
+  ---
+  duration_ms: 8.202818
+  type: 'test'
+  ...
+# Subtest: cloud preflight discovers exact account/team/org and freezes credential versions
+ok 12 - cloud preflight discovers exact account/team/org and freezes credential versions
+  ---
+  duration_ms: 21.551933
+  type: 'test'
+  ...
+# Subtest: new DB uses org slug, encrypted-Vault password and no deprecated free-plan promise
+ok 13 - new DB uses org slug, encrypted-Vault password and no deprecated free-plan promise
+  ---
+  duration_ms: 3.149592
+  type: 'test'
+  ...
+# Subtest: complete adapter flow builds private resources, waits READY and checks actual uploaded source identity
+ok 14 - complete adapter flow builds private resources, waits READY and checks actual uploaded source identity
+  ---
+  duration_ms: 7.025034
+  type: 'test'
+  ...
+# Subtest: new-style Supabase secret uses apikey, never a Bearer JWT header
+ok 15 - new-style Supabase secret uses apikey, never a Bearer JWT header
+  ---
+  duration_ms: 2.68025
+  type: 'test'
+  ...
+# Subtest: public environment never receives admin/service/management credentials
+ok 16 - public environment never receives admin/service/management credentials
+  ---
+  duration_ms: 2.037924
+  type: 'test'
+  ...
+# Subtest: lost DB create response is reconciled into same reference without duplicate POST
+ok 17 - lost DB create response is reconciled into same reference without duplicate POST
+  ---
+  duration_ms: 1.027495
+  type: 'test'
+  ...
+# Subtest: unknown DB creation without visible project fails closed on every resume
+ok 18 - unknown DB creation without visible project fails closed on every resume
+  ---
+  duration_ms: 0.703256
+  type: 'test'
+  ...
+# Subtest: definite rejected create can retry without an unknown-outcome deadlock
+ok 19 - definite rejected create can retry without an unknown-outcome deadlock
+  ---
+  duration_ms: 0.633704
+  type: 'test'
+  ...
+# Subtest: lost Vercel project response reconciles exact name, account and saved intent
+ok 20 - lost Vercel project response reconciles exact name, account and saved intent
+  ---
+  duration_ms: 0.901369
+  type: 'test'
+  ...
+# Subtest: existing unrelated project or changed owner cannot be adopted
+ok 21 - existing unrelated project or changed owner cannot be adopted
+  ---
+  duration_ms: 0.798567
+  type: 'test'
+  ...
+# Subtest: lost deployment response resumes exact metadata receipt with no repeated build
+ok 22 - lost deployment response resumes exact metadata receipt with no repeated build
+  ---
+  duration_ms: 2.032716
+  type: 'test'
+  ...
+# Subtest: READY is mandatory, pending loops are bounded and build error is not success
+ok 23 - READY is mandatory, pending loops are bounded and build error is not success
+  ---
+  duration_ms: 1.690742
+  type: 'test'
+  ...
+# Subtest: deployment protection is reported, never disabled automatically
+ok 24 - deployment protection is reported, never disabled automatically
+  ---
+  duration_ms: 4.392573
+  type: 'test'
+  ...
+# Subtest: cross-origin redirect and mismatched source marker block public handoff
+ok 25 - cross-origin redirect and mismatched source marker block public handoff
+  ---
+  duration_ms: 3.489002
+  type: 'test'
+  ...
+# Subtest: bucket privacy and size must match the source manifest
+ok 26 - bucket privacy and size must match the source manifest
+  ---
+  duration_ms: 1.359344
+  type: 'test'
+  ...
+# Subtest: CLI login/public project key cannot be mistaken for management authority
+ok 27 - CLI login/public project key cannot be mistaken for management authority
+  ---
+  duration_ms: 0.253163
+  type: 'test'
+  ...
+# Subtest: identity and selected scopes are enforced, not guessed from a project name
+ok 28 - identity and selected scopes are enforced, not guessed from a project name
+  ---
+  duration_ms: 0.689656
+  type: 'test'
+  ...
+# Subtest: Supabase readiness timeout retains the already created reference
+ok 29 - Supabase readiness timeout retains the already created reference
+  ---
+  duration_ms: 1.029136
+  type: 'test'
+  ...
+# Subtest: one-button configuration is strict and cannot sneak in existing-project targets
+ok 30 - one-button configuration is strict and cannot sneak in existing-project targets
+  ---
+  duration_ms: 1.079471
+  type: 'test'
+  ...
+# Subtest: preparation calls read-only preflight and AI, then waits for explicit approval
+ok 31 - preparation calls read-only preflight and AI, then waits for explicit approval
+  ---
+  duration_ms: 14.910265
+  type: 'test'
+  ...
+# Subtest: one approval runs all ten steps and emits an actual ZIP and SVG
+ok 32 - one approval runs all ten steps and emits an actual ZIP and SVG
+  ---
+  duration_ms: 71.461527
+  type: 'test'
+  ...
+# Subtest: production and direct-host execution each require their own consent
+ok 33 - production and direct-host execution each require their own consent
+  ---
+  duration_ms: 10.504732
+  type: 'test'
+  ...
+# Subtest: duplicate launch and double-click approval do not create duplicate work
+ok 34 - duplicate launch and double-click approval do not create duplicate work
+  ---
+  duration_ms: 80.319563
+  type: 'test'
+  ...
+# Subtest: failed final test blocks every cloud mutation and retains the same run
+ok 35 - failed final test blocks every cloud mutation and retains the same run
+  ---
+  duration_ms: 79.616387
+  type: 'test'
+  ...
+# Subtest: API errors resume from failed step without rerunning completed AI/build/resource steps
+ok 36 - API errors resume from failed step without rerunning completed AI/build/resource steps
+  ---
+  duration_ms: 81.202129
+  type: 'test'
+  ...
+# Subtest: restart recovers interrupted state and receipts, not a fresh cloud project
+ok 37 - restart recovers interrupted state and receipts, not a fresh cloud project
+  ---
+  duration_ms: 87.782086
+  type: 'test'
+  ...
+# Subtest: changed specification prevents resumed release and does not erase resources
+ok 38 - changed specification prevents resumed release and does not erase resources
+  ---
+  duration_ms: 54.817428
+  type: 'test'
+  ...
+# Subtest: credential change cannot silently rebind a granted cloud account
+ok 39 - credential change cannot silently rebind a granted cloud account
+  ---
+  duration_ms: 52.936275
+  type: 'test'
+  ...
+# Subtest: Vault lock blocks status/exports/resume without clearing customer results
+ok 40 - Vault lock blocks status/exports/resume without clearing customer results
+  ---
+  duration_ms: 67.431689
+  type: 'test'
+  ...
+# Subtest: stop does not delete created resources; a new run prevents resuming the old one
+ok 41 - stop does not delete created resources; a new run prevents resuming the old one
+  ---
+  duration_ms: 55.112934
+  type: 'test'
+  ...
+# Subtest: frozen source tampering is detected before payload is consumed
+ok 42 - frozen source tampering is detected before payload is consumed
+  ---
+  duration_ms: 56.805894
+  type: 'test'
+  ...
+# Subtest: eight explicit resumes are bounded; the pipeline never loops forever
+ok 43 - eight explicit resumes are bounded; the pipeline never loops forever
+  ---
+  duration_ms: 77.784777
+  type: 'test'
+  ...
+# Subtest: a corrupt primary journal recovers from its atomic backup
+ok 44 - a corrupt primary journal recovers from its atomic backup
+  ---
+  duration_ms: 12.240419
+  type: 'test'
+  ...
+# Subtest: real launcher provides an ephemeral browser session; direct local URL is denied
+ok 45 - real launcher provides an ephemeral browser session; direct local URL is denied
+  ---
+  duration_ms: 332.363027
+  type: 'test'
+  ...
+# Subtest: saved Arctic skin applies before CSS paints, with dark themes still selectable
+ok 46 - saved Arctic skin applies before CSS paints, with dark themes still selectable
+  ---
+  duration_ms: 0.764597
+  type: 'test'
+  ...
+# Subtest: body, muted text, warnings, and white-label controls exceed AA contrast in Arctic
+ok 47 - body, muted text, warnings, and white-label controls exceed AA contrast in Arctic
+  ---
+  duration_ms: 0.460539
+  type: 'test'
+  ...
+# Subtest: Arctic repair does not paint over any of four dark theme settings
+ok 48 - Arctic repair does not paint over any of four dark theme settings
+  ---
+  duration_ms: 0.367862
+  type: 'test'
+  ...
+# Subtest: hard-to-read controls and runtime states have dedicated light-theme fixes
+ok 49 - hard-to-read controls and runtime states have dedicated light-theme fixes
+  ---
+  duration_ms: 0.354493
+  type: 'test'
+  ...
+# Subtest: local browser grant requires a single unpredictable ticket and creates a strict cookie
+ok 50 - local browser grant requires a single unpredictable ticket and creates a strict cookie
+  ---
+  duration_ms: 1.255771
+  type: 'test'
+  ...
+# Subtest: offline Piper generated narration is approved, rendered, SHA-verified and does NOT call any paid API
+ok 51 - offline Piper generated narration is approved, rendered, SHA-verified and does NOT call any paid API
+  ---
+  duration_ms: 1093.443021
+  type: 'test'
+  ...
+# Subtest: UI does not force HeyGen; local TTS without model cannot silently pay cloud
+ok 52 - UI does not force HeyGen; local TTS without model cannot silently pay cloud
+  ---
+  duration_ms: 3.833129
+  type: 'test'
+  ...
+# Subtest: local-first Piper adapter validates presence, produces a real RIFF WAV without network and rejects wrong voice
+ok 53 - local-first Piper adapter validates presence, produces a real RIFF WAV without network and rejects wrong voice
+  ---
+  duration_ms: 81.366446
+  type: 'test'
+  ...
+# Subtest: missing local engine is unavailable rather than misreported as configured
+ok 54 - missing local engine is unavailable rather than misreported as configured
+  ---
+  duration_ms: 2.758326
+  type: 'test'
+  ...
+# Subtest: piperVoiceFor maps language tags to the installed voice but leaves explicit IDs untouched
+ok 55 - piperVoiceFor maps language tags to the installed voice but leaves explicit IDs untouched
+  ---
+  duration_ms: 24.980215
+  type: 'test'
+  ...
+# Subtest: shipped catalog pins are complete, https, and FLUX stays klein-4B only
+ok 56 - shipped catalog pins are complete, https, and FLUX stays klein-4B only
+  ---
+  duration_ms: 1.708388
+  type: 'test'
+  ...
+# Subtest: state machine: NOT_INSTALLED -> install -> READY -> DISABLED -> READY -> remove
+ok 57 - state machine: NOT_INSTALLED -> install -> READY -> DISABLED -> READY -> remove
+  ---
+  duration_ms: 12.643323
+  type: 'test'
+  ...
+# Subtest: capability gate: <8 GB VRAM warns in Vietnamese and defaults OFF; >=8 GB normal
+ok 58 - capability gate: <8 GB VRAM warns in Vietnamese and defaults OFF; >=8 GB normal
+  ---
+  duration_ms: 4.380827
+  type: 'test'
+  ...
+# Subtest: hash mismatch -> ERROR with verbatim reason, partial file deleted, op stays BLOCKED
+ok 59 - hash mismatch -> ERROR with verbatim reason, partial file deleted, op stays BLOCKED
+  ---
+  duration_ms: 2.170168
+  type: 'test'
+  ...
+# Subtest: ACE-Step: adopt-external + media.music end-to-end against a fixture API; pipeline resolver uses it
+ok 60 - ACE-Step: adopt-external + media.music end-to-end against a fixture API; pipeline resolver uses it
+  ---
+  duration_ms: 101.920288
+  type: 'test'
+  ...
+# Subtest: resolveStoryMusic: bound-but-not-ready falls back to the synthesized bed, LABELED
+ok 61 - resolveStoryMusic: bound-but-not-ready falls back to the synthesized bed, LABELED
+  ---
+  duration_ms: 1.425281
+  type: 'test'
+  ...
+# Subtest: FLUX op: real sd-cli invocation contract via a fake runner; failure surfaces stderr
+ok 62 - FLUX op: real sd-cli invocation contract via a fake runner; failure surfaces stderr
+  ---
+  duration_ms: 12.462685
+  type: 'test'
+  ...
+# Subtest: pipeline music selection: worker file reaches media.story and the step is journaled; labeled fallback likewise
+ok 63 - pipeline music selection: worker file reaches media.story and the step is journaled; labeled fallback likewise
+  ---
+  duration_ms: 10.478098
+  type: 'test'
+  ...
+# Subtest: image binding contract: local-flux is an explicit provider, bypasses the Vault, blocks honestly when the worker is not ready
+ok 64 - image binding contract: local-flux is an explicit provider, bypasses the Vault, blocks honestly when the worker is not ready
+  ---
+  duration_ms: 197.572902
+  type: 'test'
+  ...
+# Subtest: Map registry is safe, locked is unknown, archived/stale work cannot complete current lifecycle
+ok 65 - Map registry is safe, locked is unknown, archived/stale work cannot complete current lifecycle
+  ---
+  duration_ms: 270.146314
+  type: 'test'
+  ...
+# Subtest: effects catalog is complete and every id is unique
+ok 66 - effects catalog is complete and every id is unique
+  ---
+  duration_ms: 0.657099
+  type: 'test'
+  ...
+# Subtest: effects graph composes pads, colour and speed deterministically
+ok 67 - effects graph composes pads, colour and speed deterministically
+  ---
+  duration_ms: 1.260509
+  type: 'test'
+  ...
+# Subtest: effects ASS carries the title and the name card with escaped text
+ok 68 - effects ASS carries the title and the name card with escaped text
+  ---
+  duration_ms: 0.432779
+  type: 'test'
+  ...
+# Subtest: effects are wired through the host allow-list, validation, handler and Studio UI
+ok 69 - effects are wired through the host allow-list, validation, handler and Studio UI
+  ---
+  duration_ms: 1.244445
+  type: 'test'
+  ...
+# Subtest: scene analysis uses only core FFmpeg options and never sends -vsync (old Windows build compatibility)
+ok 70 - scene analysis uses only core FFmpeg options and never sends -vsync (old Windows build compatibility)
+  ---
+  duration_ms: 37.368807
+  type: 'test'
+  ...
+# Subtest: FFmpeg analyzer and Windows diagnostician must not contain deprecated -vsync
+ok 71 - FFmpeg analyzer and Windows diagnostician must not contain deprecated -vsync
+  ---
+  duration_ms: 0.524112
+  type: 'test'
+  ...
+# Subtest: media uses actual verified project Worker, no fake AI status, and rejects invalid AI JSON
+ok 72 - media uses actual verified project Worker, no fake AI status, and rejects invalid AI JSON
+  ---
+  duration_ms: 212.057518
+  type: 'test'
+  ...
+# Subtest: old completed plan cannot target another uploaded video (host blocks before approval)
+ok 73 - old completed plan cannot target another uploaded video (host blocks before approval)
+  ---
+  duration_ms: 367.521759
+  type: 'test'
+  ...
+# Subtest: restored old plan without fingerprint still checks stored video path
+ok 74 - restored old plan without fingerprint still checks stored video path
+  ---
+  duration_ms: 0.25786
+  type: 'test'
+  ...
+# Subtest: same-path changed file is guarded by digest and a valid legacy timeline remains supported
+ok 75 - same-path changed file is guarded by digest and a valid legacy timeline remains supported
+  ---
+  duration_ms: 0.240685
+  type: 'test'
+  ...
+# Subtest: browser only loads a plan for the current video and offers one-click recovery
+ok 76 - browser only loads a plan for the current video and offers one-click recovery
+  ---
+  duration_ms: 0.543642
+  type: 'test'
+  ...
+# Subtest: Vietnamese quick-edit plan keeps 9:16, effect and safe source
+ok 77 - Vietnamese quick-edit plan keeps 9:16, effect and safe source
+  ---
+  duration_ms: 2.74699
+  type: 'test'
+  ...
+# Subtest: quick-edit requires explicit approval and creates real MP4 without user JSON
+ok 78 - quick-edit requires explicit approval and creates real MP4 without user JSON # SKIP
+  ---
+  duration_ms: 0.169399
+  type: 'test'
+  ...
+# Subtest: unavailable Whisper and Concat cannot remain silently selected on UI
+ok 79 - unavailable Whisper and Concat cannot remain silently selected on UI
+  ---
+  duration_ms: 3.26908
+  type: 'test'
+  ...
+# Subtest: legacy plan+render workflow refuses to silently drop requested extras
+ok 80 - legacy plan+render workflow refuses to silently drop requested extras
+  ---
+  duration_ms: 2.175037
+  type: 'test'
+  ...
+# Subtest: quick-edit checks Concat connection before queueing or running expensive render
+ok 81 - quick-edit checks Concat connection before queueing or running expensive render
+  ---
+  duration_ms: 1.415457
+  type: 'test'
+  ...
+# Subtest: technical MP4 cannot be shown as a content-approved commercial deliverable
+ok 82 - technical MP4 cannot be shown as a content-approved commercial deliverable
+  ---
+  duration_ms: 2.287672
+  type: 'test'
+  ...
+# Subtest: API blocks enhanced flags on basic JSON render rather than quietly discarding them
+ok 83 - API blocks enhanced flags on basic JSON render rather than quietly discarding them
+  ---
+  duration_ms: 7.187979
+  type: 'test'
+  ...
+# Subtest: short sample QA is marked technical-only, never content commercially approved
+ok 84 - short sample QA is marked technical-only, never content commercially approved
+  ---
+  duration_ms: 229.552031
+  type: 'test'
+  ...
+# Subtest: switching source hides results from previous demo, with an explicit history toggle
+ok 85 - switching source hides results from previous demo, with an explicit history toggle
+  ---
+  duration_ms: 1.608872
+  type: 'test'
+  ...
+# Subtest: Scene plans are genuinely bounded, with timeline crossfade overlap and no invented visual understanding
+ok 86 - Scene plans are genuinely bounded, with timeline crossfade overlap and no invented visual understanding
+  ---
+  duration_ms: 4.014564
+  type: 'test'
+  ...
+# Subtest: Short reel preserves measured scene boundaries and smooth transitions
+ok 87 - Short reel preserves measured scene boundaries and smooth transitions
+  ---
+  duration_ms: 0.814291
+  type: 'test'
+  ...
+# Subtest: Legacy cut timelines with zero transition length remain valid
+ok 88 - Legacy cut timelines with zero transition length remain valid
+  ---
+  duration_ms: 0.16319
+  type: 'test'
+  ...
+# Subtest: Real FFmpeg smooth scene transition produces valid MP4 and reduced runtime
+ok 89 - Real FFmpeg smooth scene transition produces valid MP4 and reduced runtime
+  ---
+  duration_ms: 1982.209853
+  type: 'test'
+  ...
+# Subtest: R8 image gateway receives prompt/provider/job id and accepts actual path/file
+ok 90 - R8 image gateway receives prompt/provider/job id and accepts actual path/file
+  ---
+  duration_ms: 1.195142
+  type: 'test'
+  ...
+# Subtest: R8 missing/failing AI images cannot masquerade as unrelated default art
+ok 91 - R8 missing/failing AI images cannot masquerade as unrelated default art
+  ---
+  duration_ms: 0.457624
+  type: 'test'
+  ...
+# Subtest: R8 uploaded images validate signature, fence paths and reject escaped symlinks
+ok 92 - R8 uploaded images validate signature, fence paths and reject escaped symlinks
+  ---
+  duration_ms: 7.497514
+  type: 'test'
+  ...
+# Subtest: R8 media preflight separates voice availability, image availability and explicit quota consent
+ok 93 - R8 media preflight separates voice availability, image availability and explicit quota consent
+  ---
+  duration_ms: 0.753841
+  type: 'test'
+  ...
+# Subtest: R8 storyboard passes selected TTS provider and retains real uploaded pictures/cache
+ok 94 - R8 storyboard passes selected TTS provider and retains real uploaded pictures/cache
+  ---
+  duration_ms: 2252.094188
+  type: 'test'
+  ...
+# Subtest: R8 AI illustrations receive unique scene jobs and image errors propagate
+ok 95 - R8 AI illustrations receive unique scene jobs and image errors propagate
+  ---
+  duration_ms: 1315.94346
+  type: 'test'
+  ...
+# Subtest: R8 image upload HTTP host path accepts real PNG and removes invalid image uploads
+ok 96 - R8 image upload HTTP host path accepts real PNG and removes invalid image uploads
+  ---
+  duration_ms: 76.006784
+  type: 'test'
+  ...
+# Subtest: R8 image crossfade retains whole spoken phrases and exact caption timeline
+ok 97 - R8 image crossfade retains whole spoken phrases and exact caption timeline
+  ---
+  duration_ms: 1509.647889
+  type: 'test'
+  ...
+# Subtest: five templates, each mapped to a real operation
+ok 98 - five templates, each mapped to a real operation
+  ---
+  duration_ms: 1.026725
+  type: 'test'
+  ...
+# Subtest: template director plans are deterministic presets
+ok 99 - template director plans are deterministic presets
+  ---
+  duration_ms: 0.285191
+  type: 'test'
+  ...
+# Subtest: timeline validator accepts the new transition kinds and rejects junk
+ok 100 - timeline validator accepts the new transition kinds and rejects junk
+  ---
+  duration_ms: 2.530605
+  type: 'test'
+  ...
+# Subtest: server + UI expose templates, presets and the FPT voice route
+ok 101 - server + UI expose templates, presets and the FPT voice route
+  ---
+  duration_ms: 4.026393
+  type: 'test'
+  ...
+# Subtest: oauth stub issues a bearer token for any grant
+ok 102 - oauth stub issues a bearer token for any grant
+  ---
+  duration_ms: 26.636081
+  type: 'test'
+  ...
+# Subtest: api routes reject missing bearer tokens in each platform error shape
+ok 103 - api routes reject missing bearer tokens in each platform error shape
+  ---
+  duration_ms: 8.182336
+  type: 'test'
+  ...
+# Subtest: youtube: resumable init → single-shot PUT → statistics
+ok 104 - youtube: resumable init → single-shot PUT → statistics
+  ---
+  duration_ms: 11.073934
+  type: 'test'
+  ...
+# Subtest: youtube: chunked resumable upload resumes with 308 then completes
+ok 105 - youtube: chunked resumable upload resumes with 308 then completes
+  ---
+  duration_ms: 5.332509
+  type: 'test'
+  ...
+# Subtest: facebook: phased start → transfer → finish → stats
+ok 106 - facebook: phased start → transfer → finish → stats
+  ---
+  duration_ms: 11.099361
+  type: 'test'
+  ...
+# Subtest: facebook: simple single-POST upload returns an id
+ok 107 - facebook: simple single-POST upload returns an id
+  ---
+  duration_ms: 2.586217
+  type: 'test'
+  ...
+# Subtest: tiktok: init → chunked PUT → status fetch → video list
+ok 108 - tiktok: init → chunked PUT → status fetch → video list
+  ---
+  duration_ms: 6.927874
+  type: 'test'
+  ...
+# Subtest: ungated: unverified catalog account binds, resolves, and serves a run step
+ok 109 - ungated: unverified catalog account binds, resolves, and serves a run step
+  ---
+  duration_ms: 381.396848
+  type: 'test'
+  ...
+# Subtest: stored 0.9.53 binding with an area stamp still loads and resolves; saves never write area
+ok 110 - stored 0.9.53 binding with an area stamp still loads and resolves; saves never write area
+  ---
+  duration_ms: 255.080286
+  type: 'test'
+  ...
+# Subtest: routing a→b: quota on the primary rotates to the pooled peer inside the same call, with journal + provenance
+ok 111 - routing a→b: quota on the primary rotates to the pooled peer inside the same call, with journal + provenance
+  ---
+  duration_ms: 1259.97698
+  type: 'test'
+  ...
+# Subtest: R4 project routing: explicit backup precedes unrelated same-kind peers
+ok 112 - R4 project routing: explicit backup precedes unrelated same-kind peers
+  ---
+  duration_ms: 448.179574
+  type: 'test'
+  ...
+# Subtest: all candidates blocked: the error lists every candidate and the earliest reset; nobody is called
+ok 113 - all candidates blocked: the error lists every candidate and the earliest reset; nobody is called
+  ---
+  duration_ms: 430.976899
+  type: 'test'
+  ...
+# Subtest: R4 opt-out: provider errors abort immediately without pool or backup calls
+ok 114 - R4 opt-out: provider errors abort immediately without pool or backup calls
+  ---
+  duration_ms: 412.211336
+  type: 'test'
+  ...
+# Subtest: login pass: the model catalog auto-refreshes in the background once the account connects
+ok 115 - login pass: the model catalog auto-refreshes in the background once the account connects
+  ---
+  duration_ms: 481.688426
+  type: 'test'
+  ...
+# Subtest: UI contract: areas are gone, backup pickers + advisory badges + team setup panel are in
+ok 116 - UI contract: areas are gone, backup pickers + advisory badges + team setup panel are in
+  ---
+  duration_ms: 5.233734
+  type: 'test'
+  ...
+# Subtest: Antigravity: two accounts, two session folders; the first adopts the legacy folder with its session untouched
+ok 117 - Antigravity: two accounts, two session folders; the first adopts the legacy folder with its session untouched
+  ---
+  duration_ms: 304.183038
+  type: 'test'
+  ...
+# Subtest: Antigravity delete isolation: removing one account never touches the other’s session; a removed legacy session is parked, not inherited
+ok 118 - Antigravity delete isolation: removing one account never touches the other’s session; a removed legacy session is parked, not inherited
+  ---
+  duration_ms: 557.633365
+  type: 'test'
+  ...
+# Subtest: Antigravity pool rotation: a quota hit on one account rotates the step to the other account of the kind
+ok 119 - Antigravity pool rotation: a quota hit on one account rotates the step to the other account of the kind
+  ---
+  duration_ms: 292.662727
+  type: 'test'
+  ...
+# Subtest: Claude/Gemini CLI accounts: same per-connection pattern (audit fix) — second account, isolated profiles, delete parking
+ok 120 - Claude/Gemini CLI accounts: same per-connection pattern (audit fix) — second account, isolated profiles, delete parking
+  ---
+  duration_ms: 474.248795
+  type: 'test'
+  ...
+# Subtest: UI + launcher contract: add-account affordances exist, logins carry the connection id, single-account blocks are gone
+ok 121 - UI + launcher contract: add-account affordances exist, logins carry the connection id, single-account blocks are gone
+  ---
+  duration_ms: 0.969769
+  type: 'test'
+  ...
+# Subtest: news fields: catalog is complete and Google News URL is a plain RSS feed
+ok 122 - news fields: catalog is complete and Google News URL is a plain RSS feed
+  ---
+  duration_ms: 0.962429
+  type: 'test'
+  ...
+# Subtest: news fields: classification follows keywords and never guesses
+ok 123 - news fields: classification follows keywords and never guesses
+  ---
+  duration_ms: 0.382153
+  type: 'test'
+  ...
+# Subtest: news fields: score rewards fresh keyword-rich items, stays within 0..100
+ok 124 - news fields: score rewards fresh keyword-rich items, stays within 0..100
+  ---
+  duration_ms: 0.244541
+  type: 'test'
+  ...
+# Subtest: ingest: scanned cards carry field, score and basis; field sources pin their field
+ok 125 - ingest: scanned cards carry field, score and basis; field sources pin their field
+  ---
+  duration_ms: 12.365084
+  type: 'test'
+  ...
+# Subtest: orchestrator: tick picks the highest-score card inside the enabled fields only
+ok 126 - orchestrator: tick picks the highest-score card inside the enabled fields only
+  ---
+  duration_ms: 6.251904
+  type: 'test'
+  ...
+# Subtest: orchestrator: per-field daily cap stops a second run for the same field
+ok 127 - orchestrator: per-field daily cap stops a second run for the same field
+  ---
+  duration_ms: 3.966216
+  type: 'test'
+  ...
+# Subtest: news fields: server routes and Radar UI are wired
+ok 128 - news fields: server routes and Radar UI are wired
+  ---
+  duration_ms: 0.707313
+  type: 'test'
+  ...
+# Subtest: identity: YouTube channel, Facebook pages + page tokens, TikTok user
+ok 129 - identity: YouTube channel, Facebook pages + page tokens, TikTok user
+  ---
+  duration_ms: 34.259623
+  type: 'test'
+  ...
+# Subtest: youtube refresh keeps the refresh token when the response omits it
+ok 130 - youtube refresh keeps the refresh token when the response omits it
+  ---
+  duration_ms: 2.561725
+  type: 'test'
+  ...
+# Subtest: facebook upload posts with the PAGE token, not the user token
+ok 131 - facebook upload posts with the PAGE token, not the user token
+  ---
+  duration_ms: 18.775813
+  type: 'test'
+  ...
+# Subtest: Connections tab carries the linking UI wired to the OAuth routes
+ok 132 - Connections tab carries the linking UI wired to the OAuth routes
+  ---
+  duration_ms: 1.249411
+  type: 'test'
+  ...
+# Subtest: 14 phases cover the full duration with no time gaps or overlaps
+ok 133 - 14 phases cover the full duration with no time gaps or overlaps
+  ---
+  duration_ms: 0.822613
+  type: 'test'
+  ...
+# Subtest: narrative order is approach > turn > touch > pull > sit > work > stand > return
+ok 134 - narrative order is approach > turn > touch > pull > sit > work > stand > return
+  ---
+  duration_ms: 0.23731
+  type: 'test'
+  ...
+# Subtest: chair does not move before hand reaches its handle
+ok 135 - chair does not move before hand reaches its handle
+  ---
+  duration_ms: 1.916665
+  type: 'test'
+  ...
+# Subtest: no teleport on phase boundaries in projected screen-space
+ok 136 - no teleport on phase boundaries in projected screen-space
+  ---
+  duration_ms: 0.365549
+  type: 'test'
+  ...
+# Subtest: chair moves together with robot while scooting towards desk
+ok 137 - chair moves together with robot while scooting towards desk
+  ---
+  duration_ms: 0.114189
+  type: 'test'
+  ...
+# Subtest: chair starts exiting desk before standing and returns after push
+ok 138 - chair starts exiting desk before standing and returns after push
+  ---
+  duration_ms: 0.10181
+  type: 'test'
+  ...
+# Subtest: all time samples are finite, constrained and carry a valid animation clip
+ok 139 - all time samples are finite, constrained and carry a valid animation clip
+  ---
+  duration_ms: 19.999456
+  type: 'test'
+  ...
+# Subtest: resources load in full release and keep old 2D office intact
+ok 140 - resources load in full release and keep old 2D office intact
+  ---
+  duration_ms: 1.948041
+  type: 'test'
+  ...
+# Subtest: runtime script has explicit session stop and 2D fallback guards
+ok 141 - runtime script has explicit session stop and 2D fallback guards
+  ---
+  duration_ms: 1.278033
+  type: 'test'
+  ...
+# Subtest: source has independent demo UI without editing task API or AI state
+ok 142 - source has independent demo UI without editing task API or AI state
+  ---
+  duration_ms: 0.942059
+  type: 'test'
+  ...
+# Subtest: fleet: no runs — connected bots charge, unverified stays offline in the bay
+ok 143 - fleet: no runs — connected bots charge, unverified stays offline in the bay
+  ---
+  duration_ms: 0.89554
+  type: 'test'
+  ...
+# Subtest: fleet: a running run puts its project worker at the first desk
+ok 144 - fleet: a running run puts its project worker at the first desk
+  ---
+  duration_ms: 1.670997
+  type: 'test'
+  ...
+# Subtest: fleet: latest failure sends the bot to the cage and frees its desk for the next worker
+ok 145 - fleet: latest failure sends the bot to the cage and frees its desk for the next worker
+  ---
+  duration_ms: 0.312601
+  type: 'test'
+  ...
+# Subtest: fleet: a completed run after the failure releases the bot back to charging
+ok 146 - fleet: a completed run after the failure releases the bot back to charging
+  ---
+  duration_ms: 0.215738
+  type: 'test'
+  ...
+# Subtest: fleet: failures older than 24h and runs of unbound projects are ignored; cap is 10 bots
+ok 147 - fleet: failures older than 24h and runs of unbound projects are ignored; cap is 10 bots
+  ---
+  duration_ms: 0.409203
+  type: 'test'
+  ...
+# Subtest: 0.9.57: the GLB curtain panels are hidden right after the room loads
+ok 148 - 0.9.57: the GLB curtain panels are hidden right after the room loads
+  ---
+  duration_ms: 0.805397
+  type: 'test'
+  ...
+# Subtest: 0.9.57: pod slots are a 2x5 grid driven by explicit slot numbers
+ok 149 - 0.9.57: pod slots are a 2x5 grid driven by explicit slot numbers
+  ---
+  duration_ms: 0.401021
+  type: 'test'
+  ...
+# Subtest: 0.9.57: placement resolver gives every bot a unique post
+ok 150 - 0.9.57: placement resolver gives every bot a unique post
+  ---
+  duration_ms: 0.502861
+  type: 'test'
+  ...
+# Subtest: 0.9.57: state posts win over manual pins (precedence order in source)
+ok 151 - 0.9.57: state posts win over manual pins (precedence order in source)
+  ---
+  duration_ms: 0.222999
+  type: 'test'
+  ...
+# Subtest: 0.9.57: manual pins persist under the aios-office-pins key
+ok 152 - 0.9.57: manual pins persist under the aios-office-pins key
+  ---
+  duration_ms: 0.243249
+  type: 'test'
+  ...
+# Subtest: 0.9.57: selection — tap a robot selects it, card carries rename + back-to-auto
+ok 153 - 0.9.57: selection — tap a robot selects it, card carries rename + back-to-auto
+  ---
+  duration_ms: 0.41391
+  type: 'test'
+  ...
+# Subtest: v0.9.60 motion fix: seat is resolved from the real chair mesh, not the run station
+ok 154 - v0.9.60 motion fix: seat is resolved from the real chair mesh, not the run station
+  ---
+  duration_ms: 0.384997
+  type: 'test'
+  ...
+# Subtest: 0.9.57: guide documents the curtain removal, post assignment and the override rule
+ok 155 - 0.9.57: guide documents the curtain removal, post assignment and the override rule
+  ---
+  duration_ms: 0.125665
+  type: 'test'
+  ...
+# Subtest: 0.9.59: isometric backdrop ships and the ISO anchors sit on the drawn deck
+ok 156 - 0.9.59: isometric backdrop ships and the ISO anchors sit on the drawn deck
+  ---
+  duration_ms: 2.281683
+  type: 'test'
+  ...
+# Subtest: 0.9.59: fleet fixture maps to the expected ISO stations (position-mapping)
+ok 157 - 0.9.59: fleet fixture maps to the expected ISO stations (position-mapping)
+  ---
+  duration_ms: 1.901622
+  type: 'test'
+  ...
+# Subtest: 0.9.58: manual pins apply in ISO too, state posts still win (0.9.57 semantics)
+ok 158 - 0.9.58: manual pins apply in ISO too, state posts still win (0.9.57 semantics)
+  ---
+  duration_ms: 0.981147
+  type: 'test'
+  ...
+# Subtest: 0.9.58: facing rule — the desk pose is the from-behind seated sprite sheet
+ok 159 - 0.9.58: facing rule — the desk pose is the from-behind seated sprite sheet
+  ---
+  duration_ms: 0.832678
+  type: 'test'
+  ...
+# Subtest: R2 avoids starting the legacy WebGL room under the new scene; ISO remains available
+ok 160 - R2 avoids starting the legacy WebGL room under the new scene; ISO remains available
+  ---
+  duration_ms: 0.274164
+  type: 'test'
+  ...
+# Subtest: 0.9.58: world<->ISO floor transform round-trips (shared floor pins)
+ok 161 - 0.9.58: world<->ISO floor transform round-trips (shared floor pins)
+  ---
+  duration_ms: 0.443404
+  type: 'test'
+  ...
+# Subtest: 0.9.58: beauty pass assets ship, vendored addons follow the local import convention
+ok 162 - 0.9.58: beauty pass assets ship, vendored addons follow the local import convention
+  ---
+  duration_ms: 0.575798
+  type: 'test'
+  ...
+# Subtest: 0.9.58: third-party notices file ships with every license recorded
+ok 163 - 0.9.58: third-party notices file ships with every license recorded
+  ---
+  duration_ms: 0.148889
+  type: 'test'
+  ...
+# Subtest: 0.9.59: floor pins are clamped into the drawn deck polygon
+ok 164 - 0.9.59: floor pins are clamped into the drawn deck polygon
+  ---
+  duration_ms: 0.666473
+  type: 'test'
+  ...
+# Subtest: 0.9.59: the cage post stands inside the drawn electric cage; pod labels stagger
+ok 165 - 0.9.59: the cage post stands inside the drawn electric cage; pod labels stagger
+  ---
+  duration_ms: 1.054615
+  type: 'test'
+  ...
+# Subtest: 0.9.59: every working desk has a drawn-monitor glow anchor on the deck, near its seat
+ok 166 - 0.9.59: every working desk has a drawn-monitor glow anchor on the deck, near its seat
+  ---
+  duration_ms: 0.435532
+  type: 'test'
+  ...
+# Subtest: 0.9.59: sprite scale is matched per zone to the drawn furniture
+ok 167 - 0.9.59: sprite scale is matched per zone to the drawn furniture
+  ---
+  duration_ms: 0.303307
+  type: 'test'
+  ...
+# Subtest: 0.9.59: flow pulses fire only on observed handoffs; guide explains glow, pulses, label clamping
+ok 168 - 0.9.59: flow pulses fire only on observed handoffs; guide explains glow, pulses, label clamping
+  ---
+  duration_ms: 0.809453
+  type: 'test'
+  ...
+# Subtest: 0.9.60: compositing — foreground cut-outs ship and the geometry puts sprites INSIDE the furniture
+ok 169 - 0.9.60: compositing — foreground cut-outs ship and the geometry puts sprites INSIDE the furniture
+  ---
+  duration_ms: 0.611371
+  type: 'test'
+  ...
+# Subtest: office models: save/list/path/delete roundtrip
+ok 170 - office models: save/list/path/delete roundtrip
+  ---
+  duration_ms: 4.194221
+  type: 'test'
+  ...
+# Subtest: office models: rejects bad id, bad magic, and non-buffer
+ok 171 - office models: rejects bad id, bad magic, and non-buffer
+  ---
+  duration_ms: 2.884531
+  type: 'test'
+  ...
+# Subtest: office clips: state machine priority zap > walk > cheer > work > idle
+ok 172 - office clips: state machine priority zap > walk > cheer > work > idle
+  ---
+  duration_ms: 0.189649
+  type: 'test'
+  ...
+# Subtest: office clips: seated work preference — InspectTablet first (0.9.52)
+ok 173 - office clips: seated work preference — InspectTablet first (0.9.52)
+  ---
+  duration_ms: 0.343015
+  type: 'test'
+  ...
+# Subtest: office clips: name matching strips prefixes and uses synonyms
+ok 174 - office clips: name matching strips prefixes and uses synonyms
+  ---
+  duration_ms: 0.354172
+  type: 'test'
+  ...
+# Subtest: nav: A* goes around desk rather than walking through it
+ok 175 - nav: A* goes around desk rather than walking through it
+  ---
+  duration_ms: 2.730053
+  type: 'test'
+  ...
+# Subtest: nav: chair point follows the actual 180-degree rotated desk
+ok 176 - nav: chair point follows the actual 180-degree rotated desk
+  ---
+  duration_ms: 0.205012
+  type: 'test'
+  ...
+# Subtest: nav: approach lands in clear aisle and final leg ends at chair
+ok 177 - nav: approach lands in clear aisle and final leg ends at chair
+  ---
+  duration_ms: 1.178717
+  type: 'test'
+  ...
+# Subtest: nav: route out of an occupied chair begins with an exit waypoint
+ok 178 - nav: route out of an occupied chair begins with an exit waypoint
+  ---
+  duration_ms: 0.247094
+  type: 'test'
+  ...
+# Subtest: native pose: real THREE.AnimationMixer applies Sit_Down and Stand_Up to TAM19 joints
+ok 179 - native pose: real THREE.AnimationMixer applies Sit_Down and Stand_Up to TAM19 joints
+  ---
+  duration_ms: 25.937618
+  type: 'test'
+  ...
+# Subtest: model loading: all robots use stock TAM19 unless replaced by uploaded GLB
+ok 180 - model loading: all robots use stock TAM19 unless replaced by uploaded GLB
+  ---
+  duration_ms: 0.655897
+  type: 'test'
+  ...
+# Subtest: AI office: cast carries Vietnamese names with the owner as boss
+ok 181 - AI office: cast carries Vietnamese names with the owner as boss
+  ---
+  duration_ms: 1.245456
+  type: 'test'
+  ...
+# Subtest: AI office: staff are walking figures, animated only while moving
+ok 182 - AI office: staff are walking figures, animated only while moving
+  ---
+  duration_ms: 0.248877
+  type: 'test'
+  ...
+# Subtest: AI office 3D: vendored Three.js scene with desks, city backdrop and orbit camera
+ok 183 - AI office 3D: vendored Three.js scene with desks, city backdrop and orbit camera
+  ---
+  duration_ms: 1.638004
+  type: 'test'
+  ...
+# Subtest: AI office 3D detail pass: jointed robots with role props, console desks, per-role screens
+ok 184 - AI office 3D detail pass: jointed robots with role props, console desks, per-role screens
+  ---
+  duration_ms: 1.018751
+  type: 'test'
+  ...
+# Subtest: AI office room detail pass: medallion floor, desk plinths, detailed cabinets
+ok 185 - AI office room detail pass: medallion floor, desk plinths, detailed cabinets
+  ---
+  duration_ms: 0.474509
+  type: 'test'
+  ...
+# Subtest: AI office: idle staff recharge in the energy pods, with the sleeping face on
+ok 186 - AI office: idle staff recharge in the energy pods, with the sleeping face on
+  ---
+  duration_ms: 0.311039
+  type: 'test'
+  ...
+# Subtest: AI office: the electric room only takes staff who really failed work
+ok 187 - AI office: the electric room only takes staff who really failed work
+  ---
+  duration_ms: 0.225873
+  type: 'test'
+  ...
+# Subtest: AI office: movement is driven by real app state, never a canned loop
+ok 188 - AI office: movement is driven by real app state, never a canned loop
+  ---
+  duration_ms: 0.383565
+  type: 'test'
+  ...
+# Subtest: parseOpencodeEvents aggregates text, tokens, cost and errors
+ok 189 - parseOpencodeEvents aggregates text, tokens, cost and errors
+  ---
+  duration_ms: 2.213863
+  type: 'test'
+  ...
+# Subtest: opencodeConfigFor maps connections to providers
+ok 190 - opencodeConfigFor maps connections to providers
+  ---
+  duration_ms: 0.544793
+  type: 'test'
+  ...
+# Subtest: opencode install + status + faked run in an isolated runtime
+ok 191 - opencode install + status + faked run in an isolated runtime
+  ---
+  duration_ms: 748.120103
+  type: 'test'
+  ...
+# Subtest: operator diagnosis endpoints: token-gated, read-only, secret-free
+ok 192 - operator diagnosis endpoints: token-gated, read-only, secret-free
+  ---
+  duration_ms: 508.87594
+  type: 'test'
+  ...
+1..192
+# tests 192
+# suites 0
+# pass 191
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 42012.474826

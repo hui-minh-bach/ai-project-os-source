@@ -1,0 +1,185 @@
+{
+  "schema": 1,
+  "baseVersion": "0.9.66",
+  "label": "free-first-local-tools-source-integration",
+  "verifiedAtUtc": "2026-10-23T13:39:55.172499+00:00",
+  "source": {
+    "baseArchive": "AI_Project_OS_v0.9.66_WINDOWS_AI_CONCAT_FULL_SOURCE.zip",
+    "protected3DFiles": 81,
+    "allProtectedFilesByteIdentical": true,
+    "modifiedOrNewSourcePaths": [
+      {
+        "path": "README-INTEGRATED-VI.md",
+        "change": "modified"
+      },
+      {
+        "path": "README.md",
+        "change": "modified"
+      },
+      {
+        "path": "START-HERE-MIEN-PHI.md",
+        "change": "new"
+      },
+      {
+        "path": ".project-state/state.json",
+        "change": "modified"
+      },
+      {
+        "path": ".project-state/contract-free-stack.md",
+        "change": "new"
+      },
+      {
+        "path": ".project-state/contract.md",
+        "change": "modified"
+      },
+      {
+        "path": "test/free-stack-http-smoke.test.mjs",
+        "change": "new"
+      },
+      {
+        "path": "test/free-stack-r10.test.mjs",
+        "change": "new"
+      },
+      {
+        "path": "src/server.mjs",
+        "change": "modified"
+      },
+      {
+        "path": "docs/FREE_LOCAL_STACK_INTEGRATION.md",
+        "change": "new"
+      },
+      {
+        "path": "public/tabs/media-studio.html",
+        "change": "modified"
+      },
+      {
+        "path": "public/tabs/engines.html",
+        "change": "modified"
+      },
+      {
+        "path": "public/tabs/engines.js",
+        "change": "modified"
+      },
+      {
+        "path": "evidence/free-local/qa-report.json",
+        "change": "new"
+      },
+      {
+        "path": "evidence/free-local/qa-batch-41-75.log",
+        "change": "new"
+      },
+      {
+        "path": "evidence/free-local/qa-batch-76-95.log",
+        "change": "new"
+      },
+      {
+        "path": "evidence/free-local/qa-batch-15-40.log",
+        "change": "new"
+      },
+      {
+        "path": "evidence/free-local/qa-batch-01-14.log",
+        "change": "new"
+      },
+      {
+        "path": "evidence/free-local/qa-batch-96-115.log",
+        "change": "new"
+      },
+      {
+        "path": "evidence/free-local/syntax.log",
+        "change": "new"
+      },
+      {
+        "path": "evidence/free-local/protected-assets.json",
+        "change": "new"
+      },
+      {
+        "path": "src/lib/image-gen.mjs",
+        "change": "modified"
+      },
+      {
+        "path": "src/lib/free-stack.mjs",
+        "change": "new"
+      },
+      {
+        "path": "src/lib/comfyui-local.mjs",
+        "change": "new"
+      },
+      {
+        "path": ".project-state/archive/state-before-free-local.json",
+        "change": "new"
+      },
+      {
+        "path": ".project-state/archive/contract-before-free-local.md",
+        "change": "new"
+      }
+    ]
+  },
+  "tests": {
+    "nodeTestFiles": 115,
+    "batches": [
+      {
+        "file": "qa-batch-01-14.log",
+        "tests": 52,
+        "pass": 52,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "file": "qa-batch-15-40.log",
+        "tests": 116,
+        "pass": 116,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "file": "qa-batch-41-75.log",
+        "tests": 192,
+        "pass": 191,
+        "fail": 0,
+        "skipped": 1
+      },
+      {
+        "file": "qa-batch-76-95.log",
+        "tests": 109,
+        "pass": 109,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "file": "qa-batch-96-115.log",
+        "tests": 173,
+        "pass": 173,
+        "fail": 0,
+        "skipped": 0
+      }
+    ],
+    "total": 642,
+    "pass": 641,
+    "skipped": 1,
+    "fail": 0,
+    "note": "Batched Node TAP logs. Monolithic npm test session exceeded the harness time budget; individual batches emitted passing TAP summaries, but some runner processes delayed/failed clean exit. Not a Windows/live provider signoff."
+  },
+  "syntax": {
+    "files": 189,
+    "fail": 0
+  },
+  "newFeatures": [
+    "Read-only free-stack readiness endpoint with app session protection",
+    "ComfyUI localhost HTTP image adapter using user API graph and SaveImage",
+    "Free-first image selection with ComfyUI -> installed FLUX fallback, paid API blocked without authorization",
+    "Engine Hub availability UI and Video Studio Comfy selector"
+  ],
+  "integrationVerification": [
+    "HTTP authenticated endpoint test with app server",
+    "Comfy local API mock: image bytes + failed local provider -> FLUX fallback",
+    "Existing image/Concat/worker test groups passed"
+  ],
+  "notTested": [
+    "Windows native GPU and ComfyUI actual model inference",
+    "Windows voice/audio native hardware",
+    "End-to-end commercial website/app with real AI/cloud accounts",
+    "Native Concat on user Windows",
+    "WebGL room visual regression (3D files byte-identical only)"
+  ],
+  "releaseGate": "NOT commercial-ready or universal zero-cost A-Z tool"
+}

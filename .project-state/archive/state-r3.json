@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "goal": "Preserve approved R2 room; add real-account fleet, names/status, live task choreography, mild brightness controls, verification and one full source ZIP.",
+  "created_at": "2026-10-23T01:21:34.839828+00:00",
+  "stages": {
+    "specify": {
+      "status": "done",
+      "note": "Approved R2 layout and scope preserved; no new paid jobs or business workflow changes.",
+      "evidence": [
+        {
+          "path": "docs/PLAN_SPACE_STUDIO_TEAM_R3.md",
+          "sha256": "2b2b099bfc41d9918f8bb08848af315e6314ed23e814e4074c449a0cb97477e3",
+          "bytes": 6722
+        },
+        {
+          "path": ".project-state/contract.md",
+          "sha256": "a99f2eb82195de568704735a4f99456247c4cd6f4c8dac1d657ee3fa8de5e843",
+          "bytes": 957
+        }
+      ],
+      "at": "2026-10-23T03:16:28.351872+00:00"
+    },
+    "build": {
+      "status": "done",
+      "note": "Real-account fleet, independent rigs, labels, read-only status, reserved chairs and mild brightness implemented.",
+      "evidence": [
+        {
+          "path": "evidence/space-studio-r3/source-identity.json",
+          "sha256": "7f656eca50f0544528d8d83b383d176efa8b3bf32f9c2bf27ad4a5ffdf98429c",
+          "bytes": 1976
+        },
+        {
+          "path": "evidence/space-studio-r3/browser-geometry.json",
+          "sha256": "179951f21ce69d2757ec2e21a5ed13f4bf5788146ddd850abdbad875970dd18e",
+          "bytes": 3152
+        },
+        {
+          "path": "evidence/space-studio-r3/protected-scope.json",
+          "sha256": "55a4e379eaf5bf2c7c54388848fb0132156e154f67faeef00a91978f0c2646cd",
+          "bytes": 1209
+        }
+      ],
+      "at": "2026-10-23T03:16:29.027716+00:00"
+    },
+    "demonstrate": {
+      "status": "done",
+      "note": "Six clearly labelled test accounts; source geometry/controller/DOM rendered offline with VTK. Camera label mismatch fixed and rechecked. Not Windows or real provider task proof.",
+      "evidence": [
+        {
+          "path": "evidence/space-studio-r3/hero.png",
+          "sha256": "727574d5ff28938d0bf9582153d9605c92ec4ae34840b556f3a44746d81d2ddc",
+          "bytes": 669095
+        },
+        {
+          "path": "evidence/space-studio-r3/robot-close.png",
+          "sha256": "20395640bf0d765a4bd9afcd5eddc6c55c568da85fb904c7aa6a344dc444da55",
+          "bytes": 556230
+        },
+        {
+          "path": "evidence/space-studio-r3/Space_Studio_Team_R3_Fixture_Demo.mp4",
+          "sha256": "54dac454b6241fd249d8dfd826ca2b389533b22f4785764f7bc59bdb9dbb972c",
+          "bytes": 313785
+        },
+        {
+          "path": "evidence/space-studio-r3/visual-review.json",
+          "sha256": "d15bbac5c085b4a6dc016500d6f09920b5024dcbec5726ea1aa6af346b0cd4b9",
+          "bytes": 815
+        },
+        {
+          "path": "evidence/space-studio-r3/video-probe.json",
+          "sha256": "cbf75552e671be16ab58af19ea5ae7eb6c1be5d1ac737ed7851aa946d689770f",
+          "bytes": 296
+        }
+      ],
+      "at": "2026-10-23T03:16:29.693722+00:00"
+    },
+    "integrate": {
+      "status": "done",
+      "note": "Source scope complete: 567 pass, 1 optional media skip; 80 Space Studio tests included. Linux HTTP/CPU geometry checks only. Windows GPU and real provider E2E not tested.",
+      "evidence": [
+        {
+          "path": "START-HERE-SPACE-STUDIO-TEAM-R3.md",
+          "sha256": "1d3e7e248b48959cd2cbf97e34ade01f9a06017bb231717072d1c9f6cdf0402e",
+          "bytes": 5130
+        },
+        {
+          "path": "evidence/space-studio-r3/verification.json",
+          "sha256": "31a89b06a0cb9dd38e8a5b97ada025362b7377c8c4cc9d89e27bc451fff59c8e",
+          "bytes": 3439
+        },
+        {
+          "path": "evidence/space-studio-r3/app-lifecycle.json",
+          "sha256": "a4ce493cf84add58168a57192be392f1a5edc9755272ad68873aa9e390fa32c0",
+          "bytes": 2261
+        }
+      ],
+      "at": "2026-10-23T03:16:30.399883+00:00"
+    }
+  },
+  "next_action": "Source handoff complete. Remaining acceptance: actual Windows GPU/FPS and user-authorized live provider run; not silently marked passed.",
+  "history": [
+    {
+      "at": "2026-10-23T01:23:46.849747+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Layout, palette, motion contacts and handoff scope frozen against the selected concept."
+    },
+    {
+      "at": "2026-10-23T02:01:57.614341+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Design and input contract frozen; generated concept fidelity is an open visual gate."
+    },
+    {
+      "at": "2026-10-23T02:01:58.694440+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Actual full 3D geometry built; offline source renders inspected. WebGL/Windows and concept-level fidelity remain open."
+    },
+    {
+      "at": "2026-10-23T02:01:59.757662+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "36-second MP4 from shared geometry/controller, rendered offline with VTK, not a Windows recording. Decoded and sampled contacts reviewed."
+    },
+    {
+      "at": "2026-10-23T02:03:23.591591+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Integrated in the actual app; syntax, HTTP, lifecycle and complete regression recorded. This done flag means source delivery, not GPU/Windows or production acceptance."
+    },
+    {
+      "at": "2026-10-23T02:45:48.757329+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "R3 authorized scope locked; R2 state retained in archive."
+    },
+    {
+      "at": "2026-10-23T03:16:28.351891+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Approved R2 layout and scope preserved; no new paid jobs or business workflow changes."
+    },
+    {
+      "at": "2026-10-23T03:16:29.027738+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Real-account fleet, independent rigs, labels, read-only status, reserved chairs and mild brightness implemented."
+    },
+    {
+      "at": "2026-10-23T03:16:29.693741+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "Six clearly labelled test accounts; source geometry/controller/DOM rendered offline with VTK. Camera label mismatch fixed and rechecked. Not Windows or real provider task proof."
+    },
+    {
+      "at": "2026-10-23T03:16:30.399902+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Source scope complete: 567 pass, 1 optional media skip; 80 Space Studio tests included. Linux HTTP/CPU geometry checks only. Windows GPU and real provider E2E not tested."
+    }
+  ],
+  "updated_at": "2026-10-23T03:16:30.399906+00:00",
+  "acceptance": {
+    "source_scope": "complete",
+    "windows_gpu": "not_tested",
+    "real_provider_e2e": "not_tested",
+    "approved_geometry": "preserved",
+    "offline_proof": "synthetic_accounts_actual_source_geometry"
+  }
+}

@@ -1,0 +1,466 @@
+TAP version 13
+# Subtest: 14 phases cover the full duration with no time gaps or overlaps
+ok 1 - 14 phases cover the full duration with no time gaps or overlaps
+  ---
+  duration_ms: 1.47575
+  type: 'test'
+  ...
+# Subtest: narrative order is approach > turn > touch > pull > sit > work > stand > return
+ok 2 - narrative order is approach > turn > touch > pull > sit > work > stand > return
+  ---
+  duration_ms: 0.408303
+  type: 'test'
+  ...
+# Subtest: chair does not move before hand reaches its handle
+ok 3 - chair does not move before hand reaches its handle
+  ---
+  duration_ms: 2.299707
+  type: 'test'
+  ...
+# Subtest: no teleport on phase boundaries in projected screen-space
+ok 4 - no teleport on phase boundaries in projected screen-space
+  ---
+  duration_ms: 0.538035
+  type: 'test'
+  ...
+# Subtest: chair moves together with robot while scooting towards desk
+ok 5 - chair moves together with robot while scooting towards desk
+  ---
+  duration_ms: 0.246644
+  type: 'test'
+  ...
+# Subtest: chair starts exiting desk before standing and returns after push
+ok 6 - chair starts exiting desk before standing and returns after push
+  ---
+  duration_ms: 0.138294
+  type: 'test'
+  ...
+# Subtest: all time samples are finite, constrained and carry a valid animation clip
+ok 7 - all time samples are finite, constrained and carry a valid animation clip
+  ---
+  duration_ms: 56.242765
+  type: 'test'
+  ...
+# Subtest: resources load in full release and keep old 2D office intact
+ok 8 - resources load in full release and keep old 2D office intact
+  ---
+  duration_ms: 6.219788
+  type: 'test'
+  ...
+# Subtest: runtime script has explicit session stop and 2D fallback guards
+ok 9 - runtime script has explicit session stop and 2D fallback guards
+  ---
+  duration_ms: 1.284637
+  type: 'test'
+  ...
+# Subtest: source has independent demo UI without editing task API or AI state
+ok 10 - source has independent demo UI without editing task API or AI state
+  ---
+  duration_ms: 1.300512
+  type: 'test'
+  ...
+# Subtest: fleet: no runs — connected bots charge, unverified stays offline in the bay
+ok 11 - fleet: no runs — connected bots charge, unverified stays offline in the bay
+  ---
+  duration_ms: 1.440898
+  type: 'test'
+  ...
+# Subtest: fleet: a running run puts its project worker at the first desk
+ok 12 - fleet: a running run puts its project worker at the first desk
+  ---
+  duration_ms: 1.922671
+  type: 'test'
+  ...
+# Subtest: fleet: latest failure sends the bot to the cage and frees its desk for the next worker
+ok 13 - fleet: latest failure sends the bot to the cage and frees its desk for the next worker
+  ---
+  duration_ms: 0.431648
+  type: 'test'
+  ...
+# Subtest: fleet: a completed run after the failure releases the bot back to charging
+ok 14 - fleet: a completed run after the failure releases the bot back to charging
+  ---
+  duration_ms: 0.242468
+  type: 'test'
+  ...
+# Subtest: fleet: failures older than 24h and runs of unbound projects are ignored; cap is 10 bots
+ok 15 - fleet: failures older than 24h and runs of unbound projects are ignored; cap is 10 bots
+  ---
+  duration_ms: 1.731688
+  type: 'test'
+  ...
+# Subtest: 0.9.57: the GLB curtain panels are hidden right after the room loads
+ok 16 - 0.9.57: the GLB curtain panels are hidden right after the room loads
+  ---
+  duration_ms: 1.119303
+  type: 'test'
+  ...
+# Subtest: 0.9.57: pod slots are a 2x5 grid driven by explicit slot numbers
+ok 17 - 0.9.57: pod slots are a 2x5 grid driven by explicit slot numbers
+  ---
+  duration_ms: 0.309287
+  type: 'test'
+  ...
+# Subtest: 0.9.57: placement resolver gives every bot a unique post
+ok 18 - 0.9.57: placement resolver gives every bot a unique post
+  ---
+  duration_ms: 0.355676
+  type: 'test'
+  ...
+# Subtest: 0.9.57: state posts win over manual pins (precedence order in source)
+ok 19 - 0.9.57: state posts win over manual pins (precedence order in source)
+  ---
+  duration_ms: 0.250009
+  type: 'test'
+  ...
+# Subtest: 0.9.57: manual pins persist under the aios-office-pins key
+ok 20 - 0.9.57: manual pins persist under the aios-office-pins key
+  ---
+  duration_ms: 0.259804
+  type: 'test'
+  ...
+# Subtest: 0.9.57: selection — tap a robot selects it, card carries rename + back-to-auto
+ok 21 - 0.9.57: selection — tap a robot selects it, card carries rename + back-to-auto
+  ---
+  duration_ms: 0.410076
+  type: 'test'
+  ...
+# Subtest: v0.9.60 motion fix: seat is resolved from the real chair mesh, not the run station
+ok 22 - v0.9.60 motion fix: seat is resolved from the real chair mesh, not the run station
+  ---
+  duration_ms: 0.50778
+  type: 'test'
+  ...
+# Subtest: 0.9.57: guide documents the curtain removal, post assignment and the override rule
+ok 23 - 0.9.57: guide documents the curtain removal, post assignment and the override rule
+  ---
+  duration_ms: 0.150473
+  type: 'test'
+  ...
+# Subtest: 0.9.59: isometric backdrop ships and the ISO anchors sit on the drawn deck
+ok 24 - 0.9.59: isometric backdrop ships and the ISO anchors sit on the drawn deck
+  ---
+  duration_ms: 3.075954
+  type: 'test'
+  ...
+# Subtest: 0.9.59: fleet fixture maps to the expected ISO stations (position-mapping)
+ok 25 - 0.9.59: fleet fixture maps to the expected ISO stations (position-mapping)
+  ---
+  duration_ms: 2.44401
+  type: 'test'
+  ...
+# Subtest: 0.9.58: manual pins apply in ISO too, state posts still win (0.9.57 semantics)
+ok 26 - 0.9.58: manual pins apply in ISO too, state posts still win (0.9.57 semantics)
+  ---
+  duration_ms: 6.083458
+  type: 'test'
+  ...
+# Subtest: 0.9.58: facing rule — the desk pose is the from-behind seated sprite sheet
+ok 27 - 0.9.58: facing rule — the desk pose is the from-behind seated sprite sheet
+  ---
+  duration_ms: 1.251319
+  type: 'test'
+  ...
+# Subtest: R2 avoids starting the legacy WebGL room under the new scene; ISO remains available
+ok 28 - R2 avoids starting the legacy WebGL room under the new scene; ISO remains available
+  ---
+  duration_ms: 0.512898
+  type: 'test'
+  ...
+# Subtest: 0.9.58: world<->ISO floor transform round-trips (shared floor pins)
+ok 29 - 0.9.58: world<->ISO floor transform round-trips (shared floor pins)
+  ---
+  duration_ms: 0.848303
+  type: 'test'
+  ...
+# Subtest: 0.9.58: beauty pass assets ship, vendored addons follow the local import convention
+ok 30 - 0.9.58: beauty pass assets ship, vendored addons follow the local import convention
+  ---
+  duration_ms: 1.118933
+  type: 'test'
+  ...
+# Subtest: 0.9.58: third-party notices file ships with every license recorded
+ok 31 - 0.9.58: third-party notices file ships with every license recorded
+  ---
+  duration_ms: 0.259584
+  type: 'test'
+  ...
+# Subtest: 0.9.59: floor pins are clamped into the drawn deck polygon
+ok 32 - 0.9.59: floor pins are clamped into the drawn deck polygon
+  ---
+  duration_ms: 2.564459
+  type: 'test'
+  ...
+# Subtest: 0.9.59: the cage post stands inside the drawn electric cage; pod labels stagger
+ok 33 - 0.9.59: the cage post stands inside the drawn electric cage; pod labels stagger
+  ---
+  duration_ms: 1.593704
+  type: 'test'
+  ...
+# Subtest: 0.9.59: every working desk has a drawn-monitor glow anchor on the deck, near its seat
+ok 34 - 0.9.59: every working desk has a drawn-monitor glow anchor on the deck, near its seat
+  ---
+  duration_ms: 0.777929
+  type: 'test'
+  ...
+# Subtest: 0.9.59: sprite scale is matched per zone to the drawn furniture
+ok 35 - 0.9.59: sprite scale is matched per zone to the drawn furniture
+  ---
+  duration_ms: 0.415374
+  type: 'test'
+  ...
+# Subtest: 0.9.59: flow pulses fire only on observed handoffs; guide explains glow, pulses, label clamping
+ok 36 - 0.9.59: flow pulses fire only on observed handoffs; guide explains glow, pulses, label clamping
+  ---
+  duration_ms: 2.161367
+  type: 'test'
+  ...
+# Subtest: 0.9.60: compositing — foreground cut-outs ship and the geometry puts sprites INSIDE the furniture
+ok 37 - 0.9.60: compositing — foreground cut-outs ship and the geometry puts sprites INSIDE the furniture
+  ---
+  duration_ms: 2.83647
+  type: 'test'
+  ...
+# Subtest: office models: save/list/path/delete roundtrip
+ok 38 - office models: save/list/path/delete roundtrip
+  ---
+  duration_ms: 3.600489
+  type: 'test'
+  ...
+# Subtest: office models: rejects bad id, bad magic, and non-buffer
+ok 39 - office models: rejects bad id, bad magic, and non-buffer
+  ---
+  duration_ms: 3.437558
+  type: 'test'
+  ...
+# Subtest: office clips: state machine priority zap > walk > cheer > work > idle
+ok 40 - office clips: state machine priority zap > walk > cheer > work > idle
+  ---
+  duration_ms: 0.244191
+  type: 'test'
+  ...
+# Subtest: office clips: seated work preference — InspectTablet first (0.9.52)
+ok 41 - office clips: seated work preference — InspectTablet first (0.9.52)
+  ---
+  duration_ms: 0.574099
+  type: 'test'
+  ...
+# Subtest: office clips: name matching strips prefixes and uses synonyms
+ok 42 - office clips: name matching strips prefixes and uses synonyms
+  ---
+  duration_ms: 0.581078
+  type: 'test'
+  ...
+# Subtest: nav: A* goes around desk rather than walking through it
+ok 43 - nav: A* goes around desk rather than walking through it
+  ---
+  duration_ms: 6.009047
+  type: 'test'
+  ...
+# Subtest: nav: chair point follows the actual 180-degree rotated desk
+ok 44 - nav: chair point follows the actual 180-degree rotated desk
+  ---
+  duration_ms: 0.347373
+  type: 'test'
+  ...
+# Subtest: nav: approach lands in clear aisle and final leg ends at chair
+ok 45 - nav: approach lands in clear aisle and final leg ends at chair
+  ---
+  duration_ms: 1.683917
+  type: 'test'
+  ...
+# Subtest: nav: route out of an occupied chair begins with an exit waypoint
+ok 46 - nav: route out of an occupied chair begins with an exit waypoint
+  ---
+  duration_ms: 0.343888
+  type: 'test'
+  ...
+# Subtest: native pose: real THREE.AnimationMixer applies Sit_Down and Stand_Up to TAM19 joints
+ok 47 - native pose: real THREE.AnimationMixer applies Sit_Down and Stand_Up to TAM19 joints
+  ---
+  duration_ms: 41.974542
+  type: 'test'
+  ...
+# Subtest: model loading: all robots use stock TAM19 unless replaced by uploaded GLB
+ok 48 - model loading: all robots use stock TAM19 unless replaced by uploaded GLB
+  ---
+  duration_ms: 0.617602
+  type: 'test'
+  ...
+# Subtest: AI office: cast carries Vietnamese names with the owner as boss
+ok 49 - AI office: cast carries Vietnamese names with the owner as boss
+  ---
+  duration_ms: 1.472556
+  type: 'test'
+  ...
+# Subtest: AI office: staff are walking figures, animated only while moving
+ok 50 - AI office: staff are walking figures, animated only while moving
+  ---
+  duration_ms: 0.323849
+  type: 'test'
+  ...
+# Subtest: AI office 3D: vendored Three.js scene with desks, city backdrop and orbit camera
+ok 51 - AI office 3D: vendored Three.js scene with desks, city backdrop and orbit camera
+  ---
+  duration_ms: 1.995047
+  type: 'test'
+  ...
+# Subtest: AI office 3D detail pass: jointed robots with role props, console desks, per-role screens
+ok 52 - AI office 3D detail pass: jointed robots with role props, console desks, per-role screens
+  ---
+  duration_ms: 1.114035
+  type: 'test'
+  ...
+# Subtest: AI office room detail pass: medallion floor, desk plinths, detailed cabinets
+ok 53 - AI office room detail pass: medallion floor, desk plinths, detailed cabinets
+  ---
+  duration_ms: 0.788194
+  type: 'test'
+  ...
+# Subtest: AI office: idle staff recharge in the energy pods, with the sleeping face on
+ok 54 - AI office: idle staff recharge in the energy pods, with the sleeping face on
+  ---
+  duration_ms: 0.349326
+  type: 'test'
+  ...
+# Subtest: AI office: the electric room only takes staff who really failed work
+ok 55 - AI office: the electric room only takes staff who really failed work
+  ---
+  duration_ms: 0.363847
+  type: 'test'
+  ...
+# Subtest: AI office: movement is driven by real app state, never a canned loop
+ok 56 - AI office: movement is driven by real app state, never a canned loop
+  ---
+  duration_ms: 0.381554
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle rejects missing mount function
+ok 57 - R2 lifecycle rejects missing mount function
+  ---
+  duration_ms: 1.086225
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle joins concurrent opens and owns exactly one scene
+ok 58 - R2 lifecycle joins concurrent opens and owns exactly one scene
+  ---
+  duration_ms: 1.695474
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle disposes a GLB scene that resolves after navigation away
+ok 59 - R2 lifecycle disposes a GLB scene that resolves after navigation away
+  ---
+  duration_ms: 0.199945
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle can reopen after cancellation without keeping the stale scene
+ok 60 - R2 lifecycle can reopen after cancellation without keeping the stale scene
+  ---
+  duration_ms: 0.295707
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle shows an error and permits explicit retry
+ok 61 - R2 lifecycle shows an error and permits explicit retry
+  ---
+  duration_ms: 0.462693
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle visibility is forwarded only to the mounted instance
+ok 62 - R2 lifecycle visibility is forwarded only to the mounted instance
+  ---
+  duration_ms: 0.877436
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle synchronous renderer construction failure clears pending
+ok 63 - R2 lifecycle synchronous renderer construction failure clears pending
+  ---
+  duration_ms: 0.271582
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle concurrent GPU failure is not an infinite automatic retry
+ok 64 - R2 lifecycle concurrent GPU failure is not an infinite automatic retry
+  ---
+  duration_ms: 0.300003
+  type: 'test'
+  ...
+# Subtest: R2 world: nine distinct metre-scale stations and feasible desk/chair heights
+ok 65 - R2 world: nine distinct metre-scale stations and feasible desk/chair heights
+  ---
+  duration_ms: 1.386949
+  type: 'test'
+  ...
+# Subtest: R2 phases: continuous coverage, all contact actions, no missing timeline
+ok 66 - R2 phases: continuous coverage, all contact actions, no missing timeline
+  ---
+  duration_ms: 1.129608
+  type: 'test'
+  ...
+# Subtest: R2 motion clamps invalid time and never produces NaN
+ok 67 - R2 motion clamps invalid time and never produces NaN
+  ---
+  duration_ms: 0.394022
+  type: 'test'
+  ...
+# Subtest: R2 3001 poses: chair bounds, floor contact and finite transforms
+ok 68 - R2 3001 poses: chair bounds, floor contact and finite transforms
+  ---
+  duration_ms: 58.167749
+  type: 'test'
+  ...
+# Subtest: R2 pelvis follows the chair during full seated contact
+ok 69 - R2 pelvis follows the chair during full seated contact
+  ---
+  duration_ms: 9.514876
+  type: 'test'
+  ...
+# Subtest: R2 chair moves only with a grip or seated robot; finishes home
+ok 70 - R2 chair moves only with a grip or seated robot; finishes home
+  ---
+  duration_ms: 28.291403
+  type: 'test'
+  ...
+# Subtest: R2 transitions preserve position and chair/pelvis continuity
+ok 71 - R2 transitions preserve position and chair/pelvis continuity
+  ---
+  duration_ms: 0.496894
+  type: 'test'
+  ...
+# Subtest: R2 gait: stance foot is world-anchored away from blend edges
+ok 72 - R2 gait: stance foot is world-anchored away from blend edges
+  ---
+  duration_ms: 6.150546
+  type: 'test'
+  ...
+# Subtest: R2 IK: reachable endpoints preserve both limb lengths
+ok 73 - R2 IK: reachable endpoints preserve both limb lengths
+  ---
+  duration_ms: 0.937876
+  type: 'test'
+  ...
+# Subtest: R2 IK: out-of-reach is bounded and explicitly reports residual
+ok 74 - R2 IK: out-of-reach is bounded and explicitly reports residual
+  ---
+  duration_ms: 0.509543
+  type: 'test'
+  ...
+# Subtest: R2 IK: coincident points and parallel pole do not break the solve
+ok 75 - R2 IK: coincident points and parallel pole do not break the solve
+  ---
+  duration_ms: 0.39973
+  type: 'test'
+  ...
+# Subtest: R2 IK rejects invalid vectors and nonpositive lengths
+ok 76 - R2 IK rejects invalid vectors and nonpositive lengths
+  ---
+  duration_ms: 0.446179
+  type: 'test'
+  ...
+1..76
+# tests 76
+# suites 0
+# pass 76
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 592.557698

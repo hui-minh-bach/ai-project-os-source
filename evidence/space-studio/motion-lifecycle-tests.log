@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: R2 lifecycle rejects missing mount function
+ok 1 - R2 lifecycle rejects missing mount function
+  ---
+  duration_ms: 4.048991
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle joins concurrent opens and owns exactly one scene
+ok 2 - R2 lifecycle joins concurrent opens and owns exactly one scene
+  ---
+  duration_ms: 11.191292
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle disposes a GLB scene that resolves after navigation away
+ok 3 - R2 lifecycle disposes a GLB scene that resolves after navigation away
+  ---
+  duration_ms: 0.20338
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle can reopen after cancellation without keeping the stale scene
+ok 4 - R2 lifecycle can reopen after cancellation without keeping the stale scene
+  ---
+  duration_ms: 0.371869
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle shows an error and permits explicit retry
+ok 5 - R2 lifecycle shows an error and permits explicit retry
+  ---
+  duration_ms: 0.449974
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle visibility is forwarded only to the mounted instance
+ok 6 - R2 lifecycle visibility is forwarded only to the mounted instance
+  ---
+  duration_ms: 2.116026
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle synchronous renderer construction failure clears pending
+ok 7 - R2 lifecycle synchronous renderer construction failure clears pending
+  ---
+  duration_ms: 4.469401
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle concurrent GPU failure is not an infinite automatic retry
+ok 8 - R2 lifecycle concurrent GPU failure is not an infinite automatic retry
+  ---
+  duration_ms: 0.487629
+  type: 'test'
+  ...
+# Subtest: R2 world: nine distinct metre-scale stations and feasible desk/chair heights
+ok 9 - R2 world: nine distinct metre-scale stations and feasible desk/chair heights
+  ---
+  duration_ms: 1.229073
+  type: 'test'
+  ...
+# Subtest: R2 phases: continuous coverage, all contact actions, no missing timeline
+ok 10 - R2 phases: continuous coverage, all contact actions, no missing timeline
+  ---
+  duration_ms: 1.106141
+  type: 'test'
+  ...
+# Subtest: R2 motion clamps invalid time and never produces NaN
+ok 11 - R2 motion clamps invalid time and never produces NaN
+  ---
+  duration_ms: 0.347443
+  type: 'test'
+  ...
+# Subtest: R2 3001 poses: chair bounds, floor contact and finite transforms
+ok 12 - R2 3001 poses: chair bounds, floor contact and finite transforms
+  ---
+  duration_ms: 73.163785
+  type: 'test'
+  ...
+# Subtest: R2 pelvis follows the chair during full seated contact
+ok 13 - R2 pelvis follows the chair during full seated contact
+  ---
+  duration_ms: 4.452705
+  type: 'test'
+  ...
+# Subtest: R2 chair moves only with a grip or seated robot; finishes home
+ok 14 - R2 chair moves only with a grip or seated robot; finishes home
+  ---
+  duration_ms: 126.403888
+  type: 'test'
+  ...
+# Subtest: R2 transitions preserve position and chair/pelvis continuity
+ok 15 - R2 transitions preserve position and chair/pelvis continuity
+  ---
+  duration_ms: 0.537725
+  type: 'test'
+  ...
+# Subtest: R2 gait: stance foot is world-anchored away from blend edges
+ok 16 - R2 gait: stance foot is world-anchored away from blend edges
+  ---
+  duration_ms: 4.470698
+  type: 'test'
+  ...
+# Subtest: R2 IK: reachable endpoints preserve both limb lengths
+ok 17 - R2 IK: reachable endpoints preserve both limb lengths
+  ---
+  duration_ms: 0.691672
+  type: 'test'
+  ...
+# Subtest: R2 IK: out-of-reach is bounded and explicitly reports residual
+ok 18 - R2 IK: out-of-reach is bounded and explicitly reports residual
+  ---
+  duration_ms: 0.578845
+  type: 'test'
+  ...
+# Subtest: R2 IK: coincident points and parallel pole do not break the solve
+ok 19 - R2 IK: coincident points and parallel pole do not break the solve
+  ---
+  duration_ms: 0.198453
+  type: 'test'
+  ...
+# Subtest: R2 IK rejects invalid vectors and nonpositive lengths
+ok 20 - R2 IK rejects invalid vectors and nonpositive lengths
+  ---
+  duration_ms: 0.546608
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 369.189154

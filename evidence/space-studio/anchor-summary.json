@@ -1,0 +1,9 @@
+{
+  "samples": 601,
+  "sampleSeconds": 0.05,
+  "allFinite": true,
+  "maxHandContactErrorMetres": 2.7755575615628914e-16,
+  "maxLimbReachResidualMetres": 4.682870926697724e-06,
+  "maxAbsSeatedPelvisSeatGapMetres": 1.599999999996049e-05,
+  "note": "Geometric anchor errors, not a full mesh-collision test or proof of natural motion."
+}

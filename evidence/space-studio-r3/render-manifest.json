@@ -1,0 +1,23 @@
+{
+  "backend": "vtkEGLRenderWindow",
+  "graphics": "offline VTK/Mesa, not WebGL/Windows",
+  "inputs": "R3 unchanged room geometry, cloned TAM19, actual R3 controller and actual DOM labels, six synthetic test accounts",
+  "results": [
+    {
+      "view": "hero",
+      "seconds": 2.22
+    },
+    {
+      "view": "robot-close",
+      "seconds": 0.68
+    },
+    {
+      "video": "Space_Studio_Team_R3_Fixture_Demo.mp4",
+      "frames": 193,
+      "fps": 12,
+      "width": 960,
+      "height": 600,
+      "duration": 16.083333333333332
+    }
+  ]
+}

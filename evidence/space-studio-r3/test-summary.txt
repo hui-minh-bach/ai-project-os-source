@@ -1,0 +1,8 @@
+R3 final verification
+
+Full regression: {"tests": 568, "pass": 567, "fail": 0, "cancelled": 0, "skipped": 1, "todo": 0}
+Space Studio (subset): {"tests": 80, "pass": 80, "fail": 0, "skipped": 0}
+CPU Three.js/GLB/DOM checks: 21 passed
+Integration lifecycle checks (renderer/fetch mocked): 12 passed
+Offline video: 193 frames decoded. NOT a Windows capture.
+WebGL/GPU, real provider E2E and Windows FPS: NOT TESTED.

@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "goal": "R8 Commercial Check continuation: source intake, multi-AI teams, narrated illustrated video, Reception/results separation",
+  "created_at": "2026-10-23T09:51:25.040207+00:00",
+  "stages": {
+    "specify": {
+      "status": "done",
+      "note": "Recovered cross-chat requirements against delivered R7.",
+      "evidence": [
+        {
+          "path": ".project-state/contract-r8.md",
+          "sha256": "9698f1ee8a1fdefa068cb920c72f9716f24494a8ae6c268852244b2c5392b4fb",
+          "bytes": 1670
+        },
+        {
+          "path": "docs/PLAN_RECOVERY_R8.md",
+          "sha256": "ec1062eb401923e271cb13cb1774ad495d45b07f183e5411a35a884528074478",
+          "bytes": 1239
+        }
+      ],
+      "at": "2026-10-23T10:32:18.435296+00:00"
+    },
+    "build": {
+      "status": "done",
+      "note": "Implemented bounded repairs; all 81 protected room files unchanged.",
+      "evidence": [
+        {
+          "path": "evidence/recovery-r8/protected-after.json",
+          "sha256": "461af019b074f8820f68f3a86f47582bdb23e10dbb09f2c37fef6e2a80cb319f",
+          "bytes": 54
+        },
+        {
+          "path": "evidence/recovery-r8/code-freeze.json",
+          "sha256": "94b6b59748a74d3e72837e970b4ac505fef0a6b42977aaac3abe541588743b21",
+          "bytes": 36892
+        }
+      ],
+      "at": "2026-10-23T10:32:19.294362+00:00"
+    },
+    "demonstrate": {
+      "status": "done",
+      "note": "Actual diagnostic narrated MP4 and isolated browser output reviewed; Windows and neural voice not tested.",
+      "evidence": [
+        {
+          "path": "evidence/recovery-r8/browser/report.json",
+          "sha256": "81403dca5717342f98fbb2040be9d819b7a5e2f8f59cb1620c047c12c4cf39c7",
+          "bytes": 3367
+        },
+        {
+          "path": "evidence/recovery-r8/browser/narrated-illustrated-diagnostic.mp4",
+          "sha256": "c36eb50b84d460338ab517aa6a397af5d19bf5e667b4231e96c18c67b89593f4",
+          "bytes": 501047
+        }
+      ],
+      "at": "2026-10-23T10:32:20.095359+00:00"
+    },
+    "integrate": {
+      "status": "done",
+      "note": "Recovered repair scope verified and packaged; external/Windows commercial acceptance remains open.",
+      "evidence": [
+        {
+          "path": "evidence/recovery-r8/verification.json",
+          "sha256": "c39820dc12ea0c050be4f56259af0f8236cb149401e145b36d90cc98892e48f9",
+          "bytes": 3573
+        },
+        {
+          "path": "START-HERE-RECOVERY-R8.md",
+          "sha256": "fd38aa67c9d2da955d9ba58ef4d3d86f85825f9512b343ce68e329d2b79e99f0",
+          "bytes": 3131
+        }
+      ],
+      "at": "2026-10-23T10:32:20.843241+00:00"
+    }
+  },
+  "next_action": "User operates R8 on authorized Windows/accounts; do not alter approved scene or fabricate remaining commercial attestations.",
+  "history": [
+    {
+      "at": "2026-10-23T09:51:25.820491+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": ""
+    },
+    {
+      "at": "2026-10-23T10:26:03.558828+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Implemented recovered intake, team and media fixes; preserved all 81 approved 3D files."
+    },
+    {
+      "at": "2026-10-23T10:32:18.435316+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Recovered cross-chat requirements against delivered R7."
+    },
+    {
+      "at": "2026-10-23T10:32:19.294382+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Implemented bounded repairs; all 81 protected room files unchanged."
+    },
+    {
+      "at": "2026-10-23T10:32:20.095448+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "Actual diagnostic narrated MP4 and isolated browser output reviewed; Windows and neural voice not tested."
+    },
+    {
+      "at": "2026-10-23T10:32:20.843258+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Recovered repair scope verified and packaged; external/Windows commercial acceptance remains open."
+    }
+  ],
+  "updated_at": "2026-10-23T10:32:20.843261+00:00"
+}

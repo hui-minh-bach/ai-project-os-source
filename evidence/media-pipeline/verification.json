@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "version": "0.9.66",
+  "revision": "windows-images-concat-1",
+  "at": "2026-10-23T12:07:40.210963+00:00",
+  "inputArchive": {
+    "file": "AI_Project_OS_v0.9.65_RECOVERY_R8_FULL_SOURCE.zip",
+    "sha256": "cb5b8a447ac905c8b68dcde378cb76dbeceae775ae9d747c95f9e73cf2b45789"
+  },
+  "scope": "Installed Windows narration, image-capability account routing, editable native Concat story export and current-task product handoff. Source implementation plus isolated execution, not commercial/native runtime acceptance.",
+  "full_regression": {
+    "tests": 717,
+    "pass": 716,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "command": "npm test",
+    "log": "evidence/media-pipeline/regression.log"
+  },
+  "syntax": {
+    "checked": 187,
+    "failed": 0,
+    "log": "evidence/media-pipeline/syntax.log"
+  },
+  "browser": {
+    "checks": 8,
+    "pass": 8,
+    "pageErrors": 0,
+    "report": "evidence/media-pipeline/browser/report.json",
+    "platform": "Linux Chromium; shipped UI/CSP loaded in memory and connected to actual app HTTP. Direct localhost navigation blocked by environment policy.",
+    "videoPlaybackInNativeBrowser": "not_tested; HTTP Range and full media decode were tested"
+  },
+  "executed": [
+    "Actual app HTTP, session/Vault gates and production UI handlers",
+    "Windows voice adapter process contract and WAV validator with injected child process; not PowerShell/Windows",
+    "Catalog/credential-bound image routing; local provider A returns 429 and B returns controlled PNG; safety refusal stops",
+    "Actual Concat JSON-RPC requests to an isolated protocol fixture",
+    "Real FFmpeg scene clips, continuous narration, downloaded H264/AAC MP4, HTTP 206 and full decode",
+    "Failed later scene retains already generated audio and images",
+    "Lost export reply reconciles output without another export",
+    "No paid consent carried into another project; locked Vault fails closed"
+  ],
+  "videoDiagnostic": {
+    "path": "evidence/media-pipeline/browser/pipeline-diagnostic-NOT-native-windows-concat.mp4",
+    "durationSeconds": 11.08,
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "aac",
+        "width": null,
+        "height": null
+      }
+    ],
+    "voice": "eSpeak vi test boundary, not Windows voice",
+    "images": "Controlled protocol fixtures, not live AI images",
+    "finalRenderer": "FFmpeg inside Concat protocol fixture, not native Concat",
+    "visualObservation": "Readable captions and image frame inspected; this is a protocol diagnostic, not an editorial-quality/AI-image showcase."
+  },
+  "protectedRoom": {
+    "files": 81,
+    "changed": 0,
+    "baseline": "evidence/recovery-r8/protected-before.json"
+  },
+  "not_tested": [
+    "PowerShell WinRT/SAPI speech on Windows with an installed Vietnamese voice",
+    "Live customer image-generating accounts and actual account entitlement/billing",
+    "Native Concat final export, text/font rendering and GPU on Windows for this story path",
+    "Windows clean install/upgrade and signed installer",
+    "All products/features commercial acceptance"
+  ],
+  "noPaidCallsMade": true,
+  "noCloudResourcesChanged": true,
+  "newInstallerBuilt": false,
+  "commercialReady": false,
+  "openAcceptance": "Do not call this a completed real Windows end-to-end acceptance; a native run remains open.",
+  "reproduce": [
+    "npm run check",
+    "npm test",
+    "npm run test:video-pipeline",
+    "npm run verify:video-pipeline-ui"
+  ]
+}

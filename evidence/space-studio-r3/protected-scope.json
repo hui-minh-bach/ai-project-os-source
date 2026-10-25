@@ -1,0 +1,34 @@
+{
+  "status": "pass",
+  "baselineSha256": "4fecf778a635bd6cf931e35e557903f16221a50b23816c2e747166cd76ba1fe2",
+  "baselineFileCount": 502,
+  "unchangedOriginalCount": 488,
+  "changedOriginalCount": 14,
+  "changedOriginals": [
+    "README.md",
+    "RELEASE.json",
+    "AGENTS.md",
+    "package.json",
+    "src/server.mjs",
+    ".project-state/contract.md",
+    ".project-state/state.json",
+    "public/space-studio/design.mjs",
+    "public/space-studio/scene.mjs",
+    "public/space-studio/viewer.css",
+    "public/space-studio/viewer.mjs",
+    "public/space-studio/app-integration.mjs",
+    "public/tabs/idea.html",
+    "src/lib/providers.mjs"
+  ],
+  "missingOriginals": [],
+  "unauthorizedChanges": [],
+  "checks": {
+    "roomGeometryConstructionBlockByteIdentical": true,
+    "paletteDimensionsStationsCamerasIdenticalExceptRevision": true,
+    "allOriginalAssetsByteIdentical": true,
+    "originalAssetsCount": 69,
+    "tam19FilesUnchanged": true,
+    "legacyOfficeAndTaskBusinessFilesByteIdentical": true
+  },
+  "note": "Provider call changed only by non-persistent observer wrapper; server adds read-only authenticated fleet route. New R3 modules are separate. Hash identity is not Windows acceptance."
+}

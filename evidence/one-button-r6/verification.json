@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "version": "0.9.63",
+  "revision": "one-button-r6.0",
+  "at": "2026-10-23T06:44:46.553666+00:00",
+  "scope": "Web delivery source pilot; isolated AI and cloud fixtures. No real customer infrastructure created.",
+  "full_regression": {
+    "tests": 644,
+    "pass": 643,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "log": "evidence/one-button-r6/regression.log",
+    "skip": "Optional media quick-edit MP4 integration; not part of this delivery module"
+  },
+  "ui": {
+    "status": "pass",
+    "checks": 7,
+    "pageErrors": 0,
+    "engine": "Linux Chromium in-memory shipped HTML/CSS/classic JS; authenticated bridge to actual app HTTP; URL navigation blocked by environment policy and policy unchanged",
+    "report": "evidence/one-button-r6/browser/report.json",
+    "threeModuleLoaded": false
+  },
+  "actual_execution": [
+    "app HTTP endpoints and session/Vault guards",
+    "analysis/Council using synthetic models",
+    "A 401 fallback to B with C review",
+    "native workspace file writes",
+    "npm test child processes",
+    "Git merge",
+    "local QR SVG generation and independent decode",
+    "local source ZIP generation and independent archive reader",
+    "source HTML counter click from 0 to 1",
+    "reload retains run/receipts",
+    "continuity skill visibility/injection",
+    "corrupt-journal isolation"
+  ],
+  "provider_contracts": {
+    "status": "passed_with_injected_fixtures",
+    "scope": "Vercel projects/env/file upload/deploy/source marker/access check; Supabase project readiness/generated schema/private storage/auth redirects; lost-response reconciliation"
+  },
+  "protected_assets": {
+    "status": "pass",
+    "count": 81,
+    "changed": 0
+  },
+  "not_tested": [
+    "real Vercel/Supabase projects or billing",
+    "real customer AI account integration",
+    "actual cross-user Supabase RLS authorization",
+    "Windows execution and installer",
+    "GPU/WebGL rendering/performance in this build",
+    "arbitrary product business acceptance"
+  ],
+  "not_implemented_here": [
+    "all arbitrary product A-Z automation",
+    "in-place migrations of existing customer cloud projects",
+    "domain purchase/DNS/payment/SMTP/provider OAuth setup",
+    "local framework dependency installation",
+    "mobile/desktop installer delivery",
+    "interrupted R5 Radar/custom-category/video/intake work"
+  ],
+  "commercialReady": false,
+  "userAcceptance": "pending",
+  "syntax": {
+    "status": "pass",
+    "command": "npm run check",
+    "log": "evidence/one-button-r6/syntax.log"
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "scope": "App UI + actual HTTP/media production, with OS speech and AI/Concat protocol fixtures.\nNOT native Windows, live AI image generation or native Concat acceptance.\nAudio is eSpeak and final fixture export is FFmpeg; the app dispatches Concat commands.",
+  "checks": [
+    {
+      "name": "sane_defaults",
+      "status": "pass",
+      "detail": "Installed Windows voice + automatic image pool + Concat; paid API permission is not preselected."
+    },
+    {
+      "name": "speech_preview",
+      "status": "pass",
+      "detail": "Actual WAV returned and readable; voice engine is the declared eSpeak OS fixture."
+    },
+    {
+      "name": "preflight_no_spend",
+      "status": "pass",
+      "detail": "Voice/model catalog/Concat readiness checked before any image or final render."
+    },
+    {
+      "name": "end_to_end_reception",
+      "status": "pass",
+      "detail": "Same reception request produces a reviewed MP4 via Windows speech boundary, A429 -> B image handoff, actual Concat RPC calls and fixture export, then product download and Range decode."
+    },
+    {
+      "name": "refresh_no_duplicate",
+      "status": "pass",
+      "detail": "Refreshing product view does not generate new images or export again."
+    },
+    {
+      "name": "consent_isolation",
+      "status": "pass",
+      "detail": "Paid image permission and request approval are not carried into another project."
+    },
+    {
+      "name": "studio_same_pipeline",
+      "status": "pass",
+      "detail": "Video Studio exposes the same Windows/Concat path as reception."
+    },
+    {
+      "name": "access_controls",
+      "status": "pass",
+      "detail": "Unauthenticated voice enumeration and locked-vault production/product access are refused."
+    }
+  ],
+  "pageErrors": [],
+  "voice": "eSpeak vi via test-only Windows boundary; not native Windows",
+  "neuralPiperTested": false,
+  "externalCalls": "No live AI/cloud actions",
+  "webglTested": false,
+  "directBrowserNavigation": {
+    "status": "blocked",
+    "reason": "Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR"
+  },
+  "productionCsp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+  "video": {
+    "seconds": "11.080000",
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "aac",
+        "width": null,
+        "height": null
+      }
+    ],
+    "file": "pipeline-diagnostic-NOT-native-windows-concat.mp4"
+  },
+  "providerEvidence": {
+    "imageAttempts": [
+      {
+        "account": "artist-a",
+        "status": 429
+      },
+      {
+        "account": "artist-b",
+        "status": 200
+      }
+    ],
+    "concatMethods": [
+      "auth",
+      "version",
+      "auth",
+      "version",
+      "auth",
+      "version",
+      "auth",
+      "version",
+      "auth",
+      "version",
+      "auth",
+      "version",
+      "project.create",
+      "media.import",
+      "edit.apply",
+      "media.import",
+      "edit.apply",
+      "edit.apply",
+      "media.import",
+      "edit.apply",
+      "edit.apply",
+      "edit.apply",
+      "edit.apply",
+      "edit.apply",
+      "edit.apply",
+      "project.save",
+      "export.run",
+      "project.close"
+    ],
+    "concatExports": 1,
+    "concatProjects": 1,
+    "concatFailures": []
+  },
+  "status": "pass"
+}

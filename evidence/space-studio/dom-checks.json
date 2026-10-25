@@ -1,0 +1,50 @@
+{
+  "browser": "144.0.7559.96",
+  "tests": [
+    {
+      "check": "App opens scene and hides legacy only after ready",
+      "result": "pass",
+      "scope": "DOM fixture, mocked renderer"
+    },
+    {
+      "check": "Roster uses text nodes, not executable HTML",
+      "result": "pass",
+      "scope": "DOM fixture, mocked renderer"
+    },
+    {
+      "check": "Repeated navigation does not duplicate scene",
+      "result": "pass",
+      "scope": "DOM fixture, mocked renderer"
+    },
+    {
+      "check": "Back toggle disposes scene and preserves old room",
+      "result": "pass",
+      "scope": "DOM fixture, mocked renderer"
+    },
+    {
+      "check": "Leaving tab disposes scene",
+      "result": "pass",
+      "scope": "DOM fixture, mocked renderer"
+    },
+    {
+      "check": "Late async model cannot reopen a departed tab",
+      "result": "pass",
+      "scope": "DOM fixture, mocked renderer"
+    },
+    {
+      "check": "Failed mount exposes error and leaves legacy available",
+      "result": "pass",
+      "scope": "DOM fixture, mocked renderer"
+    },
+    {
+      "check": "Actual WebGL viewer startup",
+      "result": "environment_blocked",
+      "scope": "real modules, GPU unavailable",
+      "visibleErrorFallback": "pass",
+      "message": "Page.evaluate: Error: Error creating WebGL context.\n    at new Jl (blob:null/041cfd08-939e-45c6-9c01-80c67c127f16:6:431721)\n    at createSpaceStudio (blob:null/850e3296-8e61-405b-9d79-b7d90944c66b:55:54)\n    at Module.mountSpaceViewer (blob:null/f0c07181-2198-48c8-bb03-29621e284511:12:14)\n    at eval (eval at evaluate (:290:30), <anonymous>:10:97)\n    at async <anonymous>:316:30"
+    }
+  ],
+  "domFixturePasses": 7,
+  "webglSuccessClaimed": false,
+  "limitation": "DOM fixtures mock the renderer. They are not visual, GPU, Windows, or full-app E2E certification."
+}

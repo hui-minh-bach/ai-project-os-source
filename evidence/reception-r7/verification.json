@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "version": "0.9.64",
+  "revision": "reception-products-r7.0",
+  "at": "2026-10-23T08:39:08.367851+00:00",
+  "scope": "Close known R5 reception, news, media and seat-retention gaps on R6. Real local app HTTP/files/Git/npm/FFmpeg with isolated AI and cloud providers. Not commercial or Windows certification.",
+  "full_regression": {
+    "tests": 674,
+    "pass": 673,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "log": "evidence/reception-r7/regression.log",
+    "skip": "One pre-existing optional media quick-edit test; caption MP4 executed separately in browser integration."
+  },
+  "syntax": {
+    "checked": 171,
+    "failed": 0,
+    "log": "evidence/reception-r7/syntax.log"
+  },
+  "reception_ui": {
+    "checks": 13,
+    "pass": 13,
+    "pageErrors": 0,
+    "report": "evidence/reception-r7/browser/report.json"
+  },
+  "cloud_ui": {
+    "checks": 7,
+    "pass": 7,
+    "pageErrors": 0,
+    "report": "evidence/reception-r7/cloud-browser/report.json",
+    "providers": "fixtures; no real external provisioning"
+  },
+  "navigation_smoke": {
+    "tabs": 9,
+    "themes": 5,
+    "viewports": 2,
+    "combinations": 90,
+    "scope": "route visibility/navigation; not full end-to-end functionality of every tab"
+  },
+  "browser_backend": "Linux Chromium in-memory shipped HTML/CSS/classic JS with authenticated bridge to real local app HTTP; 3D ES modules not loaded.",
+  "actual_outputs": [
+    "Markdown article reviewed by separately configured fixture AI",
+    "Caption-only H.264 MP4 and SRT through actual FFmpeg, with byte-range streaming",
+    "Source ZIP after actual file writes, npm tests and Git merge",
+    "Existing R6 QR/source handoff exercised against synthetic cloud responses"
+  ],
+  "public_news_probe": {
+    "status": "network_unavailable",
+    "error": "EAI_AGAIN vnexpress.net",
+    "evidence": "evidence/reception-r7/public-rss-smoke.json"
+  },
+  "protected_scene": {
+    "tracked": 81,
+    "unchanged": 80,
+    "intentional_controller_change": "public/space-studio/live-motion.mjs",
+    "all_geometry_materials_models_textures_camera": "unchanged"
+  },
+  "not_tested": [
+    "Actual Windows clean install, upgrade, GPU and device performance",
+    "Real AI accounts, billing and account-to-account failover with paid providers",
+    "Real Vercel/Supabase provisioning, current provider contracts and cross-user RLS",
+    "Live RSS availability/coverage; public DNS failed in the environment",
+    "Windows SAPI voice generation on Windows",
+    "Signed installer/update and customer pilot operation",
+    "Every arbitrary client business workflow or visual quality acceptance"
+  ],
+  "not_implemented_here": [
+    "General A-Z automation for arbitrary product types",
+    "In-place migration of existing client cloud databases",
+    "Automatic domain purchasing, payment/SMTP/OAuth account onboarding",
+    "Executable task adapters for catalog-only engines",
+    "Mobile/desktop installer generation for arbitrary produced apps",
+    "Cinematic text-to-video generation or guaranteed broadcast-quality news narration"
+  ],
+  "commercialReady": false,
+  "userAcceptance": "pending",
+  "externalWrites": "none; no live cloud resources or public posts created",
+  "packaging_verification": "Run SOURCE_SHA256 manifest validation after unpacking; hashes prove identity, not authorship or code signing."
+}

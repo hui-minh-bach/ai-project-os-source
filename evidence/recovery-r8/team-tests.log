@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: R8 saves ordered members, deduplicates, reloads descriptors and resolves every role index
+ok 1 - R8 saves ordered members, deduplicates, reloads descriptors and resolves every role index
+  ---
+  duration_ms: 469.402636
+  type: 'test'
+  ...
+# Subtest: R8 partial and old primary saves retain other team members; explicit remove is honored
+ok 2 - R8 partial and old primary saves retain other team members; explicit remove is honored
+  ---
+  duration_ms: 495.794298
+  type: 'test'
+  ...
+# Subtest: R8 optimistic revision rejects stale role replacement without changing stored members
+ok 3 - R8 optimistic revision rejects stale role replacement without changing stored members
+  ---
+  duration_ms: 451.244065
+  type: 'test'
+  ...
+# Subtest: R8 invalid/oversized/unavailable groups fail atomically
+ok 4 - R8 invalid/oversized/unavailable groups fail atomically
+  ---
+  duration_ms: 455.727909
+  type: 'test'
+  ...
+# Subtest: R8 ensure-team preserves groups and allows independent models of one account
+ok 5 - R8 ensure-team preserves groups and allows independent models of one account
+  ---
+  duration_ms: 483.099406
+  type: 'test'
+  ...
+# Subtest: R8 every selected Worker needs a distinct review option before automatic production
+ok 6 - R8 every selected Worker needs a distinct review option before automatic production
+  ---
+  duration_ms: 464.423268
+  type: 'test'
+  ...
+# Subtest: R8 identical Worker/Reviewer binding is rejected before any worktree runs
+ok 7 - R8 identical Worker/Reviewer binding is rejected before any worktree runs
+  ---
+  duration_ms: 476.074745
+  type: 'test'
+  ...
+# Subtest: R8 two independent tasks run on two chosen Worker accounts, C reviews, real tests/Git merge
+ok 8 - R8 two independent tasks run on two chosen Worker accounts, C reviews, real tests/Git merge
+  ---
+  duration_ms: 1541.455729
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4999.064171

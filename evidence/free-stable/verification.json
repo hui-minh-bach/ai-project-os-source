@@ -1,0 +1,47 @@
+{
+  "source": "AI Project OS v0.9.66 free local source",
+  "verifiedAtUtc": "2026-10-23T14:16:56.165314+00:00",
+  "protected3D": {
+    "checked": 81,
+    "changed": 0
+  },
+  "syntax": {
+    "checked": 190,
+    "failed": 0
+  },
+  "executedTests": [
+    {
+      "group": "media/free image pipeline/voice/Concat",
+      "pass": 40,
+      "failed": 0
+    },
+    {
+      "group": "security/backup/office fleet/launch/HTTP",
+      "pass": 36,
+      "failed": 0
+    },
+    {
+      "group": "new ComfyUI import + paid consent + resume",
+      "pass": 5,
+      "failed": 0
+    }
+  ],
+  "actualMediaE2E": {
+    "ffmpegFinalMp4": true,
+    "fixtureInputs": true,
+    "realModelInference": false,
+    "nativeWindowsVoice": false
+  },
+  "completeSuite": {
+    "status": "not_verified",
+    "reason": "One runner/batch did not exit within harness timeout"
+  },
+  "commercialReady": false,
+  "windowsAcceptance": "not_tested",
+  "realCloudOrProvider": "not_tested",
+  "notes": [
+    "No paid image calls issued in testing.",
+    "81 approved 3D assets byte-identical.",
+    "This is not a signed Windows installer or commercial acceptance."
+  ]
+}

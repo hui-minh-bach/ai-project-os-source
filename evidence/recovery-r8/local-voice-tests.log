@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: offline Piper generated narration is approved, rendered, SHA-verified and does NOT call any paid API
+ok 1 - offline Piper generated narration is approved, rendered, SHA-verified and does NOT call any paid API
+  ---
+  duration_ms: 1097.072243
+  type: 'test'
+  ...
+# Subtest: UI does not force HeyGen; local TTS without model cannot silently pay cloud
+ok 2 - UI does not force HeyGen; local TTS without model cannot silently pay cloud
+  ---
+  duration_ms: 3.868859
+  type: 'test'
+  ...
+# Subtest: local-first Piper adapter validates presence, produces a real RIFF WAV without network and rejects wrong voice
+ok 3 - local-first Piper adapter validates presence, produces a real RIFF WAV without network and rejects wrong voice
+  ---
+  duration_ms: 73.383123
+  type: 'test'
+  ...
+# Subtest: missing local engine is unavailable rather than misreported as configured
+ok 4 - missing local engine is unavailable rather than misreported as configured
+  ---
+  duration_ms: 1.260352
+  type: 'test'
+  ...
+# Subtest: piperVoiceFor maps language tags to the installed voice but leaves explicit IDs untouched
+ok 5 - piperVoiceFor maps language tags to the installed voice but leaves explicit IDs untouched
+  ---
+  duration_ms: 23.106576
+  type: 'test'
+  ...
+# Subtest: R8 official HTTPS download enforces the advertised model SHA and streaming size
+ok 6 - R8 official HTTPS download enforces the advertised model SHA and streaming size
+  ---
+  duration_ms: 18.968927
+  type: 'test'
+  ...
+# Subtest: R8 wrong model hash and oversized unknown-length streams leave no accepted file
+ok 7 - R8 wrong model hash and oversized unknown-length streams leave no accepted file
+  ---
+  duration_ms: 1.525082
+  type: 'test'
+  ...
+# Subtest: R8 voice downloader rejects redirects to private, unknown, credential or HTTP hosts
+ok 8 - R8 voice downloader rejects redirects to private, unknown, credential or HTTP hosts
+  ---
+  duration_ms: 1.134302
+  type: 'test'
+  ...
+# Subtest: R8 fixed trusted release redirect is accepted; status and size headers remain checked
+ok 9 - R8 fixed trusted release redirect is accepted; status and size headers remain checked
+  ---
+  duration_ms: 1.000871
+  type: 'test'
+  ...
+# Subtest: R8 validated Piper ZIP extracts ordinary components without execution
+ok 10 - R8 validated Piper ZIP extracts ordinary components without execution
+  ---
+  duration_ms: 1.806756
+  type: 'test'
+  ...
+# Subtest: R8 Piper extraction rejects traversal, case collisions, encryption, symlinks and CRC corruption
+ok 11 - R8 Piper extraction rejects traversal, case collisions, encryption, symlinks and CRC corruption
+  ---
+  duration_ms: 1.511912
+  type: 'test'
+  ...
+# Subtest: R8 manual local voice configuration needs consent and successful actual-call adapter
+ok 12 - R8 manual local voice configuration needs consent and successful actual-call adapter
+  ---
+  duration_ms: 2.009112
+  type: 'test'
+  ...
+# Subtest: R8 failed smoke synthesis never saves broken settings; non-Vietnamese model blocked
+ok 13 - R8 failed smoke synthesis never saves broken settings; non-Vietnamese model blocked
+  ---
+  duration_ms: 1.251338
+  type: 'test'
+  ...
+# Subtest: R8 install is opt-in, supported-platform gated and never implies engine signature verified
+ok 14 - R8 install is opt-in, supported-platform gated and never implies engine signature verified
+  ---
+  duration_ms: 2.988189
+  type: 'test'
+  ...
+# Subtest: R8 isolated installer contract downloads exactly pinned components then smoke-checks once
+ok 15 - R8 isolated installer contract downloads exactly pinned components then smoke-checks once
+  ---
+  duration_ms: 5.132766
+  type: 'test'
+  ...
+# Subtest: R8 offline voice environment excludes provider and launch credentials
+ok 16 - R8 offline voice environment excludes provider and launch credentials
+  ---
+  duration_ms: 0.683852
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1585.943585

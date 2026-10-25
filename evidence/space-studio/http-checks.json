@@ -1,0 +1,30 @@
+{
+  "version": "0.9.61",
+  "result": "pass",
+  "checks": [
+    "health matches package and release version",
+    "protected API rejects unauthenticated requests",
+    "existing one-time launch and HttpOnly cookie remain enabled",
+    "actual app HTML contains retained office and new module entry",
+    "same-origin script policy retained",
+    "serves JavaScript module: space-studio/design.mjs",
+    "serves JavaScript module: space-studio/motion.mjs",
+    "serves JavaScript module: space-studio/scene.mjs",
+    "serves JavaScript module: space-studio/viewer.mjs",
+    "serves JavaScript module: space-studio/controller.mjs",
+    "serves JavaScript module: space-studio/app-integration.mjs",
+    "serves JavaScript module: vendor/three.module.min.js",
+    "serves JavaScript module: vendor/addons/GLTFLoader.js",
+    "standalone real-scene viewer is served",
+    "original TAM19 GLB is available locally",
+    "locked Vault rejects fleet read explicitly instead of a server error",
+    "unlocked isolated Vault returns the real fleet projection"
+  ],
+  "count": 17,
+  "fleetRoute": {
+    "lockedStatus": 423,
+    "unlockedStatus": 200,
+    "bots": 0
+  },
+  "scope": "actual HTTP routes; no graphics rendering and no user data accessed"
+}

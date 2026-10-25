@@ -1,0 +1,89 @@
+{
+  "scope": "R8 isolated UI+HTTP audit. Real application HTTP, Git, FFmpeg and audio output.\nSynthetic AI/cloud contracts. Vietnamese audio comes from system eSpeak through\nan explicitly labelled Piper-compatible TEST adapter, NOT a neural Piper model.\nBrowser runs shipped HTML/JS in memory because local navigation can be blocked by\nplatform policy. Production CSP is applied after loading scripts; inline-handler\nblocking and delegated clicks are exercised, not network script delivery/WebGL.",
+  "checks": [
+    {
+      "name": "csp_source_intake",
+      "status": "pass",
+      "detail": "Three delegated source buttons work while an inline onclick control is blocked; actual file attachment is read into reception. No CSP relaxed."
+    },
+    {
+      "name": "radar_csp_fix",
+      "status": "pass",
+      "detail": "Radar button navigates through a delegated handler while inline JS remains blocked by production CSP."
+    },
+    {
+      "name": "idea_media_bridge",
+      "status": "pass",
+      "detail": "Uploaded real PNG through Idea Studio using authenticated HTTP and verified the same source in Media Studio."
+    },
+    {
+      "name": "multi_role_persistence",
+      "status": "pass",
+      "detail": "Two Worker and two Founder members saved through actual UI; opening editor again retains selection and distinct Reviewer."
+    },
+    {
+      "name": "connections_role_groups",
+      "status": "pass",
+      "detail": "Connections tab removes one Worker, appends another without overwriting, and re-saves Council without losing members."
+    },
+    {
+      "name": "voice_preview",
+      "status": "pass",
+      "detail": "Actual WAV from explicitly labelled eSpeak diagnostic adapter passes preview API and audio control. This is not a Piper neural-model acceptance."
+    },
+    {
+      "name": "reception_product_separation",
+      "status": "pass",
+      "detail": "Assignment/events are above results; real images selected and voice explicit before production."
+    },
+    {
+      "name": "project_isolation",
+      "status": "pass",
+      "detail": "Images/voice persist for their own project, not another project. Consent is never carried to the next project."
+    },
+    {
+      "name": "actual_narrated_video",
+      "status": "pass",
+      "detail": "Reception produced an actual H264/AAC MP4 with uploaded illustration and non-silent diagnostic speech; ffprobe/full decode/Range requests pass."
+    },
+    {
+      "name": "video_studio_controls",
+      "status": "pass",
+      "detail": "Same source/voice selection is available in Video Studio; voiced story defaults to cut, not overlapping words."
+    },
+    {
+      "name": "voice_endpoint_access",
+      "status": "pass",
+      "detail": "Preview/setup requires an authenticated local session; locking Vault denies audio access and synthesis."
+    }
+  ],
+  "pageErrors": [],
+  "voice": "eSpeak vi diagnostic via explicitly isolated Piper-compatible adapter",
+  "neuralPiperTested": false,
+  "externalCalls": "No live AI/cloud actions",
+  "webglTested": false,
+  "directBrowserNavigation": {
+    "status": "blocked",
+    "reason": "Page.goto: net::ERR_BLOCKED_BY_ADMINISTRATOR"
+  },
+  "productionCsp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+  "video": {
+    "duration": "11.648005",
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "width": 1280,
+        "height": 720
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "aac",
+        "width": null,
+        "height": null
+      }
+    ],
+    "voice": "eSpeak diagnostic, not neural Piper"
+  },
+  "status": "pass"
+}

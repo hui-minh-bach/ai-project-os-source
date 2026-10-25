@@ -1,0 +1,23 @@
+{
+  "revision": "space-studio-team-r3.0",
+  "note": "Identity of runtime sources inspected by R3 tests and preview export. Identity is not platform acceptance.",
+  "sha256": {
+    "src/lib/space-activity.mjs": "81565dc5f34979aaf6a25317b119c9456d415cb6803412e457b5476d60feaf99",
+    "src/lib/space-fleet.mjs": "e6d648c33c9b30d6c0264e167a191d050605b41529aebc8bc30ac627b368e1c9",
+    "src/lib/providers.mjs": "e974d98c36b91317183a8eb5ff43daa7e07ead81ef0bb14092e80b5127cf95cd",
+    "src/server.mjs": "c9e173a22eb1f964332644ce6e91b203d7766d219a7f043eb326d074710597d3",
+    "public/tabs/idea.html": "4c36c2e6d491a91831bc0190b48610033b9e5356d95297b54fd787e1305a77ae",
+    "public/space-studio/fleet-contract.mjs": "5debe1243727fa00fab64e9c0c5a9545f82e627c3e706c097b377da06ac1cd11",
+    "public/space-studio/controller.mjs": "ebcb4f127d64e2926297a5fafa72348b875fcbb6adffb536a23de4735d08f45f",
+    "public/space-studio/design.mjs": "4b761fa9cd422e69bc0b134ba44c901fcbb99d64249f64709937c26f97eb0e43",
+    "public/space-studio/navigation.mjs": "2d86372a87e4477267ef10437c85038a0030c363b86376ece39dbeb6c92c32b3",
+    "public/space-studio/scene.mjs": "37832dcae5c4766c24c4f80b32347d780a82a8609836f313a5b5b613c7cd632c",
+    "public/space-studio/live-motion.mjs": "ae0b6b921c059f52a415bc19eae9bf7033505c884cc0a43f80f5f7f556a5640c",
+    "public/space-studio/viewer.css": "1d973a7b2c4dd95044742b9c9b2ec853d20d78a322cf823b9e04bf74e8e5748a",
+    "public/space-studio/viewer.mjs": "cb67f4669eecb5841b95ee28447d45beda24398f828507d579e018ea5fb4a631",
+    "public/space-studio/motion.mjs": "55555dfbd20ceb387d60e1e7a989b1b52a3d459a09fe01883ac2d1c6740aa5ea",
+    "public/space-studio/fleet-feed.mjs": "35b91900a0604a0fdfc429991d17ca41ffa41df72b7cd0e300165b4965ecc72d",
+    "public/space-studio/fleet-scene.mjs": "340a0c9dc8fd643f41db9310adc6b6e8a5ec8223142efe0123b6a582a493d9ed",
+    "public/space-studio/app-integration.mjs": "f76fc026e0982134f97ccf63f0061c5a2abda687c0efd4b25ba22e54e1aecede"
+  }
+}

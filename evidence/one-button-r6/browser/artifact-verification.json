@@ -1,0 +1,14 @@
+{
+  "qrDecode": "https://fixture.vercel.app/",
+  "sourceZipIntegrity": "pass",
+  "files": [
+    ".gitignore",
+    "aios.delivery.json",
+    "app.test.mjs",
+    "index.html",
+    "package.json",
+    "README.md",
+    "style.css"
+  ],
+  "scope": "Local decoder and fixture product. No live deployment."
+}

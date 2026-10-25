@@ -1,0 +1,114 @@
+{
+  "result": "pass",
+  "scope": "real Three.js geometry, cloned TAM19 GLB, real kinematics and DOM; CPU export adapter without WebGL",
+  "browser": "144.0.7559.96",
+  "checks": [
+    {
+      "name": "Empty live scene hides the original demo robot and has no fake account",
+      "result": "pass"
+    },
+    {
+      "name": "Approved workstation/chair count and geometry mode are explicit",
+      "result": "pass"
+    },
+    {
+      "name": "Twelve real-ID fixture accounts produce twelve independent GLB roots",
+      "result": "pass"
+    },
+    {
+      "name": "Clone head joints and material ownership are independent/shared as intended",
+      "result": "pass"
+    },
+    {
+      "name": "All twelve labels have finite projected coordinates and reach DOM",
+      "result": "pass"
+    },
+    {
+      "name": "Name anchors stay aligned after close view and hero camera round trip",
+      "result": "pass"
+    },
+    {
+      "name": "Rename keeps actual model instance; deleted accounts and tags disappear",
+      "result": "pass"
+    },
+    {
+      "name": "Account names are plain text, not executable markup",
+      "result": "pass"
+    },
+    {
+      "name": "Name click selects real avatar and opens detail with role",
+      "result": "pass"
+    },
+    {
+      "name": "Mild brightness change is bounded and written to storage adapter (mocked in this browser)",
+      "result": "pass"
+    },
+    {
+      "name": "Motion pause does not mark the actual worker idle",
+      "result": "pass"
+    },
+    {
+      "name": "Stale data freezes poses and removes working animation",
+      "result": "pass"
+    },
+    {
+      "name": "Demo is separated and does not erase live roster",
+      "result": "pass"
+    },
+    {
+      "name": "Completion actually stands, returns the chair and releases reservation",
+      "result": "pass"
+    },
+    {
+      "name": "Actual cloned GLB walks/pulls/sits without root teleport and contact remains bounded",
+      "result": "pass"
+    },
+    {
+      "name": "Resize keeps valid camera and responsive names",
+      "result": "pass"
+    },
+    {
+      "name": "Hidden demo meshes are excluded from exported visible geometry",
+      "result": "pass"
+    },
+    {
+      "name": "Dispose removes canvas and UI cycle 0",
+      "result": "pass"
+    },
+    {
+      "name": "Dispose removes canvas and UI cycle 1",
+      "result": "pass"
+    },
+    {
+      "name": "Dispose removes canvas and UI cycle 2",
+      "result": "pass"
+    },
+    {
+      "name": "Missing/corrupt GLB gives honest model warning, not placeholder robot",
+      "result": "pass"
+    }
+  ],
+  "count": 21,
+  "egressMetrics": {
+    "hand": 9.38881321331955e-16,
+    "limb": 4.682870926697724e-06,
+    "seat": 1.601246289045788e-05,
+    "phases": [
+      "seated",
+      "exiting",
+      "depart",
+      "travel",
+      "standby"
+    ],
+    "end": "standby"
+  },
+  "ingressMetrics": {
+    "maxHand": 5.933666324187346e-06,
+    "maxStep": 0.03813166426242631,
+    "phase": "seated"
+  },
+  "pageErrors": [],
+  "localStorageBackend": "in-memory test adapter; network navigation blocked by browser policy",
+  "windowsTested": false,
+  "webglRendered": false
+}

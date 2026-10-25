@@ -1,0 +1,1049 @@
+TAP version 13
+# Subtest: R3 roster has no placeholder or fake account for empty input
+ok 1 - R3 roster has no placeholder or fake account for empty input
+  ---
+  duration_ms: 2.0148
+  type: 'test'
+  ...
+# Subtest: R3 roster identity is connectionId, not repeated label or provider
+ok 2 - R3 roster identity is connectionId, not repeated label or provider
+  ---
+  duration_ms: 0.282367
+  type: 'test'
+  ...
+# Subtest: R3 does not inherit legacy ten-account limit
+ok 3 - R3 does not inherit legacy ten-account limit
+  ---
+  duration_ms: 0.37958
+  type: 'test'
+  ...
+# Subtest: R3 filters non-AI integrations and duplicate IDs
+ok 4 - R3 filters non-AI integrations and duplicate IDs
+  ---
+  duration_ms: 0.307633
+  type: 'test'
+  ...
+# Subtest: R3 models multiple roles without multiplying robots
+ok 5 - R3 models multiple roles without multiplying robots
+  ---
+  duration_ms: 0.216959
+  type: 'test'
+  ...
+# Subtest: R3 true task coding uses frozen account not later project assignment
+ok 6 - R3 true task coding uses frozen account not later project assignment
+  ---
+  duration_ms: 0.312971
+  type: 'test'
+  ...
+# Subtest: R3 actual review belongs to reviewer, not worker
+ok 7 - R3 actual review belongs to reviewer, not worker
+  ---
+  duration_ms: 0.274374
+  type: 'test'
+  ...
+# Subtest: R3 test runner is not reported as typing AI
+ok 8 - R3 test runner is not reported as typing AI
+  ---
+  duration_ms: 0.142701
+  type: 'test'
+  ...
+# Subtest: R3 observed fallback call belongs to the actual account
+ok 9 - R3 observed fallback call belongs to the actual account
+  ---
+  duration_ms: 0.378248
+  type: 'test'
+  ...
+# Subtest: R3 concurrent calls are aggregated per account
+ok 10 - R3 concurrent calls are aggregated per account
+  ---
+  duration_ms: 0.600184
+  type: 'test'
+  ...
+# Subtest: R3 council pending members do not claim active work
+ok 11 - R3 council pending members do not claim active work
+  ---
+  duration_ms: 0.310978
+  type: 'test'
+  ...
+# Subtest: R3 account cooldown and offline remain explicit
+ok 12 - R3 account cooldown and offline remain explicit
+  ---
+  duration_ms: 0.143702
+  type: 'test'
+  ...
+# Subtest: R3 active observed request wins over stale cooldown advisory
+ok 13 - R3 active observed request wins over stale cooldown advisory
+  ---
+  duration_ms: 0.130553
+  type: 'test'
+  ...
+# Subtest: R3 simulated pipelines never make real accounts work
+ok 14 - R3 simulated pipelines never make real accounts work
+  ---
+  duration_ms: 0.111124
+  type: 'test'
+  ...
+# Subtest: R3 unassigned pipelines are not attributed to arbitrary accounts
+ok 15 - R3 unassigned pipelines are not attributed to arbitrary accounts
+  ---
+  duration_ms: 0.119807
+  type: 'test'
+  ...
+# Subtest: R3 render pipeline waits at its assigned account but never claims provider activity
+ok 16 - R3 render pipeline waits at its assigned account but never claims provider activity
+  ---
+  duration_ms: 0.126537
+  type: 'test'
+  ...
+# Subtest: R3 recent task completion is temporary and most recent outcome wins
+ok 17 - R3 recent task completion is temporary and most recent outcome wins
+  ---
+  duration_ms: 0.218171
+  type: 'test'
+  ...
+# Subtest: R3 projection excludes credentials, prompts and raw responses
+ok 18 - R3 projection excludes credentials, prompts and raw responses
+  ---
+  duration_ms: 0.171032
+  type: 'test'
+  ...
+# Subtest: R3 projection and normalization never mutate input objects
+ok 19 - R3 projection and normalization never mutate input objects
+  ---
+  duration_ms: 0.485887
+  type: 'test'
+  ...
+# Subtest: R3 client rejects malformed snapshots and sanitizes fields without treating HTML as markup
+ok 20 - R3 client rejects malformed snapshots and sanitizes fields without treating HTML as markup
+  ---
+  duration_ms: 0.258121
+  type: 'test'
+  ...
+# Subtest: R3 observation preserves returned object identity and error identity
+ok 21 - R3 observation preserves returned object identity and error identity
+  ---
+  duration_ms: 0.952935
+  type: 'test'
+  ...
+# Subtest: R3 observation captures in-flight actual connection and clears on completion
+ok 22 - R3 observation captures in-flight actual connection and clears on completion
+  ---
+  duration_ms: 0.307053
+  type: 'test'
+  ...
+# Subtest: R7 rendered media remains with the served fallback account, not the failed primary
+ok 23 - R7 rendered media remains with the served fallback account, not the failed primary
+  ---
+  duration_ms: 0.170121
+  type: 'test'
+  ...
+# Subtest: R3 full HTTP roster authenticates, follows accounts/tasks, excludes secrets and never calls providers
+    # Subtest: new fleet API rejects missing session
+    ok 1 - new fleet API rejects missing session
+      ---
+      duration_ms: 3.334815
+      type: 'test'
+      ...
+    # Subtest: locked Vault hides roster
+    ok 2 - locked Vault hides roster
+      ---
+      duration_ms: 2.750925
+      type: 'test'
+      ...
+    # Subtest: every AI account including more than ten is visible; integrations excluded
+    ok 3 - every AI account including more than ten is visible; integrations excluded
+      ---
+      duration_ms: 25.435953
+      type: 'test'
+      ...
+    # Subtest: read-only repeated polling does not mutate Vault, projects, model catalog
+    ok 4 - read-only repeated polling does not mutate Vault, projects, model catalog
+      ---
+      duration_ms: 54.957727
+      type: 'test'
+      ...
+    # Subtest: connection rename keeps same robot ID; markup remains plain data
+    ok 5 - connection rename keeps same robot ID; markup remains plain data
+      ---
+      duration_ms: 95.965335
+      type: 'test'
+      ...
+    # Subtest: actual task and review state is read without starting a new job
+    ok 6 - actual task and review state is read without starting a new job
+      ---
+      duration_ms: 15.794759
+      type: 'test'
+      ...
+    # Subtest: task titles are redacted against the unlocked Vault
+    ok 7 - task titles are redacted against the unlocked Vault
+      ---
+      duration_ms: 8.459162
+      type: 'test'
+      ...
+    # Subtest: account deletion removes exactly that robot
+    ok 8 - account deletion removes exactly that robot
+      ---
+      duration_ms: 105.473188
+      type: 'test'
+      ...
+    # Subtest: new fleet modules and original robot are served with correct MIME types
+    ok 9 - new fleet modules and original robot are served with correct MIME types
+      ---
+      duration_ms: 40.250121
+      type: 'test'
+      ...
+    # Subtest: locking again revokes roster visibility
+    ok 10 - locking again revokes roster visibility
+      ---
+      duration_ms: 2.619912
+      type: 'test'
+      ...
+    1..10
+ok 24 - R3 full HTTP roster authenticates, follows accounts/tasks, excludes secrets and never calls providers
+  ---
+  duration_ms: 2079.621195
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle rejects missing mount function
+ok 25 - R2 lifecycle rejects missing mount function
+  ---
+  duration_ms: 1.021315
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle joins concurrent opens and owns exactly one scene
+ok 26 - R2 lifecycle joins concurrent opens and owns exactly one scene
+  ---
+  duration_ms: 1.389347
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle disposes a GLB scene that resolves after navigation away
+ok 27 - R2 lifecycle disposes a GLB scene that resolves after navigation away
+  ---
+  duration_ms: 0.265531
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle can reopen after cancellation without keeping the stale scene
+ok 28 - R2 lifecycle can reopen after cancellation without keeping the stale scene
+  ---
+  duration_ms: 0.259162
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle shows an error and permits explicit retry
+ok 29 - R2 lifecycle shows an error and permits explicit retry
+  ---
+  duration_ms: 0.384567
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle visibility is forwarded only to the mounted instance
+ok 30 - R2 lifecycle visibility is forwarded only to the mounted instance
+  ---
+  duration_ms: 0.738909
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle synchronous renderer construction failure clears pending
+ok 31 - R2 lifecycle synchronous renderer construction failure clears pending
+  ---
+  duration_ms: 0.216229
+  type: 'test'
+  ...
+# Subtest: R2 lifecycle concurrent GPU failure is not an infinite automatic retry
+ok 32 - R2 lifecycle concurrent GPU failure is not an infinite automatic retry
+  ---
+  duration_ms: 0.236048
+  type: 'test'
+  ...
+# Subtest: R3 empty live room has no demonstration robot
+ok 33 - R3 empty live room has no demonstration robot
+  ---
+  duration_ms: 2.458183
+  type: 'test'
+  ...
+# Subtest: R3 initial accounts get distinct seats and no fake typing
+ok 34 - R3 initial accounts get distinct seats and no fake typing
+  ---
+  duration_ms: 2.444853
+  type: 'test'
+  ...
+# Subtest: R3 same ID retains seat through rename and roster reordering
+ok 35 - R3 same ID retains seat through rename and roster reordering
+  ---
+  duration_ms: 1.190915
+  type: 'test'
+  ...
+# Subtest: R3 simultaneous real jobs type independently, render jobs do not
+ok 36 - R3 simultaneous real jobs type independently, render jobs do not
+  ---
+  duration_ms: 2.48332
+  type: 'test'
+  ...
+# Subtest: R3 more accounts than desks remain represented, with unique seats
+ok 37 - R3 more accounts than desks remain represented, with unique seats
+  ---
+  duration_ms: 1.112009
+  type: 'test'
+  ...
+# Subtest: R3 quota and disconnected accounts do not hydrate at work seats
+ok 38 - R3 quota and disconnected accounts do not hydrate at work seats
+  ---
+  duration_ms: 0.405698
+  type: 'test'
+  ...
+# Subtest: R3 stale feed immediately stops typing and freezes traversal
+ok 39 - R3 stale feed immediately stops typing and freezes traversal
+  ---
+  duration_ms: 1.543976
+  type: 'test'
+  ...
+# Subtest: R3 visual pause does not overwrite task status
+ok 40 - R3 visual pause does not overwrite task status
+  ---
+  duration_ms: 3.066509
+  type: 'test'
+  ...
+# Subtest: R3 deleted account immediately releases chair and removes avatar
+ok 41 - R3 deleted account immediately releases chair and removes avatar
+  ---
+  duration_ms: 0.703938
+  type: 'test'
+  ...
+# Subtest: R3 completion exits chair and returns to holding area
+ok 42 - R3 completion exits chair and returns to holding area
+  ---
+  duration_ms: 16.968748
+  type: 'test'
+  ...
+# Subtest: R3 account receives work at holding area, walks and sits without a teleport
+ok 43 - R3 account receives work at holding area, walks and sits without a teleport
+  ---
+  duration_ms: 30.467353
+  type: 'test'
+  ...
+# Subtest: R3 task ending during ingress does not jump through chair
+ok 44 - R3 task ending during ingress does not jump through chair
+  ---
+  duration_ms: 29.2512
+  type: 'test'
+  ...
+# Subtest: R3 entering/leaving robots keep exclusive aisle ownership
+ok 45 - R3 entering/leaving robots keep exclusive aisle ownership
+  ---
+  duration_ms: 41.319868
+  type: 'test'
+  ...
+# Subtest: R3 compact sitting motion preserves exact pelvis/chair alignment
+ok 46 - R3 compact sitting motion preserves exact pelvis/chair alignment
+  ---
+  duration_ms: 0.85503
+  type: 'test'
+  ...
+# Subtest: R3 compact chair pull stays clear of following row wall
+ok 47 - R3 compact chair pull stays clear of following row wall
+  ---
+  duration_ms: 8.665852
+  type: 'test'
+  ...
+# Subtest: R3 nav routes each holding position to all original workstations
+ok 48 - R3 nav routes each holding position to all original workstations
+  ---
+  duration_ms: 355.702709
+  type: 'test'
+  ...
+# Subtest: R3 nav refuses nonfinite / table / outside goals instead of teleporting
+ok 49 - R3 nav refuses nonfinite / table / outside goals instead of teleporting
+  ---
+  duration_ms: 0.281525
+  type: 'test'
+  ...
+# Subtest: R3 navigation detours around a stationary avatar
+ok 50 - R3 navigation detours around a stationary avatar
+  ---
+  duration_ms: 2.163299
+  type: 'test'
+  ...
+# Subtest: R2 world: nine distinct metre-scale stations and feasible desk/chair heights
+ok 51 - R2 world: nine distinct metre-scale stations and feasible desk/chair heights
+  ---
+  duration_ms: 0.908399
+  type: 'test'
+  ...
+# Subtest: R2 phases: continuous coverage, all contact actions, no missing timeline
+ok 52 - R2 phases: continuous coverage, all contact actions, no missing timeline
+  ---
+  duration_ms: 0.788713
+  type: 'test'
+  ...
+# Subtest: R2 motion clamps invalid time and never produces NaN
+ok 53 - R2 motion clamps invalid time and never produces NaN
+  ---
+  duration_ms: 0.279532
+  type: 'test'
+  ...
+# Subtest: R2 3001 poses: chair bounds, floor contact and finite transforms
+ok 54 - R2 3001 poses: chair bounds, floor contact and finite transforms
+  ---
+  duration_ms: 30.396128
+  type: 'test'
+  ...
+# Subtest: R2 pelvis follows the chair during full seated contact
+ok 55 - R2 pelvis follows the chair during full seated contact
+  ---
+  duration_ms: 3.483274
+  type: 'test'
+  ...
+# Subtest: R2 chair moves only with a grip or seated robot; finishes home
+ok 56 - R2 chair moves only with a grip or seated robot; finishes home
+  ---
+  duration_ms: 16.097765
+  type: 'test'
+  ...
+# Subtest: R2 transitions preserve position and chair/pelvis continuity
+ok 57 - R2 transitions preserve position and chair/pelvis continuity
+  ---
+  duration_ms: 0.37954
+  type: 'test'
+  ...
+# Subtest: R2 gait: stance foot is world-anchored away from blend edges
+ok 58 - R2 gait: stance foot is world-anchored away from blend edges
+  ---
+  duration_ms: 3.616079
+  type: 'test'
+  ...
+# Subtest: R2 IK: reachable endpoints preserve both limb lengths
+ok 59 - R2 IK: reachable endpoints preserve both limb lengths
+  ---
+  duration_ms: 0.536551
+  type: 'test'
+  ...
+# Subtest: R2 IK: out-of-reach is bounded and explicitly reports residual
+ok 60 - R2 IK: out-of-reach is bounded and explicitly reports residual
+  ---
+  duration_ms: 0.392648
+  type: 'test'
+  ...
+# Subtest: R2 IK: coincident points and parallel pole do not break the solve
+ok 61 - R2 IK: coincident points and parallel pole do not break the solve
+  ---
+  duration_ms: 0.20377
+  type: 'test'
+  ...
+# Subtest: R2 IK rejects invalid vectors and nonpositive lengths
+ok 62 - R2 IK rejects invalid vectors and nonpositive lengths
+  ---
+  duration_ms: 0.419678
+  type: 'test'
+  ...
+# Subtest: speech grouping merges close windows and splits on gaps, size and span
+ok 63 - speech grouping merges close windows and splits on gaps, size and span
+  ---
+  duration_ms: 1.427234
+  type: 'test'
+  ...
+# Subtest: dub and retheme share the smooth assembly: grouped TTS, gentler tempo, fades, room tone
+ok 64 - dub and retheme share the smooth assembly: grouped TTS, gentler tempo, fades, room tone
+  ---
+  duration_ms: 0.660754
+  type: 'test'
+  ...
+# Subtest: all tab fragments have balanced div/section tags
+ok 65 - all tab fragments have balanced div/section tags
+  ---
+  duration_ms: 3.036166
+  type: 'test'
+  ...
+# Subtest: task APIs validate enums, bindings, dependency graph and archive real state
+ok 66 - task APIs validate enums, bindings, dependency graph and archive real state
+  ---
+  duration_ms: 213.784089
+  type: 'test'
+  ...
+# Subtest: plaintext legacy spec and mismatched plan/task specification never start a worktree
+ok 67 - plaintext legacy spec and mismatched plan/task specification never start a worktree
+  ---
+  duration_ms: 193.266288
+  type: 'test'
+  ...
+# Subtest: bindings freeze before first Worker await; repair retains both reviews/logs and final commit HEAD
+ok 68 - bindings freeze before first Worker await; repair retains both reviews/logs and final commit HEAD
+  ---
+  duration_ms: 640.558113
+  type: 'test'
+  ...
+# Subtest: brief change during deferred worker marks stale and cleans branch without merging
+ok 69 - brief change during deferred worker marks stale and cleans branch without merging
+  ---
+  duration_ms: 318.410709
+  type: 'test'
+  ...
+# Subtest: brief change during deferred reviewer marks stale and cleans branch without merging
+ok 70 - brief change during deferred reviewer marks stale and cleans branch without merging
+  ---
+  duration_ms: 419.803894
+  type: 'test'
+  ...
+# Subtest: replanning refuses active tasks before request and after deferred PM response
+ok 71 - replanning refuses active tasks before request and after deferred PM response
+  ---
+  duration_ms: 461.47465
+  type: 'test'
+  ...
+# Subtest: Safe command block and missing test script cannot become PASS from Worker summary
+ok 72 - Safe command block and missing test script cannot become PASS from Worker summary
+  ---
+  duration_ms: 473.655453
+  type: 'test'
+  ...
+# Subtest: review disabled is SKIPPED/null rather than a fabricated approval
+ok 73 - review disabled is SKIPPED/null rather than a fabricated approval
+  ---
+  duration_ms: 411.150276
+  type: 'test'
+  ...
+# Subtest: trusted npm receipts record actual pass, failure, timeout, Safe block and absent test
+ok 74 - trusted npm receipts record actual pass, failure, timeout, Safe block and absent test
+  ---
+  duration_ms: 341.678351
+  type: 'test'
+  ...
+# Subtest: failed runtime test blocks merge even when model Reviewer says approved
+ok 75 - failed runtime test blocks merge even when model Reviewer says approved
+  ---
+  duration_ms: 540.230459
+  type: 'test'
+  ...
+# Subtest: parallel budget enforces two active isolated workers before third run
+ok 76 - parallel budget enforces two active isolated workers before third run
+  ---
+  duration_ms: 642.949463
+  type: 'test'
+  ...
+# Subtest: post-merge stale check restores pre-merge HEAD and logs actual rollback
+ok 77 - post-merge stale check restores pre-merge HEAD and logs actual rollback
+  ---
+  duration_ms: 1535.859978
+  type: 'test'
+  ...
+# Subtest: post-merge stale check retains branch and unknown main when rollback fails
+ok 78 - post-merge stale check retains branch and unknown main when rollback fails
+  ---
+  duration_ms: 1563.782499
+  type: 'test'
+  ...
+# Subtest: native safeResolve blocks dangling symlinks, sensitive paths and dependency directory
+ok 79 - native safeResolve blocks dangling symlinks, sensitive paths and dependency directory
+  ---
+  duration_ms: 2.375681
+  type: 'test'
+  ...
+# Subtest: npm receipt and external trajectory redact captured credentials after Vault lock
+ok 80 - npm receipt and external trajectory redact captured credentials after Vault lock
+  ---
+  duration_ms: 778.135799
+  type: 'test'
+  ...
+# Subtest: version compare
+ok 81 - version compare
+  ---
+  duration_ms: 5.484072
+  type: 'test'
+  ...
+# Subtest: manifest signature: valid passes, tampered rejected
+ok 82 - manifest signature: valid passes, tampered rejected
+  ---
+  duration_ms: 2.207854
+  type: 'test'
+  ...
+# Subtest: zip roundtrip + traversal guard
+ok 83 - zip roundtrip + traversal guard
+  ---
+  duration_ms: 3.937984
+  type: 'test'
+  ...
+# Subtest: updater: check finds signed update, download stages a verified zip
+ok 84 - updater: check finds signed update, download stages a verified zip
+  ---
+  duration_ms: 43.906224
+  type: 'test'
+  ...
+# Subtest: apply: updates + adds files with backup; corrupt staged zip rolls back cleanly
+ok 85 - apply: updates + adds files with backup; corrupt staged zip rolls back cleanly
+  ---
+  duration_ms: 12.274371
+  type: 'test'
+  ...
+# Subtest: task worktree merges reviewed branch without editing main early
+ok 86 - task worktree merges reviewed branch without editing main early
+  ---
+  duration_ms: 158.750593
+  type: 'test'
+  ...
+# Subtest: generated Supabase password is strong enough for provisioning
+ok 87 - generated Supabase password is strong enough for provisioning
+  ---
+  duration_ms: 0.942209
+  type: 'test'
+  ...
+# Subtest: only native and mini-swe are marked full task execution engines
+ok 88 - only native and mini-swe are marked full task execution engines
+  ---
+  duration_ms: 0.797335
+  type: 'test'
+  ...
+# Subtest: mock OpenAI + Gemini + Claude complete council and two parallel tasks stably
+ok 89 - mock OpenAI + Gemini + Claude complete council and two parallel tasks stably
+  ---
+  duration_ms: 1362.592803
+  type: 'test'
+  ...
+# Subtest: review rejection rolls back branch and batch reports not-ok
+ok 90 - review rejection rolls back branch and batch reports not-ok
+  ---
+  duration_ms: 863.067374
+  type: 'test'
+  ...
+# Subtest: parallel agents editing the same file produce a safe merge-conflict instead of corrupting main
+ok 91 - parallel agents editing the same file produce a safe merge-conflict instead of corrupting main
+  ---
+  duration_ms: 722.085296
+  type: 'test'
+  ...
+# Subtest: CLI quick-connects and Supabase attach work with simulated gh/vercel/supabase sessions
+ok 92 - CLI quick-connects and Supabase attach work with simulated gh/vercel/supabase sessions
+  ---
+  duration_ms: 469.008763
+  type: 'test'
+  ...
+# Subtest: mini-SWE adapter passes provider credential to a simulated mini runtime without exposing it in task output
+ok 93 - mini-SWE adapter passes provider credential to a simulated mini runtime without exposing it in task output
+  ---
+  duration_ms: 187.516887
+  type: 'test'
+  ...
+# Subtest: reviewer string "false" never approves a task
+ok 94 - reviewer string "false" never approves a task
+  ---
+  duration_ms: 215.692546
+  type: 'test'
+  ...
+# Subtest: plan normalization prevents AI from overriding id/status/engine fields
+ok 95 - plan normalization prevents AI from overriding id/status/engine fields
+  ---
+  duration_ms: 212.895925
+  type: 'test'
+  ...
+# Subtest: plan rejects forward or unknown dependencies
+ok 96 - plan rejects forward or unknown dependencies
+  ---
+  duration_ms: 223.328713
+  type: 'test'
+  ...
+# Subtest: workspace blocks symlink escape and snapshot skips symlink content
+ok 97 - workspace blocks symlink escape and snapshot skips symlink content
+  ---
+  duration_ms: 4.807046
+  type: 'test'
+  ...
+# Subtest: JSON store recovers previous valid generation from backup instead of returning empty
+ok 98 - JSON store recovers previous valid generation from backup instead of returning empty
+  ---
+  duration_ms: 5.686181
+  type: 'test'
+  ...
+# Subtest: vault can recover a valid backup after primary corruption
+ok 99 - vault can recover a valid backup after primary corruption
+  ---
+  duration_ms: 453.624335
+  type: 'test'
+  ...
+# Subtest: safe sandbox blocks npm command execution
+ok 100 - safe sandbox blocks npm command execution
+  ---
+  duration_ms: 0.765559
+  type: 'test'
+  ...
+# Subtest: external mini is blocked by default and does not inherit unrelated shell secrets when explicitly enabled
+ok 101 - external mini is blocked by default and does not inherit unrelated shell secrets when explicitly enabled
+  ---
+  duration_ms: 192.196532
+  type: 'test'
+  ...
+# Subtest: gitStatus redacts credentials embedded in origin URL
+ok 102 - gitStatus redacts credentials embedded in origin URL
+  ---
+  duration_ms: 20.413371
+  type: 'test'
+  ...
+# Subtest: release author uses authenticated GitHub noreply identity
+ok 103 - release author uses authenticated GitHub noreply identity
+  ---
+  duration_ms: 35.284221
+  type: 'test'
+  ...
+# Subtest: restart recovery marks active tasks interrupted and makes them rerunnable
+ok 104 - restart recovery marks active tasks interrupted and makes them rerunnable
+  ---
+  duration_ms: 24.379517
+  type: 'test'
+  ...
+# Subtest: project settings reject invalid sandbox values and default new projects to safe mode
+ok 105 - project settings reject invalid sandbox values and default new projects to safe mode
+  ---
+  duration_ms: 5.748634
+  type: 'test'
+  ...
+# Subtest: baseline never tracks .env or private key files
+ok 106 - baseline never tracks .env or private key files
+  ---
+  duration_ms: 60.142078
+  type: 'test'
+  ...
+# Subtest: security refuses a symlinked .gitignore
+ok 107 - security refuses a symlinked .gitignore
+  ---
+  duration_ms: 1.58732
+  type: 'test'
+  ...
+# Subtest: docker sandbox uses no-network, dropped capabilities and resource limits
+ok 108 - docker sandbox uses no-network, dropped capabilities and resource limits
+  ---
+  duration_ms: 5.117573
+  type: 'test'
+  ...
+# Subtest: provider rejects oversized HTTP responses before model output is accepted
+ok 109 - provider rejects oversized HTTP responses before model output is accepted
+  ---
+  duration_ms: 207.637588
+  type: 'test'
+  ...
+# Subtest: four parallel workers preserve all task states and merge four independent branches
+ok 110 - four parallel workers preserve all task states and merge four independent branches
+  ---
+  duration_ms: 1472.868564
+  type: 'test'
+  ...
+# Subtest: GitHub publish refuses same repo name under a different owner
+ok 111 - GitHub publish refuses same repo name under a different owner
+  ---
+  duration_ms: 297.795703
+  type: 'test'
+  ...
+# Subtest: no cloud key blocks synthesis, but voice import is independent
+ok 112 - no cloud key blocks synthesis, but voice import is independent
+  ---
+  duration_ms: 1.475315
+  type: 'test'
+  ...
+# Subtest: HeyGen audio URL does not allow redirects to local hosts
+ok 113 - HeyGen audio URL does not allow redirects to local hosts
+  ---
+  duration_ms: 0.334944
+  type: 'test'
+  ...
+# Subtest: HeyGen TTS adapter POSTs real endpoint and converts returned audio to PCM WAV using mock transport
+ok 114 - HeyGen TTS adapter POSTs real endpoint and converts returned audio to PCM WAV using mock transport
+  ---
+  duration_ms: 253.593681
+  type: 'test'
+  ...
+# Subtest: media.voiceover produces a full MP4 using uploaded real voice, preserving all audio, approval required
+ok 115 - media.voiceover produces a full MP4 using uploaded real voice, preserving all audio, approval required
+  ---
+  duration_ms: 1064.752883
+  type: 'test'
+  ...
+# Subtest: provider timestamps become timecoded subtitles, omitting start/end sentinels
+ok 116 - provider timestamps become timecoded subtitles, omitting start/end sentinels
+  ---
+  duration_ms: 0.761393
+  type: 'test'
+  ...
+# Subtest: uploaded real narration can mix short background music and burn SRT, with stretched video
+ok 117 - uploaded real narration can mix short background music and burn SRT, with stretched video
+  ---
+  duration_ms: 1086.485588
+  type: 'test'
+  ...
+# Subtest: media.tts-video calls HeyGen once only after approval and outputs real speech, MP4, SRT via timestamps
+ok 118 - media.tts-video calls HeyGen once only after approval and outputs real speech, MP4, SRT via timestamps
+  ---
+  duration_ms: 1264.057206
+  type: 'test'
+  ...
+# Subtest: media.tts-video blocks missing API before any billable task is created
+ok 119 - media.tts-video blocks missing API before any billable task is created
+  ---
+  duration_ms: 3.165016
+  type: 'test'
+  ...
+# Subtest: Windows discovery uses actual installed vi voices and prefers WinRT; never defaults to English
+ok 120 - Windows discovery uses actual installed vi voices and prefers WinRT; never defaults to English
+  ---
+  duration_ms: 1.868135
+  type: 'test'
+  ...
+# Subtest: Windows synthesis passes Unicode text as stdin data, validates WAV and reports exact installed voice (process fixture, not real Windows)
+ok 121 - Windows synthesis passes Unicode text as stdin data, validates WAV and reports exact installed voice (process fixture, not real Windows)
+  ---
+  duration_ms: 10.831849
+  type: 'test'
+  ...
+# Subtest: Windows failure never silently selects another engine or a paid API
+ok 122 - Windows failure never silently selects another engine or a paid API
+  ---
+  duration_ms: 1.195293
+  type: 'test'
+  ...
+# Subtest: R7 one job per project, idempotent receipt and independent projects
+ok 123 - R7 one job per project, idempotent receipt and independent projects
+  ---
+  duration_ms: 7.335705
+  type: 'test'
+  ...
+# Subtest: R7 rejects reusing a receipt key for changed input
+ok 124 - R7 rejects reusing a receipt key for changed input
+  ---
+  duration_ms: 4.298507
+  type: 'test'
+  ...
+# Subtest: R7 validation failure is visible, redacted and never executes
+ok 125 - R7 validation failure is visible, redacted and never executes
+  ---
+  duration_ms: 2.182628
+  type: 'test'
+  ...
+# Subtest: R7 restart preserves interrupted receipt without replaying external effects
+ok 126 - R7 restart preserves interrupted receipt without replaying external effects
+  ---
+  duration_ms: 1.228111
+  type: 'test'
+  ...
+# Subtest: R7 damaged receipts fail closed, no silent reset
+ok 127 - R7 damaged receipts fail closed, no silent reset
+  ---
+  duration_ms: 1.936695
+  type: 'test'
+  ...
+# Subtest: R7 closed worker refuses new tasks
+ok 128 - R7 closed worker refuses new tasks
+  ---
+  duration_ms: 0.985603
+  type: 'test'
+  ...
+# Subtest: R7 different action cannot silently share a running receipt
+ok 129 - R7 different action cannot silently share a running receipt
+  ---
+  duration_ms: 2.040949
+  type: 'test'
+  ...
+# Subtest: Worker C: launcher starts outside its installation working directory
+ok 130 - Worker C: launcher starts outside its installation working directory
+  ---
+  duration_ms: 275.977115
+  type: 'test'
+  ...
+# Subtest: Worker C: explicit occupied port refuses unsafe reuse
+ok 131 - Worker C: explicit occupied port refuses unsafe reuse
+  ---
+  duration_ms: 80.553025
+  type: 'test'
+  ...
+# Subtest: Worker C: default port collision falls back without trusting the foreign service
+ok 132 - Worker C: default port collision falls back without trusting the foreign service
+  ---
+  duration_ms: 2329.128831
+  type: 'test'
+  ...
+# Subtest: v0.8.5 launcher refuses to silently use a different port when v0.8.0 is still running
+ok 133 - v0.8.5 launcher refuses to silently use a different port when v0.8.0 is still running
+  ---
+  duration_ms: 74.046007
+  type: 'test'
+  ...
+# Subtest: R4 missing/invalid inputs fail before creating a run or project
+ok 134 - R4 missing/invalid inputs fail before creating a run or project
+  ---
+  duration_ms: 4.625403
+  type: 'test'
+  ...
+# Subtest: R4 media failure retries same run/project with persisted script and card snapshot, even after feed deletion
+ok 135 - R4 media failure retries same run/project with persisted script and card snapshot, even after feed deletion
+  ---
+  duration_ms: 10.159447
+  type: 'test'
+  ...
+# Subtest: R4 retry survives app restart and never reruns a completed media operation
+ok 136 - R4 retry survives app restart and never reruns a completed media operation
+  ---
+  duration_ms: 10.620126
+  type: 'test'
+  ...
+# Subtest: R4 unknown publication outcomes cannot be blindly replayed
+ok 137 - R4 unknown publication outcomes cannot be blindly replayed
+  ---
+  duration_ms: 5.197958
+  type: 'test'
+  ...
+# Subtest: R4 news article without approval produces one actual local draft, never publishes an undefined video
+ok 138 - R4 news article without approval produces one actual local draft, never publishes an undefined video
+  ---
+  duration_ms: 4.12885
+  type: 'test'
+  ...
+# Subtest: R4 explicit retries are bounded at three and global stop is respected
+ok 139 - R4 explicit retries are bounded at three and global stop is respected
+  ---
+  duration_ms: 9.812073
+  type: 'test'
+  ...
+# Subtest: R4 news intake requires real publication dates, topic matches and correct Vietnam date
+ok 140 - R4 news intake requires real publication dates, topic matches and correct Vietnam date
+  ---
+  duration_ms: 1.544599
+  type: 'test'
+  ...
+# Subtest: R4 missing news sources returns an honest host limitation without fabricating current news
+ok 141 - R4 missing news sources returns an honest host limitation without fabricating current news
+  ---
+  duration_ms: 0.363516
+  type: 'test'
+  ...
+# Subtest: R4 HTTP 401 switches to different provider kind with its own catalog model
+ok 142 - R4 HTTP 401 switches to different provider kind with its own catalog model
+  ---
+  duration_ms: 343.021745
+  type: 'test'
+  ...
+# Subtest: R4 HTTP 403 switches to different provider kind with its own catalog model
+ok 143 - R4 HTTP 403 switches to different provider kind with its own catalog model
+  ---
+  duration_ms: 301.276552
+  type: 'test'
+  ...
+# Subtest: R4 HTTP 408 switches to different provider kind with its own catalog model
+ok 144 - R4 HTTP 408 switches to different provider kind with its own catalog model
+  ---
+  duration_ms: 307.142344
+  type: 'test'
+  ...
+# Subtest: R4 HTTP 429 switches to different provider kind with its own catalog model
+ok 145 - R4 HTTP 429 switches to different provider kind with its own catalog model
+  ---
+  duration_ms: 288.809001
+  type: 'test'
+  ...
+# Subtest: R4 HTTP 500 switches to different provider kind with its own catalog model
+ok 146 - R4 HTTP 500 switches to different provider kind with its own catalog model
+  ---
+  duration_ms: 288.661193
+  type: 'test'
+  ...
+# Subtest: R4 HTTP 503 switches to different provider kind with its own catalog model
+ok 147 - R4 HTTP 503 switches to different provider kind with its own catalog model
+  ---
+  duration_ms: 283.497446
+  type: 'test'
+  ...
+# Subtest: R4 connection reset/refusal, text-only mismatch and unknown failures are categorized conservatively
+ok 148 - R4 connection reset/refusal, text-only mismatch and unknown failures are categorized conservatively
+  ---
+  duration_ms: 103.607357
+  type: 'test'
+  ...
+# Subtest: R4 provider timeout is aborted and B can answer without an indefinite wait
+ok 149 - R4 provider timeout is aborted and B can answer without an indefinite wait
+  ---
+  duration_ms: 382.367772
+  type: 'test'
+  ...
+# Subtest: R4 empty and invalid JSON output hands off before host tools execute
+ok 150 - R4 empty and invalid JSON output hands off before host tools execute
+  ---
+  duration_ms: 331.621034
+  type: 'test'
+  ...
+# Subtest: R4 all candidates failing stops at the budget, preserves input and never reports completed
+ok 151 - R4 all candidates failing stops at the budget, preserves input and never reports completed
+  ---
+  duration_ms: 392.557615
+  type: 'test'
+  ...
+# Subtest: R4 cooling primary is skipped on subsequent requests; secondary receives same new prompt
+ok 152 - R4 cooling primary is skipped on subsequent requests; secondary receives same new prompt
+  ---
+  duration_ms: 313.697286
+  type: 'test'
+  ...
+# Subtest: R4 policy refusal cannot be evaded by changing provider
+ok 153 - R4 policy refusal cannot be evaded by changing provider
+  ---
+  duration_ms: 288.503217
+  type: 'test'
+  ...
+# Subtest: R4 explicit cancellation never hands off to another account
+ok 154 - R4 explicit cancellation never hands off to another account
+  ---
+  duration_ms: 276.663755
+  type: 'test'
+  ...
+# Subtest: R4 disabling automatic failover calls only the selected account
+ok 155 - R4 disabling automatic failover calls only the selected account
+  ---
+  duration_ms: 294.574637
+  type: 'test'
+  ...
+# Subtest: R4 project-only routing cannot use an unrelated connected account
+ok 156 - R4 project-only routing cannot use an unrelated connected account
+  ---
+  duration_ms: 314.333264
+  type: 'test'
+  ...
+# Subtest: R4 a failed chat can be retried using the same message id without duplicating the logical job
+ok 157 - R4 a failed chat can be retried using the same message id without duplicating the logical job
+  ---
+  duration_ms: 230.2569
+  type: 'test'
+  ...
+# Subtest: R4 actual isolated Git task: A writes once, fails, B reads retained history and completes; independent C reviews
+ok 158 - R4 actual isolated Git task: A writes once, fails, B reads retained history and completes; independent C reviews
+  ---
+  duration_ms: 722.495026
+  type: 'test'
+  ...
+# Subtest: R4 dependency-wave batch starts T2 after T1 completes, without a second click
+ok 159 - R4 dependency-wave batch starts T2 after T1 completes, without a second click
+  ---
+  duration_ms: 792.204057
+  type: 'test'
+  ...
+# Subtest: R4 true intake runs Founder and Council, then holds for user specification approval; after approval it executes tasks
+ok 160 - R4 true intake runs Founder and Council, then holds for user specification approval; after approval it executes tasks
+  ---
+  duration_ms: 582.180423
+  type: 'test'
+  ...
+# Subtest: R4 repeated project calls after primary HTTP401 preserve its catalog for routing, never claim it verified, and continue on B
+ok 161 - R4 repeated project calls after primary HTTP401 preserve its catalog for routing, never claim it verified, and continue on B
+  ---
+  duration_ms: 307.851645
+  type: 'test'
+  ...
+# Subtest: R4 original provider HTTP401 cannot prevent later planning, worker and reviewer stages from using valid backups
+ok 162 - R4 original provider HTTP401 cannot prevent later planning, worker and reviewer stages from using valid backups
+  ---
+  duration_ms: 679.596639
+  type: 'test'
+  ...
+# Subtest: R4 implicit reviewer failover excludes every model on the worker account; explicit original reviewer remains an owner choice
+ok 163 - R4 implicit reviewer failover excludes every model on the worker account; explicit original reviewer remains an owner choice
+  ---
+  duration_ms: 352.398598
+  type: 'test'
+  ...
+1..163
+# tests 173
+# suites 0
+# pass 173
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42549.014441

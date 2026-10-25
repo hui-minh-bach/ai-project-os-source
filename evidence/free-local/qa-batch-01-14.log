@@ -1,0 +1,322 @@
+TAP version 13
+# Subtest: quota detection and reset parsing stay conservative
+ok 1 - quota detection and reset parsing stay conservative
+  ---
+  duration_ms: 26.820074
+  type: 'test'
+  ...
+# Subtest: ask() fails over to the next pooled account on quota and skips the cooling account afterwards
+ok 2 - ask() fails over to the next pooled account on quota and skips the cooling account afterwards
+  ---
+  duration_ms: 2315.416179
+  type: 'test'
+  ...
+# Subtest: non-quota errors do not burn the other pooled accounts
+ok 3 - non-quota errors do not burn the other pooled accounts
+  ---
+  duration_ms: 306.430393
+  type: 'test'
+  ...
+# Subtest: all four provider protocols capture real input/output/cache, concurrent accounts, missing usage and empty text before validation
+ok 4 - all four provider protocols capture real input/output/cache, concurrent accounts, missing usage and empty text before validation
+  ---
+  duration_ms: 913.599862
+  type: 'test'
+  ...
+# Subtest: retry success and duplicate completion count once; absent and malformed counters remain unknown
+ok 5 - retry success and duplicate completion count once; absent and malformed counters remain unknown
+  ---
+  duration_ms: 512.3837
+  type: 'test'
+  ...
+# Subtest: managed account profile lifecycle uses isolated stdio, real windows contract, cancel/logout/lock and launcher safety
+ok 6 - managed account profile lifecycle uses isolated stdio, real windows contract, cancel/logout/lock and launcher safety
+  ---
+  duration_ms: 699.471601
+  type: 'test'
+  ...
+# Subtest: stdio refuses server tools, bounds timeout, and never forwards provider error secrets
+ok 7 - stdio refuses server tools, bounds timeout, and never forwards provider error secrets
+  ---
+  duration_ms: 2030.900042
+  type: 'test'
+  ...
+# Subtest: account inference binds from the catalog without a prior probe (0.9.55) and reaches Founder/native Worker/Reviewer; token events dedupe and unsafe/failed/locked turns fail closed
+ok 8 - account inference binds from the catalog without a prior probe (0.9.55) and reaches Founder/native Worker/Reviewer; token events dedupe and unsafe/failed/locked turns fail closed
+  ---
+  duration_ms: 1379.143113
+  type: 'test'
+  ...
+# Subtest: account catalogue removal and per-model verification age remain fail closed; metric coverage is explicit
+ok 9 - account catalogue removal and per-model verification age remain fail closed; metric coverage is explicit
+  ---
+  duration_ms: 195.250893
+  type: 'test'
+  ...
+# Subtest: stdio preserves Vietnamese and emoji split across bytes in response and notification lines
+ok 10 - stdio preserves Vietnamese and emoji split across bytes in response and notification lines
+  ---
+  duration_ms: 482.328209
+  type: 'test'
+  ...
+# Subtest: Antigravity login is official, checks real model catalog, rejects tools, reuses user data across application replacement
+ok 11 - Antigravity login is official, checks real model catalog, rejects tools, reuses user data across application replacement
+  ---
+  duration_ms: 793.910208
+  type: 'test'
+  ...
+# Subtest: Antigravity models: JSON envelope catalog is still accepted and unsafe ids are filtered
+ok 12 - Antigravity models: JSON envelope catalog is still accepted and unsafe ids are filtered
+  ---
+  duration_ms: 424.453523
+  type: 'test'
+  ...
+# Subtest: Antigravity models: a CLI failure surfaces the CLI’s own words, not a generic login blame
+ok 13 - Antigravity models: a CLI failure surfaces the CLI’s own words, not a generic login blame
+  ---
+  duration_ms: 415.400674
+  type: 'test'
+  ...
+# Subtest: Antigravity verify: an ask failure surfaces the CLI stderr
+ok 14 - Antigravity verify: an ask failure surfaces the CLI stderr
+  ---
+  duration_ms: 475.984289
+  type: 'test'
+  ...
+# Subtest: WinGet one-click uses only signed package-manager commands, no shell, never runs on other OS
+ok 15 - WinGet one-click uses only signed package-manager commands, no shell, never runs on other OS
+  ---
+  duration_ms: 1.169104
+  type: 'test'
+  ...
+# Subtest: Windows launcher checks per-user Google and winget locations after process PATH update
+ok 16 - Windows launcher checks per-user Google and winget locations after process PATH update
+  ---
+  duration_ms: 1.507402
+  type: 'test'
+  ...
+# Subtest: shell supports private prompt over stdin with no command-line secrets
+ok 17 - shell supports private prompt over stdin with no command-line secrets
+  ---
+  duration_ms: 29.472479
+  type: 'test'
+  ...
+# Subtest: Media Studio uses a CapCut-style shell without losing any existing panel or mode
+ok 18 - Media Studio uses a CapCut-style shell without losing any existing panel or mode
+  ---
+  duration_ms: 0.89558
+  type: 'test'
+  ...
+# Subtest: timeline helpers parse real SRT cues and pick the right result video
+ok 19 - timeline helpers parse real SRT cues and pick the right result video
+  ---
+  duration_ms: 3.436547
+  type: 'test'
+  ...
+# Subtest: Studio wears the Concat-style dark theme and can open the real Concat editor (0.9.15)
+ok 20 - Studio wears the Concat-style dark theme and can open the real Concat editor (0.9.15)
+  ---
+  duration_ms: 0.897894
+  type: 'test'
+  ...
+# Subtest: managed Claude Code 2.x native-bin layout installs and resolves to the exe directly
+ok 21 - managed Claude Code 2.x native-bin layout installs and resolves to the exe directly
+  ---
+  duration_ms: 34.414047
+  type: 'test'
+  ...
+# Subtest: system Claude Code native installer in %USERPROFILE%\\.local\\bin is found despite stale PATH
+ok 22 - system Claude Code native installer in %USERPROFILE%\\.local\\bin is found despite stale PATH
+  ---
+  duration_ms: 21.229334
+  type: 'test'
+  ...
+# Subtest: Antigravity launcher finds the WinGet Packages payload when no Links entry exists
+ok 23 - Antigravity launcher finds the WinGet Packages payload when no Links entry exists
+  ---
+  duration_ms: 6.55781
+  type: 'test'
+  ...
+# Subtest: Antigravity IDE without the CLI produces the IDE-specific instruction
+ok 24 - Antigravity IDE without the CLI produces the IDE-specific instruction
+  ---
+  duration_ms: 1.060384
+  type: 'test'
+  ...
+# Subtest: local API and Founder use actually returned CLI text; auth/model failures stay unverified, upgrade retains all user data
+ok 25 - local API and Founder use actually returned CLI text; auth/model failures stay unverified, upgrade retains all user data
+  ---
+  duration_ms: 1203.569151
+  type: 'test'
+  ...
+# Subtest: Claude CLI account fails closed before it has any model catalog and can be role-bound after verified inference records one
+ok 26 - Claude CLI account fails closed before it has any model catalog and can be role-bound after verified inference records one
+  ---
+  duration_ms: 443.724341
+  type: 'test'
+  ...
+# Subtest: Gemini CLI uses restricted, private settings and rejects actual model fallback
+ok 27 - Gemini CLI uses restricted, private settings and rejects actual model fallback
+  ---
+  duration_ms: 425.135161
+  type: 'test'
+  ...
+# Subtest: managed CLI installation is whitelisted, local-user scoped and has a Node portable npm path
+ok 28 - managed CLI installation is whitelisted, local-user scoped and has a Node portable npm path
+  ---
+  duration_ms: 25.00357
+  type: 'test'
+  ...
+# Subtest: Codex failure classes retain safe context and reject empty successful turns
+ok 29 - Codex failure classes retain safe context and reject empty successful turns
+  ---
+  duration_ms: 1.555183
+  type: 'test'
+  ...
+# Subtest: two ChatGPT login profiles can read separate quotas before model verification and classify inference failures
+ok 30 - two ChatGPT login profiles can read separate quotas before model verification and classify inference failures
+  ---
+  duration_ms: 664.03776
+  type: 'test'
+  ...
+# Subtest: Concat 0.2 compatibility works with published capabilities [events] and local authenticated RPC
+ok 31 - Concat 0.2 compatibility works with published capabilities [events] and local authenticated RPC
+  ---
+  duration_ms: 58.797705
+  type: 'test'
+  ...
+# Subtest: Concat blocks off-machine hosts, absent tokens and files outside workspace
+ok 32 - Concat blocks off-machine hosts, absent tokens and files outside workspace
+  ---
+  duration_ms: 0.814652
+  type: 'test'
+  ...
+# Subtest: release is pinned to Concat 0.2.7 and known GitHub SHA
+ok 33 - release is pinned to Concat 0.2.7 and known GitHub SHA
+  ---
+  duration_ms: 0.898145
+  type: 'test'
+  ...
+# Subtest: Windows default location is detected without guessing arbitrary binaries
+ok 34 - Windows default location is detected without guessing arbitrary binaries
+  ---
+  duration_ms: 1.817701
+  type: 'test'
+  ...
+# Subtest: Concat config is preserved, backed up and remote is loopback-only
+ok 35 - Concat config is preserved, backed up and remote is loopback-only
+  ---
+  duration_ms: 2.280774
+  type: 'test'
+  ...
+# Subtest: Malformed Concat preferences are never overwritten
+ok 36 - Malformed Concat preferences are never overwritten
+  ---
+  duration_ms: 1.529626
+  type: 'test'
+  ...
+# Subtest: Existing Concat can be configured/started offline without downloading or exposing the token
+ok 37 - Existing Concat can be configured/started offline without downloading or exposing the token
+  ---
+  duration_ms: 3.403549
+  type: 'test'
+  ...
+# Subtest: Will not modify running editor or launch on Linux
+ok 38 - Will not modify running editor or launch on Linux
+  ---
+  duration_ms: 0.517714
+  type: 'test'
+  ...
+# Subtest: Bundled but corrupted installer is not trusted
+ok 39 - Bundled but corrupted installer is not trusted
+  ---
+  duration_ms: 0.969119
+  type: 'test'
+  ...
+# Subtest: Hash helper verifies exact bytes
+ok 40 - Hash helper verifies exact bytes
+  ---
+  duration_ms: 0.756796
+  type: 'test'
+  ...
+# Subtest: real FFmpeg source scenes produce Concat RPC project with independent video, audio, narration, music and timed captions
+ok 41 - real FFmpeg source scenes produce Concat RPC project with independent video, audio, narration, music and timed captions
+  ---
+  duration_ms: 1754.413757
+  type: 'test'
+  ...
+# Subtest: Concat 0.2 built-in cross-fade does not depend on effects catalogue
+ok 42 - Concat 0.2 built-in cross-fade does not depend on effects catalogue
+  ---
+  duration_ms: 1166.791776
+  type: 'test'
+  ...
+# Subtest: three overlapping scenes with subtitle/title overlay safely use non-overlapping cuts
+ok 43 - three overlapping scenes with subtitle/title overlay safely use non-overlapping cuts
+  ---
+  duration_ms: 1479.817463
+  type: 'test'
+  ...
+# Subtest: Concat multitrack rejects wrong source SHA and outside-workspace files BEFORE reaching editor
+ok 44 - Concat multitrack rejects wrong source SHA and outside-workspace files BEFORE reaching editor
+  ---
+  duration_ms: 137.294536
+  type: 'test'
+  ...
+# Subtest: offline Concat refuses before video conversion and leaves no temporary clips
+ok 45 - offline Concat refuses before video conversion and leaves no temporary clips
+  ---
+  duration_ms: 159.00667
+  type: 'test'
+  ...
+# Subtest: approved Media quick-edit uses actual Concat multitrack RPC, saves hashes and marks completion only after export QA
+ok 46 - approved Media quick-edit uses actual Concat multitrack RPC, saves hashes and marks completion only after export QA
+  ---
+  duration_ms: 5783.692123
+  type: 'test'
+  ...
+# Subtest: openInConcat creates a real Concat project from the selected video via the RPC API
+ok 47 - openInConcat creates a real Concat project from the selected video via the RPC API
+  ---
+  duration_ms: 23.958065
+  type: 'test'
+  ...
+# Subtest: openInConcat blocks honestly when the Concat remote is unreachable
+ok 48 - openInConcat blocks honestly when the Concat remote is unreachable
+  ---
+  duration_ms: 4.583099
+  type: 'test'
+  ...
+# Subtest: Story preserves same voice and scenes, exports separate tracks through Concat RPC, validates full MP4 and reuses completed export
+ok 49 - Story preserves same voice and scenes, exports separate tracks through Concat RPC, validates full MP4 and reuses completed export
+  ---
+  duration_ms: 2908.33451
+  type: 'test'
+  ...
+# Subtest: Lost Concat export reply reconciles completed file without creating another project/export
+ok 50 - Lost Concat export reply reconciles completed file without creating another project/export
+  ---
+  duration_ms: 2611.972602
+  type: 'test'
+  ...
+# Subtest: App host resumes failed story with immutable inputs and retained speech/images; Concat is final exporter (fixture)
+ok 51 - App host resumes failed story with immutable inputs and retained speech/images; Concat is final exporter (fixture)
+  ---
+  duration_ms: 4241.85018
+  type: 'test'
+  ...
+# Subtest: A later failed image retains earlier scene images and all successful speech phrases for an explicit retry
+ok 52 - A later failed image retains earlier scene images and all successful speech phrases for an explicit retry
+  ---
+  duration_ms: 1462.412629
+  type: 'test'
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40964.131529

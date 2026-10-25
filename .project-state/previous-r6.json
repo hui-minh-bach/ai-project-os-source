@@ -1,0 +1,188 @@
+{
+  "schema": 1,
+  "goal": "R6: consented one-button web delivery with resumable AI/cloud orchestration; preserve approved 3D assets",
+  "created_at": "2026-10-23T03:45:32.997591+00:00",
+  "stages": {
+    "specify": {
+      "status": "done",
+      "note": "Authorized additive web pilot frozen. All arbitrary products A-Z, R5 remaining work and live customer verification stay explicitly open.",
+      "evidence": [
+        {
+          "path": ".project-state/contract.md",
+          "sha256": "b93b68a189a2e6a1ee230f15dbf07efc12b5175413dbdcb2f4b7e6d83436700d",
+          "bytes": 1560
+        },
+        {
+          "path": "docs/ONE_BUTTON_R6_ACCEPTANCE.md",
+          "sha256": "0cdc2499014359953eb71f01115792edc45e58c42800316ab6c86daefe7990ce",
+          "bytes": 8256
+        }
+      ],
+      "at": "2026-10-23T06:45:33.405242+00:00"
+    },
+    "build": {
+      "status": "done",
+      "note": "Implemented scoped resumable delivery, actual existing project workflow, source/config/QR/ZIP, inline UI and Skill Hub. 643 tests pass, 1 optional media test skipped, zero failures; isolated provider fixtures only.",
+      "evidence": [
+        {
+          "path": "evidence/one-button-r6/regression.log",
+          "sha256": "c62e2925da096895eff77928a52f4690de739e61957df1d1d577a50a87baa9ed",
+          "bytes": 142726
+        },
+        {
+          "path": "evidence/one-button-r6/syntax.log",
+          "sha256": "893ed698a4380b76b08bd7696b7769f97fff3507c445607bd5044a6b7dcbf8f6",
+          "bytes": 3484
+        },
+        {
+          "path": "src/lib/launch-runner.mjs",
+          "sha256": "f599a8e19dc59c6164d86226a6e6ab5642f1786f6f07a423a8c80b9b36b06310",
+          "bytes": 13341
+        },
+        {
+          "path": "src/lib/launch-cloud.mjs",
+          "sha256": "871d338cf61955da5cdd7df76d73150f86e4c6523118e47659de4c48f550d9b8",
+          "bytes": 17463
+        }
+      ],
+      "at": "2026-10-23T06:45:34.118290+00:00"
+    },
+    "demonstrate": {
+      "status": "done",
+      "note": "Seven Linux Chromium in-memory shipped-UI/real-HTTP checks pass, no page errors. QR independently decoded and source ZIP inspected. Not Windows, GPU or live cloud.",
+      "evidence": [
+        {
+          "path": "evidence/one-button-r6/browser/report.json",
+          "sha256": "6048d2a7ed8177f5de8b98ad6de714ea231955cc53b5612dbce3c5d10210939c",
+          "bytes": 13748
+        },
+        {
+          "path": "evidence/one-button-r6/browser/completed-handoff.png",
+          "sha256": "06b480b76d9bb5c72143f7443dfb4ee77057697ac31a848a81f0f24e5ebcf309",
+          "bytes": 44413
+        },
+        {
+          "path": "evidence/one-button-r6/browser/artifact-verification.json",
+          "sha256": "6f3f9258b1762826467bf6b6c67bb9d6f26f3fc58620f7b2b32b5efbee963048",
+          "bytes": 301
+        }
+      ],
+      "at": "2026-10-23T06:45:34.924919+00:00"
+    },
+    "integrate": {
+      "status": "done",
+      "note": "R6 source integrated on R4, full regression green, 81 protected room/assets unchanged. Release is a source pilot; live-cloud, cross-user RLS, Windows/GPU and universal A-Z product acceptance remain not_tested/open.",
+      "evidence": [
+        {
+          "path": "evidence/one-button-r6/verification.json",
+          "sha256": "93dcb96244939413be6e9a01c987e53995cb83a269f6516c93fbe7d25b03e1f1",
+          "bytes": 2546
+        },
+        {
+          "path": "evidence/one-button-r6/protected-assets.json",
+          "sha256": "0f319b2a19c55c9587dbc3e9e43a02912eb227d588a8691226ff63659fd5229b",
+          "bytes": 160
+        },
+        {
+          "path": "START-HERE-ONE-BUTTON-R6.md",
+          "sha256": "60dc4b9b43d495fd1a5644ab0357b2a6fad4d801b31c3cab5270cbf0260607ee",
+          "bytes": 2212
+        },
+        {
+          "path": "RELEASE.json",
+          "sha256": "fbd4a98184f68adfcf4e8f90ef8fc3e14aae02637d38a6ea0a2ea6e0bc6c2fdd",
+          "bytes": 64080
+        }
+      ],
+      "at": "2026-10-23T06:45:35.615654+00:00"
+    }
+  },
+  "next_action": "Run acceptance on Windows with specifically authorized test cloud scopes and real AI accounts; retain open R5/universal-product work. Do not recreate delivered pilot or alter approved 3D.",
+  "history": [
+    {
+      "at": "2026-10-23T03:45:34.069506+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Contract and implementation gates frozen against source and reported failures."
+    },
+    {
+      "at": "2026-10-23T04:11:04.882685+00:00",
+      "stage": "build",
+      "status": "in_progress",
+      "note": "Dispatcher, task ledger, intake, source-backed news, recoverable workflows and UI retries implemented; fault-injection tests pass. Final regression running."
+    },
+    {
+      "at": "2026-10-23T04:16:57.766133+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "R4 dispatcher, native tool ledger, structured handoff, dependency waves, host news evidence and explicit workflow recovery implemented. Frozen full regression: 597 passed, 1 optional skipped, 0 failed. No live account or Windows claim."
+    },
+    {
+      "at": "2026-10-23T04:16:58.697924+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "Nine Linux Chromium in-memory UI + real HTTP/Git fixture flows passed, including A401 -> B after reload, independent C reviewer, dependency waves, retry identity, bad-input and Vault gates. No GPU/Windows/live-provider certification."
+    },
+    {
+      "at": "2026-10-23T04:16:59.766443+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "R4 integrated into full R3 source, 81 protected room module/asset files unchanged, no baseline source file removed. Final metadata checks pass. Scope is tested source delivery; actual Windows, GPU and customer providers remain not_tested."
+    },
+    {
+      "at": "2026-10-23T06:19:02.433220+00:00",
+      "stage": "build",
+      "status": "in_progress",
+      "note": "Added durable web delivery runner, scoped cloud adapters, immutable snapshot, local QR/ZIP, inline UI and continuity skill. Eight artifact tests and fifteen runner tests passed. No live cloud writes performed."
+    },
+    {
+      "at": "2026-10-23T06:45:33.405265+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Authorized additive web pilot frozen. All arbitrary products A-Z, R5 remaining work and live customer verification stay explicitly open."
+    },
+    {
+      "at": "2026-10-23T06:45:34.118311+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Implemented scoped resumable delivery, actual existing project workflow, source/config/QR/ZIP, inline UI and Skill Hub. 643 tests pass, 1 optional media test skipped, zero failures; isolated provider fixtures only."
+    },
+    {
+      "at": "2026-10-23T06:45:34.924937+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "Seven Linux Chromium in-memory shipped-UI/real-HTTP checks pass, no page errors. QR independently decoded and source ZIP inspected. Not Windows, GPU or live cloud."
+    },
+    {
+      "at": "2026-10-23T06:45:35.615674+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "R6 source integrated on R4, full regression green, 81 protected room/assets unchanged. Release is a source pilot; live-cloud, cross-user RLS, Windows/GPU and universal A-Z product acceptance remain not_tested/open."
+    }
+  ],
+  "updated_at": "2026-10-23T06:45:35.615677+00:00",
+  "previousGoal": "R4: real project execution, bounded provider handoff, workflow recovery; keep approved 3D unchanged",
+  "acceptance": {
+    "authorized_web_pilot": "implemented_and_fixture_verified",
+    "universal_A_to_Z": "open_not_implemented",
+    "live_cloud_and_customer_AI": "not_tested",
+    "windows_and_gpu": "not_tested",
+    "R5_remaining_work": "open_source_unavailable"
+  },
+  "remaining_defects": [
+    "all arbitrary product A-Z automation",
+    "in-place migrations of existing customer cloud projects",
+    "domain purchase/DNS/payment/SMTP/provider OAuth setup",
+    "local framework dependency installation",
+    "mobile/desktop installer delivery",
+    "interrupted R5 Radar/custom-category/video/intake work"
+  ],
+  "remaining_verification": [
+    "real Vercel/Supabase projects or billing",
+    "real customer AI account integration",
+    "actual cross-user Supabase RLS authorization",
+    "Windows execution and installer",
+    "GPU/WebGL rendering/performance in this build",
+    "arbitrary product business acceptance"
+  ]
+}

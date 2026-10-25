@@ -1,0 +1,716 @@
+TAP version 13
+# Subtest: connections show only real 5-hour/week provider limits and hide them while vault is locked
+ok 1 - connections show only real 5-hour/week provider limits and hide them while vault is locked
+  ---
+  duration_ms: 21.225155
+  type: 'test'
+  ...
+# Subtest: unsupported providers have no fabricated subscription quota even when token count is available
+ok 2 - unsupported providers have no fabricated subscription quota even when token count is available
+  ---
+  duration_ms: 8.810006
+  type: 'test'
+  ...
+# Subtest: stale credential versions cannot reuse cached quota
+ok 3 - stale credential versions cannot reuse cached quota
+  ---
+  duration_ms: 1.654719
+  type: 'test'
+  ...
+# Subtest: logged-in but UNVERIFIED ChatGPT profiles fetch distinct quota data (no role/model verification gate)
+ok 4 - logged-in but UNVERIFIED ChatGPT profiles fetch distinct quota data (no role/model verification gate)
+  ---
+  duration_ms: 11.779823
+  type: 'test'
+  ...
+# Subtest: connection rename: endpoint renames any connection, rejects empty/unknown, robot label follows
+ok 5 - connection rename: endpoint renames any connection, rejects empty/unknown, robot label follows
+  ---
+  duration_ms: 558.453905
+  type: 'test'
+  ...
+# Subtest: official models endpoints use provider authentication, Anthropic and Gemini paginate, registry persists only safe IDs
+ok 6 - official models endpoints use provider authentication, Anthropic and Gemini paginate, registry persists only safe IDs
+  ---
+  duration_ms: 625.834329
+  type: 'test'
+  ...
+# Subtest: local compatible API refresh rejects revoked/missing/replaced references; a stale catalog stays selectable (0.9.55 ungating) and secrets never leak
+ok 7 - local compatible API refresh rejects revoked/missing/replaced references; a stale catalog stays selectable (0.9.55 ungating) and secrets never leak
+  ---
+  duration_ms: 391.337877
+  type: 'test'
+  ...
+# Subtest: role broker governs Founder, multiple Council models, native Worker and Reviewer without mutating account default
+ok 8 - role broker governs Founder, multiple Council models, native Worker and Reviewer without mutating account default
+  ---
+  duration_ms: 256.021663
+  type: 'test'
+  ...
+# Subtest: model API malformed pagination and generation authorization failure invalidate bindings
+ok 9 - model API malformed pagination and generation authorization failure invalidate bindings
+  ---
+  duration_ms: 196.021804
+  type: 'test'
+  ...
+# Subtest: infrastructure API metadata requires real verification and failed verification clears cached status
+ok 10 - infrastructure API metadata requires real verification and failed verification clears cached status
+  ---
+  duration_ms: 764.666767
+  type: 'test'
+  ...
+# Subtest: custom model-specific Gemini URL follows two resolved role models while preserving the account default
+ok 11 - custom model-specific Gemini URL follows two resolved role models while preserving the account default
+  ---
+  duration_ms: 196.792127
+  type: 'test'
+  ...
+# Subtest: independent reviews receive identical frozen structured brief; Chair resolves conflicts; approval alone enables configured Founder planning
+ok 12 - independent reviews receive identical frozen structured brief; Chair resolves conflicts; approval alone enables configured Founder planning
+  ---
+  duration_ms: 293.288304
+  type: 'test'
+  ...
+# Subtest: changing role assignments mid-run cannot change frozen member or Chair dispatch and metadata
+ok 13 - changing role assignments mid-run cannot change frozen member or Chair dispatch and metadata
+  ---
+  duration_ms: 221.388044
+  type: 'test'
+  ...
+# Subtest: missing current handoff and stale brief cannot call providers, confirm or plan a legacy plaintext specification
+ok 14 - missing current handoff and stale brief cannot call providers, confirm or plan a legacy plaintext specification
+  ---
+  duration_ms: 187.019085
+  type: 'test'
+  ...
+# Subtest: malformed member and Chair JSON preserve failed and partial history without creating a specification
+ok 15 - malformed member and Chair JSON preserve failed and partial history without creating a specification
+  ---
+  duration_ms: 253.736202
+  type: 'test'
+  ...
+# Subtest: editing the brief during member or Chair requests stores stale runs and never publishes stale specification
+ok 16 - editing the brief during member or Chair requests stores stale runs and never publishes stale specification
+  ---
+  duration_ms: 437.328723
+  type: 'test'
+  ...
+# Subtest: rerun invalidates prior approval while pending, rejects simultaneous runs, and preserves version history
+ok 17 - rerun invalidates prior approval while pending, rejects simultaneous runs, and preserves version history
+  ---
+  duration_ms: 275.097392
+  type: 'test'
+  ...
+# Subtest: credential replacement mid-run fails honestly before remaining models use a changed provider account
+ok 18 - credential replacement mid-run fails honestly before remaining models use a changed provider account
+  ---
+  duration_ms: 284.415272
+  type: 'test'
+  ...
+# Subtest: boot recovery marks running Council interrupted and preserves completed reviews and older runs
+ok 19 - boot recovery marks running Council interrupted and preserves completed reviews and older runs
+  ---
+  duration_ms: 260.885625
+  type: 'test'
+  ...
+# Subtest: strict schema rejects invented votes, string booleans, unknown fields, missing spec sections and unresolved split votes
+ok 20 - strict schema rejects invented votes, string booleans, unknown fields, missing spec sections and unresolved split votes
+  ---
+  duration_ms: 0.521599
+  type: 'test'
+  ...
+# Subtest: a changed specification during Project Manager generation cannot overwrite task state
+ok 21 - a changed specification during Project Manager generation cannot overwrite task state
+  ---
+  duration_ms: 220.842669
+  type: 'test'
+  ...
+# Subtest: a task started during a deferred Project Manager response cannot be overwritten by a new plan
+ok 22 - a task started during a deferred Project Manager response cannot be overwritten by a new plan
+  ---
+  duration_ms: 258.07858
+  type: 'test'
+  ...
+# Subtest: customer E2E: app data isolated, API gated, HeyGen key encrypted in Vault, backup can download
+ok 23 - customer E2E: app data isolated, API gated, HeyGen key encrypted in Vault, backup can download
+  ---
+  duration_ms: 1052.828923
+  type: 'test'
+  ...
+# Subtest: doctor checks local project/storage without network or paid APIs
+ok 24 - doctor checks local project/storage without network or paid APIs
+  ---
+  duration_ms: 129.900768
+  type: 'test'
+  ...
+# Subtest: doctor refuses broken application, read-only assumptions and untrusted executables
+ok 25 - doctor refuses broken application, read-only assumptions and untrusted executables
+  ---
+  duration_ms: 4.968872
+  type: 'test'
+  ...
+# Subtest: doctor live H.264 encoder returns a fact not a fabricated green result
+ok 26 - doctor live H.264 encoder returns a fact not a fabricated green result
+  ---
+  duration_ms: 336.375412
+  type: 'test'
+  ...
+# Subtest: customer backup: encrypted, restores exact bytes, keeps previous live state for rollback
+ok 27 - customer backup: encrypted, restores exact bytes, keeps previous live state for rollback
+  ---
+  duration_ms: 208.500165
+  type: 'test'
+  ...
+# Subtest: wrong password / tampered encrypted file cannot replace existing customer data
+ok 28 - wrong password / tampered encrypted file cannot replace existing customer data
+  ---
+  duration_ms: 263.691708
+  type: 'test'
+  ...
+# Subtest: backup rejects symlink traversal and verifies download names
+ok 29 - backup rejects symlink traversal and verifies download names
+  ---
+  duration_ms: 82.090032
+  type: 'test'
+  ...
+# Subtest: customer backup refuses too-short password
+ok 30 - customer backup refuses too-short password
+  ---
+  duration_ms: 0.67858
+  type: 'test'
+  ...
+# Subtest: director plan parsing validates the model JSON contract
+ok 31 - director plan parsing validates the model JSON contract
+  ---
+  duration_ms: 1.261208
+  type: 'test'
+  ...
+# Subtest: director routing maps every intent onto real operations or an honest needs-input
+ok 32 - director routing maps every intent onto real operations or an honest needs-input
+  ---
+  duration_ms: 0.371127
+  type: 'test'
+  ...
+# Subtest: director is wired: host method, server route, Studio hero and plan card
+ok 33 - director is wired: host method, server route, Studio hero and plan card
+  ---
+  duration_ms: 1.602421
+  type: 'test'
+  ...
+# Subtest: dub: submit validates languages and translation source
+ok 34 - dub: submit validates languages and translation source
+  ---
+  duration_ms: 141.944496
+  type: 'test'
+  ...
+# Subtest: dub: valid dub task is created paused for approval
+ok 35 - dub: valid dub task is created paused for approval
+  ---
+  duration_ms: 139.205904
+  type: 'test'
+  ...
+# Subtest: whisper status: a CLI whose --help exceeds 2KB is still detected (regression)
+ok 36 - whisper status: a CLI whose --help exceeds 2KB is still detected (regression)
+  ---
+  duration_ms: 4.226278
+  type: 'test'
+  ...
+# Subtest: engine registry distinguishes source, runtime and task adapter; custom metadata CRUD persists and cannot execute
+ok 37 - engine registry distinguishes source, runtime and task adapter; custom metadata CRUD persists and cannot execute
+  ---
+  duration_ms: 54.417914
+  type: 'test'
+  ...
+# Subtest: diagnostics require successful actual version evidence, not executable existence; prerequisite contracts stay boolean
+ok 38 - diagnostics require successful actual version evidence, not executable existence; prerequisite contracts stay boolean
+  ---
+  duration_ms: 807.044333
+  type: 'test'
+  ...
+# Subtest: source install uses fixed allowlist and fast-forward; protects dirty, origin, occupied paths and local commits
+ok 39 - source install uses fixed allowlist and fast-forward; protects dirty, origin, occupied paths and local commits
+  ---
+  duration_ms: 439.86151
+  type: 'test'
+  ...
+# Subtest: diagnostics redact a Vault snapshot even when Vault is locked while command awaits
+ok 40 - diagnostics redact a Vault snapshot even when Vault is locked while command awaits
+  ---
+  duration_ms: 301.323814
+  type: 'test'
+  ...
+# Subtest: FPT synthesize: posts, waits for render, downloads, converts to WAV
+ok 41 - FPT synthesize: posts, waits for render, downloads, converts to WAV
+  ---
+  duration_ms: 211.973839
+  type: 'test'
+  ...
+# Subtest: FPT synthesize blocks honestly: no key, wrong language, foreign audio host
+ok 42 - FPT synthesize blocks honestly: no key, wrong language, foreign audio host
+  ---
+  duration_ms: 73.950657
+  type: 'test'
+  ...
+# Subtest: Real app HTTP server: free-stack endpoint respects one-use launch ticket, cookie and local-only policy
+ok 43 - Real app HTTP server: free-stack endpoint respects one-use launch ticket, cookie and local-only policy
+  ---
+  duration_ms: 319.066843
+  type: 'test'
+  ...
+# Subtest: ComfyUI bridge refuses external hosts / credential URLs (no SSRF)
+ok 44 - ComfyUI bridge refuses external hosts / credential URLs (no SSRF)
+  ---
+  duration_ms: 1.271895
+  type: 'test'
+  ...
+# Subtest: ComfyUI sends a real API graph and saves returned image bytes without guessing a model
+ok 45 - ComfyUI sends a real API graph and saves returned image bytes without guessing a model
+  ---
+  duration_ms: 17.386207
+  type: 'test'
+  ...
+# Subtest: ComfyUI requires placeholder and fails closed after workflow edits
+ok 46 - ComfyUI requires placeholder and fails closed after workflow edits
+  ---
+  duration_ms: 1.077349
+  type: 'test'
+  ...
+# Subtest: Image AUTO uses configured ComfyUI free-first; does not call a paid AI
+ok 47 - Image AUTO uses configured ComfyUI free-first; does not call a paid AI
+  ---
+  duration_ms: 2.059677
+  type: 'test'
+  ...
+# Subtest: Free-first can try local Flux after ComfyUI failure, without switching to paid API
+ok 48 - Free-first can try local Flux after ComfyUI failure, without switching to paid API
+  ---
+  duration_ms: 1.170015
+  type: 'test'
+  ...
+# Subtest: ComfyUI policy prevents tampering with approved local binding
+ok 49 - ComfyUI policy prevents tampering with approved local binding
+  ---
+  duration_ms: 0.368003
+  type: 'test'
+  ...
+# Subtest: Ollama readiness only probes loopback and distinguishes empty model catalog
+ok 50 - Ollama readiness only probes loopback and distinguishes empty model catalog
+  ---
+  duration_ms: 0.777206
+  type: 'test'
+  ...
+# Subtest: Free-stack diagnostics are read-only and do not install anything
+ok 51 - Free-stack diagnostics are read-only and do not install anything
+  ---
+  duration_ms: 0.349285
+  type: 'test'
+  ...
+# Subtest: extractArticleText keeps the article body and drops chrome/links/dupes
+ok 52 - extractArticleText keeps the article body and drops chrome/links/dupes
+  ---
+  duration_ms: 2.489941
+  type: 'test'
+  ...
+# Subtest: fetchArticleText validates and reports reasons without throwing
+ok 53 - fetchArticleText validates and reports reasons without throwing
+  ---
+  duration_ms: 1.628371
+  type: 'test'
+  ...
+# Subtest: ingest scan enriches short-summary cards with full text (capped, opt-out honored)
+ok 54 - ingest scan enriches short-summary cards with full text (capped, opt-out honored)
+  ---
+  duration_ms: 41.016643
+  type: 'test'
+  ...
+# Cloning into '/tmp/aios-gh-MwrSua/seed'...
+# warning: You appear to have cloned an empty repository.
+# done.
+# To /tmp/aios-gh-MwrSua/remote/octo/demo.git
+#  * [new branch]      main -> main
+# Cloning into '/tmp/aios-gh-MwrSua/seed2'...
+# warning: You appear to have cloned an empty repository.
+# done.
+# To /tmp/aios-gh-MwrSua/remote/octo/shop.git
+#  * [new branch]      main -> main
+# Subtest: GitHub loop: list repos -> import as project -> issue brief -> work -> PR push
+ok 55 - GitHub loop: list repos -> import as project -> issue brief -> work -> PR push
+  ---
+  duration_ms: 323.90778
+  type: 'test'
+  ...
+# Subtest: Continue an in-progress repo: the app reads its guide, detects Vercel and builds the continuation list
+ok 56 - Continue an in-progress repo: the app reads its guide, detects Vercel and builds the continuation list
+  ---
+  duration_ms: 127.059188
+  type: 'test'
+  ...
+# Subtest: GitHub repos are honestly unavailable without a linked account
+ok 57 - GitHub repos are honestly unavailable without a linked account
+  ---
+  duration_ms: 0.288495
+  type: 'test'
+  ...
+# Subtest: hardsub cover builds an honest blur or band graph over the bottom band only
+ok 58 - hardsub cover builds an honest blur or band graph over the bottom band only
+  ---
+  duration_ms: 1.264984
+  type: 'test'
+  ...
+# Subtest: hardsub cover is wired through host validation, handlers, reports and the Studio UI
+ok 59 - hardsub cover is wired through host validation, handlers, reports and the Studio UI
+  ---
+  duration_ms: 1.802977
+  type: 'test'
+  ...
+# Subtest: project brief fields persist, reject unsupported input, and editing invalidates analyzed data
+ok 60 - project brief fields persist, reject unsupported input, and editing invalidates analyzed data
+  ---
+  duration_ms: 263.5039
+  type: 'test'
+  ...
+# Subtest: Founder uses configured role model, records actual history and timestamps, clears persisted messages
+ok 61 - Founder uses configured role model, records actual history and timestamps, clears persisted messages
+  ---
+  duration_ms: 216.24251
+  type: 'test'
+  ...
+# Subtest: AI brief validates complete stack, sends structured Council input without approving specification
+ok 62 - AI brief validates complete stack, sends structured Council input without approving specification
+  ---
+  duration_ms: 199.41415
+  type: 'test'
+  ...
+# Subtest: malformed AI JSON fails and stale in-flight analysis cannot overwrite edited inputs
+ok 63 - malformed AI JSON fails and stale in-flight analysis cannot overwrite edited inputs
+  ---
+  duration_ms: 197.601203
+  type: 'test'
+  ...
+# Subtest: AI schemas reject strings masquerading as booleans, oversized lists and missing required sections
+ok 64 - AI schemas reject strings masquerading as booleans, oversized lists and missing required sections
+  ---
+  duration_ms: 0.415162
+  type: 'test'
+  ...
+# Subtest: boot recovery marks only persisted pending Founder messages failed and preserves history
+ok 65 - boot recovery marks only persisted pending Founder messages failed and preserves history
+  ---
+  duration_ms: 86.187066
+  type: 'test'
+  ...
+# Subtest: Image capability catalog excludes vision/text-only models and unsupported account adapters
+ok 66 - Image capability catalog excludes vision/text-only models and unsupported account adapters
+  ---
+  duration_ms: 2.340669
+  type: 'test'
+  ...
+# Subtest: A rate limit hands same scene to B, then scenes are distributed by account; actual provider calls are injected fixtures
+ok 67 - A rate limit hands same scene to B, then scenes are distributed by account; actual provider calls are injected fixtures
+  ---
+  duration_ms: 19.022384
+  type: 'test'
+  ...
+# Subtest: Image API charges cannot be enabled by auto selection alone
+ok 68 - Image API charges cannot be enabled by auto selection alone
+  ---
+  duration_ms: 0.634465
+  type: 'test'
+  ...
+# Subtest: Image safety refusal stops without trying another AI
+ok 69 - Image safety refusal stops without trying another AI
+  ---
+  duration_ms: 0.904753
+  type: 'test'
+  ...
+# Subtest: Frozen image pool fails closed on identity change or locked Vault
+ok 70 - Frozen image pool fails closed on identity change or locked Vault
+  ---
+  duration_ms: 0.446468
+  type: 'test'
+  ...
+# Subtest: Account security error is terminal and cannot hop to a billed image API
+ok 71 - Account security error is terminal and cannot hop to a billed image API
+  ---
+  duration_ms: 0.698579
+  type: 'test'
+  ...
+# Subtest: Client cannot falsify a frozen image pool to spend paid quota or invoke a text model
+ok 72 - Client cannot falsify a frozen image pool to spend paid quota or invoke a text model
+  ---
+  duration_ms: 1.403899
+  type: 'test'
+  ...
+# Subtest: image: media.image rejects empty or oversized scene lists at submit
+ok 73 - image: media.image rejects empty or oversized scene lists at submit
+  ---
+  duration_ms: 145.707922
+  type: 'test'
+  ...
+# Subtest: image: media.image accepts a valid scene list and stays paused for approval
+ok 74 - image: media.image accepts a valid scene list and stays paused for approval
+  ---
+  duration_ms: 131.944504
+  type: 'test'
+  ...
+# Subtest: image: generation blocks honestly when no provider route exists
+ok 75 - image: generation blocks honestly when no provider route exists
+  ---
+  duration_ms: 1.40428
+  type: 'test'
+  ...
+# Subtest: concat-effects: submit requires a manual plan or a Concat connection
+ok 76 - concat-effects: submit requires a manual plan or a Concat connection
+  ---
+  duration_ms: 136.347172
+  type: 'test'
+  ...
+# Subtest: concat-effects: operation is registered in host status
+ok 77 - concat-effects: operation is registered in host status
+  ---
+  duration_ms: 134.267477
+  type: 'test'
+  ...
+# Subtest: install github CLI from official-shaped zip with matching sha
+ok 78 - install github CLI from official-shaped zip with matching sha
+  ---
+  duration_ms: 17.916113
+  type: 'test'
+  ...
+# Subtest: install refuses a zip whose sha does not match the pinned release
+ok 79 - install refuses a zip whose sha does not match the pinned release
+  ---
+  duration_ms: 0.7125
+  type: 'test'
+  ...
+# Subtest: install vercel runs the official npm package into the managed tools folder
+ok 80 - install vercel runs the official npm package into the managed tools folder
+  ---
+  duration_ms: 1.03155
+  type: 'test'
+  ...
+# Subtest: login window refuses non-Windows honestly
+ok 81 - login window refuses non-Windows honestly
+  ---
+  duration_ms: 0.262728
+  type: 'test'
+  ...
+# Subtest: login script content drives the official CLI login command
+ok 82 - login script content drives the official CLI login command
+  ---
+  duration_ms: 0.255436
+  type: 'test'
+  ...
+# Subtest: login window on Windows writes the script and asks PowerShell to open it
+ok 83 - login window on Windows writes the script and asks PowerShell to open it
+  ---
+  duration_ms: 0.443784
+  type: 'test'
+  ...
+# Subtest: routes + UI contract: account-link dialog is wired
+ok 84 - routes + UI contract: account-link dialog is wired
+  ---
+  duration_ms: 1.066903
+  type: 'test'
+  ...
+# Subtest: connection verification uses the app-installed CLIs, not the system PATH (regression: spawn gh ENOENT)
+ok 85 - connection verification uses the app-installed CLIs, not the system PATH (regression: spawn gh ENOENT)
+  ---
+  duration_ms: 649.775279
+  type: 'test'
+  ...
+# Subtest: ingest: parseFeed đọc đúng RSS 2.0 (CDATA, entity, ngày tháng)
+ok 86 - ingest: parseFeed đọc đúng RSS 2.0 (CDATA, entity, ngày tháng)
+  ---
+  duration_ms: 3.310579
+  type: 'test'
+  ...
+# Subtest: ingest: parseFeed đọc đúng Atom (link href, id, published/updated)
+ok 87 - ingest: parseFeed đọc đúng Atom (link href, id, published/updated)
+  ---
+  duration_ms: 1.237985
+  type: 'test'
+  ...
+# Subtest: ingest: parseFeed từ chối nội dung không phải feed
+ok 88 - ingest: parseFeed từ chối nội dung không phải feed
+  ---
+  duration_ms: 0.692371
+  type: 'test'
+  ...
+# Subtest: ingest: addSource kiểm tra URL và nguồn được lưu bền
+ok 89 - ingest: addSource kiểm tra URL và nguồn được lưu bền
+  ---
+  duration_ms: 7.107835
+  type: 'test'
+  ...
+# Subtest: ingest: scanSource tạo thẻ và quét lại không trùng
+ok 90 - ingest: scanSource tạo thẻ và quét lại không trùng
+  ---
+  duration_ms: 6.207388
+  type: 'test'
+  ...
+# Subtest: ingest: bộ lọc từ khóa chỉ giữ thẻ khớp
+ok 91 - ingest: bộ lọc từ khóa chỉ giữ thẻ khớp
+  ---
+  duration_ms: 2.160764
+  type: 'test'
+  ...
+# Subtest: ingest: nguồn đang tắt bị chặn quét, nguồn lạ báo INGEST_NOT_FOUND
+ok 92 - ingest: nguồn đang tắt bị chặn quét, nguồn lạ báo INGEST_NOT_FOUND
+  ---
+  duration_ms: 4.386584
+  type: 'test'
+  ...
+# Subtest: ingest: markCardUsed đánh dấu thẻ đã dùng cho dự án
+ok 93 - ingest: markCardUsed đánh dấu thẻ đã dùng cho dự án
+  ---
+  duration_ms: 2.236666
+  type: 'test'
+  ...
+# Subtest: ingest: lỗi tải feed thành INGEST_FETCH, HTTP lỗi cũng vậy
+ok 94 - ingest: lỗi tải feed thành INGEST_FETCH, HTTP lỗi cũng vậy
+  ---
+  duration_ms: 1.977684
+  type: 'test'
+  ...
+# Subtest: ingest: tóm tắt thẻ bị cắt ở 500 ký tự và sạch thẻ HTML
+ok 95 - ingest: tóm tắt thẻ bị cắt ở 500 ký tự và sạch thẻ HTML
+  ---
+  duration_ms: 1.426162
+  type: 'test'
+  ...
+# Subtest: integration: host checks actual FFprobe duration, not plan self-report
+ok 96 - integration: host checks actual FFprobe duration, not plan self-report
+  ---
+  duration_ms: 268.998457
+  type: 'test'
+  ...
+# Subtest: integration: host refuses v1 plans before approval
+ok 97 - integration: host refuses v1 plans before approval
+  ---
+  duration_ms: 203.701207
+  type: 'test'
+  ...
+# Subtest: integration: host detects modified video after queue, before approval
+ok 98 - integration: host detects modified video after queue, before approval
+  ---
+  duration_ms: 293.359253
+  type: 'test'
+  ...
+# Subtest: integration: quick edit also binds source before user approval
+ok 99 - integration: quick edit also binds source before user approval
+  ---
+  duration_ms: 133.889135
+  type: 'test'
+  ...
+# Subtest: integration: authentic source remains eligible for approval
+ok 100 - integration: authentic source remains eligible for approval
+  ---
+  duration_ms: 343.901483
+  type: 'test'
+  ...
+# Subtest: local media/Core works without master or remote model, and honestly reports its mode
+ok 101 - local media/Core works without master or remote model, and honestly reports its mode
+  ---
+  duration_ms: 136.118124
+  type: 'test'
+  ...
+# Subtest: short explicit master key cannot unlock Core vault
+ok 102 - short explicit master key cannot unlock Core vault
+  ---
+  duration_ms: 129.219493
+  type: 'test'
+  ...
+# Subtest: new jobs never run before explicit approval and have separate SHA-256 verified artifacts
+ok 103 - new jobs never run before explicit approval and have separate SHA-256 verified artifacts
+  ---
+  duration_ms: 34.53791
+  type: 'test'
+  ...
+# Subtest: media routes cannot approve or read unrelated Core task and artifacts
+ok 104 - media routes cannot approve or read unrelated Core task and artifacts
+  ---
+  duration_ms: 3.810065
+  type: 'test'
+  ...
+# Subtest: path traversal, invalid IDs, unsupported public posting and invalid uploads are blocked
+ok 105 - path traversal, invalid IDs, unsupported public posting and invalid uploads are blocked
+  ---
+  duration_ms: 3.54844
+  type: 'test'
+  ...
+# Subtest: storyboard mode is clearly deterministic, without fake TTS or video
+ok 106 - storyboard mode is clearly deterministic, without fake TTS or video
+  ---
+  duration_ms: 19.346651
+  type: 'test'
+  ...
+# Subtest: local project media jobs persist across restart without losing results
+ok 107 - local project media jobs persist across restart without losing results
+  ---
+  duration_ms: 21.126365
+  type: 'test'
+  ...
+# Subtest: words are anchored to the GROUP speech span, never spread across silent windows (0.9.14 regression)
+ok 108 - words are anchored to the GROUP speech span, never spread across silent windows (0.9.14 regression)
+  ---
+  duration_ms: 2.402881
+  type: 'test'
+  ...
+# Subtest: whisper anchors refine word times inside the group span
+ok 109 - whisper anchors refine word times inside the group span
+  ---
+  duration_ms: 0.991541
+  type: 'test'
+  ...
+# Subtest: karaoke ASS sweeps word by word and fills sum to the spoken line window
+ok 110 - karaoke ASS sweeps word by word and fills sum to the spoken line window
+  ---
+  duration_ms: 0.429934
+  type: 'test'
+  ...
+# Subtest: karaoke is wired into dub, retheme, the director and the Studio UI
+ok 111 - karaoke is wired into dub, retheme, the director and the Studio UI
+  ---
+  duration_ms: 1.478589
+  type: 'test'
+  ...
+# Subtest: sweep preset keeps the classic \\kf fill
+ok 112 - sweep preset keeps the classic \\kf fill
+  ---
+  duration_ms: 1.722528
+  type: 'test'
+  ...
+# Subtest: box preset puts the line on a solid highlight strip
+ok 113 - box preset puts the line on a solid highlight strip
+  ---
+  duration_ms: 0.150933
+  type: 'test'
+  ...
+# Subtest: pop preset renders one big word at a time with a scale-in
+ok 114 - pop preset renders one big word at a time with a scale-in
+  ---
+  duration_ms: 0.416804
+  type: 'test'
+  ...
+# Subtest: unknown preset falls back to sweep
+ok 115 - unknown preset falls back to sweep
+  ---
+  duration_ms: 0.213965
+  type: 'test'
+  ...
+# Subtest: kokoro status, install (faked npm+HF) and synthesize guards
+ok 116 - kokoro status, install (faked npm+HF) and synthesize guards
+  ---
+  duration_ms: 49.140657
+  type: 'test'
+  ...
+1..116
+# tests 116
+# suites 0
+# pass 116
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28806.752263

@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "goal": "R4: real project execution, bounded provider handoff, workflow recovery; keep approved 3D unchanged",
+  "created_at": "2026-10-23T03:45:32.997591+00:00",
+  "stages": {
+    "specify": {
+      "status": "done",
+      "note": "Contract and implementation gates frozen against source and reported failures.",
+      "evidence": [
+        {
+          "path": "docs/PLAN_WORKFLOW_RELIABILITY_R4.md",
+          "sha256": "689922775c94be3045163f05990eb88296c816fd335772037842fd0365e83657",
+          "bytes": 2731
+        }
+      ],
+      "at": "2026-10-23T03:45:34.069479+00:00"
+    },
+    "build": {
+      "status": "done",
+      "note": "R4 dispatcher, native tool ledger, structured handoff, dependency waves, host news evidence and explicit workflow recovery implemented. Frozen full regression: 597 passed, 1 optional skipped, 0 failed. No live account or Windows claim.",
+      "evidence": [
+        {
+          "path": "evidence/workflow-r4/release-regression.log",
+          "sha256": "0dba53aa87f7a06f57b84913041d7cc01c80d44e32c7fb1697e10ae784b36a70",
+          "bytes": 135981
+        },
+        {
+          "path": "evidence/workflow-r4/tested-code-sha256.json",
+          "sha256": "c404fe99507b30b6e195a85f1c2b89d904ab57fb0854888c1769903f75a62c1f",
+          "bytes": 30571
+        }
+      ],
+      "at": "2026-10-23T04:16:57.766110+00:00"
+    },
+    "demonstrate": {
+      "status": "done",
+      "note": "Nine Linux Chromium in-memory UI + real HTTP/Git fixture flows passed, including A401 -> B after reload, independent C reviewer, dependency waves, retry identity, bad-input and Vault gates. No GPU/Windows/live-provider certification.",
+      "evidence": [
+        {
+          "path": "evidence/workflow-r4/browser-report.json",
+          "sha256": "8322e6e24530b97da261729bdcd57612a146a35efbb6223434cee1b5221c13fa",
+          "bytes": 2732
+        },
+        {
+          "path": "evidence/workflow-r4/browser-tasks-completed.png",
+          "sha256": "f7b2a85bda1509c78da444ccd00ac15f0a0fb09b5d5b2e3630ac4b4cee011d68",
+          "bytes": 702125
+        },
+        {
+          "path": "evidence/workflow-r4/browser-harness.log",
+          "sha256": "7b6008c060442a06b9c01fb0e5dceda2f2ce8344dcf2d422f1503c5ede8abde0",
+          "bytes": 308
+        }
+      ],
+      "at": "2026-10-23T04:16:58.697902+00:00"
+    },
+    "integrate": {
+      "status": "done",
+      "note": "R4 integrated into full R3 source, 81 protected room module/asset files unchanged, no baseline source file removed. Final metadata checks pass. Scope is tested source delivery; actual Windows, GPU and customer providers remain not_tested.",
+      "evidence": [
+        {
+          "path": "evidence/workflow-r4/verification.json",
+          "sha256": "5210285cc817a743dd9c28e823c256c89282c80eb206dc4e5e6ecde4f8d68bfb",
+          "bytes": 3691
+        },
+        {
+          "path": "evidence/workflow-r4/protected-files.json",
+          "sha256": "d5684bb2b5623a9bada0f94cbe499b04fca5f50f0bbddf3fc16880285ac24e94",
+          "bytes": 22680
+        },
+        {
+          "path": "evidence/workflow-r4/final-metadata-tests.log",
+          "sha256": "fb680c5f2d43cab9f82880dbcc9c24e6685f000480c8830151d295a8381491db",
+          "bytes": 634
+        }
+      ],
+      "at": "2026-10-23T04:16:59.766421+00:00"
+    }
+  },
+  "next_action": "Source implementation complete within tested scope. External acceptance requires actual owner Windows/vendor account runs; no background execution is active or promised.",
+  "history": [
+    {
+      "at": "2026-10-23T03:45:34.069506+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Contract and implementation gates frozen against source and reported failures."
+    },
+    {
+      "at": "2026-10-23T04:11:04.882685+00:00",
+      "stage": "build",
+      "status": "in_progress",
+      "note": "Dispatcher, task ledger, intake, source-backed news, recoverable workflows and UI retries implemented; fault-injection tests pass. Final regression running."
+    },
+    {
+      "at": "2026-10-23T04:16:57.766133+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "R4 dispatcher, native tool ledger, structured handoff, dependency waves, host news evidence and explicit workflow recovery implemented. Frozen full regression: 597 passed, 1 optional skipped, 0 failed. No live account or Windows claim."
+    },
+    {
+      "at": "2026-10-23T04:16:58.697924+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "Nine Linux Chromium in-memory UI + real HTTP/Git fixture flows passed, including A401 -> B after reload, independent C reviewer, dependency waves, retry identity, bad-input and Vault gates. No GPU/Windows/live-provider certification."
+    },
+    {
+      "at": "2026-10-23T04:16:59.766443+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "R4 integrated into full R3 source, 81 protected room module/asset files unchanged, no baseline source file removed. Final metadata checks pass. Scope is tested source delivery; actual Windows, GPU and customer providers remain not_tested."
+    }
+  ],
+  "updated_at": "2026-10-23T04:16:59.766447+00:00"
+}

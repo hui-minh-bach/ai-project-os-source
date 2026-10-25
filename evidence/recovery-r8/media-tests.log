@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: R8 image gateway receives prompt/provider/job id and accepts actual path/file
+ok 1 - R8 image gateway receives prompt/provider/job id and accepts actual path/file
+  ---
+  duration_ms: 1.622568
+  type: 'test'
+  ...
+# Subtest: R8 missing/failing AI images cannot masquerade as unrelated default art
+ok 2 - R8 missing/failing AI images cannot masquerade as unrelated default art
+  ---
+  duration_ms: 0.450189
+  type: 'test'
+  ...
+# Subtest: R8 uploaded images validate signature, fence paths and reject escaped symlinks
+ok 3 - R8 uploaded images validate signature, fence paths and reject escaped symlinks
+  ---
+  duration_ms: 6.310561
+  type: 'test'
+  ...
+# Subtest: R8 media preflight separates voice availability, image availability and explicit quota consent
+ok 4 - R8 media preflight separates voice availability, image availability and explicit quota consent
+  ---
+  duration_ms: 0.484231
+  type: 'test'
+  ...
+# Subtest: R8 storyboard passes selected TTS provider and retains real uploaded pictures/cache
+ok 5 - R8 storyboard passes selected TTS provider and retains real uploaded pictures/cache
+  ---
+  duration_ms: 1564.99941
+  type: 'test'
+  ...
+# Subtest: R8 AI illustrations receive unique scene jobs and image errors propagate
+ok 6 - R8 AI illustrations receive unique scene jobs and image errors propagate
+  ---
+  duration_ms: 842.338506
+  type: 'test'
+  ...
+# Subtest: R8 image upload HTTP host path accepts real PNG and removes invalid image uploads
+ok 7 - R8 image upload HTTP host path accepts real PNG and removes invalid image uploads
+  ---
+  duration_ms: 73.440867
+  type: 'test'
+  ...
+# Subtest: R8 image crossfade retains whole spoken phrases and exact caption timeline
+ok 8 - R8 image crossfade retains whole spoken phrases and exact caption timeline
+  ---
+  duration_ms: 1169.967229
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3946.066874

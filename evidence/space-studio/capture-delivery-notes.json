@@ -1,0 +1,27 @@
+{
+  "changesSinceCapture": [
+    {
+      "path": "public/space-studio/app-integration.mjs",
+      "capturedSha256": "7b33b0b78df2bff23d7383b853a51ed8745bec5a25198e0b71b07dd2a2f1909b",
+      "deliveredSha256": "ef68570ee4920c1d374aa76140b81f03753cccfcf30ecdc44e1fa8da00320742"
+    },
+    {
+      "path": "public/space-studio/controller.mjs",
+      "capturedSha256": "743eb375e139104e38cdf9b90f26c8a3e46b49c6c67484a50d048667e0af973b",
+      "deliveredSha256": "ebcb4f127d64e2926297a5fafa72348b875fcbb6adffb536a23de4735d08f45f"
+    },
+    {
+      "path": "public/space-studio/scene.mjs",
+      "capturedSha256": "8973a82588a0bcb4f956459e1a4417e2d3b058304308c7742609b0819a726537",
+      "deliveredSha256": "603dda41e5ce865a0858a02cedb885c7e6990cdafdf5508cc96dfacd7155028d"
+    },
+    {
+      "path": "public/space-studio/viewer.mjs",
+      "capturedSha256": "35b417c56eec5979b21bcadf02592bc5aff4da10f68784d56ccea8fdd1c5d4d7",
+      "deliveredSha256": "86f3720476d416fb43981d9295d057038ad13f0f77916ee83dd20b0a2ebea8b0"
+    }
+  ],
+  "deterministicGeometryOrMotionChanged": false,
+  "note": "The final edits adjust lifecycle, explicit Vault status text, stop-at-end playback and button state. design.mjs and motion.mjs are byte-identical to the capture. scene.mjs only changes tick/play handling, not setTime/draw/geometry/IK. Offline renders use the captured per-frame poses.",
+  "captureSceneReconstructionHashVerified": true
+}

@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: Image capability catalog excludes vision/text-only models and unsupported account adapters
+ok 1 - Image capability catalog excludes vision/text-only models and unsupported account adapters
+  ---
+  duration_ms: 2.105798
+  type: 'test'
+  ...
+# Subtest: A rate limit hands same scene to B, then scenes are distributed by account; actual provider calls are injected fixtures
+ok 2 - A rate limit hands same scene to B, then scenes are distributed by account; actual provider calls are injected fixtures
+  ---
+  duration_ms: 21.633651
+  type: 'test'
+  ...
+# Subtest: Image API charges cannot be enabled by auto selection alone
+ok 3 - Image API charges cannot be enabled by auto selection alone
+  ---
+  duration_ms: 0.566876
+  type: 'test'
+  ...
+# Subtest: Image safety refusal stops without trying another AI
+ok 4 - Image safety refusal stops without trying another AI
+  ---
+  duration_ms: 0.971637
+  type: 'test'
+  ...
+# Subtest: Frozen image pool fails closed on identity change or locked Vault
+ok 5 - Frozen image pool fails closed on identity change or locked Vault
+  ---
+  duration_ms: 0.661268
+  type: 'test'
+  ...
+# Subtest: Account security error is terminal and cannot hop to a billed image API
+ok 6 - Account security error is terminal and cannot hop to a billed image API
+  ---
+  duration_ms: 0.442708
+  type: 'test'
+  ...
+# Subtest: Client cannot falsify a frozen image pool to spend paid quota or invoke a text model
+ok 7 - Client cannot falsify a frozen image pool to spend paid quota or invoke a text model
+  ---
+  duration_ms: 0.399383
+  type: 'test'
+  ...
+# Subtest: Windows discovery uses actual installed vi voices and prefers WinRT; never defaults to English
+ok 8 - Windows discovery uses actual installed vi voices and prefers WinRT; never defaults to English
+  ---
+  duration_ms: 1.773447
+  type: 'test'
+  ...
+# Subtest: Windows synthesis passes Unicode text as stdin data, validates WAV and reports exact installed voice (process fixture, not real Windows)
+ok 9 - Windows synthesis passes Unicode text as stdin data, validates WAV and reports exact installed voice (process fixture, not real Windows)
+  ---
+  duration_ms: 10.464182
+  type: 'test'
+  ...
+# Subtest: Windows failure never silently selects another engine or a paid API
+ok 10 - Windows failure never silently selects another engine or a paid API
+  ---
+  duration_ms: 1.229756
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 209.841549

@@ -1,0 +1,97 @@
+{
+  "revision": "space-studio-team-r3.0",
+  "baseVersion": "0.9.61",
+  "recordedAt": "2026-10-23T03:15:58.663103+00:00",
+  "result": "source_scope_complete_with_explicit_platform_acceptance_not_tested",
+  "checks": {
+    "syntax": {
+      "result": "pass",
+      "command": "npm run check"
+    },
+    "fullRegression": {
+      "result": "pass",
+      "command": "node --test --test-concurrency=1 --test-timeout=45000",
+      "tests": 568,
+      "pass": 567,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "rawLogSha256": "b203d1a870676c1dfbc3d0a45b41a352cbc9ad9450f6494ec859a4fc7e751800"
+    },
+    "spaceStudioTests": {
+      "result": "pass",
+      "command": "node --test test/space-studio*.test.mjs",
+      "tests": 80,
+      "pass": 80,
+      "fail": 0,
+      "skipped": 0,
+      "includedInFullRegression": true
+    },
+    "realSceneGeometryRigDOM": {
+      "result": "pass",
+      "count": 21,
+      "backend": "real Three.js geometry, cloned TAM19 GLB, real kinematics and DOM; CPU export adapter without WebGL",
+      "localStorageMock": true,
+      "webglRendered": false
+    },
+    "appLifecycle": {
+      "result": "pass",
+      "count": 12,
+      "rendererAndFetchMocked": true
+    },
+    "actualLocalHttp": {
+      "result": "pass",
+      "file": "test/space-studio-http.test.mjs",
+      "isolatedFixtures": true,
+      "liveProviderCalls": 0,
+      "includedInSpaceStudioTests": true
+    },
+    "protectedScope": {
+      "roomGeometryConstructionBlockByteIdentical": true,
+      "paletteDimensionsStationsCamerasIdenticalExceptRevision": true,
+      "allOriginalAssetsByteIdentical": true,
+      "originalAssetsCount": 69,
+      "tam19FilesUnchanged": true,
+      "legacyOfficeAndTaskBusinessFilesByteIdentical": true
+    },
+    "offlineVideo": {
+      "result": "pass",
+      "backend": "VTK/Mesa",
+      "accountFixtures": 6,
+      "frames": 193,
+      "stream": {
+        "codec_name": "h264",
+        "width": 960,
+        "height": 600,
+        "r_frame_rate": "12/1",
+        "duration": "16.083333",
+        "nb_read_frames": "193"
+      },
+      "decoded": true
+    },
+    "windowsGPU": {
+      "result": "not_tested",
+      "reason": "No Windows GPU environment; headless WebGL2 initialization failed."
+    },
+    "realUserAccountProviderE2E": {
+      "result": "not_tested",
+      "reason": "No user credentials or paid calls used; actual server/modules exercised with isolated fixture data."
+    },
+    "hardwareFPS": {
+      "result": "not_tested",
+      "reason": "Offline render time and CPU pose counts do not measure Windows FPS."
+    }
+  },
+  "scopeNotes": [
+    "Approved geometry, cameras, 69 original assets and original task execution logic are preserved.",
+    "Provider calls gain only a non-persistent observational wrapper. The room does not submit jobs or consume provider quota.",
+    "Old R2 evidence is historical. New R3 proof uses synthetic accounts and explicitly identifies offline rendering."
+  ],
+  "knownLimits": [
+    "Nine desks are kept unchanged. Extra avatars use waiting locations; finite room space may leave excess accounts in roster without a physical slot.",
+    "Visual aisle motion is serialized to avoid crossing. Actual AI jobs remain concurrent.",
+    "Only AI Project OS task/call state is observed, not separate chats on provider websites.",
+    "Local connection catalog readiness is not an external live provider health check."
+  ]
+}
