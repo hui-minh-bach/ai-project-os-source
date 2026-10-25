@@ -1,0 +1,15 @@
+✔ client article auto plan requires no TTS/FFmpeg and never authorizes payment (5.710641ms)
+✔ client article: real adapter path -> separate Reviewer -> local approval -> complete customer ZIP + SHA (27.150956ms)
+✔ client reviewer rejection blocks delivery instead of returning draft (3.613561ms)
+✔ client video: actual FFmpeg audio/video passes mandatory QA, ZIP includes six real artifacts (476.259449ms)
+✔ client video: silent MP4 and missing WAV fail closed and never offer delivery ZIP (496.353387ms)
+✔ old v0.9.68 persisted orchestration config keeps caps and gains client pipelines safely (1.364643ms)
+✔ separate client projects may deliver independently while prior customer awaits receipt (6.821601ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1221.794449

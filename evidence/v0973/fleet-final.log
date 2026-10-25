@@ -1,0 +1,37 @@
+✔ provider reply completion cannot release assigned team while parent pipeline renders (90.392984ms)
+✔ queued/running reception job holds desks before an orchestrator run exists (0.30518ms)
+✔ seat-exit boundary is cancelled when a new active job starts before movement (2.143991ms)
+✔ conversation shows exact public worker/reviewer replies, scope and names; never private reasoning (9.397049ms)
+✔ old runs use stored actual script/review feedback, not invented conversation (0.346562ms)
+✔ image progress is project-scoped and cannot crowd public model replies out of reception (1.046827ms)
+✔ R3 roster has no placeholder or fake account for empty input (2.888512ms)
+✔ R3 roster identity is connectionId, not repeated label or provider (0.406713ms)
+✔ R3 does not inherit legacy ten-account limit (1.644037ms)
+✔ R3 filters non-AI integrations and duplicate IDs (0.221084ms)
+✔ R3 models multiple roles without multiplying robots (0.352211ms)
+✔ R3 true task coding uses frozen account not later project assignment (0.475226ms)
+✔ R3 actual review belongs to reviewer, not worker (0.295155ms)
+✔ R3 test runner is not reported as typing AI (0.188564ms)
+✔ R3 observed fallback call belongs to the actual account (0.286532ms)
+✔ R3 concurrent calls are aggregated per account (0.407143ms)
+✔ R3 council pending members do not claim active work (0.313282ms)
+✔ R3 account cooldown and offline remain explicit (0.213472ms)
+✔ R3 active observed request wins over stale cooldown advisory (0.214604ms)
+✔ R3 simulated pipelines never make real accounts work (0.180271ms)
+✔ R3 unassigned pipelines are not attributed to arbitrary accounts (0.237949ms)
+✔ R3 render pipeline waits at its assigned account but never claims provider activity (0.249516ms)
+✔ R3 recent task completion is temporary and most recent outcome wins (0.28531ms)
+✔ R3 projection excludes credentials, prompts and raw responses (0.269466ms)
+✔ R3 projection and normalization never mutate input objects (0.651502ms)
+✔ R3 client rejects malformed snapshots and sanitizes fields without treating HTML as markup (0.384229ms)
+✔ R3 observation preserves returned object identity and error identity (1.02885ms)
+✔ R3 observation captures in-flight actual connection and clears on completion (0.274163ms)
+✔ R7 rendered media remains with the served fallback account, not the failed primary (0.237127ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 204.688936

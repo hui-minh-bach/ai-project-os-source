@@ -1,0 +1,12 @@
+✔ sweep preset keeps the classic \kf fill (1.412487ms)
+✔ box preset puts the line on a solid highlight strip (0.291672ms)
+✔ pop preset renders one big word at a time with a scale-in (0.801272ms)
+✔ unknown preset falls back to sweep (0.34908ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 107.148157

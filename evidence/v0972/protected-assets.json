@@ -1,0 +1,339 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "path": "public/assets/bots/iso/tam19-antigravity-idle.png",
+      "sha256": "9d1e60f1ce06bc734fb2931f45023d2f74a7b4b6f2b23de06604a09c19ca66df"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-antigravity-pod.png",
+      "sha256": "f4221996feb238d7fcdc25775971bbe59cb2f161f36e85381e183489c717d3e1"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-antigravity-sit.png",
+      "sha256": "c156dcc682438abdeb0eacc40d9fa6fa5e716c18bf6f9034e892420018325578"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-antigravity-walk.png",
+      "sha256": "1848b5a1044360ffbfd996f9a3e8417e9ba47cdcff4e1505a34332c4b81eb8e0"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-chatgpt-idle.png",
+      "sha256": "655d4cb32ceeee48c13e16732b67461289c8bb58a9780371e4dd452bacaf5b82"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-chatgpt-pod.png",
+      "sha256": "084aea055e46cc09aad80a668f58163e5557cbe591ed49b26f3e4fb80668b6ed"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-chatgpt-sit.png",
+      "sha256": "6c91bffd4985cfff96416c769a7835ad0d006795ee41cca6b60557be24a22b98"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-chatgpt-walk.png",
+      "sha256": "5569bfe4233cf554b3c5052f5c0e932d45da7f35ccef326776b8e1b4246d700a"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-claude-idle.png",
+      "sha256": "81fa6ae4c8dcd2097c05fd6f8249640f5124242ab265306df83ea68655346d03"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-claude-pod.png",
+      "sha256": "2edfa38fbe033402d786515cd3115d3996b4d70c25d049e1686d65e90353bed2"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-claude-sit.png",
+      "sha256": "af1526a4580c8375e746f5bc1e42d57edebf1f2fd8986e237d0c65e219907c4b"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-claude-walk.png",
+      "sha256": "27eb47ee3e496655b99ee1ef6d06a58fa6d529e1d717563c2b4a1b2e3075d1e9"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-default-idle.png",
+      "sha256": "e5460a406a1186ba225f694c618951eb1520f38b8fcf4a01995e5a8370e40879"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-default-pod.png",
+      "sha256": "3df9682e169417802f8b274d3a724213ad0fa3e75ac12881553851ff37db1cd4"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-default-sit.png",
+      "sha256": "b242c818edf5f3284176744c5acdf53ed69a64d66983e355ecbe8e9bd2294db7"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-default-walk.png",
+      "sha256": "ce5180c5fd891b433f7d069bfcd2a76a88477f0b115c52febfa13444e7b99c69"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-gemini-idle.png",
+      "sha256": "79b6e6e815451c9c81ec9e3b7419b5df8308636e03b10bec1049cd91adac15e2"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-gemini-pod.png",
+      "sha256": "ec11a91a791637da2bb2872dfd048e72618aafe6800280d7b2e0133612f41cca"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-gemini-sit.png",
+      "sha256": "91b4191d2ced6406fd74fd89f795528d662f3d9813aaf6f94f163810c03f22c7"
+    },
+    {
+      "path": "public/assets/bots/iso/tam19-gemini-walk.png",
+      "sha256": "37d9e6ad19c3c829767d2a115db0a6d9b3d3f773ad7878c7dd293610ee66f3eb"
+    },
+    {
+      "path": "public/assets/bots/tam19-antigravity-idle.png",
+      "sha256": "0c0bcc64866bb1a99e4fe48f4fb4e3bb086b5ba3fc888d06670ae9486777686f"
+    },
+    {
+      "path": "public/assets/bots/tam19-antigravity-sit.png",
+      "sha256": "5194088e204f144cc3b813b8893cc2b6e8cd6d34c93872efb6328a0fbbb4abe2"
+    },
+    {
+      "path": "public/assets/bots/tam19-antigravity-walk.png",
+      "sha256": "94f6efc7b1e4c235f57634e9f4a7b822f0387c7e15f24ff3896126c21e1fabfd"
+    },
+    {
+      "path": "public/assets/bots/tam19-chatgpt-idle.png",
+      "sha256": "1d0f30e7fe817c027f26fa199e166dce536dabbb4fbfe1084695852d4b2d915f"
+    },
+    {
+      "path": "public/assets/bots/tam19-chatgpt-sit.png",
+      "sha256": "3273c42dbfa6f509e178d691950c0c8282cb3b6f2e185dc875f12fcc81b1d399"
+    },
+    {
+      "path": "public/assets/bots/tam19-chatgpt-walk.png",
+      "sha256": "19d9e072404e836fb11dfac35045b564c4e4591a0cc0ebffd448fa1b36e7f0bb"
+    },
+    {
+      "path": "public/assets/bots/tam19-claude-idle.png",
+      "sha256": "b5cc0c44fae7351f6f3dc3afc0afc185c6d2da4521d180196def5f9da70cc8b4"
+    },
+    {
+      "path": "public/assets/bots/tam19-claude-sit.png",
+      "sha256": "e39bed7699dff55e3916073bbba211be55385747ec973ff2510cf2e6d22c0ba3"
+    },
+    {
+      "path": "public/assets/bots/tam19-claude-walk.png",
+      "sha256": "b2a2f49d1338ff6bd3a6a8684f2edab4b19af89f0dc495854bfe1a6e0a9043d4"
+    },
+    {
+      "path": "public/assets/bots/tam19-default-idle.png",
+      "sha256": "2603cbec6b2992be891762650cccb67089a685ec89ea124f64e9fe0db60506f9"
+    },
+    {
+      "path": "public/assets/bots/tam19-default-sit.png",
+      "sha256": "8e4935324e4a5aff97654f9a378d3da27e64bca99f5ade3a7aaef224271a60f2"
+    },
+    {
+      "path": "public/assets/bots/tam19-default-walk.png",
+      "sha256": "805e0fad8e3b122b7b5a34417dcb76d7e15ed98814396c7ce383cc33c401aacc"
+    },
+    {
+      "path": "public/assets/bots/tam19-gemini-idle.png",
+      "sha256": "fdc86f49ec878f11fd48d1e3dea0e5b5497525e4abbac213893210c3d5773c93"
+    },
+    {
+      "path": "public/assets/bots/tam19-gemini-sit.png",
+      "sha256": "605f8113246e319a7067d9e9ebf72ba6461d17d8aea9289dff040ea8849b5fcb"
+    },
+    {
+      "path": "public/assets/bots/tam19-gemini-walk.png",
+      "sha256": "6b715d29f45ea0c2e298235e2393f994570697356a4d9cebf5d816366d22a1b9"
+    },
+    {
+      "path": "public/assets/chair-demo/chair-original-cutout.png",
+      "sha256": "60eb47c638e4e2fe0ec5f58da64c36f4812388861a07d21a06deb3c04410d557"
+    },
+    {
+      "path": "public/assets/chair-demo/office-iso-no-chair.jpg",
+      "sha256": "f69ed11040a424a25be576bd41a40c09733431428395dc742a453afa2044cac4"
+    },
+    {
+      "path": "public/assets/env/blue_floor_tiles_01_diff_512.jpg",
+      "sha256": "8021b8017e9cca7d716161195a34a48eb40d8617a769cac5dc2d7a019bbfbc93"
+    },
+    {
+      "path": "public/assets/env/blue_photo_studio_1k.hdr",
+      "sha256": "65f086b4e9b64f4e2d01e3268a30fd982572be81d88c0477349e3a704032294f"
+    },
+    {
+      "path": "public/assets/hero-amber.webp",
+      "sha256": "02ac70806a044e690b4f41354ab017f500063145a94eda435d6794fb587d1fae"
+    },
+    {
+      "path": "public/assets/hero-arctic.webp",
+      "sha256": "853511953e5dadf5c15d359861df662377bd0e9afe97d8a5f9eadec1e33b6a4a"
+    },
+    {
+      "path": "public/assets/hero-aurora.webp",
+      "sha256": "33dc937585eef507231df40f8e042f388573ce44443bbdd669d8120967747686"
+    },
+    {
+      "path": "public/assets/hero-emerald.webp",
+      "sha256": "51af2e42b3f1d61503d16d07095493fe6fff8fed3781bfe7bd17d3090eda68ce"
+    },
+    {
+      "path": "public/assets/hero-ocean.webp",
+      "sha256": "bb9f3915965dc9cc7193185a81b0f9b18baa2f6273974bbb902b8263a83747a0"
+    },
+    {
+      "path": "public/assets/idea-master-concept.png",
+      "sha256": "16abbe46473de9baa334c7f0b04fbde24bb847bf76e42b9640425b29e122e39b"
+    },
+    {
+      "path": "public/assets/office-backdrop.jpg",
+      "sha256": "2fc8bba2b4575a114d62e37780d3b89e68b1ff32e81ffd3a337688ef1607704e"
+    },
+    {
+      "path": "public/assets/office-iso-backdrop.jpg",
+      "sha256": "a7cd102dbb1a7409894b9aaabf8f2985329452700f89ee70246ef011ce875c89"
+    },
+    {
+      "path": "public/assets/office-iso-fg/cage.png",
+      "sha256": "0a0f7dfa5549746d65d6f2460d9a7e4ac08f6986371347eb3db7a6b7366f9c5d"
+    },
+    {
+      "path": "public/assets/office-iso-fg/desk-boss.png",
+      "sha256": "e7f7a8e31709b12b13f418c097dc868826d1e658b40b4a54fa8e5126e06f6773"
+    },
+    {
+      "path": "public/assets/office-iso-fg/desk-image.png",
+      "sha256": "5a0fc6705761ef6b49920acd8aaaeaeca5e6dbaa123bd580c36bb34a0c68b1a1"
+    },
+    {
+      "path": "public/assets/office-iso-fg/desk-media.png",
+      "sha256": "dbba451678ab397b71ffb7f68b01d153bb7d6e1cac57d590e694e99d942be078"
+    },
+    {
+      "path": "public/assets/office-iso-fg/desk-news.png",
+      "sha256": "06d153ea350545b3647eeefd8a5684e6fe6dbda71552200c5f31f208b054b0ea"
+    },
+    {
+      "path": "public/assets/office-iso-fg/desk-pm.png",
+      "sha256": "90e15b38ebe157dabe23e17e62b1cb2d366f274a82c2e53d4e9ec0e019a5352a"
+    },
+    {
+      "path": "public/assets/office-iso-fg/desk-publish.png",
+      "sha256": "e587022d54386435b1204914ac28836bcc0690b57e3fbe3ab1f2b9104be5709d"
+    },
+    {
+      "path": "public/assets/office-iso-fg/desk-review.png",
+      "sha256": "3e324000bb8ead25096c0ec4ad098a0c5ef9dfc0d24c09cefcbb2751531b4e06"
+    },
+    {
+      "path": "public/assets/office-iso-fg/desk-script.png",
+      "sha256": "c5a71465bc30944d1b8cf9c0adc7706f33ffcf51306287f1592410b4ddce2208"
+    },
+    {
+      "path": "public/assets/office-iso-fg/pod-0.png",
+      "sha256": "42297a5efb91319047c1de3fab0a5b9a3de5293ff0fe5259878dfc7266972b7b"
+    },
+    {
+      "path": "public/assets/office-iso-fg/pod-1.png",
+      "sha256": "881a371be3e9465e1419f75433c46dd18007f9bb6dc748d69c37aeafc0ebad76"
+    },
+    {
+      "path": "public/assets/office-iso-fg/pod-2.png",
+      "sha256": "33ea46961935bfa34bb746bba9e12f5ed5c33206b4158b758772a9a19a514982"
+    },
+    {
+      "path": "public/assets/office-iso-fg/pod-3.png",
+      "sha256": "95fd114b6f7d45a259774adb6d37a84b35f930ee323d6265205bd7720659345d"
+    },
+    {
+      "path": "public/assets/office-room.glb",
+      "sha256": "2a27aad857b8993895dffdc2748e13cd041ae49ed4f79717c4301d89b0f550db"
+    },
+    {
+      "path": "public/assets/props/kenney/bookcaseOpen.glb",
+      "sha256": "750702218d68c062b15dfef6ab06a4014d1cfa8bd05f02e57c53b7e13bec157c"
+    },
+    {
+      "path": "public/assets/props/kenney/lampRoundFloor.glb",
+      "sha256": "50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908"
+    },
+    {
+      "path": "public/assets/props/kenney/loungeSofa.glb",
+      "sha256": "1886b811c0d3ad0d8525a4fd43adf4112c497c8e0ed906f06877ca3517f4c7dd"
+    },
+    {
+      "path": "public/assets/props/kenney/plantSmall1.glb",
+      "sha256": "2b9c022feb47be857b2c4fdc29f36522766ba9b70c578c31d7c05d71b4377d15"
+    },
+    {
+      "path": "public/assets/props/kenney/pottedPlant.glb",
+      "sha256": "5b760eda2766f75fda36b2c5df652a1662f82981ef64cd8fa7fe7bcd386b3a15"
+    },
+    {
+      "path": "public/assets/props/kenney/rugRound.glb",
+      "sha256": "c4cdc8f51ed2dbfb853b147521ed40e995307392fd3b19045b2203ea50f376db"
+    },
+    {
+      "path": "public/assets/tam01.glb",
+      "sha256": "41a40d3a404cc4635a37e18a1784095cbb95f9687b105519df213b581687d621"
+    },
+    {
+      "path": "public/assets/tam19.glb",
+      "sha256": "2e84217847ae15e035d53617d4bdd0be6e6d2121fadc0b666765b4a76659d663"
+    },
+    {
+      "path": "public/space-studio/app-integration.mjs",
+      "sha256": "f76fc026e0982134f97ccf63f0061c5a2abda687c0efd4b25ba22e54e1aecede"
+    },
+    {
+      "path": "public/space-studio/controller.mjs",
+      "sha256": "ebcb4f127d64e2926297a5fafa72348b875fcbb6adffb536a23de4735d08f45f"
+    },
+    {
+      "path": "public/space-studio/design.mjs",
+      "sha256": "4b761fa9cd422e69bc0b134ba44c901fcbb99d64249f64709937c26f97eb0e43"
+    },
+    {
+      "path": "public/space-studio/fleet-contract.mjs",
+      "sha256": "5debe1243727fa00fab64e9c0c5a9545f82e627c3e706c097b377da06ac1cd11"
+    },
+    {
+      "path": "public/space-studio/fleet-feed.mjs",
+      "sha256": "35b91900a0604a0fdfc429991d17ca41ffa41df72b7cd0e300165b4965ecc72d"
+    },
+    {
+      "path": "public/space-studio/fleet-scene.mjs",
+      "sha256": "340a0c9dc8fd643f41db9310adc6b6e8a5ec8223142efe0123b6a582a493d9ed"
+    },
+    {
+      "path": "public/space-studio/live-motion.mjs",
+      "sha256": "79cee729b8fcfe8f909c7ce67eb68d7bd4b7c9e5f70b28dcab8dae6c43c946ca"
+    },
+    {
+      "path": "public/space-studio/motion.mjs",
+      "sha256": "55555dfbd20ceb387d60e1e7a989b1b52a3d459a09fe01883ac2d1c6740aa5ea"
+    },
+    {
+      "path": "public/space-studio/name-labels.mjs",
+      "sha256": "fe4ba47f443272ef022af540bb7c9f59f18cc823f44ed7d681a0d1be21ce08fb"
+    },
+    {
+      "path": "public/space-studio/navigation.mjs",
+      "sha256": "2d86372a87e4477267ef10437c85038a0030c363b86376ece39dbeb6c92c32b3"
+    },
+    {
+      "path": "public/space-studio/scene.mjs",
+      "sha256": "37832dcae5c4766c24c4f80b32347d780a82a8609836f313a5b5b613c7cd632c"
+    },
+    {
+      "path": "public/space-studio/standalone-status.js",
+      "sha256": "45b144a2ead9d5fce04fb5383d6496abfaf8c290898fac5386dae9d3f48f5286"
+    },
+    {
+      "path": "public/space-studio/viewer.css",
+      "sha256": "1d973a7b2c4dd95044742b9c9b2ec853d20d78a322cf823b9e04bf74e8e5748a"
+    },
+    {
+      "path": "public/space-studio/viewer.mjs",
+      "sha256": "73d415845f6deaab2644879f9e2ef02367c79d6d5c167dd863e94661785a3a55"
+    }
+  ],
+  "count": 83,
+  "allUnchangedSince0971": true
+}

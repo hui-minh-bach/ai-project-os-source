@@ -1,0 +1,12 @@
+{
+  "officialPackage": "@openai/codex@0.162.1",
+  "generatedVia": "codex app-server generate-ts",
+  "capabilitiesParams": {},
+  "capabilitiesResponse": {
+    "imageGeneration": "boolean",
+    "webSearch": "boolean"
+  },
+  "imageItem": "result string, optional savedPath and failure",
+  "source": "https://learn.chatgpt.com/docs/app-server",
+  "verification": "Schema generation only, no authentication or live image generation"
+}

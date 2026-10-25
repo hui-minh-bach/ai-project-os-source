@@ -1,0 +1,89 @@
+{
+  "revision": "space-studio-team-r3.0",
+  "geometryOnly": true,
+  "geometricWorkstations": 9,
+  "geometricChairs": 9,
+  "robotLoaded": true,
+  "liveRobots": 6,
+  "displayMode": "live",
+  "brightness": 0.85,
+  "view": "hero",
+  "drawCalls": 0,
+  "triangles": 0,
+  "metrics": {
+    "robots": [
+      {
+        "id": "fixture-lead",
+        "phase": "work",
+        "handContactError": null,
+        "handReachResidual": 0,
+        "maxLimbResidual": 0,
+        "pelvisSeatGap": -1.599999999996049e-05,
+        "seatContact": true,
+        "chairZ": 0.72,
+        "footHeightL": 0,
+        "footHeightR": 0
+      },
+      {
+        "id": "fixture-review",
+        "phase": "work",
+        "handContactError": null,
+        "handReachResidual": 0,
+        "maxLimbResidual": 0,
+        "pelvisSeatGap": -1.599999999996049e-05,
+        "seatContact": true,
+        "chairZ": 0.72,
+        "footHeightL": -8.326672684688674e-17,
+        "footHeightR": -8.326672684688674e-17
+      },
+      {
+        "id": "fixture-research",
+        "phase": "work",
+        "handContactError": null,
+        "handReachResidual": 0,
+        "maxLimbResidual": 0,
+        "pelvisSeatGap": -1.599999999996049e-05,
+        "seatContact": true,
+        "chairZ": 0.72,
+        "footHeightL": 0,
+        "footHeightR": 0
+      },
+      {
+        "id": "fixture-builder",
+        "phase": "work",
+        "handContactError": null,
+        "handReachResidual": 0,
+        "maxLimbResidual": 0,
+        "pelvisSeatGap": -1.599999999996049e-05,
+        "seatContact": true,
+        "chairZ": 0.72,
+        "footHeightL": -1.3877787807814457e-16,
+        "footHeightR": -8.326672684688674e-17
+      },
+      {
+        "id": "fixture-media",
+        "phase": "seated-idle",
+        "handContactError": null,
+        "handReachResidual": 0,
+        "maxLimbResidual": 0,
+        "pelvisSeatGap": -1.599999999996049e-05,
+        "seatContact": true,
+        "chairZ": 0.72,
+        "footHeightL": -1.3877787807814457e-16,
+        "footHeightR": -8.326672684688674e-17
+      },
+      {
+        "id": "fixture-ready",
+        "phase": "seated-idle",
+        "handContactError": null,
+        "handReachResidual": 0,
+        "maxLimbResidual": 0,
+        "pelvisSeatGap": -1.599999999996049e-05,
+        "seatContact": true,
+        "chairZ": 0.72,
+        "footHeightL": -1.3877787807814457e-16,
+        "footHeightR": -8.326672684688674e-17
+      }
+    ]
+  }
+}

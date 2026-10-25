@@ -1,0 +1,27 @@
+✔ R3 empty live room has no demonstration robot (3.718162ms)
+✔ R3 initial accounts get distinct seats and no fake typing (3.961128ms)
+✔ R3 same ID retains seat through rename and roster reordering (0.944553ms)
+✔ R3 simultaneous real jobs type independently, render jobs do not (4.382714ms)
+✔ R3 more accounts than desks remain represented, with unique seats (0.895008ms)
+✔ R3 quota and disconnected accounts do not hydrate at work seats (0.362426ms)
+✔ R3 stale feed immediately stops typing and freezes traversal (1.588874ms)
+✔ R3 visual pause does not overwrite task status (6.928199ms)
+✔ R3 deleted account immediately releases chair and removes avatar (1.645319ms)
+✔ R3 completion exits chair and returns to holding area (30.336982ms)
+✔ R3 account receives work at holding area, walks and sits without a teleport (38.320461ms)
+✔ R9 idle account stays at desk after ingress without teleporting (18.805617ms)
+✔ R3 entering/leaving robots keep exclusive aisle ownership (41.687786ms)
+✔ R3 compact sitting motion preserves exact pelvis/chair alignment (0.826305ms)
+✔ R3 compact chair pull stays clear of following row wall (5.755692ms)
+✔ R3 nav routes each holding position to all original workstations (343.616828ms)
+✔ R3 nav refuses nonfinite / table / outside goals instead of teleporting (0.264198ms)
+✔ R3 navigation detours around a stationary avatar (2.049569ms)
+✔ R9 first live accounts join after an empty initial feed and still occupy real desks (32.982326ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 655.009049

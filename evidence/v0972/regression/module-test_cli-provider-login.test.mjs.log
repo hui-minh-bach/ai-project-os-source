@@ -1,0 +1,11 @@
+✔ Claude CLI account fails closed before it has any model catalog and can be role-bound after verified inference records one (367.057854ms)
+✔ Gemini CLI uses restricted, private settings and rejects actual model fallback (315.065327ms)
+✔ managed CLI installation is whitelisted, local-user scoped and has a Node portable npm path (22.498757ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 795.399774

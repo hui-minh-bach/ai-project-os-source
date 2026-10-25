@@ -1,0 +1,14 @@
+✔ successful replies from all AI adapters redact current, unrelated Vault credential and password before project persistence (770.960499ms)
+✔ mixed raw quote-bearing and JSON-escaped credentials cannot hide later tokens from Founder reply, memory or disk (358.218078ms)
+✔ quoted, backslash and Unicode-escaped credentials are redacted inside protocol JSON while review booleans and tool fields stay intact (346.295304ms)
+✔ Vault lock during await cannot remove the captured response-redaction context (294.302353ms)
+✔ provider failures arriving after Vault lock expose neither credential nor raw error cause/stack and retain HTTP status (271.57945ms)
+✔ short legacy fixture credentials do not corrupt JSON paths or unrelated source words (268.714909ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2468.152438

@@ -1,0 +1,20 @@
+✔ R2 world: nine distinct metre-scale stations and feasible desk/chair heights (1.492129ms)
+✔ R2 phases: continuous coverage, all contact actions, no missing timeline (1.100068ms)
+✔ R2 motion clamps invalid time and never produces NaN (0.435366ms)
+✔ R2 3001 poses: chair bounds, floor contact and finite transforms (44.805904ms)
+✔ R2 pelvis follows the chair during full seated contact (4.71119ms)
+✔ R2 chair moves only with a grip or seated robot; finishes home (31.521815ms)
+✔ R2 transitions preserve position and chair/pelvis continuity (0.577751ms)
+✔ R2 gait: stance foot is world-anchored away from blend edges (9.884106ms)
+✔ R2 IK: reachable endpoints preserve both limb lengths (0.600735ms)
+✔ R2 IK: out-of-reach is bounded and explicitly reports residual (0.352281ms)
+✔ R2 IK: coincident points and parallel pole do not break the solve (0.409838ms)
+✔ R2 IK rejects invalid vectors and nonpositive lengths (0.525081ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 214.269204

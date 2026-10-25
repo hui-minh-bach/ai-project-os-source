@@ -1,0 +1,15 @@
+✔ unavailable Whisper and Concat cannot remain silently selected on UI (5.079471ms)
+✔ legacy plan+render workflow refuses to silently drop requested extras (2.790132ms)
+✔ quick-edit checks Concat connection before queueing or running expensive render (1.815504ms)
+✔ technical MP4 cannot be shown as a content-approved commercial deliverable (2.053323ms)
+✔ API blocks enhanced flags on basic JSON render rather than quietly discarding them (9.528051ms)
+✔ short sample QA is marked technical-only, never content commercially approved (289.063664ms)
+✔ switching source hides results from previous demo, with an explicit history toggle (7.366787ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 473.034875

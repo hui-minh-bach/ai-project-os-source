@@ -1,0 +1,12 @@
+✔ retheme budgets scale with window length and stay in bounds (1.273337ms)
+✔ free-text script split keeps every word once, in order, proportional to windows (1.384326ms)
+✔ longer window receives the larger share of the script (0.549106ms)
+✔ retheme is registered end to end: handler kind, studio mode, panel (1.501583ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 154.636044

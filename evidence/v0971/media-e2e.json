@@ -1,0 +1,154 @@
+{
+  "status": "PASS",
+  "test": "real-ffmpeg-bridge",
+  "date": "2026-10-24T08:58:59.175Z",
+  "tasks": [
+    {
+      "operation": "media.subtitle-edit",
+      "id": "2b448193-ed67-4d80-838f-828797724f50",
+      "state": "completed",
+      "error": null,
+      "artifactIds": [
+        "29a8b77a-5b8c-44de-95c4-32e3b4371a61",
+        "c8e0c623-d06c-4b4b-92e3-95a715eb9d39",
+        "bc8232c7-0ea2-46d9-8629-ddda7aa5c1ac"
+      ]
+    },
+    {
+      "operation": "media.analyze",
+      "id": "e6070f64-061b-4fe0-8040-048814a18273",
+      "state": "completed",
+      "error": null,
+      "artifactIds": [
+        "f4973a87-13e3-41c8-86f3-d6f0d4387571",
+        "137699bb-816f-46bb-ad50-ff3d3c0d91fd",
+        "0c52bbcc-a98d-4caf-939f-e3be7b4aa5b5",
+        "969f78c4-8638-4b6b-810e-4e30c8df4754",
+        "a8e86f1d-9202-4906-9f10-354d841541af",
+        "aa19dfd2-1e50-4d9f-96bd-3001b7c15f29"
+      ]
+    },
+    {
+      "operation": "media.edit-plan",
+      "id": "cfa2c78e-d35a-482b-9acd-589acb478e25",
+      "state": "completed",
+      "error": null,
+      "artifactIds": [
+        "6f732a65-1f69-4d8c-9b5d-ddcae165f1e9"
+      ]
+    },
+    {
+      "operation": "media.render",
+      "id": "da968ffa-cc10-453d-b931-27c9f9bfb0cf",
+      "state": "completed",
+      "error": null,
+      "artifactIds": [
+        "66e29b6a-8cee-4667-b88d-0c99c0eb7aed",
+        "f9e6314c-13d9-4e5c-82e7-7d060e030031",
+        "21fce72b-0f80-4951-a140-082637b6be07",
+        "3033b205-4bb4-46ab-b476-0fbcd89d1ee9"
+      ]
+    },
+    {
+      "operation": "media.story-outline",
+      "id": "11a17f8f-8692-43f6-b6c3-8f24e54513da",
+      "state": "completed",
+      "error": null,
+      "artifactIds": [
+        "496600b1-10be-431f-9846-a860280b8543"
+      ]
+    },
+    {
+      "operation": "media.publish-draft",
+      "id": "1d8ece52-0fe9-4174-9002-685ed9392c14",
+      "state": "completed",
+      "error": null,
+      "artifactIds": [
+        "fbd175b1-32ec-4039-8532-ad094f137976"
+      ]
+    }
+  ],
+  "verifiedFiles": [
+    {
+      "name": "captions.srt",
+      "sha256": "791b9974b57f1f0242eec6227f6127b0eb63dee9fa4a923d664308bbf3357af2",
+      "bytes": 57
+    },
+    {
+      "name": "captions.vtt",
+      "sha256": "942b8b771450a7199f45e0424b6c4e840a1d51760df2796291d05992092a9501",
+      "bytes": 63
+    },
+    {
+      "name": "manifest.json",
+      "sha256": "d920d68de4e6e7c9708f85ac87551d8f930ff3f814c12b024e59d72a512e71ba",
+      "bytes": 129
+    },
+    {
+      "name": "source.mp4",
+      "sha256": "a5ec5cafb14a43ed26e4252edb900e3c234f4de0e36625ecbff6f1f00fd4018c",
+      "bytes": 439956
+    },
+    {
+      "name": "audio.wav",
+      "sha256": "b08d16e313e6e79e5c1d8fb2c83ce785f295f204d0372cd57741f2199bbe61d1",
+      "bytes": 102618
+    },
+    {
+      "name": "frame-1.jpg",
+      "sha256": "c3cfbd009ebc65e1939eb1c4b0acb4e2fac87059e962d82c1366a9de4f10acb4",
+      "bytes": 18276
+    },
+    {
+      "name": "frame-2.jpg",
+      "sha256": "6d3d47ebe61ca0f86f8dd0e17c1f3f7473810563b63580163be3952c76374e3c",
+      "bytes": 18390
+    },
+    {
+      "name": "frame-3.jpg",
+      "sha256": "53ac742f2eb665e1aed3a5680598d4e427ce851cc939e9ee5b797d96a17356b3",
+      "bytes": 20716
+    },
+    {
+      "name": "manifest.json",
+      "sha256": "a5c9e794260e9c179804f8aaea69ac5914c8ec277fc82e9291b9efc8c4f91a4e",
+      "bytes": 1707
+    },
+    {
+      "name": "manifest.json",
+      "sha256": "1a1577e82584d9470f4d27b6d431071f364a5c0810dedd06e8ea6b3275972056",
+      "bytes": 1719
+    },
+    {
+      "name": "preview.mp4",
+      "sha256": "c2b8466ee3ccefdf989aa76c467f780ef5b80ca9b093932029591e81eb63f66a",
+      "bytes": 501625
+    },
+    {
+      "name": "final.mp4",
+      "sha256": "da72de17589e1c0d2942c51171783e5b0a6ca77e2c062424cc3fafab9502be80",
+      "bytes": 567381
+    },
+    {
+      "name": "timeline.json",
+      "sha256": "96e2bed42da3201cfd04fb1b52074e25a8977e04769a84e5a75bc27f1fcd6bf0",
+      "bytes": 1582
+    },
+    {
+      "name": "manifest.json",
+      "sha256": "14ac671d760cd618ddbe419c9ad20bc9301f75716162fee2224cb1fa3edad841",
+      "bytes": 3029
+    },
+    {
+      "name": "storyboard.json",
+      "sha256": "b2fc54104ca8424ffc3f61d0259894a946fc50585ca6b7be01b83a91d42c41bd",
+      "bytes": 689
+    },
+    {
+      "name": "manifest.json",
+      "sha256": "e072413547d188cc257ada3769b85e5ec0541a76a5675445d788841ec62007fc",
+      "bytes": 506
+    }
+  ],
+  "durationMs": 4096
+}

@@ -1,0 +1,16 @@
+✔ 0.9.57: the GLB curtain panels are hidden right after the room loads (1.063611ms)
+✔ 0.9.57: pod slots are a 2x5 grid driven by explicit slot numbers (0.391029ms)
+✔ 0.9.57: placement resolver gives every bot a unique post (0.327703ms)
+✔ 0.9.57: state posts win over manual pins (precedence order in source) (0.270147ms)
+✔ 0.9.57: manual pins persist under the aios-office-pins key (0.276046ms)
+✔ 0.9.57: selection — tap a robot selects it, card carries rename + back-to-auto (0.44489ms)
+✔ v0.9.60 motion fix: seat is resolved from the real chair mesh, not the run station (0.480003ms)
+✔ 0.9.57: guide documents the curtain removal, post assignment and the override rule (0.199991ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.28276

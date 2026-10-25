@@ -1,0 +1,45 @@
+{
+  "scope": "Real app browser/local Git/HTTP. CLI identity, model replies and social APIs are fixtures. No public posts or cloud changes.",
+  "nativeWindows": false,
+  "liveProvider": false,
+  "checks": [
+    {
+      "name": "Wrong GitHub URL in Vercel field gives actionable error before any clone",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload during import resumes polling; real Git clone arrives and selects exact imported project with copied verified AI team",
+      "status": "PASS"
+    },
+    {
+      "name": "Imported project can call its assigned Founder and persist a public reply (AI fixture)",
+      "status": "PASS"
+    },
+    {
+      "name": "17 channel cards separate API publishing scope from manual export",
+      "status": "PASS"
+    },
+    {
+      "name": "UI threads: verify token, save draft without posting, preview exact account/content, explicit publish, confirmed provider ID (social fixture)",
+      "status": "PASS"
+    },
+    {
+      "name": "UI x: verify token, save draft without posting, preview exact account/content, explicit publish, confirmed provider ID (social fixture)",
+      "status": "PASS"
+    },
+    {
+      "name": "UI zalo: verify token, save draft without posting, preview exact account/content, explicit publish, confirmed provider ID (social fixture)",
+      "status": "PASS"
+    },
+    {
+      "name": "LinkedIn text export downloads actual file and remains a draft, not a published post",
+      "status": "PASS"
+    },
+    {
+      "name": "Reload preserves four drafts and three confirmed fixture receipts; no extra sends",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "status": "PASS"
+}

@@ -1,0 +1,12 @@
+{
+  "modules": 127,
+  "counts": {
+    "tests": 748,
+    "pass": 748,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "allModuleLogsPresent": true,
+  "allExitCodesZero": true
+}

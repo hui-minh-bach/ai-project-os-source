@@ -1,0 +1,14 @@
+✔ project brief fields persist, reject unsupported input, and editing invalidates analyzed data (436.797402ms)
+✔ Founder uses configured role model, records actual history and timestamps, clears persisted messages (288.541716ms)
+✔ AI brief validates complete stack, sends structured Council input without approving specification (291.912362ms)
+✔ malformed AI JSON fails and stale in-flight analysis cannot overwrite edited inputs (229.998055ms)
+✔ AI schemas reject strings masquerading as booleans, oversized lists and missing required sections (1.028427ms)
+✔ boot recovery marks only persisted pending Founder messages failed and preserves history (109.303584ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1531.531066

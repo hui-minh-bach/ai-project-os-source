@@ -1,0 +1,14 @@
+✔ provider reply completion cannot release assigned team while parent pipeline renders (77.644564ms)
+✔ queued/running reception job holds desks before an orchestrator run exists (0.261434ms)
+✔ seat-exit boundary is cancelled when a new active job starts before movement (2.048466ms)
+✔ conversation shows exact public worker/reviewer replies, scope and names; never private reasoning (9.744659ms)
+✔ old runs use stored actual script/review feedback, not invented conversation (0.309546ms)
+✔ image progress is project-scoped and cannot crowd public model replies out of reception (1.020948ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 185.521555

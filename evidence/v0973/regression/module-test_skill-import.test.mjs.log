@@ -1,0 +1,14 @@
+✔ parse SKILL.md frontmatter + body (3.72861ms)
+✔ import a single .md skill end-to-end (4.970111ms)
+✔ import a zip skill pack (SKILL.md files win over plain .md) (6.703975ms)
+✔ repo zip: stored, registered, skills scanned; delete removes it (10.94027ms)
+✔ zip traversal is rejected (0.648488ms)
+✔ git URL validation rejects non-https and credentialed URLs (0.596839ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 112.812428

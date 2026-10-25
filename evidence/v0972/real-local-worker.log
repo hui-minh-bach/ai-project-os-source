@@ -1,0 +1,7 @@
+PASS Fresh refresh distinguishes actual FFmpeg from incomplete voice installation; unauthenticated refresh rejected
+PASS Real client-order click fails before AI when voice is incomplete; failure receipt shown
+PASS One recovery click rediscovered installed Piper, generated real preview, resumed same order and delivered MP4
+PASS Final MP4 decodes, contains non-silent neural Vietnamese speech, illustration frames and downloadable source assets
+PASS Duplicate recovery click/reload is idempotent and does not create a second run
+PASS Transient real-process failure retries the SAME existing run; approved script/reviewer are reused; no duplicate AI work
+{"status": "PASS", "checks": 6}

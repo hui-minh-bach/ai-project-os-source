@@ -1,0 +1,20 @@
+✔ reviewer string "false" never approves a task (304.506698ms)
+✔ plan normalization prevents AI from overriding id/status/engine fields (314.02704ms)
+✔ plan rejects forward or unknown dependencies (356.940525ms)
+✔ workspace blocks symlink escape and snapshot skips symlink content (13.266161ms)
+✔ JSON store recovers previous valid generation from backup instead of returning empty (14.000335ms)
+✔ vault can recover a valid backup after primary corruption (491.799824ms)
+✔ safe sandbox blocks npm command execution (2.292688ms)
+✔ external mini is blocked by default and does not inherit unrelated shell secrets when explicitly enabled (210.412143ms)
+✔ gitStatus redacts credentials embedded in origin URL (59.013065ms)
+✔ release author uses authenticated GitHub noreply identity (71.272552ms)
+✔ restart recovery marks active tasks interrupted and makes them rerunnable (25.081972ms)
+✔ project settings reject invalid sandbox values and default new projects to safe mode (4.755361ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2036.67608

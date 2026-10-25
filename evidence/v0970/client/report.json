@@ -1,0 +1,32 @@
+{
+  "scope": "v0.9.69: true app localhost HTTP and Chromium, test-only AI/Concat/Comfy/Windows speech boundaries.\nFixtures call a local fake AI endpoint and local eSpeak speech, not customer accounts or native Windows.\nVideo output is actually rendered/decoded with FFmpeg; never claim commercial income or production provider acceptance.\n",
+  "checks": [
+    {
+      "name": "client_article_workflow",
+      "status": "PASS",
+      "detail": "Real localhost API, fixture Worker and distinct Reviewer; accepted order, completed AI task and verified ZIP SHA manifest"
+    },
+    {
+      "name": "client_video_workflow",
+      "status": "PASS",
+      "detail": "Real app task and FFmpeg decodable MP4 with audio; customer WAV/SRT/VTT/script/thumbnail and SHA verified; AI/Concat/TTS supplied by TEST-ONLY boundaries"
+    },
+    {
+      "name": "never_auto_publish_or_reissue",
+      "status": "PASS",
+      "detail": "Author-requested order is locally delivered; GET does not create a second job"
+    },
+    {
+      "name": "browser_real_ui",
+      "status": "PASS",
+      "detail": "Chromium rendered source scripts and actually clicked order intake; persisted brief through polling and displayed deliverable"
+    }
+  ],
+  "errors": [],
+  "nativeWindows": false,
+  "liveAIProviders": false,
+  "nativeConcat": false,
+  "testOnlyVoice": "eSpeak",
+  "revenueVerified": false,
+  "status": "PASS"
+}

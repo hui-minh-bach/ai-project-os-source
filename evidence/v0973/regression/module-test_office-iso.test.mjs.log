@@ -1,0 +1,22 @@
+✔ 0.9.59: isometric backdrop ships and the ISO anchors sit on the drawn deck (2.102077ms)
+✔ 0.9.59: fleet fixture maps to the expected ISO stations (position-mapping) (1.654433ms)
+✔ 0.9.58: manual pins apply in ISO too, state posts still win (0.9.57 semantics) (0.35139ms)
+✔ 0.9.58: facing rule — the desk pose is the from-behind seated sprite sheet (2.654449ms)
+✔ R2 avoids starting the legacy WebGL room under the new scene; ISO remains available (0.251609ms)
+✔ 0.9.58: world<->ISO floor transform round-trips (shared floor pins) (0.579994ms)
+✔ 0.9.58: beauty pass assets ship, vendored addons follow the local import convention (0.492191ms)
+✔ 0.9.58: third-party notices file ships with every license recorded (0.216917ms)
+✔ 0.9.59: floor pins are clamped into the drawn deck polygon (1.391737ms)
+✔ 0.9.59: the cage post stands inside the drawn electric cage; pod labels stagger (0.941548ms)
+✔ 0.9.59: every working desk has a drawn-monitor glow anchor on the deck, near its seat (0.428045ms)
+✔ 0.9.59: sprite scale is matched per zone to the drawn furniture (0.328815ms)
+✔ 0.9.59: flow pulses fire only on observed handoffs; guide explains glow, pulses, label clamping (0.442156ms)
+✔ 0.9.60: compositing — foreground cut-outs ship and the geometry puts sprites INSIDE the furniture (0.607906ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 105.131004

@@ -1,0 +1,18 @@
+✔ ingest: parseFeed đọc đúng RSS 2.0 (CDATA, entity, ngày tháng) (3.041811ms)
+✔ ingest: parseFeed đọc đúng Atom (link href, id, published/updated) (1.005074ms)
+✔ ingest: parseFeed từ chối nội dung không phải feed (0.670059ms)
+✔ ingest: addSource kiểm tra URL và nguồn được lưu bền (6.962864ms)
+✔ ingest: scanSource tạo thẻ và quét lại không trùng (6.765267ms)
+✔ ingest: bộ lọc từ khóa chỉ giữ thẻ khớp (1.7602ms)
+✔ ingest: nguồn đang tắt bị chặn quét, nguồn lạ báo INGEST_NOT_FOUND (3.006487ms)
+✔ ingest: markCardUsed đánh dấu thẻ đã dùng cho dự án (2.164349ms)
+✔ ingest: lỗi tải feed thành INGEST_FETCH, HTTP lỗi cũng vậy (2.505223ms)
+✔ ingest: tóm tắt thẻ bị cắt ở 500 ký tự và sạch thẻ HTML (1.250143ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 124.345368

@@ -1,0 +1,16 @@
+✔ AI office: cast carries Vietnamese names with the owner as boss (1.264319ms)
+✔ AI office: staff are walking figures, animated only while moving (0.244652ms)
+✔ AI office 3D: vendored Three.js scene with desks, city backdrop and orbit camera (1.603888ms)
+✔ AI office 3D detail pass: jointed robots with role props, console desks, per-role screens (1.13026ms)
+✔ AI office room detail pass: medallion floor, desk plinths, detailed cabinets (0.645332ms)
+✔ AI office: idle staff recharge in the energy pods, with the sleeping face on (0.322593ms)
+✔ AI office: the electric room only takes staff who really failed work (0.385628ms)
+✔ AI office: movement is driven by real app state, never a canned loop (0.387484ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.891595

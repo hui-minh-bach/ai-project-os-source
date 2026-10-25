@@ -1,0 +1,12 @@
+✔ vault persists reasoningEffort through the meta whitelist (520.125627ms)
+✔ codex thread config carries model_reasoning_effort only when set (2.029389ms)
+✔ claude CLI plan adds --effort only when the account has one set (7.354778ms)
+✔ route + UI contract: effort picker is wired for account kinds (3.350018ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 734.202145

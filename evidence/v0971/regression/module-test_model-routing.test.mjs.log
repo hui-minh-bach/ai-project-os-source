@@ -1,0 +1,16 @@
+✔ ungated: unverified catalog account binds, resolves, and serves a run step (433.928752ms)
+✔ stored 0.9.53 binding with an area stamp still loads and resolves; saves never write area (248.246727ms)
+✔ routing a→b: quota on the primary rotates to the pooled peer inside the same call, with journal + provenance (1396.028517ms)
+✔ R4 project routing: explicit backup precedes unrelated same-kind peers (782.137877ms)
+✔ all candidates blocked: the error lists every candidate and the earliest reset; nobody is called (432.65976ms)
+✔ R4 opt-out: provider errors abort immediately without pool or backup calls (528.610643ms)
+✔ login pass: the model catalog auto-refreshes in the background once the account connects (520.654862ms)
+✔ UI contract: areas are gone, backup pickers + advisory badges + team setup panel are in (4.207822ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4477.23375

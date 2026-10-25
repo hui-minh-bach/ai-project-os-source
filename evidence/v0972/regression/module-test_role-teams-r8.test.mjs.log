@@ -1,0 +1,16 @@
+✔ R8 saves ordered members, deduplicates, reloads descriptors and resolves every role index (333.037858ms)
+✔ R8 partial and old primary saves retain other team members; explicit remove is honored (432.122707ms)
+✔ R8 optimistic revision rejects stale role replacement without changing stored members (411.1073ms)
+✔ R8 invalid/oversized/unavailable groups fail atomically (377.593924ms)
+✔ R8 ensure-team preserves groups and allows independent models of one account (365.192472ms)
+✔ R8 every selected Worker needs a distinct review option before automatic production (360.84893ms)
+✔ R8 identical Worker/Reviewer binding is rejected before any worktree runs (365.056632ms)
+✔ R8 two independent tasks run on two chosen Worker accounts, C reviews, real tests/Git merge (1510.700049ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4311.161831

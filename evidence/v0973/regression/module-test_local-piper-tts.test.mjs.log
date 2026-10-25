@@ -1,0 +1,11 @@
+✔ local-first Piper adapter validates presence, produces a real RIFF WAV without network and rejects wrong voice (139.790061ms)
+✔ missing local engine is unavailable rather than misreported as configured (2.991194ms)
+✔ piperVoiceFor maps language tags to the installed voice but leaves explicit IDs untouched (32.572083ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 280.707054

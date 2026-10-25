@@ -1,0 +1,13 @@
+✔ office models: save/list/path/delete roundtrip (2.719245ms)
+✔ office models: rejects bad id, bad magic, and non-buffer (1.624967ms)
+✔ office clips: state machine priority zap > walk > cheer > work > idle (0.15266ms)
+✔ office clips: seated work preference — InspectTablet first (0.9.52) (0.339201ms)
+✔ office clips: name matching strips prefixes and uses synonyms (0.376687ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 88.987699

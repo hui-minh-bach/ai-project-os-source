@@ -1,0 +1,11 @@
+✔ Windows discovery uses actual installed vi voices and prefers WinRT; never defaults to English (2.474831ms)
+✔ Windows synthesis passes Unicode text as stdin data, validates WAV and reports exact installed voice (process fixture, not real Windows) (12.480177ms)
+✔ Windows failure never silently selects another engine or a paid API (1.760484ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.812091

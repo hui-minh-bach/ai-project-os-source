@@ -1,0 +1,12 @@
+✔ Antigravity login is official, checks real model catalog, rejects tools, reuses user data across application replacement (1114.771261ms)
+✔ Antigravity models: JSON envelope catalog is still accepted and unsafe ids are filtered (573.571598ms)
+✔ Antigravity models: a CLI failure surfaces the CLI’s own words, not a generic login blame (540.356765ms)
+✔ Antigravity verify: an ask failure surfaces the CLI stderr (505.780665ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4363.765226

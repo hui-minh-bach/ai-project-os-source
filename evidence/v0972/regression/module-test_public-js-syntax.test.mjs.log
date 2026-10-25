@@ -1,0 +1,10 @@
+✔ every public classic script parses (no dead tab scripts) (13.711555ms)
+✔ init.js bootstrap loaders are all defined by the tab scripts (3.548073ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.056236

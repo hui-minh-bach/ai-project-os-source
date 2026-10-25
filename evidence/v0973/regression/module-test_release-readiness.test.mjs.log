@@ -1,0 +1,10 @@
+✔ internal integration build fails closed until live commercial release gates have evidence (54.282528ms)
+✔ even a fabricated self-signed attestations object cannot override unsigned EXE and missing license (0.35166ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 137.730737

@@ -1,0 +1,16 @@
+✔ orchestrator: large external artifacts (filePath, no inline bytes) are materialized and published (10.615301ms)
+✔ orchestrator: news run produces, waits at the gate, then publishes after approval (5.269959ms)
+✔ orchestrator: busy guard, global stop and daily cap are enforced by code (7.17902ms)
+✔ orchestrator: tick skips a pipeline that already has an active run (5.071ms)
+✔ orchestrator: a stale running run is recovered as interrupted on load (0.769369ms)
+✔ orchestrator: gateway mode fails the run honestly when no model is available (1.681934ms)
+✔ orchestrator: tick scans and starts a news run from the oldest unused card (4.109981ms)
+✔ orchestrator refuses to deliver a different task's larger MP4 from the same project (3.550629ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.552804

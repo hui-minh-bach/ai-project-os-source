@@ -1,0 +1,14 @@
+✔ official models endpoints use provider authentication, Anthropic and Gemini paginate, registry persists only safe IDs (561.711854ms)
+✔ local compatible API refresh rejects revoked/missing/replaced references; a stale catalog stays selectable (0.9.55 ungating) and secrets never leak (487.677ms)
+✔ role broker governs Founder, multiple Council models, native Worker and Reviewer without mutating account default (264.224577ms)
+✔ model API malformed pagination and generation authorization failure invalidate bindings (227.32299ms)
+✔ infrastructure API metadata requires real verification and failed verification clears cached status (762.68028ms)
+✔ custom model-specific Gemini URL follows two resolved role models while preserving the account default (237.07833ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2676.413272

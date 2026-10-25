@@ -1,0 +1,12 @@
+✔ five templates, each mapped to a real operation (1.043241ms)
+✔ template director plans are deterministic presets (0.341756ms)
+✔ timeline validator accepts the new transition kinds and rejects junk (0.907302ms)
+✔ server + UI expose templates, presets and the FPT voice route (1.264743ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 90.268841

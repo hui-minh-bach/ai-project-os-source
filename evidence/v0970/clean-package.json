@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "scope": "Fresh source ZIP extraction, normal production startup with empty isolated data; no fixture preload",
+  "version": "0.9.70",
+  "resources": {
+    "skills": 83,
+    "repos": 13,
+    "hostTools": 649
+  },
+  "fullSkillApiReads": 83,
+  "mcpServersConnected": 0,
+  "normalLaunchHasNoFixtures": true,
+  "testedCodeHashesMatched": true,
+  "sessionGate": true
+}

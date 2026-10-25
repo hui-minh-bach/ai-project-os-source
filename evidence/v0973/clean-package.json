@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "version": "0.9.73",
+  "normalStartupWithoutFixtures": true,
+  "sessionGate": true,
+  "inventory": {
+    "skills": 83,
+    "repos": 13,
+    "hostTools": 649
+  },
+  "protectedFilesIdentical": 80,
+  "allowedSceneCodeExceptions": [
+    "public/space-studio/fleet-contract.mjs",
+    "public/space-studio/live-motion.mjs",
+    "public/space-studio/viewer.mjs"
+  ],
+  "repoCrcAndSha256": true,
+  "nativeWindows": false,
+  "liveAccountImage": false
+}

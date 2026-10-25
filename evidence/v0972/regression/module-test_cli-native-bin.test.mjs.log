@@ -1,0 +1,12 @@
+✔ managed Claude Code 2.x native-bin layout installs and resolves to the exe directly (14.620201ms)
+✔ system Claude Code native installer in %USERPROFILE%\.local\bin is found despite stale PATH (10.603856ms)
+✔ Antigravity launcher finds the WinGet Packages payload when no Links entry exists (6.559865ms)
+✔ Antigravity IDE without the CLI produces the IDE-specific instruction (1.472198ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.666789

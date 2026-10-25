@@ -1,0 +1,10 @@
+PASS Wrong GitHub URL in Vercel field gives actionable error before any clone
+PASS Reload during import resumes polling; real Git clone arrives and selects exact imported project with copied verified AI team
+PASS Imported project can call its assigned Founder and persist a public reply (AI fixture)
+PASS 17 channel cards separate API publishing scope from manual export
+PASS UI threads: verify token, save draft without posting, preview exact account/content, explicit publish, confirmed provider ID (social fixture)
+PASS UI x: verify token, save draft without posting, preview exact account/content, explicit publish, confirmed provider ID (social fixture)
+PASS UI zalo: verify token, save draft without posting, preview exact account/content, explicit publish, confirmed provider ID (social fixture)
+PASS LinkedIn text export downloads actual file and remains a draft, not a published post
+PASS Reload preserves four drafts and three confirmed fixture receipts; no extra sends
+{"status": "PASS", "checks": 9}

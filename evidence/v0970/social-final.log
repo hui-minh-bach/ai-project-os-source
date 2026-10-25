@@ -1,0 +1,25 @@
+✔ oauth stub issues a bearer token for any grant (31.156955ms)
+✔ api routes reject missing bearer tokens in each platform error shape (10.810783ms)
+✔ youtube: resumable init → single-shot PUT → statistics (12.138381ms)
+✔ youtube: chunked resumable upload resumes with 308 then completes (6.847652ms)
+✔ facebook: phased start → transfer → finish → stats (11.062183ms)
+✔ facebook: simple single-POST upload returns an id (4.666811ms)
+✔ tiktok: init → chunked PUT → status fetch → video list (8.62114ms)
+✔ identity: YouTube channel, Facebook pages + page tokens, TikTok user (41.734324ms)
+✔ youtube refresh keeps the refresh token when the response omits it (0.619882ms)
+✔ facebook upload posts with the PAGE token, not the user token (19.108794ms)
+✔ Connections tab carries the linking UI wired to the OAuth routes (1.314155ms)
+✔ publish connectors: full upload + stats round-trip against the mock platforms (71.3363ms)
+✔ publish connectors: missing token blocks honestly (1.110683ms)
+✔ publish connectors: tiktok unapproved app is limited to private on real host semantics (0.274232ms)
+✔ oauth helpers build real authorize urls and exchange codes via the token endpoint (9.07077ms)
+✔ publish tasks: youtube upload completes through the approval gate and records honestly (432.066226ms)
+✔ publish tasks: a platform without a linked account fails honestly after approval (219.105346ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1402.202797

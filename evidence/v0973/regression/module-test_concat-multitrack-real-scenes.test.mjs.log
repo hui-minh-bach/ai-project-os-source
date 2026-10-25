@@ -1,0 +1,14 @@
+✔ real FFmpeg source scenes produce Concat RPC project with independent video, audio, narration, music and timed captions (1724.84987ms)
+✔ Concat 0.2 built-in cross-fade does not depend on effects catalogue (1388.87897ms)
+✔ three overlapping scenes with subtitle/title overlay safely use non-overlapping cuts (1641.637264ms)
+✔ Concat multitrack rejects wrong source SHA and outside-workspace files BEFORE reaching editor (134.944304ms)
+✔ offline Concat refuses before video conversion and leaves no temporary clips (156.462512ms)
+✔ approved Media quick-edit uses actual Concat multitrack RPC, saves hashes and marks completion only after export QA (7299.669199ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12506.152568

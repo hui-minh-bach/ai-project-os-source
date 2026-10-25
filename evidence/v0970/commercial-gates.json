@@ -1,0 +1,69 @@
+{
+  "version": "0.9.70",
+  "commercialReady": false,
+  "checked": [
+    {
+      "id": "W01-W02",
+      "name": "Windows 10/11 clean install + standard-user restart",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "W03-W04",
+      "name": "Upgrade, rollback, Vault and encrypted restore verified on Windows",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "A02-A03",
+      "name": "Real provider accounts, billing, 401/429 and accurate quota",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "A04-A05",
+      "name": "Concurrent workers, safe sandbox and no unauthorized paid actions",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "M01-M03",
+      "name": "30 real Windows video renders, verified audio/captions, diverse media",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "M04-M06",
+      "name": "Concat/Whisper/TTS claims verified live or disabled in shipped UI",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "P01-P03",
+      "name": "Website Preview and content outputs verified with authorized services",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "U01",
+      "name": "10 tabs x 5 themes, both viewports on Windows with accessibility",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "S01",
+      "name": "Signed installer & signed auto-update rollback",
+      "status": "blocked_missing_evidence"
+    },
+    {
+      "id": "S02",
+      "name": ">=5 pilot users, >=7 days, zero open P0/P1 incidents",
+      "status": "blocked_missing_evidence"
+    }
+  ],
+  "blocked": [
+    "W01-W02",
+    "W03-W04",
+    "A02-A03",
+    "A04-A05",
+    "M01-M03",
+    "M04-M06",
+    "P01-P03",
+    "U01",
+    "S01",
+    "S02"
+  ],
+  "purpose": "internal QA only; not independent proof of test execution"
+}

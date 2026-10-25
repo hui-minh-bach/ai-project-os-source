@@ -1,0 +1,11 @@
+✔ doctor checks local project/storage without network or paid APIs (94.356463ms)
+✔ doctor refuses broken application, read-only assumptions and untrusted executables (7.558281ms)
+✔ doctor live H.264 encoder returns a fact not a fabricated green result (233.047926ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 431.001344

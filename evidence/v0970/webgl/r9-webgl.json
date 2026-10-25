@@ -1,0 +1,79 @@
+{
+  "scope": "Browser smoke/visual evidence for real Three.js WebGL on Chromium software GPU.\nNeither a Windows hardware benchmark nor a substitute for actual-device testing.\n",
+  "windowsTested": false,
+  "gpu": "Chromium software GPU (SwiftShader)",
+  "checks": [
+    "Six unique 3D accounts placed at six occupied real workstations",
+    "Rendered browser WebGL framebuffer is nonuniform and saved"
+  ],
+  "errors": [],
+  "state": {
+    "canvas": 1,
+    "ready": true,
+    "robots": 6,
+    "chairs": 9,
+    "webgl": true,
+    "fleet": [
+      {
+        "id": "actual-1",
+        "seat": "pm",
+        "phase": "seated",
+        "position": {
+          "x": -0.55,
+          "z": 4.819999999999999
+        }
+      },
+      {
+        "id": "actual-3",
+        "seat": "review",
+        "phase": "seated",
+        "position": {
+          "x": -3.45,
+          "z": 1.92
+        }
+      },
+      {
+        "id": "actual-6",
+        "seat": "agent-8",
+        "phase": "seated",
+        "position": {
+          "x": -3.45,
+          "z": 4.819999999999999
+        }
+      },
+      {
+        "id": "actual-2",
+        "seat": "news",
+        "phase": "seated",
+        "position": {
+          "x": -6.35,
+          "z": -0.98
+        }
+      },
+      {
+        "id": "actual-4",
+        "seat": "script",
+        "phase": "seated",
+        "position": {
+          "x": -3.45,
+          "z": -0.98
+        }
+      },
+      {
+        "id": "actual-5",
+        "seat": "image",
+        "phase": "seated",
+        "position": {
+          "x": -0.55,
+          "z": -0.98
+        }
+      }
+    ]
+  },
+  "pixelStdDev": [
+    73.79460516214407,
+    83.25383222422988,
+    76.36810374777757
+  ],
+  "status": "PASS"
+}

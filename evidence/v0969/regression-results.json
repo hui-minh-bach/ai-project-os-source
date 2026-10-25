@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "version": "0.9.69",
+  "scope": "Linux container source QA, test-only provider boundaries; no Windows/live AI/Concat or sales acceptance",
+  "syntax": {
+    "modules": 192,
+    "fail": 0
+  },
+  "node": {
+    "modules": 119,
+    "tests": 661,
+    "pass": 660,
+    "fail": 0,
+    "skipped": 1,
+    "integrationModules": 2,
+    "integrationTests": 19,
+    "integrationPass": 19,
+    "totalTests": 680,
+    "totalPass": 679,
+    "totalSkip": 1,
+    "totalFail": 0
+  },
+  "browserNewClient": {
+    "scope": "v0.9.69: true app localhost HTTP and Chromium, test-only AI/Concat/Comfy/Windows speech boundaries.\nFixtures call a local fake AI endpoint and local eSpeak speech, not customer accounts or native Windows.\nVideo output is actually rendered/decoded with FFmpeg; never claim commercial income or production provider acceptance.\n",
+    "checks": [
+      {
+        "name": "client_article_workflow",
+        "status": "PASS",
+        "detail": "Real localhost API, fixture Worker and distinct Reviewer; accepted order, completed AI task and verified ZIP SHA manifest"
+      },
+      {
+        "name": "client_video_workflow",
+        "status": "PASS",
+        "detail": "Real app task and FFmpeg decodable MP4 with audio; customer WAV/SRT/VTT/script/thumbnail and SHA verified; AI/Concat/TTS supplied by TEST-ONLY boundaries"
+      },
+      {
+        "name": "never_auto_publish_or_reissue",
+        "status": "PASS",
+        "detail": "Author-requested order is locally delivered; GET does not create a second job"
+      },
+      {
+        "name": "browser_real_ui",
+        "status": "PASS",
+        "detail": "Chromium rendered source scripts and actually clicked order intake; persisted brief through polling and displayed deliverable"
+      }
+    ],
+    "errors": [],
+    "nativeWindows": false,
+    "liveAIProviders": false,
+    "nativeConcat": false,
+    "testOnlyVoice": "eSpeak",
+    "revenueVerified": false,
+    "status": "PASS"
+  },
+  "previousR9": {
+    "scope": "R9 end-to-end actual AI Project OS HTTP/UI/video using test-only boundaries.\nActual app HTTP and browser; mocked AI/image/Concat RPC and eSpeak system speech.\nNever describe this fixture as a live Windows/Concat/AI image acceptance test.\n",
+    "checks": [
+      {
+        "check": "preflight_local_voice_image_concat",
+        "status": "PASS",
+        "evidence": "Windows boundary eSpeak + local ComfyUI protocol fixture + Concat RPC fixture configured; free candidates available"
+      },
+      {
+        "check": "automatic_reception",
+        "status": "PASS",
+        "evidence": "Selected news -> automatic preflight -> Worker script -> Reviewer -> TTS -> scenes -> Concat -> local-only delivery; no manual forms"
+      },
+      {
+        "check": "delivery_bundle",
+        "status": "PASS",
+        "evidence": "Decoded MP4 with audio+video, real WAV, SRT, VTT, script and thumbnail; all downloadable and per-project"
+      },
+      {
+        "check": "concat_protocol",
+        "status": "PASS",
+        "evidence": "Concat RPC fixture received edit, project save, export and returned final MP4; only one export"
+      },
+      {
+        "check": "idempotent_reception",
+        "status": "PASS",
+        "evidence": "GET/reload does not reissue image or Concat export"
+      },
+      {
+        "check": "real_browser_ui",
+        "status": "PASS",
+        "evidence": "Chromium actual HTML + API: no manual selectors, genuine event feed and six cards; thumbnail decoded and HTML audio/video metadata loaded"
+      }
+    ],
+    "errors": [],
+    "voice": "test-only eSpeak vi; not native Windows",
+    "image": "test-only local ComfyUI HTTP workflow, not AI generated",
+    "concat": "test-only Concat JSON RPC contract fixture, FFmpeg renders final fixture video",
+    "nativeWindowsTested": false,
+    "engineFixture": {
+      "comfyRequests": [
+        {
+          "id": "6ae1acd1-66ea-44ef-b13f-2d3fff64060d",
+          "workflowNodeCount": 2
+        }
+      ],
+      "concatExports": 1,
+      "concatProjects": 1,
+      "concatFailures": [],
+      "voiceFixture": "eSpeak OS boundary not Windows"
+    },
+    "status": "PASS"
+  },
+  "protectedScene": {
+    "checked": 81,
+    "unchangedAgainstV0968": 81,
+    "changed": []
+  },
+  "mp4": {
+    "codecVideo": "h264",
+    "codecAudio": "aac",
+    "width": 1280,
+    "height": 720,
+    "seconds": 10.28,
+    "voiceFixture": "espeak",
+    "imageFixture": "procedural; NOT a customer ready illustration"
+  },
+  "nativeWindows": false,
+  "realProviders": false,
+  "nativeConcat": false,
+  "salesValidated": false,
+  "commercialReady": false,
+  "openIssues": [
+    "Live Windows account Worker/Reviewer and Concat/Piper tests",
+    "Owner review of scene relevance, voice clarity, brand licenses",
+    "Windows native build and commercial customer order/sale"
+  ]
+}

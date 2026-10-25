@@ -1,0 +1,285 @@
+{
+  "scope": "Production app HTTP/UI, real files/render/Git; AI, TTS, images, Concat, social and MCP use labelled local fixtures. No external publishing.",
+  "checks": [
+    {
+      "name": "session_boundary",
+      "status": "PASS",
+      "detail": "Unauthenticated catalog returns 401; one-use launch grants session for real localhost API"
+    },
+    {
+      "name": "bundled_inventory",
+      "status": "PASS",
+      "detail": "77 full instruction snapshots readable; repository source catalog present; host tools remain separately connected"
+    },
+    {
+      "name": "mcp_full_roundtrip",
+      "status": "PASS",
+      "detail": "Vault config -> tools/list -> rejected unapproved call -> approved tools/call -> durable idempotent receipt"
+    },
+    {
+      "name": "idea_to_video_gate",
+      "status": "PASS",
+      "detail": "Idea -> fixture AI script -> actual media tasks/render -> stored final video -> wait for publish approval; zero posts before approval"
+    },
+    {
+      "name": "publish_youtube",
+      "status": "PASS",
+      "detail": "Real production upload client -> local platform protocol -> confirmed platform record; simulated=true, media bytes uploaded"
+    },
+    {
+      "name": "publish_facebook",
+      "status": "PASS",
+      "detail": "Real production upload client -> local platform protocol -> confirmed platform record; simulated=true, media bytes uploaded"
+    },
+    {
+      "name": "publish_tiktok",
+      "status": "PASS",
+      "detail": "Real production upload client -> local platform protocol -> confirmed platform record; simulated=true, media bytes uploaded"
+    },
+    {
+      "name": "social_metrics",
+      "status": "PASS",
+      "detail": "All three simulated platforms return metrics and update persisted publish records"
+    },
+    {
+      "name": "no_duplicate_publish",
+      "status": "PASS",
+      "detail": "Repeated approval of a completed run is rejected; exactly one post per platform"
+    },
+    {
+      "name": "delivered_video_decode",
+      "status": "PASS",
+      "detail": "Downloaded stored final MP4 decodes in FFmpeg after social workflow"
+    },
+    {
+      "name": "dub_video_pipeline",
+      "status": "PASS",
+      "detail": "Uploaded real MP4 -> explicit CLI transcription fixture -> fixture model translation -> selected Windows speech boundary -> actual FFmpeg dubbed video; no automatic publishing"
+    },
+    {
+      "name": "tab_map",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "tab_connections",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "tab_idea",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "tab_studio",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "tab_radar",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "tab_skills",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "tab_engines",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "tab_publish",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "tab_guide",
+      "status": "PASS",
+      "detail": "Real shipped scripts and styles loaded over authenticated localhost; tab click and visible page verified"
+    },
+    {
+      "name": "section_council",
+      "status": "PASS",
+      "detail": "Existing Council/AI Team section opens with real app navigation event; logical workflow covered by website and team tests"
+    },
+    {
+      "name": "section_team",
+      "status": "PASS",
+      "detail": "Existing Council/AI Team section opens with real app navigation event; logical workflow covered by website and team tests"
+    },
+    {
+      "name": "skill_reference_ui",
+      "status": "PASS",
+      "detail": "Opened integration pack and read full skill through browser click"
+    },
+    {
+      "name": "skill_adaptation_ui",
+      "status": "PASS",
+      "detail": "Imported reference into a real editable custom skill with bounded tool permissions; full original preserved"
+    },
+    {
+      "name": "mcp_configuration_ui",
+      "status": "PASS",
+      "detail": "Vault-backed MCP configuration form opens and existing server tools render"
+    },
+    {
+      "name": "mobile_load",
+      "status": "PASS",
+      "detail": "390x844 viewport loads source app; not a full mobile accessibility audit"
+    }
+  ],
+  "errors": [],
+  "externalPublication": false,
+  "liveProviderLogin": false,
+  "nativeWindows": false,
+  "nativeConcat": false,
+  "browser": "Chromium Linux direct localhost",
+  "platforms": [
+    "youtube",
+    "facebook",
+    "tiktok"
+  ],
+  "tabs": [
+    "map",
+    "connections",
+    "idea",
+    "studio",
+    "radar",
+    "skills",
+    "engines",
+    "publish",
+    "guide"
+  ],
+  "mobileViewportLoaded": true,
+  "status": "PASS",
+  "publishRecords": [
+    {
+      "id": "a7df33b0-207c-496c-ab5e-cff8f705ea77",
+      "platform": "youtube",
+      "platformVideoId": "yt-2",
+      "url": "https://www.youtube.com/watch?v=yt-2",
+      "privacyStatus": "unlisted",
+      "title": "Day la ban tin thu nghiem tu nguon da chon",
+      "projectId": "fb6f8c88-d533-48d1-911b-dd9f347884bc",
+      "taskId": "8b7fb4a2_7011_46e1_9a6b_8874b321da67",
+      "publishedAt": "2026-10-24T08:12:05.451Z",
+      "endpointHost": "127.0.0.1",
+      "simulated": true,
+      "metrics": {
+        "views": 4279,
+        "likes": 279,
+        "comments": 39
+      },
+      "metricsUpdatedAt": "2026-10-24T08:12:05.559Z"
+    },
+    {
+      "id": "8c89721c-ab93-4b71-aa63-4516bd7e90d8",
+      "platform": "facebook",
+      "platformVideoId": "fb-1",
+      "url": "https://www.facebook.com/watch/?v=fb-1",
+      "privacyStatus": "page-public",
+      "title": "Day la ban tin thu nghiem tu nguon da chon",
+      "projectId": "fb6f8c88-d533-48d1-911b-dd9f347884bc",
+      "taskId": "4521de65_a11c_4499_8c05_1a6a1f634935",
+      "publishedAt": "2026-10-24T08:12:05.506Z",
+      "endpointHost": "127.0.0.1",
+      "simulated": true,
+      "metrics": {
+        "views": 4321,
+        "likes": 88,
+        "comments": 0
+      },
+      "metricsUpdatedAt": "2026-10-24T08:12:05.563Z"
+    },
+    {
+      "id": "5ef50826-3ddf-435c-b533-3b485feaf311",
+      "platform": "tiktok",
+      "platformVideoId": "987654321",
+      "publishId": "ttpub-1",
+      "url": "https://www.tiktok.com/@mock.creator/video/987654321",
+      "privacyStatus": "PUBLIC_TO_EVERYONE",
+      "limitedUnapprovedApp": false,
+      "title": "Day la ban tin thu nghiem tu nguon da chon",
+      "projectId": "fb6f8c88-d533-48d1-911b-dd9f347884bc",
+      "taskId": "c2231497_2d76_4c7c_8e8c_dc04ea14ddf7",
+      "publishedAt": "2026-10-24T08:12:05.547Z",
+      "endpointHost": "127.0.0.1",
+      "simulated": true,
+      "metrics": {
+        "views": 777,
+        "likes": 66,
+        "comments": 5
+      },
+      "metricsUpdatedAt": "2026-10-24T08:12:05.568Z"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "a7df33b0-207c-496c-ab5e-cff8f705ea77",
+      "ok": true,
+      "metrics": {
+        "views": 4279,
+        "likes": 279,
+        "comments": 39
+      }
+    },
+    {
+      "id": "8c89721c-ab93-4b71-aa63-4516bd7e90d8",
+      "ok": true,
+      "metrics": {
+        "views": 4321,
+        "likes": 88,
+        "comments": 0
+      }
+    },
+    {
+      "id": "5ef50826-3ddf-435c-b533-3b485feaf311",
+      "ok": true,
+      "metrics": {
+        "views": 777,
+        "likes": 66,
+        "comments": 5
+      }
+    }
+  ],
+  "fixtureSocialState": {
+    "youtube": {
+      "videos": [
+        {
+          "id": "yt-2",
+          "title": "Day la ban tin thu nghiem tu nguon da chon",
+          "description": "Day la ban tin thu nghiem tu nguon da chon. Noi dung duoc viet lai de kiem tra quy trinh lam viec, khong phai thong tin thi truong truc tiep. Khong dua ra gia hay loi khuyen dau tu. Nguon example.com.",
+          "privacyStatus": "unlisted",
+          "bytes": 838982
+        }
+      ]
+    },
+    "facebook": {
+      "videos": [
+        {
+          "id": "fb-1",
+          "pageId": "page-1",
+          "title": "Day la ban tin thu nghiem tu nguon da chon",
+          "description": "Day la ban tin thu nghiem tu nguon da chon. Noi dung duoc viet lai de kiem tra quy trinh lam viec, khong phai thong tin thi truong truc tiep. Khong dua ra gia hay loi khuyen dau tu. Nguon example.com.",
+          "bytes": 838982
+        }
+      ]
+    },
+    "tiktok": {
+      "posts": [
+        {
+          "publishId": "ttpub-1",
+          "id": "987654321",
+          "title": "Day la ban tin thu nghiem tu nguon da chon",
+          "privacyLevel": "PUBLIC_TO_EVERYONE",
+          "bytes": 838982,
+          "status": "PUBLISH_COMPLETE"
+        }
+      ]
+    }
+  }
+}

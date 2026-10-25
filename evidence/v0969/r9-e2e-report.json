@@ -1,0 +1,53 @@
+{
+  "scope": "R9 end-to-end actual AI Project OS HTTP/UI/video using test-only boundaries.\nActual app HTTP and browser; mocked AI/image/Concat RPC and eSpeak system speech.\nNever describe this fixture as a live Windows/Concat/AI image acceptance test.\n",
+  "checks": [
+    {
+      "check": "preflight_local_voice_image_concat",
+      "status": "PASS",
+      "evidence": "Windows boundary eSpeak + local ComfyUI protocol fixture + Concat RPC fixture configured; free candidates available"
+    },
+    {
+      "check": "automatic_reception",
+      "status": "PASS",
+      "evidence": "Selected news -> automatic preflight -> Worker script -> Reviewer -> TTS -> scenes -> Concat -> local-only delivery; no manual forms"
+    },
+    {
+      "check": "delivery_bundle",
+      "status": "PASS",
+      "evidence": "Decoded MP4 with audio+video, real WAV, SRT, VTT, script and thumbnail; all downloadable and per-project"
+    },
+    {
+      "check": "concat_protocol",
+      "status": "PASS",
+      "evidence": "Concat RPC fixture received edit, project save, export and returned final MP4; only one export"
+    },
+    {
+      "check": "idempotent_reception",
+      "status": "PASS",
+      "evidence": "GET/reload does not reissue image or Concat export"
+    },
+    {
+      "check": "real_browser_ui",
+      "status": "PASS",
+      "evidence": "Chromium actual HTML + API: no manual selectors, genuine event feed and six cards; thumbnail decoded and HTML audio/video metadata loaded"
+    }
+  ],
+  "errors": [],
+  "voice": "test-only eSpeak vi; not native Windows",
+  "image": "test-only local ComfyUI HTTP workflow, not AI generated",
+  "concat": "test-only Concat JSON RPC contract fixture, FFmpeg renders final fixture video",
+  "nativeWindowsTested": false,
+  "engineFixture": {
+    "comfyRequests": [
+      {
+        "id": "6ae1acd1-66ea-44ef-b13f-2d3fff64060d",
+        "workflowNodeCount": 2
+      }
+    ],
+    "concatExports": 1,
+    "concatProjects": 1,
+    "concatFailures": [],
+    "voiceFixture": "eSpeak OS boundary not Windows"
+  },
+  "status": "PASS"
+}

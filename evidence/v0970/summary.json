@@ -1,0 +1,54 @@
+{
+  "version": "0.9.70",
+  "localAuthorizedScope": "completed_with_fixtures",
+  "commercialReady": false,
+  "skillPackages": 83,
+  "skillFiles": 713,
+  "publicRepoSnapshots": 13,
+  "hostToolDescriptions": 649,
+  "hostServerCodeExported": false,
+  "mcpHttp": "implemented_and_locally_tested",
+  "tests": {
+    "modules": 127,
+    "tests": 748,
+    "pass": 748,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "browserAzChecks": 26,
+  "navigationPages": [
+    "map",
+    "connections",
+    "idea",
+    "studio",
+    "radar",
+    "skills",
+    "engines",
+    "publish",
+    "guide"
+  ],
+  "additionalSections": [
+    "council",
+    "team"
+  ],
+  "workerTeam": {
+    "registeredConnections": 17,
+    "concurrentWorkersInFirstWave": 4,
+    "uniqueServedWorkers": 16,
+    "persistedCompletedTasks": 16,
+    "totalWorkerTasks": 16,
+    "teamSize": 16,
+    "singleProject": true
+  },
+  "protectedSceneFilesUnchanged": 82,
+  "liveProviderAccounts": "not_tested",
+  "realSocialPlatforms": "not_tested",
+  "nativeWindows": "not_tested",
+  "nativeConcat": "not_tested",
+  "cloud": "simulated",
+  "videoOutput": "actual_FFmpeg_media_from_labelled_fixtures",
+  "upstreamAssetSupplement": "AI_Project_OS_v0.9.70_UPSTREAM_ASSETS.zip",
+  "allUpstreamPayloadsPreserved": true,
+  "upstreamFilesVerified": 62792
+}

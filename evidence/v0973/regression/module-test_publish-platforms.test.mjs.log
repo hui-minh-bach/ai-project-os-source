@@ -1,0 +1,12 @@
+✔ publish connectors: full upload + stats round-trip against the mock platforms (60.444537ms)
+✔ publish connectors: missing token blocks honestly (1.316997ms)
+✔ publish connectors: tiktok unapproved app is limited to private on real host semantics (0.228204ms)
+✔ oauth helpers build real authorize urls and exchange codes via the token endpoint (7.297407ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 158.042733

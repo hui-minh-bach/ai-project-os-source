@@ -1,0 +1,18 @@
+✔ subtitle round-trip and word edits (2.105247ms)
+✔ source workspace traversal blocked (0.759248ms)
+✔ edit plan checks bounds, ratios and time (0.652915ms)
+✔ original story text is preserved when split (2.952904ms)
+✔ publishing blocked without approval or official OAuth (2.485196ms)
+✔ Concat public bind rejected (1.494296ms)
+✔ registers only media task names with CoreServices ports (2.18731ms)
+✔ Concat loopback authentication + version JSON-RPC parser with local stub (14.430558ms)
+✔ publisher uses one idempotency key for only one authorized upload (2.094092ms)
+✔ SRT flattens internal paragraph breaks into one timestamped caption (0.33258ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 126.383054

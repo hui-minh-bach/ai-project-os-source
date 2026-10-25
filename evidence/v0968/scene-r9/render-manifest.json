@@ -1,0 +1,15 @@
+{
+  "backend": "vtkEGLRenderWindow",
+  "graphics": "offline VTK/Mesa, not WebGL/Windows",
+  "inputs": "R3 unchanged room geometry, cloned TAM19, actual R3 controller and actual DOM labels, six synthetic test accounts",
+  "results": [
+    {
+      "view": "hero",
+      "seconds": 2.67
+    },
+    {
+      "view": "robot-close",
+      "seconds": 0.6
+    }
+  ]
+}

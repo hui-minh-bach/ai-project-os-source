@@ -1,0 +1,16 @@
+✔ managed Vietnamese voice already installed is rediscovered without local-voice.json or redownload (35.666098ms)
+✔ stale saved file paths do not hide a complete managed installation (1.375081ms)
+✔ legacy app data voice survives upgrade to the per-user data directory (0.97608ms)
+✔ partial download directories and foreign-language models never become Vietnamese-ready (30.637194ms)
+✔ explicit environment and isolated test hosts cannot inherit owner installed voice (3.832632ms)
+✔ install/removal/config change invalidates an earlier readiness result without waiting 30 seconds (144.250772ms)
+✔ default production preparation uses an installed Piper; explicit Windows choice never silently changes (190.546329ms)
+✔ reception retries the existing failed run instead of returning its cached failure as a new start (309.774543ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 872.74529

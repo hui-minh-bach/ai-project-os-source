@@ -1,0 +1,32 @@
+{
+  "version": "0.9.73",
+  "regression": {
+    "modules": 131,
+    "tests": 772,
+    "pass": 772,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "syntax": {
+    "checked": 204,
+    "failed": 0
+  },
+  "repairs": [
+    "removed intake UI; Project Results in its place",
+    "actual public model replies with separate ongoing progress",
+    "served worker/reviewer retain chairs until parent job ends",
+    "bounded Codex image transport beyond 2MB, capability preflight and safe reasons"
+  ],
+  "imageRpcFixture": "Valid random PNG >2MB through isolated fake Codex CLI, FFmpeg decode and SHA parity; inline/item/turn/savedPath variants",
+  "browser": "Actual Chromium/Three.js/GLB/HTTP and FFmpeg; AI/image services and reused stored QA audio are fixtures",
+  "nativeWindows": "not_tested",
+  "liveAccountImageGeneration": "not_tested",
+  "commercialReady": false,
+  "priorLocalWorkerRepair": "v0972 retained with original real Piper ONNX CPU evidence",
+  "noPaidFallbackOrPublicPosts": true,
+  "screenshotsIncluded": false,
+  "browserChecks": 6,
+  "visualInspection": "PASS: actual current UI screenshot inspected; public replies readable, full image progress strip visible, bounded robot labels, original geometry preserved",
+  "protectedFilesIdentical": 80
+}

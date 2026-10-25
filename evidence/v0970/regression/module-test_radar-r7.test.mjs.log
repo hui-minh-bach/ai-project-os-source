@@ -1,0 +1,18 @@
+✔ R7 category CRUD persists and duplicate names rejected (13.138164ms)
+✔ R7 scan requires chosen category; filters stale, future and undated feed items (17.493494ms)
+✔ R7 only selected category sources are fetched, source errors remain visible (10.017999ms)
+✔ R7 same article can be indexed in two categories without duplicate production cards (5.494946ms)
+✔ R7 failed sources are not reported as successful empty scans (3.272523ms)
+✔ R7 topic AI only emits a validated search query, not invented news (1.106429ms)
+✔ R7 private, metadata and credential URLs blocked before feed fetch (0.502849ms)
+✔ R7 changing a managed topic or age updates query without duplicate subscriptions (6.631326ms)
+✔ R7 disabling all sources is respected, not silently replaced by a new source (3.098803ms)
+✔ R7 stored cards paginate beyond 100 with exact totals and no silent loss (2.991142ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 329.380174

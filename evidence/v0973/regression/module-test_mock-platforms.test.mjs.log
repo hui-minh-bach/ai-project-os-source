@@ -1,0 +1,15 @@
+✔ oauth stub issues a bearer token for any grant (32.335467ms)
+✔ api routes reject missing bearer tokens in each platform error shape (9.22081ms)
+✔ youtube: resumable init → single-shot PUT → statistics (13.101284ms)
+✔ youtube: chunked resumable upload resumes with 308 then completes (7.594089ms)
+✔ facebook: phased start → transfer → finish → stats (10.306384ms)
+✔ facebook: simple single-POST upload returns an id (6.312659ms)
+✔ tiktok: init → chunked PUT → status fetch → video list (7.326226ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 181.225127

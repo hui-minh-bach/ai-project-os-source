@@ -1,0 +1,16 @@
+✔ all bundled instruction snapshots are readable with identities and hashes, without host credential claims (40.008338ms)
+✔ instruction references cannot silently become runtime-enabled skills (2.364112ms)
+✔ skill registry preserves stable IDs and custom CRUD validates identity, schema and built-in protection (30.265141ms)
+✔ enabled state survives a fresh process and removes stale IDs from prompt and every sample mapping (159.35205ms)
+✔ Native uses current enabled registry on each actual provider call without replacing frozen binding (256.827307ms)
+✔ supported external runner receives enabled skill prompt only and keeps unsafe opt-in (224.732439ms)
+✔ workflow reserves mapping slot, persists toggle and reaches real Founder/planning/Worker/Reviewer payloads once (870.420606ms)
+✔ continuity skill is visible, actually injected and respects owner toggle (13.069282ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1831.060442

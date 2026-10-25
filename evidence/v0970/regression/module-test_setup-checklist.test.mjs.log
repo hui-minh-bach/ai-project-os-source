@@ -1,0 +1,10 @@
+✔ home shows a getting-started checklist driven by real state (1.051356ms)
+✔ concat provisioning stays honest without the bundled installer (slim package path) (0.690347ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 122.361058

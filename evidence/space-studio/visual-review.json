@@ -1,0 +1,27 @@
+{
+  "sourceBackend": "Three.js geometry and articulation evaluated in Chromium, then VTK EGL/Mesa render",
+  "actualWebGLFrameRendered": false,
+  "actualWindowsRun": false,
+  "examined": [
+    "hero_0.png",
+    "overview_0.png",
+    "close_5.5.png",
+    "close_11.2.png",
+    "close_16.png",
+    "side_16.png",
+    "motion-contact-sheet.jpg (15 sampled MP4 frames)"
+  ],
+  "observed": [
+    "Whole room uses geometric furniture rather than a room photo.",
+    "Chair shifts independently and the active hand meets the chair grip during pull/return phases.",
+    "Robot approaches the front of the cushion before lowering; seated robot and chair translate together.",
+    "Typing hands are aligned to the keyboard, no embedded tablet/old desk in the robot."
+  ],
+  "open": [
+    "Concept-level material/lighting/curved-wall/plant detail is not matched.",
+    "No complete mesh collision or finger grasp physics verification.",
+    "One scripted demonstrator; full live AI fleet navigation is not implemented.",
+    "GPU appearance, frame rate and target Windows app interaction remain untested."
+  ],
+  "acceptance": "source-preview, not final visual/production acceptance"
+}

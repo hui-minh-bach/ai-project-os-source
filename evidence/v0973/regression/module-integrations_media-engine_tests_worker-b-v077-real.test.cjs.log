@@ -1,0 +1,17 @@
+✔ B0+ B1 3-second silent video really exports AAC/H.264 and reruns without overwrite (739.105384ms)
+✔ B1 portrait to 16:9 output and Vietnamese SRT burn-in; original source preserved (1328.72782ms)
+✔ B0 ambiguous multi-audio demands explicit track; selected output has exactly one AAC track (999.886702ms)
+✔ B0 rejects invalid tiny/overlong/zero segments and v2 source mismatch (179.411737ms)
+✔ B0 scene detection real FFmpeg no hard cuts is distinguishable from tool failure (259.417503ms)
+✔ B0 cancelled FFmpeg render never marks final complete and does not overwrite input (290.932964ms)
+✔ B3 Concat refuses wrong API token and never reports live connected (9.47979ms)
+✔ B1 VFR portrait source normalizes safely to 25 fps and retains duration (944.505152ms)
+✔ B0 30-second no-cut vs 3 actual hard-cut scene detection (381.338215ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5434.203501

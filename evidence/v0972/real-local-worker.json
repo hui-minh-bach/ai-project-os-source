@@ -1,0 +1,47 @@
+{
+  "scope": "Chromium -> actual app HTTP -> rediscovered Piper -> real Vietnamese ONNX -> FFmpeg MP4.\nOnly AI text and illustration HTTP are fixtures. Windows-native acceptance is separate.\nRequires AIOS_QA_PIPER_ASSETS (pinned model+JSON), AIOS_QA_PYTHON_PATH (installed piper),\nand optional AIOS_QA_CHROMIUM. No downloads, live AI account or publishing in this script.\n",
+  "nativeWindows": false,
+  "liveAI": false,
+  "illustrations": "local HTTP fixture, not neural image generation",
+  "speech": "Piper ONNX actual inference",
+  "checks": [
+    {
+      "name": "Fresh refresh distinguishes actual FFmpeg from incomplete voice installation; unauthenticated refresh rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "Real client-order click fails before AI when voice is incomplete; failure receipt shown",
+      "status": "PASS"
+    },
+    {
+      "name": "One recovery click rediscovered installed Piper, generated real preview, resumed same order and delivered MP4",
+      "status": "PASS",
+      "project": "c46e2dc9-7408-47b2-ae1a-c0e1b0dec259",
+      "job": "3ddb4ef4-b312-4349-ba88-72f305b7cdd4"
+    },
+    {
+      "name": "Final MP4 decodes, contains non-silent neural Vietnamese speech, illustration frames and downloadable source assets",
+      "status": "PASS",
+      "seconds": 9.6,
+      "modelSha256": "ec7c89e2c85f4d1edc24b6120c18aaf1bda614f06b511567eb9c7c0de15e2dab"
+    },
+    {
+      "name": "Duplicate recovery click/reload is idempotent and does not create a second run",
+      "status": "PASS"
+    },
+    {
+      "name": "Transient real-process failure retries the SAME existing run; approved script/reviewer are reused; no duplicate AI work",
+      "status": "PASS",
+      "run": "4d1908ac-00b3-488c-a986-41d583e60ff0",
+      "fixtureCounters": {
+        "imageCalls": 2,
+        "scriptCalls": 3,
+        "reviewCalls": 2,
+        "voiceEngine": "real Piper ONNX; no Windows or speech fixture"
+      }
+    }
+  ],
+  "audioLevelEvidence": "\n    minor_version   : 512\n    compatible_brands: isomiso2avc1mp41\n    encoder         : Lavf60.16.100\n  Duration: 00:00:09.60, start: 0.000000, bitrate: 415 kb/s\n  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(progressive), 1280x720, 263 kb/s, 25 fps, 25 tbr, 12800 tbn (default)\n    Metadata:\n      handler_name    : VideoHandler\n      vendor_id       : [0][0][0][0]\n      encoder         : Lavc60.31.102 libx264\n  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, mono, fltp, 144 kb/s (default)\n    Metadata:\n      handler_name    : SoundHandler\n      vendor_id       : [0][0][0][0]\n[Parsed_volumedetect_0 @ 0x55772be9b540] n_samples: 0\nStream mapping:\n  Stream #0:1 -> #0:0 (aac (native) -> pcm_s16le (native))\nPress [q] to stop, [?] for help\nOutput #0, null, to 'pipe:':\n  Metadata:\n    major_brand     : isom\n    minor_version   : 512\n    compatible_brands: isomiso2avc1mp41\n    encoder         : Lavf60.16.100\n  Stream #0:0(und): Audio: pcm_s16le, 44100 Hz, mono, s16, 705 kb/s (default)\n    Metadata:\n      handler_name    : SoundHandler\n      vendor_id       : [0][0][0][0]\n      encoder         : Lavc60.31.102 pcm_s16le\n[out#0/null @ 0x55772bc80880] video:0kB audio:828kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: unknown\nsize=N/A time=00:00:09.58 bitrate=N/A speed= 170x    \n[Parsed_volumedetect_0 @ 0x55772bd73200] n_samples: 423936\n[Parsed_volumedetect_0 @ 0x55772bd73200] mean_volume: -20.2 dB\n[Parsed_volumedetect_0 @ 0x55772bd73200] max_volume: -7.2 dB\n[Parsed_volumedetect_0 @ 0x55772bd73200] histogram_7db: 696\n",
+  "browserErrors": [],
+  "status": "PASS"
+}

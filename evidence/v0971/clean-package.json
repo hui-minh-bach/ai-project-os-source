@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "scope": "Fresh final archive extraction, normal startup, empty isolated data, no fixtures; patch runtime parity with 0.9.70",
+  "version": "0.9.71",
+  "resources": {
+    "skills": 83,
+    "repos": 13,
+    "hostTools": 649
+  },
+  "sessionGate": true,
+  "rendererReady": true,
+  "voiceReady": false,
+  "concatConnected": false,
+  "patchRuntimeFilesMatched": 256
+}

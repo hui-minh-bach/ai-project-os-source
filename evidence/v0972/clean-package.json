@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "scope": "Fresh packaged source, empty data, normal Node startup without test preload, exact tested-code hashes",
+  "version": "0.9.72",
+  "inventory": {
+    "skills": 83,
+    "repos": 13,
+    "hostTools": 649
+  },
+  "fullSkillReferencesRead": 83,
+  "sourceHashesMatch": true,
+  "noFixturesLoaded": true,
+  "sessionGate": true,
+  "readyBadgeDoesNotInventSpeech": true,
+  "toolCards": 8
+}

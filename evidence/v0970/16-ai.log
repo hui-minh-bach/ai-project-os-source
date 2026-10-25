@@ -1,0 +1,1 @@
+{"status":"PASS","checks":{"registeredConnections":17,"concurrentWorkersInFirstWave":4,"uniqueServedWorkers":16,"persistedCompletedTasks":16,"totalWorkerTasks":16,"teamSize":16,"singleProject":true},"durationMs":12863}

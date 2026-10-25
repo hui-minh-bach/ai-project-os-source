@@ -1,0 +1,26 @@
+✔ cloud preflight discovers exact account/team/org and freezes credential versions (8.687322ms)
+✔ new DB uses org slug, encrypted-Vault password and no deprecated free-plan promise (4.208436ms)
+✔ complete adapter flow builds private resources, waits READY and checks actual uploaded source identity (11.606935ms)
+✔ new-style Supabase secret uses apikey, never a Bearer JWT header (2.212535ms)
+✔ public environment never receives admin/service/management credentials (2.412813ms)
+✔ lost DB create response is reconciled into same reference without duplicate POST (3.398214ms)
+✔ unknown DB creation without visible project fails closed on every resume (0.995131ms)
+✔ definite rejected create can retry without an unknown-outcome deadlock (1.936422ms)
+✔ lost Vercel project response reconciles exact name, account and saved intent (0.919878ms)
+✔ existing unrelated project or changed owner cannot be adopted (5.281363ms)
+✔ lost deployment response resumes exact metadata receipt with no repeated build (11.433664ms)
+✔ READY is mandatory, pending loops are bounded and build error is not success (15.018193ms)
+✔ deployment protection is reported, never disabled automatically (7.966858ms)
+✔ cross-origin redirect and mismatched source marker block public handoff (5.044428ms)
+✔ bucket privacy and size must match the source manifest (2.362492ms)
+✔ CLI login/public project key cannot be mistaken for management authority (0.37139ms)
+✔ identity and selected scopes are enforced, not guessed from a project name (1.688295ms)
+✔ Supabase readiness timeout retains the already created reference (1.803009ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 246.458537

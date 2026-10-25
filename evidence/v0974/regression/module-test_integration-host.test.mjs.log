@@ -1,0 +1,15 @@
+✔ local media/Core works without master or remote model, and honestly reports its mode (98.659647ms)
+✔ short explicit master key cannot unlock Core vault (101.667876ms)
+✔ new jobs never run before explicit approval and have separate SHA-256 verified artifacts (26.99641ms)
+✔ media routes cannot approve or read unrelated Core task and artifacts (2.821849ms)
+✔ path traversal, invalid IDs, unsupported public posting and invalid uploads are blocked (2.104939ms)
+✔ storyboard mode is clearly deterministic, without fake TTS or video (13.943125ms)
+✔ local project media jobs persist across restart without losing results (22.29805ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 404.619011

@@ -1,0 +1,6 @@
+{
+  "environment": "Linux Chromium software WebGL (SwiftShader), not Windows GPU",
+  "source": "unchanged public/space-studio/*",
+  "result": "blocked",
+  "detail": "Page.evaluate: Error: Error creating WebGL context.\n    at new Jl (blob:null/419cedd7-2c15-461e-af40-bc1d948c515f:6:431721)\n    at createSpaceStudio (blob:null/6f588445-7ba2-4641-9641-1944af5ee400:60:54)\n    at Module.mountSpaceViewer (blob:null/80753f27-8e19-499e-bb33-1debf47f83d0:41:14)\n    at eval (eval at evaluate (:290:30), <anonymous>:11:99)\n    at async <anonymous>:316:30"
+}

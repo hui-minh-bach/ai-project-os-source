@@ -1,0 +1,16 @@
+✔ delivery manifest accepts explicit web profiles, never unknown products or SQL (1.857396ms)
+✔ schema rejects public buckets, duplicate columns and injected identifiers (1.197112ms)
+✔ snapshot deterministic and records actual file hashes (9.295713ms)
+✔ snapshot rejects private files, credentials and symlinks rather than silently uploading (6.017178ms)
+✔ snapshot excludes caches but enforces total/file limits (1.550644ms)
+✔ deployment includes verified source marker and only public configuration (4.376988ms)
+✔ source ZIP has valid local/central-directory headers and exact stored payloads (1.225495ms)
+✔ QR is generated locally, has quiet zone, rejects tokenized and unsafe URLs (13.742647ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.314452

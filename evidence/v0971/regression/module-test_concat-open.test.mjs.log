@@ -1,0 +1,10 @@
+✔ openInConcat creates a real Concat project from the selected video via the RPC API (34.327719ms)
+✔ openInConcat blocks honestly when the Concat remote is unreachable (5.728602ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 278.587721

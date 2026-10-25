@@ -1,0 +1,14 @@
+✔ Installed Concat is not an authenticated editor; FFmpeg readiness does not supply narration (1.379848ms)
+✔ Concat badge requires successful API response and does not require a discoverable executable (0.264939ms)
+✔ Stale Concat token/offline API cannot remain green (0.329837ms)
+✔ Narrated job reports missing voice even when both renderers are present (0.744281ms)
+✔ Crowded names retain identity, stay near heads and never cascade into the sky (8.684231ms)
+✔ Offscreen/behind-camera accounts cannot create floating labels or clickable stale tags (0.177166ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 110.356105

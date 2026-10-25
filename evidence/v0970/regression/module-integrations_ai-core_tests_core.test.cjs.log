@@ -1,0 +1,36 @@
+✔ two real workers produce isolated executable source and checks (69.609049ms)
+✔ reviewer detects broken JS then worker repairs only approved file, bounded iterations (94.591827ms)
+✔ failed reviewer bounded by maxAttempts (93.301924ms)
+✔ restart restores queued task and checkpoint without erasing saved data (15.474746ms)
+✔ pause, resume, cancel and dependency processing (100.755527ms)
+✔ vault encryption at rest and no raw secret logged (94.703228ms)
+✔ sandbox prevents parent traversal, symlink jumps and missing approval (4.105066ms)
+✔ compatible provider requires explicit origin; cost approval and saved model roles (5.834138ms)
+✔ MCP hook needs approved client and tool action needs explicit grant (7.49902ms)
+✔ unauthorized local HTTP requests are rejected; authenticated health is not live verified (72.853962ms)
+✔ repo worktree has distinct branch for each task (103.463204ms)
+✔ Founder, Council, PM, Worker, Reviewer invoke assigned mock provider and require separate execution approval (SIMULATED provider) (68.511221ms)
+✔ media tasks are blocked without GPT2 module; approved modules can produce real artifact and be reviewed (12.424539ms)
+✔ newly unlocked encrypted Vault is immediately attached to provider adapter (not just returned) (101.163751ms)
+✔ cancel during in-flight model request prevents any model-produced source write (22.944707ms)
+✔ queued model task pins its assigned Worker model and refuses silent switch (18.941945ms)
+✔ AI Reviewer cannot be the same assigned model as Worker (54.201261ms)
+✔ crash in-flight model task blocks automatic retry to avoid unapproved duplicate charges (4.808811ms)
+✔ standalone startup unlocks encrypted Vault for provider gateway, not only Vault CLI (81.427297ms)
+✔ failed prerequisite blocks all descendants instead of leaving queued forever (14.843243ms)
+✔ AI-generated source cannot be marked completed from syntax alone; sandbox verification required (49.19565ms)
+✔ pause in-flight rejects premature resume and leaves workspace untouched until safe retry (14.30163ms)
+✔ invalid task update must not change memory or disk snapshot (2.115419ms)
+✔ verification evidence from unrelated task cannot approve a software task (6.971443ms)
+✔ API refuses browser-originated requests even with local token (7.130325ms)
+✔ reject caller-supplied path-traversal task identifier before creating any workspace (2.504955ms)
+✔ unverified model result cannot be reapproved, resumed or retried to bypass acceptance gate (3.051917ms)
+✔ unverified MCP tools must not be reported as installed on the host (25.55569ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1263.392301

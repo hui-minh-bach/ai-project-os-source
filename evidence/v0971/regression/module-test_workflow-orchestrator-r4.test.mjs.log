@@ -1,0 +1,16 @@
+✔ R4 missing/invalid inputs fail before creating a run or project (7.248387ms)
+✔ R4 media failure retries same run/project with persisted script and card snapshot, even after feed deletion (15.359847ms)
+✔ R4 retry survives app restart and never reruns a completed media operation (12.246451ms)
+✔ R4 unknown publication outcomes cannot be blindly replayed (10.652556ms)
+✔ R4 news article without approval produces one actual local draft, never publishes an undefined video (9.06421ms)
+✔ R4 explicit retries are bounded at three and global stop is respected (12.941552ms)
+✔ R4 news intake requires real publication dates, topic matches and correct Vietnam date (2.281531ms)
+✔ R4 missing news sources returns an honest host limitation without fabricating current news (1.322867ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 209.8092

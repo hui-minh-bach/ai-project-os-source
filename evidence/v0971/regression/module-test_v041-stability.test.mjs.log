@@ -1,0 +1,13 @@
+✔ mock OpenAI + Gemini + Claude complete council and two parallel tasks stably (1787.540752ms)
+✔ review rejection rolls back branch and batch reports not-ok (982.331141ms)
+✔ parallel agents editing the same file produce a safe merge-conflict instead of corrupting main (1006.361266ms)
+✔ CLI quick-connects and Supabase attach work with simulated gh/vercel/supabase sessions (540.982049ms)
+✔ mini-SWE adapter passes provider credential to a simulated mini runtime without exposing it in task output (203.948771ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4682.614312

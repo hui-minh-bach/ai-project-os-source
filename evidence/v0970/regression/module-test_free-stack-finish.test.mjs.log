@@ -1,0 +1,13 @@
+✔ One job resumed after crash does not regenerate completed images; changed prompt cannot reuse old result (135.625012ms)
+✔ Parallel clicks for the same scene join one generation instead of triggering two paid calls (37.610695ms)
+✔ Workflow upload validates format and uses atomic replacement without changing previous workflow on error (8.294413ms)
+✔ Explicit paid API image provider cannot enter paused task without user consent; free ComfyUI is allowed (70.132117ms)
+✔ Free-first media preflight allows ComfyUI without paid quota consent and blocks forced paid route (4.349426ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1064.395869

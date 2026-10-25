@@ -1,0 +1,36 @@
+✔ sensitive task payload keys and high-entropy tokens never enter persisted task JSON (5.921894ms)
+✔ commercial mode fails closed for an unverified model and direct billable call (7.501041ms)
+✔ credential rotation, Vault lock and text capability bind invalidate verified assignments (4.11573ms)
+✔ unknown quota never invents 5-hour or weekly bars; reported shared bucket stays shared (2.156256ms)
+✔ 429 provider retry-after blocks replay even if new job approval is issued (10.131499ms)
+✔ 401 expired provider rejects authorization and does not mark model healthy (3.128629ms)
+✔ unknown network outcome is permanently uncertain, never silently retried (4.712374ms)
+✔ one approval under simultaneous requests dispatches exactly once (5.242131ms)
+✔ cost approvals reject wrong project, model role changes and duplicate idempotency keys (4.348125ms)
+✔ paid worker task stays awaiting approval until model and task rights are separately granted (18.247226ms)
+✔ four workers persist independent local artifacts, and restart retains 1000-event bound (543.85459ms)
+✔ sandbox denies symlinks and env file overwrite even with explicitly approved tools (2.070096ms)
+✔ untrusted PM plan validates all tasks BEFORE persistence (no half-created project) (3.963746ms)
+✔ content pack produces checked real Markdown with only user-supplied cited URLs (12.253304ms)
+✔ website outcome creates real source, verifies Node syntax and keeps remote publication disabled (37.72897ms)
+✔ GitHub/private preview gate refuses public repo, unreviewed target, repeat export and duplicate publish (12.157479ms)
+✔ uncertain external publish cannot be reissued with the same approval (11.131585ms)
+✔ publication refuses corrupted or cross-project artifact before remote side effect (10.288235ms)
+✔ provider identity fallback during live verification is rejected before a role can use it (2.383868ms)
+✔ reported token cost is observed, never the higher defensive reservation (4.410448ms)
+✔ missing usage preserves an unknown-spend ceiling without falsifying actual money spent (3.95974ms)
+✔ provider request requires no redirects and does not silently follow an external URL (2.020732ms)
+✔ publication details exposed to UI cannot be mutated to bypass review approval (11.499704ms)
+✔ commercial mode cannot bypass cost approvals by calling provider POST directly (3.343393ms)
+✔ commercial queue cannot call a publish module directly from a task approval bit (7.274399ms)
+✔ publication accepts completed artifact of same-project dependency but never arbitrary other project (16.246775ms)
+✔ cost ceiling includes uncertain provider charges from prior interrupted operations (4.355716ms)
+✔ commercial request sentinel is not readable from a provider instance (4.301425ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 856.371883

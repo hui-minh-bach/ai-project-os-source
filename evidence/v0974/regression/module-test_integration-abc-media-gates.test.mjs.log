@@ -1,0 +1,13 @@
+✔ integration: host checks actual FFprobe duration, not plan self-report (248.271906ms)
+✔ integration: host refuses v1 plans before approval (153.544189ms)
+✔ integration: host detects modified video after queue, before approval (212.23281ms)
+✔ integration: quick edit also binds source before user approval (100.861482ms)
+✔ integration: authentic source remains eligible for approval (263.158782ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1132.342067

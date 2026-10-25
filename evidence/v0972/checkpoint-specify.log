@@ -1,0 +1,319 @@
+{
+  "schema": 1,
+  "goal": "v0.9.72 repair existing local-worker speech discovery and actual narrated video recovery, preserving data and 3D assets, deliver one verified full source ZIP",
+  "created_at": "2026-10-23T12:00:11.691411+00:00",
+  "stages": {
+    "specify": {
+      "status": "done",
+      "note": "Owner asks to repair existing local worker errors; reproduce path/cache/provider/retry faults, complete real speech-to-video, preserve owner data and every 3D file. No paid provider or real publication.",
+      "evidence": [
+        {
+          "path": ".project-state/contract.md",
+          "sha256": "4e45c25a463680143946f1b59034af3c9ecd9432239965e5a35fde6d67b7f4e8",
+          "bytes": 6675
+        }
+      ],
+      "at": "2026-10-25T01:35:55.604818+00:00"
+    },
+    "build": {
+      "status": "done",
+      "note": "v0.9.72 implements managed/legacy installed Piper discovery, fresh status invalidation and a real local voice check, default local selection, same-run retry, post-setup idempotent continuation, current exact CDN redirect support and missing-model/config completion without redownloading the existing engine.",
+      "evidence": [
+        {
+          "path": "src/lib/piper-paths.mjs",
+          "sha256": "3f15690577cf52f72efe8e8a7edb26756f40d4a89eded9a37556e46c33489ae7",
+          "bytes": 2857
+        },
+        {
+          "path": "src/lib/local-piper-tts.mjs",
+          "sha256": "792698eae2ae58291927b0571668167c86ef827968fd1a022bf656e7d4db1728",
+          "bytes": 6649
+        },
+        {
+          "path": "src/lib/piper-managed.mjs",
+          "sha256": "b35225f4815471150f57637b911239053b30398db233d07866a60f2a5521fc9e",
+          "bytes": 10683
+        },
+        {
+          "path": "src/lib/work-center-backend.mjs",
+          "sha256": "f661ebd5da7dbea0dad64192bb8374c586475407136883e8c5442b63218e196b",
+          "bytes": 6091
+        },
+        {
+          "path": "public/tabs/work-center.js",
+          "sha256": "32be435016c54ed82e82619e313a34c77ec53f61b785689c394940f0e9fdd8d6",
+          "bytes": 22868
+        }
+      ],
+      "at": "2026-10-25T01:35:04.567156+00:00"
+    },
+    "demonstrate": {
+      "status": "done",
+      "note": "128 app test modules pass (753 cases pass, one opt-in quick edit skipped in default suite); actual Chromium WebGL/10 GLB robots and UI checks pass, normal authenticated app readiness verified, actual FFmpeg bridge passes; native Windows voice and user Concat not tested.",
+      "evidence": [
+        {
+          "path": "evidence/v0971/regression/final-results.json",
+          "sha256": "ba1a3e1282c9da5d3eb025d4e9cecc5d5ad74b220e3c8147b7f3a1caa4ac6f34",
+          "bytes": 24536
+        },
+        {
+          "path": "evidence/v0971/labels-webgl.json",
+          "sha256": "a5477eca6fc33c918f8370c0f3dc8e9a4ca61303bfd7b42171b9071a87c3d462",
+          "bytes": 7669
+        },
+        {
+          "path": "evidence/v0971/readiness-ui.json",
+          "sha256": "67d68c5a0c582ad921d5eaa408fc26da6338ae174c46c293c29fe9f72fc28e2d",
+          "bytes": 423
+        },
+        {
+          "path": "evidence/v0971/media-e2e.json",
+          "sha256": "134eade7bf4ba6739e5f7ed9a9ba16cdf7a970304d005523ad5ee2b8f6660c13",
+          "bytes": 4377
+        }
+      ],
+      "at": "2026-10-24T09:06:25.535699+00:00"
+    },
+    "integrate": {
+      "status": "done",
+      "note": "v0.9.71 clean archive startup and 256 runtime-file patch parity pass; 13 repository archives match prior source and pass CRC; original room/asset files unchanged except owner-authorized name overlay; default suite 128 modules pass and opt-in real quick edit rerun passes. Native Windows voice/Concat remains untested.",
+      "evidence": [
+        {
+          "path": "evidence/v0971/clean-package.json",
+          "sha256": "a008b3ad33d83a6488628ec6af8a3599158c5333719052af39fbb5ffad127442",
+          "bytes": 387
+        },
+        {
+          "path": "evidence/v0971/summary.json",
+          "sha256": "eed7da045212b3f759e495cef6f75e1efbed37c85c179df55908e38d64638c93",
+          "bytes": 854
+        },
+        {
+          "path": "evidence/v0971/quick-edit-real.log",
+          "sha256": "c8257d602ca33c2534a59cf87d7f2dedab388c34c17ee8c5e60fbce840fba0f7",
+          "bytes": 291
+        },
+        {
+          "path": "evidence/v0971/protected-assets.json",
+          "sha256": "f9919588d3040a48e629566932502e65cb22e606789d4b40168af1f964c1abfb",
+          "bytes": 196
+        }
+      ],
+      "at": "2026-10-24T09:07:40.215160+00:00"
+    }
+  },
+  "next_action": "Verify final package startup.",
+  "history": [
+    {
+      "at": "2026-10-23T12:07:40.848960+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Fixed scope and preserved R8; no room changes and no paid provider actions."
+    },
+    {
+      "at": "2026-10-23T12:07:41.563435+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Production source implemented; native Windows and Concat runtime verification remains open."
+    },
+    {
+      "at": "2026-10-23T12:07:42.274377+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Isolated pipeline demonstration passes. Native Windows speech + real image accounts + native Concat output cannot be exercised in this Linux environment."
+    },
+    {
+      "at": "2026-10-23T12:07:42.994148+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Scoped source integration and regression completed. Do not interpret as Windows or commercial acceptance."
+    },
+    {
+      "at": "2026-10-23T13:22:05.916439+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Audited existing paid/free features; selected optional localhost ComfyUI and read-only diagnostics; protected 3D."
+    },
+    {
+      "at": "2026-10-23T13:39:55.933376+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Integrated optional local ComfyUI image workflow, free-first failover and read-only readiness UI; original 81 3D assets unchanged."
+    },
+    {
+      "at": "2026-10-23T13:39:56.621956+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Mock ComfyAPI image generation and authenticated HTTP checks passed; real GPU inference, native Windows voice, Concat and commercial end-to-end not tested."
+    },
+    {
+      "at": "2026-10-23T13:39:57.382476+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "All 115 test files executed in batches (641 pass, 1 skip); original approved 81 3D files identical. Some runners delayed clean exit. Verified source only, not Windows acceptance."
+    },
+    {
+      "at": "2026-10-23T14:16:56.979579+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Scope frozen: paid consent, ComfyUI import, image resume, retain approved 3D."
+    },
+    {
+      "at": "2026-10-23T14:16:57.643759+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Implemented image-scene checkpoint, local workflow import, consent gates and UI."
+    },
+    {
+      "at": "2026-10-23T14:16:58.369641+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Fixture-based FFmpeg actual MP4 works; no actual GPU/Windows TTS here."
+    },
+    {
+      "at": "2026-10-23T14:16:59.130837+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Authenticated HTTP workflow validation, scoped regression and syntax passed; package integrity next."
+    },
+    {
+      "at": "2026-10-24T05:28:20.166603+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "v0.9.67 integrates from latest full source, protects 81 original 3D assets, no GitHub writes"
+    },
+    {
+      "at": "2026-10-24T05:28:20.786391+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "6 factory skills, CSP-safe Radar, real local photo/video upload, per-project media drafts, standalone WebGL error fallback"
+    },
+    {
+      "at": "2026-10-24T05:28:21.472564+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "11 browser/HTTP checks and real narrated FFmpeg fixture pass; native Windows/GPU/Piper/Concat/FLUX accounts not tested here"
+    },
+    {
+      "at": "2026-10-24T05:28:22.079853+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "731/732 tests passed (1 skipped), 81/81 protected assets identical; source-only QA release, native acceptance open"
+    },
+    {
+      "at": "2026-10-24T06:02:04.420327+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "R9 auto reception/manager inbox/seat occupancy contract; two authorized 3D source exceptions, no remote changes"
+    },
+    {
+      "at": "2026-10-24T06:08:26.351620+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "R9 live bots seat at 9 desks, auto-produce one click, real receipt manager inbox and six-file handoff"
+    },
+    {
+      "at": "2026-10-24T06:08:26.960919+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "23 Three.js geometry/DOM, live Xvfb WebGL pixels and 6 HTTP/Chromium media fixture checks pass; native Windows Concat/Piper/User AI accounts not tested"
+    },
+    {
+      "at": "2026-10-24T06:08:27.581513+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "192 syntax; 731 pass, 1 skip, 0 fail across all test modules in seven groups; 6 fixture UI/HTTP checks; source only R9"
+    },
+    {
+      "at": "2026-10-24T06:59:50.007740+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Source v0.9.68 cloned; authorized v0.9.69 contract; existing 3D freeze"
+    },
+    {
+      "at": "2026-10-24T07:18:41.021636+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "v0.9.69 client orders for article/video, real bound AI Worker and independent Reviewer, verified customer ZIP SHA, concurrency limit; 3D protected"
+    },
+    {
+      "at": "2026-10-24T07:18:41.667374+00:00",
+      "stage": "demonstrate",
+      "status": "blocked",
+      "note": "Real app localhost Chromium and FFmpeg fixture MP4; 6 old news E2E and 4 new client E2E PASS. Native owner Windows/AI/Concat and real sales not tested; visual fixture not commercial-quality"
+    },
+    {
+      "at": "2026-10-24T07:18:42.311383+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "192 syntax, 119 root test modules: 660 pass,1 skip; 2 media-engine modules 19 pass; 4 new+6 old E2E checks. Source package pending manifest/ZIP verification."
+    },
+    {
+      "at": "2026-10-24T08:21:18.768998+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Owner accepts queued 16-worker execution; final inventory is 83 skill packages, 13 public repository source snapshots and 649 host-tool references; no host credentials/services copied."
+    },
+    {
+      "at": "2026-10-24T08:21:18.818332+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "Bundled complete available skill files and source archives; added Vault-backed MCP HTTP and skill adaptation; repaired QR delivery, Windows dubbing routing, Facebook API version consistency and isolated app test runner."
+    },
+    {
+      "at": "2026-10-24T08:21:18.859961+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "127 app test modules, 748/748 pass; 26 A-Z HTTP/UI checks, 16 queued synthetic workers, website/source/QR, client article/video, news, dubbed video, three simulated social platforms, MCP and real software WebGL. Live Windows/provider acceptance separate."
+    },
+    {
+      "at": "2026-10-24T08:22:52.722546+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Source archive integrity and normal clean-extracted startup verified; 83 skill APIs, 13 repos, no fixture preload or connected synthetic accounts. Live Windows/provider acceptance remains separate."
+    },
+    {
+      "at": "2026-10-24T08:36:54.029234+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Source archive integrity and normal clean-extracted startup verified; 83 skill APIs, 13 repos, no fixture preload or connected synthetic accounts. Live Windows/provider acceptance remains separate."
+    },
+    {
+      "at": "2026-10-24T08:39:12.303473+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "Source archive integrity and normal clean-extracted startup verified; 83 skill APIs, 13 repos, no fixture preload or connected synthetic accounts. Live Windows/provider acceptance remains separate."
+    },
+    {
+      "at": "2026-10-24T09:05:39.346443+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "v0.9.71 distinguishes installed/configured/authenticated Concat API with no autolaunch during diagnostics; separate narration readiness and direct voice recovery; robot name layout bounded near projected heads with leader lines; original geometry unchanged."
+    },
+    {
+      "at": "2026-10-24T09:06:25.535711+00:00",
+      "stage": "demonstrate",
+      "status": "done",
+      "note": "128 app test modules pass (753 cases pass, one opt-in quick edit skipped in default suite); actual Chromium WebGL/10 GLB robots and UI checks pass, normal authenticated app readiness verified, actual FFmpeg bridge passes; native Windows voice and user Concat not tested."
+    },
+    {
+      "at": "2026-10-24T09:07:40.215172+00:00",
+      "stage": "integrate",
+      "status": "done",
+      "note": "v0.9.71 clean archive startup and 256 runtime-file patch parity pass; 13 repository archives match prior source and pass CRC; original room/asset files unchanged except owner-authorized name overlay; default suite 128 modules pass and opt-in real quick edit rerun passes. Native Windows voice/Concat remains untested."
+    },
+    {
+      "at": "2026-10-25T01:35:04.567167+00:00",
+      "stage": "build",
+      "status": "done",
+      "note": "v0.9.72 implements managed/legacy installed Piper discovery, fresh status invalidation and a real local voice check, default local selection, same-run retry, post-setup idempotent continuation, current exact CDN redirect support and missing-model/config completion without redownloading the existing engine."
+    },
+    {
+      "at": "2026-10-25T01:35:55.604829+00:00",
+      "stage": "specify",
+      "status": "done",
+      "note": "Owner asks to repair existing local worker errors; reproduce path/cache/provider/retry faults, complete real speech-to-video, preserve owner data and every 3D file. No paid provider or real publication."
+    }
+  ],
+  "updated_at": "2026-10-25T01:35:55.604831+00:00"
+}

@@ -1,0 +1,19 @@
+✔ R7 narrated video never becomes silent or paid automatically (2.274468ms)
+✔ R7 provider paid voice needs separate explicit choice and consent (0.31833ms)
+✔ R7 installed Windows voice is local, no paid fallback (0.190498ms)
+✔ R7 missing FFmpeg prevents video creation before an empty run (0.139931ms)
+✔ R7 Host commands require consent, Safe cannot claim completed tested output (0.739144ms)
+✔ R7 missing Git or Docker image is a real blocked prerequisite, not auto installed (0.399902ms)
+✔ R7 media byte ranges include suffix and cap end; reject malformed ranges (0.76983ms)
+✔ R7 caption text is bounded and cannot inject ASS override commands (0.372281ms)
+✔ R7 same unfinished job remains seated across waiting 120 seconds, no fake typing (21.519756ms)
+✔ R7 waiting reviewer seat cannot be taken by tenth active account (62.201604ms)
+✔ R7 explicit terminal job still releases a chair (15.346241ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 193.482268

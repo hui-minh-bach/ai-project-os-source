@@ -1,0 +1,20 @@
+▶ R3 full HTTP roster authenticates, follows accounts/tasks, excludes secrets and never calls providers
+  ✔ new fleet API rejects missing session (5.879477ms)
+  ✔ locked Vault hides roster (13.481485ms)
+  ✔ every AI account including more than ten is visible; integrations excluded (22.95977ms)
+  ✔ read-only repeated polling does not mutate Vault, projects, model catalog (78.085976ms)
+  ✔ connection rename keeps same robot ID; markup remains plain data (134.015645ms)
+  ✔ actual task and review state is read without starting a new job (28.854525ms)
+  ✔ task titles are redacted against the unlocked Vault (17.700415ms)
+  ✔ account deletion removes exactly that robot (118.377395ms)
+  ✔ new fleet modules and original robot are served with correct MIME types (139.049864ms)
+  ✔ locking again revokes roster visibility (25.782213ms)
+✔ R3 full HTTP roster authenticates, follows accounts/tasks, excludes secrets and never calls providers (2642.95483ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5759.217304

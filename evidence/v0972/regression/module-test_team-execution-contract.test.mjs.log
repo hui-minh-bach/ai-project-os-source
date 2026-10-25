@@ -1,0 +1,23 @@
+✔ task APIs validate enums, bindings, dependency graph and archive real state (225.854066ms)
+✔ plaintext legacy spec and mismatched plan/task specification never start a worktree (189.533052ms)
+✔ bindings freeze before first Worker await; repair retains both reviews/logs and final commit HEAD (716.825612ms)
+✔ brief change during deferred worker marks stale and cleans branch without merging (333.793951ms)
+✔ brief change during deferred reviewer marks stale and cleans branch without merging (430.395669ms)
+✔ replanning refuses active tasks before request and after deferred PM response (547.976208ms)
+✔ Safe command block and missing test script cannot become PASS from Worker summary (520.606858ms)
+✔ review disabled is SKIPPED/null rather than a fabricated approval (442.860471ms)
+✔ trusted npm receipts record actual pass, failure, timeout, Safe block and absent test (353.3972ms)
+✔ failed runtime test blocks merge even when model Reviewer says approved (564.969895ms)
+✔ parallel budget enforces two active isolated workers before third run (714.156059ms)
+✔ post-merge stale check restores pre-merge HEAD and logs actual rollback (2997.855717ms)
+✔ post-merge stale check retains branch and unknown main when rollback fails (2857.208188ms)
+✔ native safeResolve blocks dangling symlinks, sensitive paths and dependency directory (2.742619ms)
+✔ npm receipt and external trajectory redact captured credentials after Vault lock (708.300737ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11754.566284

@@ -1,0 +1,12 @@
+✔ Scene plans are genuinely bounded, with timeline crossfade overlap and no invented visual understanding (13.565073ms)
+✔ Short reel preserves measured scene boundaries and smooth transitions (0.878423ms)
+✔ Legacy cut timelines with zero transition length remain valid (0.22522ms)
+✔ Real FFmpeg smooth scene transition produces valid MP4 and reduced runtime (2900.889539ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3151.973838

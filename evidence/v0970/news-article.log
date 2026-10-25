@@ -1,0 +1,1 @@
+{"scope": "Real localhost news article -> fixture AI -> local draft; never claim an external Facebook post.", "checks": ["RSS card -> gateway AI path -> stored article -> approval gate", "Actual Markdown download", "Local draft receipt after approval; no external text-post capability claimed"], "status": "PASS"}

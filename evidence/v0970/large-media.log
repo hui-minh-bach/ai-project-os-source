@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "largeMediaBytes": 17217172,
+  "verifiedSha256": "06a879d9f13bd36506b8466d0b45b691c6afc4efa383722af10e7e1b6b401e19",
+  "restartPersistence": true,
+  "tamperDetection": true
+}

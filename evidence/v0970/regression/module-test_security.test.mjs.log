@@ -1,0 +1,13 @@
+✔ workspace writes safe relative files (3.732455ms)
+✔ workspace blocks traversal (0.538597ms)
+✔ workspace blocks env (0.38967ms)
+✔ high-risk GPT-Pilot is blocked in engine catalog (0.921ms)
+✔ skill registry includes security and QA (10.661242ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 335.160152

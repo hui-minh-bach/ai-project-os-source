@@ -1,0 +1,12 @@
+✔ old completed plan cannot target another uploaded video (host blocks before approval) (265.462575ms)
+✔ restored old plan without fingerprint still checks stored video path (0.311259ms)
+✔ same-path changed file is guarded by digest and a valid legacy timeline remains supported (0.234303ms)
+✔ browser only loads a plan for the current video and offers one-click recovery (0.75701ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 430.492572

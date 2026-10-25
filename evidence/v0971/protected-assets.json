@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "changedExistingFiles": [
+    "public/space-studio/viewer.mjs"
+  ],
+  "allOtherSceneAndAssetsUnchanged": true,
+  "newOverlayHelper": "public/space-studio/name-labels.mjs"
+}

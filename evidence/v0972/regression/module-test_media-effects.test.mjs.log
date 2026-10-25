@@ -1,0 +1,12 @@
+✔ effects catalog is complete and every id is unique (0.686833ms)
+✔ effects graph composes pads, colour and speed deterministically (1.09682ms)
+✔ effects ASS carries the title and the name card with escaped text (0.328167ms)
+✔ effects are wired through the host allow-list, validation, handler and Studio UI (1.366907ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 88.368991

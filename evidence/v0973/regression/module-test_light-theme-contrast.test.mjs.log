@@ -1,0 +1,12 @@
+✔ saved Arctic skin applies before CSS paints, with dark themes still selectable (0.815491ms)
+✔ body, muted text, warnings, and white-label controls exceed AA contrast in Arctic (0.432182ms)
+✔ Arctic repair does not paint over any of four dark theme settings (1.400243ms)
+✔ hard-to-read controls and runtime states have dedicated light-theme fixes (0.359302ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 119.69743

@@ -1,0 +1,10 @@
+✔ offline Piper generated narration is approved, rendered, SHA-verified and does NOT call any paid API (5062.097965ms)
+✔ UI does not force HeyGen; local TTS without model cannot silently pay cloud (7.241116ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5989.073316

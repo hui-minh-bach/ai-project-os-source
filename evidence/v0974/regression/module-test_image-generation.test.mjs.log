@@ -1,0 +1,13 @@
+✔ image: media.image rejects empty or oversized scene lists at submit (116.873803ms)
+✔ image: media.image accepts a valid scene list and stays paused for approval (118.423916ms)
+✔ image: generation blocks honestly when no provider route exists (1.581772ms)
+✔ concat-effects: submit requires a manual plan or a Concat connection (124.092172ms)
+✔ concat-effects: operation is registered in host status (159.147536ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 664.019784

@@ -1,0 +1,27 @@
+✔ R9 one-click reception selects real local voice and Concat without additional form or paid authorization (1.463581ms)
+✔ R9 when Concat is not configured, uses explicit FFmpeg and labels its engine (0.286813ms)
+✔ R9 never silently chooses paid voice, captions-only or procedural image when no free provider exists (1.01359ms)
+✔ R9 article reception needs no video/audio dependency (0.289803ms)
+✔ R9 uploaded owned images suppress paid-image dependency while preserving default voice (0.980727ms)
+✔ ComfyUI bridge refuses external hosts / credential URLs (no SSRF) (1.466286ms)
+✔ ComfyUI sends a real API graph and saves returned image bytes without guessing a model (7.413833ms)
+✔ ComfyUI requires placeholder and fails closed after workflow edits (1.23911ms)
+✔ Image AUTO uses configured ComfyUI free-first; does not call a paid AI (1.717077ms)
+✔ Free-first can try local Flux after ComfyUI failure, without switching to paid API (1.173457ms)
+✔ ComfyUI policy prevents tampering with approved local binding (0.386429ms)
+✔ Ollama readiness only probes loopback and distinguishes empty model catalog (0.86511ms)
+✔ Free-stack diagnostics are read-only and do not install anything (3.375936ms)
+✔ local-first Piper adapter validates presence, produces a real RIFF WAV without network and rejects wrong voice (99.1912ms)
+✔ missing local engine is unavailable rather than misreported as configured (1.730529ms)
+✔ piperVoiceFor maps language tags to the installed voice but leaves explicit IDs untouched (35.351087ms)
+✔ Windows discovery uses actual installed vi voices and prefers WinRT; never defaults to English (2.436439ms)
+✔ Windows synthesis passes Unicode text as stdin data, validates WAV and reports exact installed voice (process fixture, not real Windows) (12.922437ms)
+✔ Windows failure never silently selects another engine or a paid API (2.363164ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 283.275411

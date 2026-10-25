@@ -1,0 +1,11 @@
+✔ extractArticleText keeps the article body and drops chrome/links/dupes (2.149688ms)
+✔ fetchArticleText validates and reports reasons without throwing (1.190884ms)
+✔ ingest scan enriches short-summary cards with full text (capped, opt-out honored) (21.704556ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 105.889699

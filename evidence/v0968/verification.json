@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "release": "0.9.68",
+  "source": "AI_Project_OS_v0.9.67_FACTORY_3D_MEDIA_FULL_SOURCE_QA.zip",
+  "scope": "auto reception, real file inbox, real 3D live seat assignment; no remote changes",
+  "syntax": {
+    "checked": 192,
+    "failed": 0,
+    "log": "check-final.log (outside distributed ZIP)"
+  },
+  "unitGrouped": {
+    "status": "PASS",
+    "counts": {
+      "tests": 732,
+      "pass": 731,
+      "fail": 0,
+      "skipped": 1
+    },
+    "groups": [
+      {
+        "group": "unit-group-1.log",
+        "tests": 80,
+        "pass": 80,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "group": "unit-group-2.log",
+        "tests": 90,
+        "pass": 90,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "group": "unit-group-3.log",
+        "tests": 94,
+        "pass": 93,
+        "fail": 0,
+        "skipped": 1
+      },
+      {
+        "group": "unit-group-4.log",
+        "tests": 118,
+        "pass": 118,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "group": "unit-group-5.log",
+        "tests": 132,
+        "pass": 132,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "group": "unit-group-6.log",
+        "tests": 140,
+        "pass": 140,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "group": "unit-group-integrations.log",
+        "tests": 78,
+        "pass": 78,
+        "fail": 0,
+        "skipped": 0
+      }
+    ],
+    "reason": "Node unpartitioned npm test exceeded terminal execution limit; all 118 root test modules plus 5 integrations modules tested in bounded isolated groups, each passed"
+  },
+  "realGeometryDom": {
+    "status": "PASS",
+    "checks": 23,
+    "contact": {
+      "handMaxMetres": 9.38881321331955e-16,
+      "pelvisSeatGapMaxMetres": 1.601246289045788e-05
+    },
+    "evidence": "evidence/v0968/r9-geometry-browser.json"
+  },
+  "chromiumWebgl": {
+    "status": "PASS",
+    "graphics": "Xvfb Chromium actual WebGL with SwiftShader software GPU, not native Windows GPU",
+    "checks": 2,
+    "screenshot": "evidence/v0968/r9-real-webgl-swiftshader.png"
+  },
+  "browserApiMedia": {
+    "status": "PASS",
+    "checks": 6,
+    "scope": "actual app HTTP + Chromium DOM/preview/download; Windows TTS, Concat and ComfyUI are PROTOCOL FIXTURES",
+    "videoProbe": {
+      "durationSeconds": 11.08,
+      "streams": [
+        {
+          "type": "video",
+          "codec": "h264",
+          "width": 1280,
+          "height": 720
+        },
+        {
+          "type": "audio",
+          "codec": "aac",
+          "width": null,
+          "height": null
+        }
+      ]
+    }
+  },
+  "protected": {
+    "tracked": 81,
+    "unchanged": 79,
+    "ownerAuthorizedModified": [
+      "public/space-studio/live-motion.mjs",
+      "public/space-studio/viewer.mjs"
+    ]
+  },
+  "evidence": {
+    "r9-real-webgl-swiftshader.png": {
+      "sha256": "6e1b2755d16fdcfcc7f8c169494a408c48c6fa8294f5fdb0d7a58f70f497a45b",
+      "bytes": 731080
+    },
+    "r9-manager-inbox.png": {
+      "sha256": "93aa4e19aebeead327e3e7c79b9fc09d07af8c9cce5ab9dd6bfee7f916368d7e",
+      "bytes": 58200
+    },
+    "r9-files-inbox.png": {
+      "sha256": "2fe21fad3eaa8c57250b98abf11000c9d3ec31becdc640ef0362674ed99cfd51",
+      "bytes": 232340
+    },
+    "r9-fixture-narrated.mp4": {
+      "sha256": "c48de2f9876638dd365275f8fee8f39845198d58bf548a150d8483651112777e",
+      "bytes": 676493
+    },
+    "r9-fixture-frame.jpg": {
+      "sha256": "667d57711d7690185930b03b79fac0748915f515102e6e8350f70b8c3c32bb1a",
+      "bytes": 23823
+    },
+    "scene-r9/hero.png": {
+      "sha256": "727574d5ff28938d0bf9582153d9605c92ec4ae34840b556f3a44746d81d2ddc",
+      "bytes": 669095
+    },
+    "scene-r9/robot-close.png": {
+      "sha256": "7de1562c6646c62750bb166e9a680a2a18568db56e2a20239342e2d744a0c816",
+      "bytes": 556384
+    }
+  },
+  "notTested": [
+    "User Windows x64 actual installer/launcher",
+    "actual Windows installed Vietnamese voice",
+    "real native Concat local JSON-RPC and GUI on Windows",
+    "actual user AI models and local FLUX/ComfyUI setup",
+    "Windows hardware GPU performance and commercial UAT"
+  ],
+  "paidProviderCalls": false,
+  "cloudPublish": false,
+  "releaseType": "full source and prior launcher, NOT a new compiled Windows 0.9.68 exe",
+  "commercialCertified": false
+}

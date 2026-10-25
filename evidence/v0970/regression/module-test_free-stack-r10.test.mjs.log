@@ -1,0 +1,16 @@
+✔ ComfyUI bridge refuses external hosts / credential URLs (no SSRF) (3.658854ms)
+✔ ComfyUI sends a real API graph and saves returned image bytes without guessing a model (12.028483ms)
+✔ ComfyUI requires placeholder and fails closed after workflow edits (2.619395ms)
+✔ Image AUTO uses configured ComfyUI free-first; does not call a paid AI (4.246102ms)
+✔ Free-first can try local Flux after ComfyUI failure, without switching to paid API (5.288848ms)
+✔ ComfyUI policy prevents tampering with approved local binding (0.543538ms)
+✔ Ollama readiness only probes loopback and distinguishes empty model catalog (3.163854ms)
+✔ Free-stack diagnostics are read-only and do not install anything (2.689068ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 673.198184

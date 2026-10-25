@@ -1,0 +1,11 @@
+✔ A0: an approved file_read still refuses .env and git credential files (13.391221ms)
+✔ A0: interrupted file_write must NOT be automatically executed again on restart (12.570691ms)
+✔ A0: human-approved billed operation is idempotent across retries and restarts (15.435681ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 156.722111

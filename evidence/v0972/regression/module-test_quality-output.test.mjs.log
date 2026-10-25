@@ -1,0 +1,12 @@
+✔ procedural illustration v2 renders a 1280x720 PNG, deterministic per seed (1807.170796ms)
+✔ AI illustration failure blocks instead of silently substituting procedural scenery (0.651504ms)
+✔ effects pads use full social canvases (1080x1920 / 1920x1080) (0.860205ms)
+✔ output quality wiring: profiles, loudnorm and Ken Burns variants are in the render paths (1.540945ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1899.52107

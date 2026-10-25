@@ -1,0 +1,16 @@
+✔ 14 phases cover the full duration with no time gaps or overlaps (1.5543ms)
+✔ narrative order is approach > turn > touch > pull > sit > work > stand > return (0.244317ms)
+✔ chair does not move before hand reaches its handle (2.913297ms)
+✔ no teleport on phase boundaries in projected screen-space (0.487504ms)
+✔ chair moves together with robot while scooting towards desk (0.21908ms)
+✔ chair starts exiting desk before standing and returns after push (0.21927ms)
+✔ all time samples are finite, constrained and carry a valid animation clip (8.821012ms)
+✔ resources load in full release and keep old 2D office intact (1.395101ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 136.724908

@@ -1,0 +1,145 @@
+{
+  "scope": "Actual app HTTP/Chromium/WebGL/FFmpeg. AI/image services and stored QA audio are fixtures;\nnot live account image access or Windows acceptance. No owner data/publication.\n",
+  "nativeWindows": false,
+  "checks": [
+    {
+      "name": "Public worker/reviewer replies are saved and available while engine still runs",
+      "status": "PASS",
+      "messages": 2
+    },
+    {
+      "name": "Customer intake form removed; Project Results occupies its place; reception heading preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "Actual public script and reviewer feedback appear with model/account attribution inside reception chat",
+      "status": "PASS"
+    },
+    {
+      "name": "240 seconds of controller time during active parent render: served worker/reviewer retain exact chairs and positions; work labels visible",
+      "status": "PASS",
+      "before": [
+        {
+          "id": "ai-b",
+          "seat": "script",
+          "phase": "seated",
+          "jobs": [
+            {
+              "id": "d4175ad3-ea17-4c31-9a21-f4d2a9591a1c",
+              "projectId": "0721d68d-4c4c-4231-9223-fdd491e236b6",
+              "title": "Project reception and seats QA",
+              "projectName": "Project reception and seats QA",
+              "role": "worker",
+              "phase": "produce.music",
+              "source": "orchestrator",
+              "model": "fixture-b",
+              "state": "rendering"
+            },
+            {
+              "id": "d4175ad3-ea17-4c31-9a21-f4d2a9591a1c",
+              "projectId": "0721d68d-4c4c-4231-9223-fdd491e236b6",
+              "title": "Project reception and seats QA",
+              "projectName": "Project reception and seats QA",
+              "role": "worker",
+              "phase": "project-in-progress",
+              "source": "project-participant",
+              "model": "fixture-b",
+              "state": "waiting"
+            },
+            {
+              "id": "d4175ad3-ea17-4c31-9a21-f4d2a9591a1c",
+              "projectId": "0721d68d-4c4c-4231-9223-fdd491e236b6",
+              "title": "Project reception and seats QA",
+              "projectName": "Project reception and seats QA",
+              "role": "worker",
+              "phase": "project-in-progress",
+              "source": "project-assignment",
+              "model": "fixture-b",
+              "state": "waiting"
+            }
+          ],
+          "position": {
+            "x": -3.45,
+            "z": -0.98
+          }
+        },
+        {
+          "id": "ai-c",
+          "seat": "image",
+          "phase": "seated",
+          "jobs": [
+            {
+              "id": "d4175ad3-ea17-4c31-9a21-f4d2a9591a1c",
+              "projectId": "0721d68d-4c4c-4231-9223-fdd491e236b6",
+              "title": "Project reception and seats QA",
+              "projectName": "Project reception and seats QA",
+              "role": "worker",
+              "phase": "project-in-progress",
+              "source": "project-participant",
+              "model": "fixture-c",
+              "state": "waiting"
+            },
+            {
+              "id": "d4175ad3-ea17-4c31-9a21-f4d2a9591a1c",
+              "projectId": "0721d68d-4c4c-4231-9223-fdd491e236b6",
+              "title": "Project reception and seats QA",
+              "projectName": "Project reception and seats QA",
+              "role": "reviewer",
+              "phase": "project-in-progress",
+              "source": "project-participant",
+              "model": "fixture-c",
+              "state": "waiting"
+            },
+            {
+              "id": "d4175ad3-ea17-4c31-9a21-f4d2a9591a1c",
+              "projectId": "0721d68d-4c4c-4231-9223-fdd491e236b6",
+              "title": "Project reception and seats QA",
+              "projectName": "Project reception and seats QA",
+              "role": "reviewer",
+              "phase": "project-in-progress",
+              "source": "project-assignment",
+              "model": "fixture-c",
+              "state": "waiting"
+            }
+          ],
+          "position": {
+            "x": -0.55,
+            "z": -0.98
+          }
+        }
+      ],
+      "after": [
+        {
+          "id": "ai-b",
+          "seat": "script",
+          "phase": "seated",
+          "typing": 0,
+          "position": {
+            "x": -3.45,
+            "z": -0.98
+          }
+        },
+        {
+          "id": "ai-c",
+          "seat": "image",
+          "phase": "seated",
+          "typing": 0,
+          "position": {
+            "x": -0.55,
+            "z": -0.98
+          }
+        }
+      ]
+    },
+    {
+      "name": "Actual Three.js/GLB framebuffer recorded while task remains active; no geometry/camera replacement",
+      "status": "PASS"
+    },
+    {
+      "name": "Actual final MP4 arrives in Project Results; public messages and removed form remain correct after reload",
+      "status": "PASS"
+    }
+  ],
+  "errors": [],
+  "status": "PASS"
+}

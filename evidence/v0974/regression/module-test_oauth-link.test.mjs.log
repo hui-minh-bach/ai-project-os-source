@@ -1,0 +1,12 @@
+✔ identity: YouTube channel, Facebook pages + page tokens, TikTok user (37.100387ms)
+✔ youtube refresh keeps the refresh token when the response omits it (0.725672ms)
+✔ facebook upload posts with the PAGE token, not the user token (24.244699ms)
+✔ Connections tab carries the linking UI wired to the OAuth routes (1.292065ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 178.254545

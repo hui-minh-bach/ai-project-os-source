@@ -1,0 +1,16 @@
+✔ install github CLI from official-shaped zip with matching sha (9.532632ms)
+✔ install refuses a zip whose sha does not match the pinned release (0.767455ms)
+✔ install vercel runs the official npm package into the managed tools folder (1.231703ms)
+✔ login window refuses non-Windows honestly (0.374213ms)
+✔ login script content drives the official CLI login command (0.29916ms)
+✔ login window on Windows writes the script and asks PowerShell to open it (0.430618ms)
+✔ routes + UI contract: account-link dialog is wired (0.874446ms)
+✔ connection verification uses the app-installed CLIs, not the system PATH (regression: spawn gh ENOENT) (829.003227ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 961.536719

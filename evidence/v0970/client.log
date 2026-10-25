@@ -1,0 +1,5 @@
+PASS client_article_workflow
+PASS client_video_workflow
+PASS never_auto_publish_or_reissue
+PASS browser_real_ui
+{"status": "PASS", "checks": 4, "error": null}

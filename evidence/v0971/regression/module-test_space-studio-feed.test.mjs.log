@@ -1,0 +1,17 @@
+✔ R3 read-only feed uses authenticated no-store GET and maintains one timer (9.116022ms)
+✔ R3 invalid schema does not replace the last good snapshot (1.12095ms)
+✔ R3 old and invalid server timestamps are not called live (1.596247ms)
+✔ R3 HTTP session and Vault failures are distinct (2.903211ms)
+✔ R3 suspended feed aborts pending request and ignores its late answer (0.990915ms)
+✔ R3 late older request cannot overwrite a refreshed fleet (1.499261ms)
+✔ R3 disposed feed never fires data, status or retry callback (0.641485ms)
+✔ R3 request deadline aborts and reports stale, not fake online accounts (0.979354ms)
+✔ R3 pause/resume starts a fresh read, not duplicated permanent polling (5.951679ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 147.838489

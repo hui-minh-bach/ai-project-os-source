@@ -1,0 +1,11 @@
+✔ parseOpencodeEvents aggregates text, tokens, cost and errors (1.911647ms)
+✔ opencodeConfigFor maps connections to providers (0.63951ms)
+✔ opencode install + status + faked run in an isolated runtime (116.550919ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 318.489665

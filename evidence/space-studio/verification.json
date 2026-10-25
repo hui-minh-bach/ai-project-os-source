@@ -1,0 +1,171 @@
+{
+  "version": "0.9.61",
+  "revision": "space-studio-r2.1",
+  "classification": "complete-source-preview-not-production-acceptance",
+  "checks": {
+    "syntax": "pass",
+    "completeNodeRegression": {
+      "tests": 508,
+      "pass": 507,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1
+    },
+    "officeFocused": {
+      "tests": 76,
+      "pass": 76,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "newMotionAndLifecycle": {
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "skill": {
+      "scenarios": 7,
+      "pass": 7,
+      "scope": "checkpoint initialization, reset refusal, evidence requirements, path guard, hash integrity; not a scheduler or background worker"
+    },
+    "http": {
+      "version": "0.9.61",
+      "result": "pass",
+      "checks": [
+        "health matches package and release version",
+        "protected API rejects unauthenticated requests",
+        "existing one-time launch and HttpOnly cookie remain enabled",
+        "actual app HTML contains retained office and new module entry",
+        "same-origin script policy retained",
+        "serves JavaScript module: space-studio/design.mjs",
+        "serves JavaScript module: space-studio/motion.mjs",
+        "serves JavaScript module: space-studio/scene.mjs",
+        "serves JavaScript module: space-studio/viewer.mjs",
+        "serves JavaScript module: space-studio/controller.mjs",
+        "serves JavaScript module: space-studio/app-integration.mjs",
+        "serves JavaScript module: vendor/three.module.min.js",
+        "serves JavaScript module: vendor/addons/GLTFLoader.js",
+        "standalone real-scene viewer is served",
+        "original TAM19 GLB is available locally",
+        "locked Vault rejects fleet read explicitly instead of a server error",
+        "unlocked isolated Vault returns the real fleet projection"
+      ],
+      "count": 17,
+      "fleetRoute": {
+        "lockedStatus": 423,
+        "unlockedStatus": 200,
+        "bots": 0
+      },
+      "scope": "actual HTTP routes; no graphics rendering and no user data accessed"
+    },
+    "dom": {
+      "browser": "144.0.7559.96",
+      "tests": [
+        {
+          "check": "App opens scene and hides legacy only after ready",
+          "result": "pass",
+          "scope": "DOM fixture, mocked renderer"
+        },
+        {
+          "check": "Roster uses text nodes, not executable HTML",
+          "result": "pass",
+          "scope": "DOM fixture, mocked renderer"
+        },
+        {
+          "check": "Repeated navigation does not duplicate scene",
+          "result": "pass",
+          "scope": "DOM fixture, mocked renderer"
+        },
+        {
+          "check": "Back toggle disposes scene and preserves old room",
+          "result": "pass",
+          "scope": "DOM fixture, mocked renderer"
+        },
+        {
+          "check": "Leaving tab disposes scene",
+          "result": "pass",
+          "scope": "DOM fixture, mocked renderer"
+        },
+        {
+          "check": "Late async model cannot reopen a departed tab",
+          "result": "pass",
+          "scope": "DOM fixture, mocked renderer"
+        },
+        {
+          "check": "Failed mount exposes error and leaves legacy available",
+          "result": "pass",
+          "scope": "DOM fixture, mocked renderer"
+        },
+        {
+          "check": "Actual WebGL viewer startup",
+          "result": "environment_blocked",
+          "scope": "real modules, GPU unavailable",
+          "visibleErrorFallback": "pass",
+          "message": "Page.evaluate: Error: Error creating WebGL context.\n    at new Jl (blob:null/041cfd08-939e-45c6-9c01-80c67c127f16:6:431721)\n    at createSpaceStudio (blob:null/850e3296-8e61-405b-9d79-b7d90944c66b:55:54)\n    at Module.mountSpaceViewer (blob:null/f0c07181-2198-48c8-bb03-29621e284511:12:14)\n    at eval (eval at evaluate (:290:30), <anonymous>:10:97)\n    at async <anonymous>:316:30"
+        }
+      ],
+      "domFixturePasses": 7,
+      "webglSuccessClaimed": false,
+      "limitation": "DOM fixtures mock the renderer. They are not visual, GPU, Windows, or full-app E2E certification."
+    },
+    "geometryAnchors": {
+      "samples": 601,
+      "sampleSeconds": 0.05,
+      "allFinite": true,
+      "maxHandContactErrorMetres": 2.7755575615628914e-16,
+      "maxLimbReachResidualMetres": 4.682870926697724e-06,
+      "maxAbsSeatedPelvisSeatGapMetres": 1.599999999996049e-05,
+      "note": "Geometric anchor errors, not a full mesh-collision test or proof of natural motion."
+    },
+    "mp4": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "r_frame_rate": "24/1",
+          "duration": "36.000000",
+          "nb_read_frames": "864"
+        }
+      ],
+      "format": {
+        "duration": "36.000000",
+        "size": "3287381"
+      }
+    },
+    "mp4FullDecode": "pass-no-errors"
+  },
+  "geometry": {
+    "meshNodes": 412,
+    "geometries": 347,
+    "materialDefinitions": 39,
+    "workstations": 9,
+    "animatedDemonstrators": 1
+  },
+  "openAcceptanceGates": [
+    "Target-device Windows run",
+    "Successful application WebGL rendering and GPU performance",
+    "Full reference-image visual fidelity",
+    "Task-driven multi-agent navigation/seat reservations",
+    "Complete mesh collision/finger/wheel physics"
+  ],
+  "evidenceScope": "Unit and legacy source-string tests do not prove visual quality. DOM fixtures mock the renderer. VTK renders the actual exported geometry and motion, not a Windows screen recording.",
+  "regressionHarnessNote": "A preliminary run forced one data directory over fixtures which expect isolated roots. The final complete run restored each original fixture isolation and is the recorded result. An inherited stdio test comment was repaired so its assertions and cleanup execute.",
+  "sourceHashes": {
+    "public/space-studio/app-integration.mjs": "ef68570ee4920c1d374aa76140b81f03753cccfcf30ecdc44e1fa8da00320742",
+    "public/space-studio/controller.mjs": "ebcb4f127d64e2926297a5fafa72348b875fcbb6adffb536a23de4735d08f45f",
+    "public/space-studio/design.mjs": "3264cf3e84c447cac5d22fa7a18ac7e71bf02482d42ce4f5f0150335416841ba",
+    "public/space-studio/motion.mjs": "55555dfbd20ceb387d60e1e7a989b1b52a3d459a09fe01883ac2d1c6740aa5ea",
+    "public/space-studio/scene.mjs": "603dda41e5ce865a0858a02cedb885c7e6990cdafdf5508cc96dfacd7155028d",
+    "public/space-studio/viewer.css": "f8658e2fa2ba1fc1127d2eba40c7b865a65179003a0a1dd64bb75c50b5166b43",
+    "public/space-studio/viewer.mjs": "86f3720476d416fb43981d9295d057038ad13f0f77916ee83dd20b0a2ebea8b0"
+  },
+  "skillZipSha256": "f9e104018ad2fd658d4951a96fc6d493e32a7b71e5d2b4d58147892460273630",
+  "mp4Sha256": "a3a212926f7d2e3d4eb1011f7ec753af396d4a8d11bce4a851ef83f8ad3b4a83",
+  "accountSkillInstalled": false,
+  "projectLocalSkillIncluded": true
+}

@@ -1,0 +1,23 @@
+✔ one-button configuration is strict and cannot sneak in existing-project targets (1.422081ms)
+✔ preparation calls read-only preflight and AI, then waits for explicit approval (16.246278ms)
+✔ one approval runs all ten steps and emits an actual ZIP and SVG (83.223235ms)
+✔ production and direct-host execution each require their own consent (12.330567ms)
+✔ duplicate launch and double-click approval do not create duplicate work (73.078179ms)
+✔ failed final test blocks every cloud mutation and retains the same run (73.47736ms)
+✔ API errors resume from failed step without rerunning completed AI/build/resource steps (79.789154ms)
+✔ restart recovers interrupted state and receipts, not a fresh cloud project (74.311852ms)
+✔ changed specification prevents resumed release and does not erase resources (47.433344ms)
+✔ credential change cannot silently rebind a granted cloud account (50.29958ms)
+✔ Vault lock blocks status/exports/resume without clearing customer results (69.778761ms)
+✔ stop does not delete created resources; a new run prevents resuming the old one (64.621445ms)
+✔ frozen source tampering is detected before payload is consumed (55.223589ms)
+✔ eight explicit resumes are bounded; the pipeline never loops forever (88.100645ms)
+✔ a corrupt primary journal recovers from its atomic backup (9.850042ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 888.637023

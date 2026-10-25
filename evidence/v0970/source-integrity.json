@@ -1,0 +1,100 @@
+{
+  "protectedFiles": 82,
+  "changed": [],
+  "repos": [
+    {
+      "id": "mini-swe-agent",
+      "commit": "04d809ceab9df28f9adaed044884180159172930",
+      "sha256": "da63320dfad107497ed92aefd1b3c9cf980205fb8d00f9464ae8ff35464ec7b6",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 2
+    },
+    {
+      "id": "openhands",
+      "commit": "084a4106040a0d64a02ac04eecf88ea8a8a8f31b",
+      "sha256": "34dc4bec82853bece9e0ab03e5d694fe2f2876eee2b01937125ca02715ab2251",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 13
+    },
+    {
+      "id": "crewai",
+      "commit": "38db11e3324fa0e23beb5eecd0d87e8e31ca2bb0",
+      "sha256": "7a2d7b4091003a8b75861a3017ad5b8879c2b1d6376c660c1de4c44db76f658d",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 96
+    },
+    {
+      "id": "microsoft-agent-framework",
+      "commit": "4982e4c61ec81cc4f9ba0cbdb5594ed530dbbcfe",
+      "sha256": "851185a540b44cd63c8ef8661d937f81df2590cd6321516be55cf3efaaac283b",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 31
+    },
+    {
+      "id": "metagpt",
+      "commit": "11cdf466d042aece04fc6cfd13b28e1a70341b1f",
+      "sha256": "2cdfb9b49e554da7be53ea542a61736df94a9f6abdf4e6fe9b770f74087b7758",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 43
+    },
+    {
+      "id": "opencode",
+      "commit": "b64cc80db3c933c7a83980b1f36eef047551c845",
+      "sha256": "320ed93f323521cdefabb58bfc57f8b025eeb1168ca0bd8198c1da868e41fa81",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 85
+    },
+    {
+      "id": "flux2",
+      "commit": "50fe5162777813d869182b139e83b10743caef15",
+      "sha256": "634f493e8c997f50bf7789a2717620696a0b3141145ec69e6783c7a644079e96",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 9
+    },
+    {
+      "id": "comfyui",
+      "commit": "7cebca52227c63b4180ceed448cbd7ad22903b6d",
+      "sha256": "88ad41b8e502999f418d983ae38078ac061bcebffff8d9418ca4b090515c2fd3",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 3
+    },
+    {
+      "id": "ollama",
+      "commit": "675150d6ad2747df1e218ef59de9194bc4a7e538",
+      "sha256": "5f88f6783edb6a6bd2c5e5470f1a1e1e1c19f0f79ed3f2a66c2bb750c5129acc",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 52
+    },
+    {
+      "id": "stable-diffusion-cpp",
+      "commit": "95ff76230889898e1bf40058ba272a3699b50dc6",
+      "sha256": "4da9856c5abc2b632140213cc912a34aba04e3829b291f0550a70e0c1f6b889c",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 130
+    },
+    {
+      "id": "piper",
+      "commit": "73c04d81d5590ecc46e522de3601ce7fb29fc2be",
+      "sha256": "3262c7c6b77652376b7c9ae6f9eac885fd0e532443f79aa9efc8dce85ae705b9",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 33
+    },
+    {
+      "id": "whisper-cpp",
+      "commit": "231638a0717b7822784297e5980965ffcec05810",
+      "sha256": "c555e415ca21b7b6edbdc3ead5788e319a246f4a5b7441be9efd78edf084a705",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 38
+    },
+    {
+      "id": "concat",
+      "commit": "8dddc279af14e8f5d776647bd0b5d216a97bb37c",
+      "sha256": "b90d051fa2ca1447a41564ab9d4df58074f01866f5cc84f43185ccf78e8eed8c",
+      "archiveOK": true,
+      "ancillaryFilesInSupplement": 16
+    }
+  ],
+  "noCredentialsBundled": true,
+  "repoPackaging": "source code kept; ancillary public-repo payloads preserved in supplement",
+  "repoSupplement": "AI_Project_OS_v0.9.70_UPSTREAM_ASSETS.zip"
+}

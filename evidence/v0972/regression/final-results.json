@@ -1,0 +1,918 @@
+{
+  "schema": 1,
+  "modules": 129,
+  "passedModules": 129,
+  "counts": {
+    "tests": 764,
+    "pass": 764,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "results": [
+    {
+      "module": "integrations/ai-core/tests/commercial-a.test.cjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.96,
+      "log": "module-integrations_ai-core_tests_commercial-a.test.cjs.log"
+    },
+    {
+      "module": "integrations/ai-core/tests/commercial-hardening.test.cjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.5,
+      "log": "module-integrations_ai-core_tests_commercial-hardening.test.cjs.log"
+    },
+    {
+      "module": "integrations/ai-core/tests/core.test.cjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.33,
+      "log": "module-integrations_ai-core_tests_core.test.cjs.log"
+    },
+    {
+      "module": "integrations/media-engine/tests/engine.test.cjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.52,
+      "log": "module-integrations_media-engine_tests_engine.test.cjs.log"
+    },
+    {
+      "module": "integrations/media-engine/tests/worker-b-v077-real.test.cjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 4.28,
+      "log": "module-integrations_media-engine_tests_worker-b-v077-real.test.cjs.log"
+    },
+    {
+      "module": "test/account-pool.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 2.87,
+      "log": "module-test_account-pool.test.mjs.log"
+    },
+    {
+      "module": "test/account-usage.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 6.21,
+      "log": "module-test_account-usage.test.mjs.log"
+    },
+    {
+      "module": "test/antigravity-connection.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 3.88,
+      "log": "module-test_antigravity-connection.test.mjs.log"
+    },
+    {
+      "module": "test/antigravity-win-install.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.41,
+      "log": "module-test_antigravity-win-install.test.mjs.log"
+    },
+    {
+      "module": "test/auto-reception-r9.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.45,
+      "log": "module-test_auto-reception-r9.test.mjs.log"
+    },
+    {
+      "module": "test/capcut-studio.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.54,
+      "log": "module-test_capcut-studio.test.mjs.log"
+    },
+    {
+      "module": "test/cli-native-bin.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.5,
+      "log": "module-test_cli-native-bin.test.mjs.log"
+    },
+    {
+      "module": "test/cli-provider-api.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 4.38,
+      "log": "module-test_cli-provider-api.test.mjs.log"
+    },
+    {
+      "module": "test/cli-provider-login.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.07,
+      "log": "module-test_cli-provider-login.test.mjs.log"
+    },
+    {
+      "module": "test/client-commercial-v0969.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.74,
+      "log": "module-test_client-commercial-v0969.test.mjs.log"
+    },
+    {
+      "module": "test/codex-account-recovery.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.83,
+      "log": "module-test_codex-account-recovery.test.mjs.log"
+    },
+    {
+      "module": "test/concat-bridge.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.1,
+      "log": "module-test_concat-bridge.test.mjs.log"
+    },
+    {
+      "module": "test/concat-managed-installer.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.13,
+      "log": "module-test_concat-managed-installer.test.mjs.log"
+    },
+    {
+      "module": "test/concat-multitrack-real-scenes.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 9.72,
+      "log": "module-test_concat-multitrack-real-scenes.test.mjs.log"
+    },
+    {
+      "module": "test/concat-open.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.85,
+      "log": "module-test_concat-open.test.mjs.log"
+    },
+    {
+      "module": "test/concat-story-pipeline.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 9.59,
+      "log": "module-test_concat-story-pipeline.test.mjs.log"
+    },
+    {
+      "module": "test/connection-inline-quota.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.72,
+      "log": "module-test_connection-inline-quota.test.mjs.log"
+    },
+    {
+      "module": "test/connection-rename.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 3.13,
+      "log": "module-test_connection-rename.test.mjs.log"
+    },
+    {
+      "module": "test/connections-contract.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 3.06,
+      "log": "module-test_connections-contract.test.mjs.log"
+    },
+    {
+      "module": "test/council-contract.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 3.2,
+      "log": "module-test_council-contract.test.mjs.log"
+    },
+    {
+      "module": "test/customer-api.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 11.56,
+      "log": "module-test_customer-api.test.mjs.log"
+    },
+    {
+      "module": "test/customer-doctor.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.09,
+      "log": "module-test_customer-doctor.test.mjs.log"
+    },
+    {
+      "module": "test/customer-release.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.13,
+      "log": "module-test_customer-release.test.mjs.log"
+    },
+    {
+      "module": "test/director.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.64,
+      "log": "module-test_director.test.mjs.log"
+    },
+    {
+      "module": "test/dub-windows-routing-v0970.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.65,
+      "log": "module-test_dub-windows-routing-v0970.test.mjs.log"
+    },
+    {
+      "module": "test/dub.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.9,
+      "log": "module-test_dub.test.mjs.log"
+    },
+    {
+      "module": "test/engines-contract.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.64,
+      "log": "module-test_engines-contract.test.mjs.log"
+    },
+    {
+      "module": "test/fpt-tts.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.86,
+      "log": "module-test_fpt-tts.test.mjs.log"
+    },
+    {
+      "module": "test/free-stack-finish.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.81,
+      "log": "module-test_free-stack-finish.test.mjs.log"
+    },
+    {
+      "module": "test/free-stack-http-smoke.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.54,
+      "log": "module-test_free-stack-http-smoke.test.mjs.log"
+    },
+    {
+      "module": "test/free-stack-r10.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.15,
+      "log": "module-test_free-stack-r10.test.mjs.log"
+    },
+    {
+      "module": "test/free-stack-workflow-http.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 3.95,
+      "log": "module-test_free-stack-workflow-http.test.mjs.log"
+    },
+    {
+      "module": "test/fulltext-ingest.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.8,
+      "log": "module-test_fulltext-ingest.test.mjs.log"
+    },
+    {
+      "module": "test/github-repos.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.35,
+      "log": "module-test_github-repos.test.mjs.log"
+    },
+    {
+      "module": "test/hardsub-cover.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.64,
+      "log": "module-test_hardsub-cover.test.mjs.log"
+    },
+    {
+      "module": "test/idea-contract.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.79,
+      "log": "module-test_idea-contract.test.mjs.log"
+    },
+    {
+      "module": "test/image-dispatch-pipeline.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.75,
+      "log": "module-test_image-dispatch-pipeline.test.mjs.log"
+    },
+    {
+      "module": "test/image-generation.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.17,
+      "log": "module-test_image-generation.test.mjs.log"
+    },
+    {
+      "module": "test/infra-accounts.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.27,
+      "log": "module-test_infra-accounts.test.mjs.log"
+    },
+    {
+      "module": "test/ingest.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.2,
+      "log": "module-test_ingest.test.mjs.log"
+    },
+    {
+      "module": "test/integration-abc-media-gates.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.82,
+      "log": "module-test_integration-abc-media-gates.test.mjs.log"
+    },
+    {
+      "module": "test/integration-catalog-v0970.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.74,
+      "log": "module-test_integration-catalog-v0970.test.mjs.log"
+    },
+    {
+      "module": "test/integration-host.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.99,
+      "log": "module-test_integration-host.test.mjs.log"
+    },
+    {
+      "module": "test/karaoke-captions.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.01,
+      "log": "module-test_karaoke-captions.test.mjs.log"
+    },
+    {
+      "module": "test/karaoke-presets.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.05,
+      "log": "module-test_karaoke-presets.test.mjs.log"
+    },
+    {
+      "module": "test/kokoro-tts.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.09,
+      "log": "module-test_kokoro-tts.test.mjs.log"
+    },
+    {
+      "module": "test/launch-api.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 7.32,
+      "log": "module-test_launch-api.test.mjs.log"
+    },
+    {
+      "module": "test/launch-artifacts.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.75,
+      "log": "module-test_launch-artifacts.test.mjs.log"
+    },
+    {
+      "module": "test/launch-cloud.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.7,
+      "log": "module-test_launch-cloud.test.mjs.log"
+    },
+    {
+      "module": "test/launch-runner.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.47,
+      "log": "module-test_launch-runner.test.mjs.log"
+    },
+    {
+      "module": "test/launcher-session.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 4.47,
+      "log": "module-test_launcher-session.test.mjs.log"
+    },
+    {
+      "module": "test/light-theme-contrast.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.06,
+      "log": "module-test_light-theme-contrast.test.mjs.log"
+    },
+    {
+      "module": "test/local-access.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.9,
+      "log": "module-test_local-access.test.mjs.log"
+    },
+    {
+      "module": "test/local-piper-integration.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.76,
+      "log": "module-test_local-piper-integration.test.mjs.log"
+    },
+    {
+      "module": "test/local-piper-tts.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.79,
+      "log": "module-test_local-piper-tts.test.mjs.log"
+    },
+    {
+      "module": "test/local-worker-recovery-v0972.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.31,
+      "log": "module-test_local-worker-recovery-v0972.test.mjs.log"
+    },
+    {
+      "module": "test/local-workers.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.23,
+      "log": "module-test_local-workers.test.mjs.log"
+    },
+    {
+      "module": "test/map-contract.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.87,
+      "log": "module-test_map-contract.test.mjs.log"
+    },
+    {
+      "module": "test/mcp-hub-v0970.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.08,
+      "log": "module-test_mcp-hub-v0970.test.mjs.log"
+    },
+    {
+      "module": "test/media-effects.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.36,
+      "log": "module-test_media-effects.test.mjs.log"
+    },
+    {
+      "module": "test/media-ffmpeg-compat.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.83,
+      "log": "module-test_media-ffmpeg-compat.test.mjs.log"
+    },
+    {
+      "module": "test/media-model-routing.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.21,
+      "log": "module-test_media-model-routing.test.mjs.log"
+    },
+    {
+      "module": "test/media-plan-binding.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.2,
+      "log": "module-test_media-plan-binding.test.mjs.log"
+    },
+    {
+      "module": "test/media-quick-edit.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 4.82,
+      "log": "module-test_media-quick-edit.test.mjs.log"
+    },
+    {
+      "module": "test/media-recording-regression.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.01,
+      "log": "module-test_media-recording-regression.test.mjs.log"
+    },
+    {
+      "module": "test/media-smart-scene.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 2.59,
+      "log": "module-test_media-smart-scene.test.mjs.log"
+    },
+    {
+      "module": "test/media-story-r8.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 4.31,
+      "log": "module-test_media-story-r8.test.mjs.log"
+    },
+    {
+      "module": "test/media-templates.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.63,
+      "log": "module-test_media-templates.test.mjs.log"
+    },
+    {
+      "module": "test/mock-platforms.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.74,
+      "log": "module-test_mock-platforms.test.mjs.log"
+    },
+    {
+      "module": "test/model-routing.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 3.97,
+      "log": "module-test_model-routing.test.mjs.log"
+    },
+    {
+      "module": "test/multi-account-profiles.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 2.15,
+      "log": "module-test_multi-account-profiles.test.mjs.log"
+    },
+    {
+      "module": "test/news-fields.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.02,
+      "log": "module-test_news-fields.test.mjs.log"
+    },
+    {
+      "module": "test/oauth-link.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.06,
+      "log": "module-test_oauth-link.test.mjs.log"
+    },
+    {
+      "module": "test/office-chair-demo.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.97,
+      "log": "module-test_office-chair-demo.test.mjs.log"
+    },
+    {
+      "module": "test/office-chair-motion-version.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.95,
+      "log": "module-test_office-chair-motion-version.test.mjs.log"
+    },
+    {
+      "module": "test/office-fleet.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.06,
+      "log": "module-test_office-fleet.test.mjs.log"
+    },
+    {
+      "module": "test/office-flow.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.16,
+      "log": "module-test_office-flow.test.mjs.log"
+    },
+    {
+      "module": "test/office-iso.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.08,
+      "log": "module-test_office-iso.test.mjs.log"
+    },
+    {
+      "module": "test/office-models.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.07,
+      "log": "module-test_office-models.test.mjs.log"
+    },
+    {
+      "module": "test/office-motion.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.17,
+      "log": "module-test_office-motion.test.mjs.log"
+    },
+    {
+      "module": "test/office.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.15,
+      "log": "module-test_office.test.mjs.log"
+    },
+    {
+      "module": "test/opencode-engine.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.08,
+      "log": "module-test_opencode-engine.test.mjs.log"
+    },
+    {
+      "module": "test/operator-diagnose.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 11.13,
+      "log": "module-test_operator-diagnose.test.mjs.log"
+    },
+    {
+      "module": "test/operator-feed.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.83,
+      "log": "module-test_operator-feed.test.mjs.log"
+    },
+    {
+      "module": "test/orchestrator.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.79,
+      "log": "module-test_orchestrator.test.mjs.log"
+    },
+    {
+      "module": "test/piper-managed-r8.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.68,
+      "log": "module-test_piper-managed-r8.test.mjs.log"
+    },
+    {
+      "module": "test/provider-output-security.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 2.48,
+      "log": "module-test_provider-output-security.test.mjs.log"
+    },
+    {
+      "module": "test/public-js-syntax.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.57,
+      "log": "module-test_public-js-syntax.test.mjs.log"
+    },
+    {
+      "module": "test/publish-platforms.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.58,
+      "log": "module-test_publish-platforms.test.mjs.log"
+    },
+    {
+      "module": "test/publish-tasks.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.14,
+      "log": "module-test_publish-tasks.test.mjs.log"
+    },
+    {
+      "module": "test/quality-output.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 2.34,
+      "log": "module-test_quality-output.test.mjs.log"
+    },
+    {
+      "module": "test/radar-r7.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.61,
+      "log": "module-test_radar-r7.test.mjs.log"
+    },
+    {
+      "module": "test/readiness-labels-v0971.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.88,
+      "log": "module-test_readiness-labels-v0971.test.mjs.log"
+    },
+    {
+      "module": "test/reasoning-effort.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.95,
+      "log": "module-test_reasoning-effort.test.mjs.log"
+    },
+    {
+      "module": "test/reception-safety-r7.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.92,
+      "log": "module-test_reception-safety-r7.test.mjs.log"
+    },
+    {
+      "module": "test/release-readiness.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.85,
+      "log": "module-test_release-readiness.test.mjs.log"
+    },
+    {
+      "module": "test/retheme.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.85,
+      "log": "module-test_retheme.test.mjs.log"
+    },
+    {
+      "module": "test/role-teams-r8.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 5.11,
+      "log": "module-test_role-teams-r8.test.mjs.log"
+    },
+    {
+      "module": "test/security.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.73,
+      "log": "module-test_security.test.mjs.log"
+    },
+    {
+      "module": "test/setup-checklist.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.66,
+      "log": "module-test_setup-checklist.test.mjs.log"
+    },
+    {
+      "module": "test/shell-timeout.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 2.61,
+      "log": "module-test_shell-timeout.test.mjs.log"
+    },
+    {
+      "module": "test/skill-import.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.09,
+      "log": "module-test_skill-import.test.mjs.log"
+    },
+    {
+      "module": "test/skills-contract.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.94,
+      "log": "module-test_skills-contract.test.mjs.log"
+    },
+    {
+      "module": "test/space-studio-feed.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.72,
+      "log": "module-test_space-studio-feed.test.mjs.log"
+    },
+    {
+      "module": "test/space-studio-fleet.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.24,
+      "log": "module-test_space-studio-fleet.test.mjs.log"
+    },
+    {
+      "module": "test/space-studio-http.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 6.2,
+      "log": "module-test_space-studio-http.test.mjs.log"
+    },
+    {
+      "module": "test/space-studio-lifecycle.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.94,
+      "log": "module-test_space-studio-lifecycle.test.mjs.log"
+    },
+    {
+      "module": "test/space-studio-live-motion.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.67,
+      "log": "module-test_space-studio-live-motion.test.mjs.log"
+    },
+    {
+      "module": "test/space-studio-motion.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.74,
+      "log": "module-test_space-studio-motion.test.mjs.log"
+    },
+    {
+      "module": "test/speech-assembly.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.71,
+      "log": "module-test_speech-assembly.test.mjs.log"
+    },
+    {
+      "module": "test/tab-html-balance.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.6,
+      "log": "module-test_tab-html-balance.test.mjs.log"
+    },
+    {
+      "module": "test/team-execution-contract.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 12.3,
+      "log": "module-test_team-execution-contract.test.mjs.log"
+    },
+    {
+      "module": "test/updater.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.92,
+      "log": "module-test_updater.test.mjs.log"
+    },
+    {
+      "module": "test/v03-worktree.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.85,
+      "log": "module-test_v03-worktree.test.mjs.log"
+    },
+    {
+      "module": "test/v04-integrations.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.68,
+      "log": "module-test_v04-integrations.test.mjs.log"
+    },
+    {
+      "module": "test/v041-stability.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 4.24,
+      "log": "module-test_v041-stability.test.mjs.log"
+    },
+    {
+      "module": "test/v042-hardening.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 1.86,
+      "log": "module-test_v042-hardening.test.mjs.log"
+    },
+    {
+      "module": "test/v042-release-gate.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 3.27,
+      "log": "module-test_v042-release-gate.test.mjs.log"
+    },
+    {
+      "module": "test/voice-upgrade.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 3.34,
+      "log": "module-test_voice-upgrade.test.mjs.log"
+    },
+    {
+      "module": "test/windows-media-pipeline.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.51,
+      "log": "module-test_windows-media-pipeline.test.mjs.log"
+    },
+    {
+      "module": "test/work-center-r7.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.43,
+      "log": "module-test_work-center-r7.test.mjs.log"
+    },
+    {
+      "module": "test/worker-c-launcher.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 6.21,
+      "log": "module-test_worker-c-launcher.test.mjs.log"
+    },
+    {
+      "module": "test/workflow-orchestrator-r4.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 0.4,
+      "log": "module-test_workflow-orchestrator-r4.test.mjs.log"
+    },
+    {
+      "module": "test/workflow-routing-r4.test.mjs",
+      "status": "pass",
+      "exitCode": 0,
+      "seconds": 7.13,
+      "log": "module-test_workflow-routing-r4.test.mjs.log"
+    }
+  ],
+  "scope": "Separate clean source copy per app test module; third-party source and skill tests excluded"
+}

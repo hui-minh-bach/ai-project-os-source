@@ -1,0 +1,39 @@
+✔ dub: submit validates languages and translation source (169.747973ms)
+✔ dub: valid dub task is created paused for approval (161.451652ms)
+✔ whisper status: a CLI whose --help exceeds 2KB is still detected (regression) (9.513027ms)
+✔ all bundled instruction snapshots are readable with identities and hashes, without host credential claims (40.173714ms)
+✔ instruction references cannot silently become runtime-enabled skills (1.291225ms)
+✔ MCP legacy initializes, preserves session, discovers and calls only listed tool (57.413581ms)
+✔ MCP modern sends metadata and tool headers with real SSE response parsing (18.030661ms)
+✔ MCP refuses credential URLs, missing approval, duplicate dispatch and changed payload; persists receipt (338.238775ms)
+✔ MCP respects timeout and never treats tool isError as completed (33.63116ms)
+✔ skill registry preserves stable IDs and custom CRUD validates identity, schema and built-in protection (36.218248ms)
+✔ enabled state survives a fresh process and removes stale IDs from prompt and every sample mapping (155.119543ms)
+✔ Native uses current enabled registry on each actual provider call without replacing frozen binding (296.801875ms)
+✔ supported external runner receives enabled skill prompt only and keeps unsafe opt-in (255.185785ms)
+✔ workflow reserves mapping slot, persists toggle and reaches real Founder/planning/Worker/Reviewer payloads once (713.014457ms)
+✔ continuity skill is visible, actually injected and respects owner toggle (8.945956ms)
+✔ no cloud key blocks synthesis, but voice import is independent (1.629745ms)
+✔ HeyGen audio URL does not allow redirects to local hosts (0.391587ms)
+✔ HeyGen TTS adapter POSTs real endpoint and converts returned audio to PCM WAV using mock transport (190.539685ms)
+✔ media.voiceover produces a full MP4 using uploaded real voice, preserving all audio, approval required (1048.676038ms)
+✔ provider timestamps become timecoded subtitles, omitting start/end sentinels (1.183973ms)
+✔ uploaded real narration can mix short background music and burn SRT, with stretched video (1106.973049ms)
+✔ media.tts-video calls HeyGen once only after approval and outputs real speech, MP4, SRT via timestamps (1223.817582ms)
+✔ media.tts-video blocks missing API before any billable task is created (6.113332ms)
+✔ R4 missing/invalid inputs fail before creating a run or project (6.127265ms)
+✔ R4 media failure retries same run/project with persisted script and card snapshot, even after feed deletion (23.634427ms)
+✔ R4 retry survives app restart and never reruns a completed media operation (21.651473ms)
+✔ R4 unknown publication outcomes cannot be blindly replayed (18.593731ms)
+✔ R4 news article without approval produces one actual local draft, never publishes an undefined video (10.873967ms)
+✔ R4 explicit retries are bounded at three and global stop is respected (25.645416ms)
+✔ R4 news intake requires real publication dates, topic matches and correct Vietnam date (2.47286ms)
+✔ R4 missing news sources returns an honest host limitation without fabricating current news (0.320023ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6973.718377

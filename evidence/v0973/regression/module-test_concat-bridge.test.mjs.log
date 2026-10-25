@@ -1,0 +1,10 @@
+✔ Concat 0.2 compatibility works with published capabilities [events] and local authenticated RPC (63.476282ms)
+✔ Concat blocks off-machine hosts, absent tokens and files outside workspace (1.111947ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 215.003243

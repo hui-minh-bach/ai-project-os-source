@@ -1,0 +1,13 @@
+✔ version compare (8.032945ms)
+✔ manifest signature: valid passes, tampered rejected (5.725092ms)
+✔ zip roundtrip + traversal guard (3.48148ms)
+✔ updater: check finds signed update, download stages a verified zip (41.856183ms)
+✔ apply: updates + adds files with backup; corrupt staged zip rolls back cleanly (13.759456ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 215.199919

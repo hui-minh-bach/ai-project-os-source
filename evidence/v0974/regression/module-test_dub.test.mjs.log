@@ -1,0 +1,11 @@
+✔ dub: submit validates languages and translation source (111.804896ms)
+✔ dub: valid dub task is created paused for approval (112.754716ms)
+✔ whisper status: a CLI whose --help exceeds 2KB is still detected (regression) (3.45346ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 345.7979

@@ -1,0 +1,11 @@
+✔ quota detection and reset parsing stay conservative (38.152721ms)
+✔ ask() fails over to the next pooled account on quota and skips the cooling account afterwards (2814.894321ms)
+✔ non-quota errors do not burn the other pooled accounts (365.844631ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3460.719374

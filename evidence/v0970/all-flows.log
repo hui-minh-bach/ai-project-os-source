@@ -1,0 +1,27 @@
+PASS session_boundary
+PASS bundled_inventory
+PASS mcp_full_roundtrip
+PASS idea_to_video_gate
+PASS publish_youtube
+PASS publish_facebook
+PASS publish_tiktok
+PASS social_metrics
+PASS no_duplicate_publish
+PASS delivered_video_decode
+PASS dub_video_pipeline
+PASS tab_map
+PASS tab_connections
+PASS tab_idea
+PASS tab_studio
+PASS tab_radar
+PASS tab_skills
+PASS tab_engines
+PASS tab_publish
+PASS tab_guide
+PASS section_council
+PASS section_team
+PASS skill_reference_ui
+PASS skill_adaptation_ui
+PASS mcp_configuration_ui
+PASS mobile_load
+{"status": "PASS", "checks": 26, "error": null}

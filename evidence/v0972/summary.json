@@ -1,0 +1,20 @@
+{
+  "version": "0.9.72",
+  "regression": {
+    "modules": 129,
+    "tests": 764,
+    "pass": 764,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "realPiperOnnxModel": "vi_VN-vais1000-medium",
+  "realPiperModelSha256": "ec7c89e2c85f4d1edc24b6120c18aaf1bda614f06b511567eb9c7c0de15e2dab",
+  "actualChromiumRecoveryChecks": 6,
+  "actualFfmpegMp4": "real-piper-local-worker.mp4",
+  "measuredAudioMeanDb": -20.2,
+  "scope": "Actual Linux CPU ONNX inference and FFmpeg/Chromium; script/reviewer and illustration HTTP are local fixtures. No native Windows or owner-machine test.",
+  "commercialReady": false,
+  "protectedAssetsUnchanged": true,
+  "localDataIncluded": false
+}

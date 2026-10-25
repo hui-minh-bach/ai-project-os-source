@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "version": "0.9.74",
+  "normalStartupWithoutFixtures": true,
+  "sessionGate": true,
+  "inventory": {
+    "skills": 83,
+    "repos": 13,
+    "hostTools": 649
+  },
+  "allSkillReferencesReadable": true,
+  "socialChannels": 17,
+  "noFixtureConnectionsOrImports": true,
+  "protectedFilesIdentical": 83,
+  "sceneCodeExceptions": [],
+  "repoCrcAndSha256": true,
+  "nativeWindows": false,
+  "liveProviders": false
+}

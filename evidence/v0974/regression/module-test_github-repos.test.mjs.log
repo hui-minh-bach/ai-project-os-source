@@ -1,0 +1,22 @@
+Cloning into '/tmp/aios-gh-vD94xA/seed'...
+warning: You appear to have cloned an empty repository.
+done.
+To /tmp/aios-gh-vD94xA/remote/octo/demo.git
+ * [new branch]      main -> main
+Cloning into '/tmp/aios-gh-vD94xA/seed2'...
+warning: You appear to have cloned an empty repository.
+done.
+To /tmp/aios-gh-vD94xA/remote/octo/shop.git
+ * [new branch]      main -> main
+✔ GitHub loop: list repos -> import as project -> issue brief -> work -> PR push (323.270328ms)
+✔ Continue an in-progress repo: the app reads its guide, detects Vercel and builds the continuation list (119.55299ms)
+✔ GitHub repos are honestly unavailable without a linked account (0.387624ms)
+✔ private repo failure is noninteractive, bounded, leaves no empty project and keeps token out of URL/header on another host (25.674234ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 648.072021

@@ -1,0 +1,21 @@
+✔ R8 official HTTPS download enforces the advertised model SHA and streaming size (4.307787ms)
+✔ R8 wrong model hash and oversized unknown-length streams leave no accepted file (2.27767ms)
+✔ R8 voice downloader rejects redirects to private, unknown, credential or HTTP hosts (1.346027ms)
+✔ R8 fixed trusted release redirect is accepted; status and size headers remain checked (0.789049ms)
+✔ R8 validated Piper ZIP extracts ordinary components without execution (2.238621ms)
+✔ R8 Piper extraction rejects traversal, case collisions, encryption, symlinks and CRC corruption (2.010397ms)
+✔ R8 manual local voice configuration needs consent and successful actual-call adapter (1.89231ms)
+✔ R8 failed smoke synthesis never saves broken settings; non-Vietnamese model blocked (1.247969ms)
+✔ R8 install is opt-in, supported-platform gated and never implies engine signature verified (3.870968ms)
+✔ R8 isolated installer contract downloads exactly pinned components then smoke-checks once (4.171061ms)
+✔ R8 offline voice environment excludes provider and launch credentials (1.365716ms)
+✔ Pinned voice accepts exact current Hugging Face CDN; lookalike hosts remain blocked (1.018193ms)
+✔ An existing Piper engine with missing model resumes only the missing download and preserves engine (0.622277ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 121.03649

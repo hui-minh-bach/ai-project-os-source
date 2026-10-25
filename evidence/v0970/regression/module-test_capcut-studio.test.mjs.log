@@ -1,0 +1,11 @@
+✔ Media Studio uses a CapCut-style shell without losing any existing panel or mode (1.611297ms)
+✔ timeline helpers parse real SRT cues and pick the right result video (5.361805ms)
+✔ Studio wears the Concat-style dark theme and can open the real Concat editor (0.9.15) (0.310628ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 118.485732

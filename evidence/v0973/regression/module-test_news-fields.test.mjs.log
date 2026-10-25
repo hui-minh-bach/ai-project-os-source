@@ -1,0 +1,15 @@
+✔ news fields: catalog is complete and Google News URL is a plain RSS feed (2.070193ms)
+✔ news fields: classification follows keywords and never guesses (0.396087ms)
+✔ news fields: score rewards fresh keyword-rich items, stays within 0..100 (0.252481ms)
+✔ ingest: scanned cards carry field, score and basis; field sources pin their field (10.306358ms)
+✔ orchestrator: tick picks the highest-score card inside the enabled fields only (6.642591ms)
+✔ orchestrator: per-field daily cap stops a second run for the same field (4.276241ms)
+✔ news fields: server routes and Radar UI are wired (0.565413ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 117.411257

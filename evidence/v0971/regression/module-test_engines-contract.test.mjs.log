@@ -1,0 +1,12 @@
+✔ engine registry distinguishes source, runtime and task adapter; custom metadata CRUD persists and cannot execute (117.278664ms)
+✔ diagnostics require successful actual version evidence, not executable existence; prerequisite contracts stay boolean (180.695892ms)
+✔ source install uses fixed allowlist and fast-forward; protects dirty, origin, occupied paths and local commits (861.371802ms)
+✔ diagnostics redact a Vault snapshot even when Vault is locked while command awaits (350.459578ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1647.373492

@@ -1,0 +1,7 @@
+PASS preflight_local_voice_image_concat
+PASS automatic_reception
+PASS delivery_bundle
+PASS concat_protocol
+PASS idempotent_reception
+PASS real_browser_ui
+{"status": "PASS", "checks": 6, "error": null}

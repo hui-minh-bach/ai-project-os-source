@@ -1,0 +1,13 @@
+✔ Antigravity: two accounts, two session folders; the first adopts the legacy folder with its session untouched (292.136916ms)
+✔ Antigravity delete isolation: removing one account never touches the other’s session; a removed legacy session is parked, not inherited (581.308173ms)
+✔ Antigravity pool rotation: a quota hit on one account rotates the step to the other account of the kind (263.936508ms)
+✔ Claude/Gemini CLI accounts: same per-connection pattern (audit fix) — second account, isolated profiles, delete parking (451.660781ms)
+✔ UI + launcher contract: add-account affordances exist, logins carry the connection id, single-account blocks are gone (0.948378ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1688.012023

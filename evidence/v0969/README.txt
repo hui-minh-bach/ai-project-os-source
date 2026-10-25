@@ -1,0 +1,1 @@
+TEST EVIDENCE ONLY, not commercial media output. Fixture local AI/Concat/ComfyUI/TTS boundaries; actual localhost/browser/FFmpeg execution. Demo artwork is a procedural landscape despite jewelry-sales brief, NOT evidence of professional visuals. Real customer media must be reviewed for topicality, rights and readability. No revenue verified.

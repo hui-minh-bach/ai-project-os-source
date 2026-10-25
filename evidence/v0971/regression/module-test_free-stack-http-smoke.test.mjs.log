@@ -1,0 +1,9 @@
+✔ Real app HTTP server: free-stack endpoint respects one-use launch ticket, cookie and local-only policy (416.45496ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 548.385031

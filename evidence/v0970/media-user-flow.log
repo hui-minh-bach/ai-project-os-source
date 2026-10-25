@@ -1,0 +1,12 @@
+{
+  "api": "passed",
+  "taskState": "completed",
+  "origin": "deterministic-rule-not-ai",
+  "ratio": "9:16",
+  "framing": "crop",
+  "effects": [
+    "fade-in-out"
+  ],
+  "bytes": 568046,
+  "sha256Verified": true
+}

@@ -1,0 +1,7 @@
+PASS Public worker/reviewer replies are saved and available while engine still runs
+PASS Customer intake form removed; Project Results occupies its place; reception heading preserved
+PASS Actual public script and reviewer feedback appear with model/account attribution inside reception chat
+PASS 240 seconds of controller time during active parent render: served worker/reviewer retain exact chairs and positions; work labels visible
+PASS Actual Three.js/GLB framebuffer recorded while task remains active; no geometry/camera replacement
+PASS Actual final MP4 arrives in Project Results; public messages and removed form remain correct after reload
+{"status": "PASS", "checks": 6}

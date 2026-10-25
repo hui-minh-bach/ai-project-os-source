@@ -1,0 +1,16 @@
+✔ R8 image gateway receives prompt/provider/job id and accepts actual path/file (3.249979ms)
+✔ R8 missing/failing AI images cannot masquerade as unrelated default art (0.566394ms)
+✔ R8 uploaded images validate signature, fence paths and reject escaped symlinks (6.87599ms)
+✔ R8 media preflight separates voice availability, image availability and explicit quota consent (0.830664ms)
+✔ R8 storyboard passes selected TTS provider and retains real uploaded pictures/cache (2015.651171ms)
+✔ R8 AI illustrations receive unique scene jobs and image errors propagate (1053.803629ms)
+✔ R8 image upload HTTP host path accepts real PNG and removes invalid image uploads (93.1722ms)
+✔ R8 image crossfade retains whole spoken phrases and exact caption timeline (1707.985509ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5198.342364

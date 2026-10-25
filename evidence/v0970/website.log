@@ -1,0 +1,10 @@
+PASS inline_setup_analysis_council
+APPROVAL_REQUEST {"specificationId":"8dad0055-34c4-4fd9-8e14-20bb11c0212d","confirmCosts":false,"confirmProduction":false,"confirmHost":false} 409 {"error":"Explicit cloud cost, publication and unsafe Host permissions are required for the selected scope.","code":"LAUNCH_APPROVAL","retryAt":null}
+PASS consent_not_implicit
+APPROVAL_REQUEST {"specificationId":"8dad0055-34c4-4fd9-8e14-20bb11c0212d","confirmCosts":true,"confirmProduction":false,"confirmHost":true} 202 {"id":"run-f7c69c3c-55d3-4684-a798-f6d0f1737aa5","projectId":"aa8247ef-50ef-48ce-b5a3-d7eda693acdd","state":"running","currentStep":null,"createdAt":"2026-10-24T07:48:01.567Z","updatedAt":"2026-10-24T07:48:05.634Z","config":{"vercelConnectionId":"v","teamId":"team1","database":false,"supabaseConnectionId":null,"organizationSlug":null,"region":"ap-southeast-1","target":"preview","testMode":"host","
+PASS inline_result
+PASS product_interaction
+PASS reload_keeps_receipts
+PASS skill_hub
+PASS vault_lock
+REPORT /workspace/scratch/2a23e4b6861e/work/AI_Project_OS_v0.9.70_FULL_SOURCE/evidence/v0970/website/report.json

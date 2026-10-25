@@ -1,0 +1,12 @@
+✔ Story preserves same voice and scenes, exports separate tracks through Concat RPC, validates full MP4 and reuses completed export (2396.609231ms)
+✔ Lost Concat export reply reconciles completed file without creating another project/export (2357.326781ms)
+✔ App host resumes failed story with immutable inputs and retained speech/images; Concat is final exporter (fixture) (3777.268153ms)
+✔ A later failed image retains earlier scene images and all successful speech phrases for an explicit retry (1094.698038ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9748.934757

@@ -1,0 +1,29 @@
+{
+  "version": "0.9.71",
+  "commercialReady": false,
+  "regression": {
+    "modules": 128,
+    "passedModules": 128,
+    "counts": {
+      "tests": 754,
+      "pass": 753,
+      "fail": 0,
+      "skipped": 1,
+      "cancelled": 0
+    },
+    "note": "One real quick-edit case requires AIOS_MEDIA_REAL_E2E opt-in; explicit rerun is logged separately."
+  },
+  "webgl": "PASS",
+  "normalAppUi": "PASS",
+  "realFfmpeg": "PASS",
+  "nativeWindowsAndUserVoice": "not_tested",
+  "nativeConcatOnUserMachine": "not_tested",
+  "userScreenshotDiagnosis": "MEDIA_VOICE_REQUIRED is missing narration, not a render engine failure; installed Concat was incorrectly marked ready; name labels had unbounded collision displacement.",
+  "realQuickEditOptIn": {
+    "tests": 2,
+    "pass": 2,
+    "skipped": 0,
+    "log": "quick-edit-real.log"
+  },
+  "cleanPackage": "PASS"
+}

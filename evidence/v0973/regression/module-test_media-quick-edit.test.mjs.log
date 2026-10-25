@@ -1,0 +1,10 @@
+✔ Vietnamese quick-edit plan keeps 9:16, effect and safe source (2.953097ms)
+✔ quick-edit requires explicit approval and creates real MP4 without user JSON (5412.697907ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5687.186688

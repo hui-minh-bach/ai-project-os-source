@@ -1,0 +1,10 @@
+✔ timeout kills a ready grandchild and settles inherited pipes with an honest result (1964.798684ms)
+✔ bounded shell capture preserves multibyte UTF-8 and filtered environment (53.230767ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2118.23175

@@ -1,0 +1,10 @@
+✔ speech grouping merges close windows and splits on gaps, size and span (2.569845ms)
+✔ dub and retheme share the smooth assembly: grouped TTS, gentler tempo, fades, room tone (1.268425ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 140.828746

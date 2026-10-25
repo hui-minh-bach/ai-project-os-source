@@ -1,0 +1,11 @@
+✔ director plan parsing validates the model JSON contract (1.227628ms)
+✔ director routing maps every intent onto real operations or an honest needs-input (0.357318ms)
+✔ director is wired: host method, server route, Studio hero and plan card (0.962679ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.964195

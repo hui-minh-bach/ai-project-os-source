@@ -1,0 +1,31 @@
+✔ R3 roster has no placeholder or fake account for empty input (3.237067ms)
+✔ R3 roster identity is connectionId, not repeated label or provider (0.395736ms)
+✔ R3 does not inherit legacy ten-account limit (1.489279ms)
+✔ R3 filters non-AI integrations and duplicate IDs (0.270733ms)
+✔ R3 models multiple roles without multiplying robots (0.300391ms)
+✔ R3 true task coding uses frozen account not later project assignment (0.364294ms)
+✔ R3 actual review belongs to reviewer, not worker (0.322022ms)
+✔ R3 test runner is not reported as typing AI (0.197054ms)
+✔ R3 observed fallback call belongs to the actual account (0.254487ms)
+✔ R3 concurrent calls are aggregated per account (0.386518ms)
+✔ R3 council pending members do not claim active work (0.230827ms)
+✔ R3 account cooldown and offline remain explicit (0.179078ms)
+✔ R3 active observed request wins over stale cooldown advisory (0.193076ms)
+✔ R3 simulated pipelines never make real accounts work (0.285167ms)
+✔ R3 unassigned pipelines are not attributed to arbitrary accounts (0.175969ms)
+✔ R3 render pipeline waits at its assigned account but never claims provider activity (0.163821ms)
+✔ R3 recent task completion is temporary and most recent outcome wins (0.224195ms)
+✔ R3 projection excludes credentials, prompts and raw responses (0.216654ms)
+✔ R3 projection and normalization never mutate input objects (0.640304ms)
+✔ R3 client rejects malformed snapshots and sanitizes fields without treating HTML as markup (0.407807ms)
+✔ R3 observation preserves returned object identity and error identity (0.982245ms)
+✔ R3 observation captures in-flight actual connection and clears on completion (0.240486ms)
+✔ R7 rendered media remains with the served fallback account, not the failed primary (0.206916ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 117.80718

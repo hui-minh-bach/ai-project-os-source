@@ -1,0 +1,17 @@
+✔ shipped catalog pins are complete, https, and FLUX stays klein-4B only (1.970848ms)
+✔ state machine: NOT_INSTALLED -> install -> READY -> DISABLED -> READY -> remove (20.727859ms)
+✔ capability gate: <8 GB VRAM warns in Vietnamese and defaults OFF; >=8 GB normal (9.216141ms)
+✔ hash mismatch -> ERROR with verbatim reason, partial file deleted, op stays BLOCKED (3.898101ms)
+✔ ACE-Step: adopt-external + media.music end-to-end against a fixture API; pipeline resolver uses it (119.843842ms)
+✔ resolveStoryMusic: bound-but-not-ready falls back to the synthesized bed, LABELED (6.007358ms)
+✔ FLUX op: real sd-cli invocation contract via a fake runner; failure surfaces stderr (39.336973ms)
+✔ pipeline music selection: worker file reaches media.story and the step is journaled; labeled fallback likewise (19.586951ms)
+✔ image binding contract: local-flux is an explicit provider, bypasses the Vault, blocks honestly when the worker is not ready (168.250818ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 596.250387

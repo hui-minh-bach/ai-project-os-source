@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-25",
+  "sources": {
+    "githubToken": "https://cli.github.com/manual/gh_auth_token",
+    "xPost": "https://docs.x.com/x-api/posts/create-post",
+    "xUserToken": "https://docs.x.com/fundamentals/authentication/oauth-2-0/user-access-token",
+    "threads": "https://developers.facebook.com/documentation/threads/reference/publishing.md/",
+    "zaloArticle": "https://docs.zaloplatforms.com/docs/OA/noi-dung/noi-dung-dang-bai-viet",
+    "zaloVerify": "https://docs.zaloplatforms.com/docs/OA/noi-dung/noi-dung-dang-bai-viet/kiem-tra-ket-qua-tien-trinh-tao-noi-dung",
+    "zaloIdentity": "https://docs.zaloplatforms.com/docs/OA/quan-ly/quan-ly-thong-tin-oa/lay-thong-tin-zalo-official-account",
+    "lsa": "https://support.microsoft.com/en-us/windows/security/windows-security/device-security-in-the-windows-security-app"
+  },
+  "limits": "Official schema/docs checks; not live app permissions or owner Windows acceptance. Threads documentation partial retrieval supplemented by Meta-owned Postman collection."
+}

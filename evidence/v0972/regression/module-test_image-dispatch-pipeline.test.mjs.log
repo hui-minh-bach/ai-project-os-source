@@ -1,0 +1,15 @@
+✔ Image capability catalog excludes vision/text-only models and unsupported account adapters (2.059208ms)
+✔ A rate limit hands same scene to B, then scenes are distributed by account; actual provider calls are injected fixtures (7.606188ms)
+✔ Image API charges cannot be enabled by auto selection alone (0.582777ms)
+✔ Image safety refusal stops without trying another AI (0.92305ms)
+✔ Frozen image pool fails closed on identity change or locked Vault (0.535451ms)
+✔ Account security error is terminal and cannot hop to a billed image API (0.4845ms)
+✔ Client cannot falsify a frozen image pool to spend paid quota or invoke a text model (0.485832ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.619937

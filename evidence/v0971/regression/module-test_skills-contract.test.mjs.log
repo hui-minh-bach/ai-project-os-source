@@ -1,0 +1,14 @@
+✔ skill registry preserves stable IDs and custom CRUD validates identity, schema and built-in protection (41.067543ms)
+✔ enabled state survives a fresh process and removes stale IDs from prompt and every sample mapping (192.719366ms)
+✔ Native uses current enabled registry on each actual provider call without replacing frozen binding (310.909174ms)
+✔ supported external runner receives enabled skill prompt only and keeps unsafe opt-in (312.552082ms)
+✔ workflow reserves mapping slot, persists toggle and reaches real Founder/planning/Worker/Reviewer payloads once (1994.442197ms)
+✔ continuity skill is visible, actually injected and respects owner toggle (11.648947ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3034.027824

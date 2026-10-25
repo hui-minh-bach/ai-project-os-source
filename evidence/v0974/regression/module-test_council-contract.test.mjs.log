@@ -1,0 +1,19 @@
+✔ independent reviews receive identical frozen structured brief; Chair resolves conflicts; approval alone enables configured Founder planning (279.309624ms)
+✔ changing role assignments mid-run cannot change frozen member or Chair dispatch and metadata (221.821144ms)
+✔ missing current handoff and stale brief cannot call providers, confirm or plan a legacy plaintext specification (180.59569ms)
+✔ malformed member and Chair JSON preserve failed and partial history without creating a specification (234.203493ms)
+✔ editing the brief during member or Chair requests stores stale runs and never publishes stale specification (403.597557ms)
+✔ rerun invalidates prior approval while pending, rejects simultaneous runs, and preserves version history (268.739ms)
+✔ credential replacement mid-run fails honestly before remaining models use a changed provider account (362.064193ms)
+✔ boot recovery marks running Council interrupted and preserves completed reviews and older runs (220.38983ms)
+✔ strict schema rejects invented votes, string booleans, unknown fields, missing spec sections and unresolved split votes (0.949531ms)
+✔ a changed specification during Project Manager generation cannot overwrite task state (223.434931ms)
+✔ a task started during a deferred Project Manager response cannot be overwritten by a new plan (231.664519ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2728.105531

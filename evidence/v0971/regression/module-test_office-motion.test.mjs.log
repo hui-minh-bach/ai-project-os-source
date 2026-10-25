@@ -1,0 +1,14 @@
+✔ nav: A* goes around desk rather than walking through it (5.174866ms)
+✔ nav: chair point follows the actual 180-degree rotated desk (0.398415ms)
+✔ nav: approach lands in clear aisle and final leg ends at chair (2.818051ms)
+✔ nav: route out of an occupied chair begins with an exit waypoint (0.443061ms)
+✔ native pose: real THREE.AnimationMixer applies Sit_Down and Stand_Up to TAM19 joints (48.260985ms)
+✔ model loading: all robots use stock TAM19 unless replaced by uploaded GLB (0.8868ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 229.927358

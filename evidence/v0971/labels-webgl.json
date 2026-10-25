@@ -1,0 +1,270 @@
+{
+  "scope": "Actual Chromium WebGL scene/DOM; synthetic account metadata only, no AI calls.",
+  "windowsTested": false,
+  "checks": [
+    {
+      "name": "10 actual GLB robots: each visible name stays within one label size of projected head",
+      "visible": 10
+    },
+    {
+      "name": "Click anchored name selects the same account and opens detail"
+    },
+    {
+      "name": "Overview camera preserves head anchors",
+      "visible": 10
+    },
+    {
+      "name": "390px viewport keeps bounded names without edge clamping",
+      "visible": 3
+    },
+    {
+      "name": "Rename/remove preserves exact account identity; removed names and lines disappear; names remain text"
+    },
+    {
+      "name": "Vault clear removes all account name tags and leader lines"
+    }
+  ],
+  "errors": [],
+  "initial": {
+    "stats": {
+      "revision": "space-studio-team-r3.0",
+      "geometryOnly": false,
+      "geometricWorkstations": 9,
+      "geometricChairs": 9,
+      "robotLoaded": true,
+      "liveRobots": 10,
+      "displayMode": "live",
+      "brightness": 0.85,
+      "view": "hero",
+      "drawCalls": 1,
+      "triangles": 1,
+      "metrics": {
+        "robots": [
+          {
+            "id": "id-0",
+            "phase": "seated-idle",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 0,
+            "pelvisSeatGap": -1.599999999996049e-05,
+            "seatContact": true,
+            "chairZ": 0.72,
+            "footHeightL": -1.3877787807814457e-16,
+            "footHeightR": -8.326672684688674e-17
+          },
+          {
+            "id": "id-1",
+            "phase": "seated-idle",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 0,
+            "pelvisSeatGap": -1.599999999996049e-05,
+            "seatContact": true,
+            "chairZ": 0.72,
+            "footHeightL": -1.3877787807814457e-16,
+            "footHeightR": -8.326672684688674e-17
+          },
+          {
+            "id": "id-2",
+            "phase": "seated-idle",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 0,
+            "pelvisSeatGap": -1.599999999996049e-05,
+            "seatContact": true,
+            "chairZ": 0.72,
+            "footHeightL": -1.3877787807814457e-16,
+            "footHeightR": -8.326672684688674e-17
+          },
+          {
+            "id": "id-3",
+            "phase": "seated-idle",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 0,
+            "pelvisSeatGap": -1.599999999996049e-05,
+            "seatContact": true,
+            "chairZ": 0.72,
+            "footHeightL": -8.326672684688674e-17,
+            "footHeightR": -8.326672684688674e-17
+          },
+          {
+            "id": "id-4",
+            "phase": "seated-idle",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 0,
+            "pelvisSeatGap": -1.599999999996049e-05,
+            "seatContact": true,
+            "chairZ": 0.72,
+            "footHeightL": -8.326672684688674e-17,
+            "footHeightR": -8.326672684688674e-17
+          },
+          {
+            "id": "id-5",
+            "phase": "seated-idle",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 0,
+            "pelvisSeatGap": -1.599999999996049e-05,
+            "seatContact": true,
+            "chairZ": 0.72,
+            "footHeightL": -8.326672684688674e-17,
+            "footHeightR": -8.326672684688674e-17
+          },
+          {
+            "id": "id-6",
+            "phase": "seated-idle",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 0,
+            "pelvisSeatGap": -1.599999999996049e-05,
+            "seatContact": true,
+            "chairZ": 0.72,
+            "footHeightL": 0,
+            "footHeightR": 0
+          },
+          {
+            "id": "id-7",
+            "phase": "seated-idle",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 0,
+            "pelvisSeatGap": -1.599999999996049e-05,
+            "seatContact": true,
+            "chairZ": 0.72,
+            "footHeightL": 0,
+            "footHeightR": 0
+          },
+          {
+            "id": "id-8",
+            "phase": "standby",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 4.682870926697724e-06,
+            "pelvisSeatGap": null,
+            "seatContact": false,
+            "chairZ": 1.02,
+            "footHeightL": 4.682840521214038e-06,
+            "footHeightR": 4.682840521214038e-06
+          },
+          {
+            "id": "id-9",
+            "phase": "standby",
+            "handContactError": null,
+            "handReachResidual": 0,
+            "maxLimbResidual": 4.682870926697724e-06,
+            "pelvisSeatGap": null,
+            "seatContact": false,
+            "chairZ": 1.02,
+            "footHeightL": 4.682840521214038e-06,
+            "footHeightR": 4.682840521214038e-06
+          }
+        ]
+      }
+    },
+    "names": [
+      {
+        "id": "Cua",
+        "visible": true,
+        "x": 217.406,
+        "y": 229.34,
+        "anchorX": 217.40590025693794,
+        "anchorY": 229.34043571480544,
+        "width": 37.328125,
+        "height": 22.1875
+      },
+      {
+        "id": "Tún",
+        "visible": true,
+        "x": 325.408,
+        "y": 271.685,
+        "anchorX": 325.40821257654557,
+        "anchorY": 271.6849392240933,
+        "width": 35.96875,
+        "height": 22.1875
+      },
+      {
+        "id": "Ngọc",
+        "visible": true,
+        "x": 433.411,
+        "y": 314.029,
+        "anchorX": 433.4105248961532,
+        "anchorY": 314.029442733381,
+        "width": 45.171875,
+        "height": 22.1875
+      },
+      {
+        "id": "Bắp",
+        "visible": true,
+        "x": 131.904,
+        "y": 282.828,
+        "anchorX": 131.90406967058192,
+        "anchorY": 282.82822962127426,
+        "width": 37.6875,
+        "height": 22.1875
+      },
+      {
+        "id": "Tèo",
+        "visible": true,
+        "x": 239.906,
+        "y": 325.173,
+        "anchorX": 239.90638199018954,
+        "anchorY": 325.17273313056205,
+        "width": 35.390625,
+        "height": 22.1875
+      },
+      {
+        "id": "Phát",
+        "visible": true,
+        "x": 347.909,
+        "y": 367.517,
+        "anchorX": 347.90869430979717,
+        "anchorY": 367.5172366398499,
+        "width": 42.578125,
+        "height": 22.1875
+      },
+      {
+        "id": "Cải",
+        "visible": true,
+        "x": 46.4022,
+        "y": 336.316,
+        "anchorX": 46.40223908422591,
+        "anchorY": 336.3160235277431,
+        "width": 33.28125,
+        "height": 22.1875
+      },
+      {
+        "id": "Trưởng",
+        "visible": true,
+        "x": 154.405,
+        "y": 378.661,
+        "anchorX": 154.40455140383355,
+        "anchorY": 378.6605270370309,
+        "width": 56.828125,
+        "height": 22.1875
+      },
+      {
+        "id": "Claude Code account",
+        "visible": true,
+        "x": 127.973,
+        "y": 411.616,
+        "anchorX": 60.973240703207445,
+        "anchorY": 385.61567137997287,
+        "width": 124,
+        "height": 22.1875
+      },
+      {
+        "id": "Google Gemini account",
+        "visible": true,
+        "x": 89.2773,
+        "y": 370.713,
+        "anchorX": 89.27729496627703,
+        "anchorY": 396.71285160999315,
+        "width": 124,
+        "height": 22.1875
+      }
+    ]
+  },
+  "status": "PASS"
+}

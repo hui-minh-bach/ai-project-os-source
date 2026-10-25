@@ -1,0 +1,486 @@
+{
+  "scope": "Real app UI/HTTP test with synthetic AI/cloud. No browser policy changes.\nChromium loads shipped markup, styles and classic scripts in memory. API\ntransport is bridged to a session-protected, isolated localhost app. ES-module\n3D is not loaded: this verifies the delivery UI, not GPU rendering or Windows.\nRequires Python requests + playwright and a Chromium binary for QA only.",
+  "checks": [
+    {
+      "name": "inline_setup_analysis_council",
+      "status": "pass",
+      "detail": "Clicked setup, discovered scopes and prepared a real pending specification using fixture AI; no cloud resource was created before approval."
+    },
+    {
+      "name": "consent_not_implicit",
+      "status": "pass",
+      "detail": "The same start button refuses to execute when scope/cost and unsafe Host consent checkboxes are unset."
+    },
+    {
+      "name": "inline_result",
+      "status": "pass",
+      "detail": "Start button ran real file writes, npm test, Git and mock-provider cloud requests. Delivered actual source ZIP and QR without navigating to another app tab."
+    },
+    {
+      "name": "product_interaction",
+      "status": "pass",
+      "detail": "Opened the exact ZIP HTML in an in-memory browser and clicked its counter; value changed from 0 to 1. This is a fixture, not live customer acceptance."
+    },
+    {
+      "name": "reload_keeps_receipts",
+      "status": "pass",
+      "detail": "Fresh UI loaded the same delivered run and links; no new deployment."
+    },
+    {
+      "name": "skill_hub",
+      "status": "pass",
+      "detail": "Project Continuity Orchestrator is visible in the actual Skill Hub and injected by server workflow prompts."
+    },
+    {
+      "name": "vault_lock",
+      "status": "pass",
+      "detail": "Private delivery links disappear after Vault is locked; artifact endpoint is blocked as well."
+    }
+  ],
+  "pageErrors": [],
+  "externalWrites": "none; all cloud and AI endpoints use isolated fixtures",
+  "run": {
+    "id": "run-f7c69c3c-55d3-4684-a798-f6d0f1737aa5",
+    "projectId": "aa8247ef-50ef-48ce-b5a3-d7eda693acdd",
+    "state": "delivered",
+    "currentStep": null,
+    "createdAt": "2026-10-24T07:48:01.567Z",
+    "updatedAt": "2026-10-24T07:48:07.980Z",
+    "config": {
+      "vercelConnectionId": "v",
+      "teamId": "team1",
+      "database": false,
+      "supabaseConnectionId": null,
+      "organizationSlug": null,
+      "region": "ap-southeast-1",
+      "target": "preview",
+      "testMode": "host",
+      "autoAssign": true
+    },
+    "scope": {
+      "vercel": "Fixture team",
+      "supabase": null
+    },
+    "specification": {
+      "id": "8dad0055-34c4-4fd9-8e14-20bb11c0212d",
+      "status": "approved",
+      "version": 1,
+      "specification": {
+        "title": "One-button fixture website",
+        "goals": [
+          "Deliver useful pages"
+        ],
+        "audience": "Local test users",
+        "scope": "Static HTML page with a functioning counter, test and delivery manifest.",
+        "mvpFeatures": [
+          "Responsive counter page"
+        ],
+        "outOfScope": [
+          "Payments"
+        ],
+        "userFlows": [
+          "Open either page"
+        ],
+        "data": [],
+        "integrations": [],
+        "stack": [
+          "HTML and CSS"
+        ],
+        "securityPrivacy": [
+          "No credentials in source"
+        ],
+        "acceptanceCriteria": [
+          "Counter increments and npm test passes"
+        ],
+        "roadmap": [
+          "Build and review MVP"
+        ]
+      }
+    },
+    "approval": {
+      "at": "2026-10-24T07:48:05.633Z",
+      "target": "preview"
+    },
+    "steps": [
+      {
+        "id": "build",
+        "label": "AI build and independent review",
+        "state": "done",
+        "startedAt": "2026-10-24T07:48:05.649Z",
+        "completedAt": "2026-10-24T07:48:07.511Z",
+        "receipt": {
+          "done": 2,
+          "independentReview": true
+        }
+      },
+      {
+        "id": "validate",
+        "label": "Final tests and frozen source",
+        "state": "done",
+        "startedAt": "2026-10-24T07:48:07.520Z",
+        "completedAt": "2026-10-24T07:48:07.834Z",
+        "receipt": {
+          "sourceHash": "1e9122b7c6dfd8ef8195a9fe6ceae92c7a2f5879f731b88e13bd84898a257fcf",
+          "finalTest": {
+            "id": "9342af36-3869-49cc-8627-94c9d5085461",
+            "source": "runtime",
+            "kind": "test",
+            "command": [
+              "npm",
+              "run",
+              "test"
+            ],
+            "script": "test",
+            "mode": "host",
+            "status": "PASS",
+            "exitCode": 0,
+            "startedAt": "2026-10-24T07:48:07.528Z",
+            "completedAt": "2026-10-24T07:48:07.815Z",
+            "durationMs": 287,
+            "timedOut": false,
+            "reason": "",
+            "stdout": "\n> test\n> node --test app.test.mjs\n\n✔ page serves the intended title and functional counter (1.305966ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 79.804625\n",
+            "stderr": ""
+          },
+          "reviewedTasks": 2
+        }
+      },
+      {
+        "id": "database",
+        "label": "Create isolated Supabase project",
+        "state": "skipped",
+        "startedAt": "2026-10-24T07:48:07.841Z",
+        "completedAt": "2026-10-24T07:48:07.845Z",
+        "receipt": {
+          "skipped": true
+        }
+      },
+      {
+        "id": "schema",
+        "label": "Owner-only tables and private storage",
+        "state": "skipped",
+        "startedAt": "2026-10-24T07:48:07.852Z",
+        "completedAt": "2026-10-24T07:48:07.855Z",
+        "receipt": {
+          "skipped": true
+        }
+      },
+      {
+        "id": "hosting",
+        "label": "Create Vercel project",
+        "state": "done",
+        "startedAt": "2026-10-24T07:48:07.862Z",
+        "completedAt": "2026-10-24T07:48:07.874Z",
+        "receipt": {
+          "id": "prj_fixture",
+          "name": "aios-55d34684a798f6d0f1737aa5"
+        }
+      },
+      {
+        "id": "environment",
+        "label": "Public app configuration",
+        "state": "skipped",
+        "startedAt": "2026-10-24T07:48:07.881Z",
+        "completedAt": "2026-10-24T07:48:07.884Z",
+        "receipt": {
+          "skipped": true
+        }
+      },
+      {
+        "id": "deploy",
+        "label": "Build and wait for READY",
+        "state": "done",
+        "startedAt": "2026-10-24T07:48:07.892Z",
+        "completedAt": "2026-10-24T07:48:07.920Z",
+        "receipt": {
+          "id": "dpl_fixture",
+          "url": "https://fixture.vercel.app",
+          "state": "READY"
+        }
+      },
+      {
+        "id": "auth",
+        "label": "Auth redirect configuration",
+        "state": "skipped",
+        "startedAt": "2026-10-24T07:48:07.927Z",
+        "completedAt": "2026-10-24T07:48:07.931Z",
+        "receipt": {
+          "skipped": true
+        }
+      },
+      {
+        "id": "smoke",
+        "label": "Verify HTTPS and exact source",
+        "state": "done",
+        "startedAt": "2026-10-24T07:48:07.939Z",
+        "completedAt": "2026-10-24T07:48:07.948Z",
+        "receipt": {
+          "at": "2026-10-24T07:48:07.948Z",
+          "sourceHash": "1e9122b7c6dfd8ef8195a9fe6ceae92c7a2f5879f731b88e13bd84898a257fcf",
+          "https": true,
+          "paths": [
+            {
+              "path": "/",
+              "status": 200
+            }
+          ],
+          "coverage": "HTTP routes and deployed-source identity only; user flows require acceptance testing"
+        }
+      },
+      {
+        "id": "handoff",
+        "label": "Link, QR and source ZIP",
+        "state": "done",
+        "startedAt": "2026-10-24T07:48:07.956Z",
+        "completedAt": "2026-10-24T07:48:07.973Z",
+        "receipt": {
+          "url": "https://fixture.vercel.app",
+          "target": "preview",
+          "sourceHash": "1e9122b7c6dfd8ef8195a9fe6ceae92c7a2f5879f731b88e13bd84898a257fcf",
+          "verifiedAt": "2026-10-24T07:48:07.948Z",
+          "qr": true,
+          "source": true,
+          "userAcceptance": "pending"
+        }
+      }
+    ],
+    "resources": {
+      "vercelProjectId": "prj_fixture",
+      "deploymentId": "dpl_fixture",
+      "url": "https://fixture.vercel.app"
+    },
+    "source": {
+      "hash": "1e9122b7c6dfd8ef8195a9fe6ceae92c7a2f5879f731b88e13bd84898a257fcf",
+      "count": 7,
+      "bytes": 1352
+    },
+    "handoff": {
+      "url": "https://fixture.vercel.app",
+      "target": "preview",
+      "sourceHash": "1e9122b7c6dfd8ef8195a9fe6ceae92c7a2f5879f731b88e13bd84898a257fcf",
+      "verifiedAt": "2026-10-24T07:48:07.948Z",
+      "qr": true,
+      "source": true,
+      "userAcceptance": "pending"
+    },
+    "error": null,
+    "resumeCount": 0,
+    "stopRequested": false,
+    "tasks": [
+      {
+        "id": "T1",
+        "title": "Build fixture static site",
+        "status": "done",
+        "role": "frontend",
+        "summary": "Fixture files implemented; actual tests are run by the host.",
+        "worker": {
+          "connectionId": "ai-b",
+          "model": "fixture-b"
+        },
+        "reviewer": {
+          "connectionId": "ai-c",
+          "model": "fixture-c"
+        },
+        "phase": "merged"
+      },
+      {
+        "id": "T2",
+        "title": "One-button delivery package",
+        "status": "done",
+        "role": "devops",
+        "summary": "Fixture files implemented; actual tests are run by the host.",
+        "worker": {
+          "connectionId": "ai-b",
+          "model": "fixture-b"
+        },
+        "reviewer": {
+          "connectionId": "ai-c",
+          "model": "fixture-c"
+        },
+        "phase": "merged"
+      }
+    ],
+    "roles": {
+      "projectId": "aa8247ef-50ef-48ce-b5a3-d7eda693acdd",
+      "roles": {
+        "founder": {
+          "connectionId": "ai-a",
+          "model": "fixture-a"
+        },
+        "council": [
+          {
+            "connectionId": "ai-a",
+            "model": "fixture-a"
+          },
+          {
+            "connectionId": "ai-c",
+            "model": "fixture-c"
+          }
+        ],
+        "worker": {
+          "connectionId": "ai-a",
+          "model": "fixture-a"
+        },
+        "reviewer": {
+          "connectionId": "ai-c",
+          "model": "fixture-c"
+        }
+      },
+      "backups": {
+        "founder": {
+          "connectionId": "ai-b",
+          "model": "fixture-b"
+        },
+        "council": [],
+        "worker": {
+          "connectionId": "ai-b",
+          "model": "fixture-b"
+        },
+        "reviewer": null
+      },
+      "teams": {
+        "founder": [
+          {
+            "connectionId": "ai-a",
+            "model": "fixture-a"
+          }
+        ],
+        "council": [
+          {
+            "connectionId": "ai-a",
+            "model": "fixture-a"
+          },
+          {
+            "connectionId": "ai-c",
+            "model": "fixture-c"
+          }
+        ],
+        "worker": [
+          {
+            "connectionId": "ai-a",
+            "model": "fixture-a"
+          }
+        ],
+        "reviewer": [
+          {
+            "connectionId": "ai-c",
+            "model": "fixture-c"
+          }
+        ]
+      },
+      "revision": 1,
+      "descriptors": {
+        "founder": [
+          {
+            "connectionId": "ai-a",
+            "model": "fixture-a",
+            "ref": "role:aa8247ef-50ef-48ce-b5a3-d7eda693acdd:founder:0",
+            "status": "ready",
+            "message": ""
+          }
+        ],
+        "council": [
+          {
+            "connectionId": "ai-a",
+            "model": "fixture-a",
+            "ref": "role:aa8247ef-50ef-48ce-b5a3-d7eda693acdd:council:0",
+            "status": "ready",
+            "message": ""
+          },
+          {
+            "connectionId": "ai-c",
+            "model": "fixture-c",
+            "ref": "role:aa8247ef-50ef-48ce-b5a3-d7eda693acdd:council:1",
+            "status": "verified",
+            "message": ""
+          }
+        ],
+        "worker": [
+          {
+            "connectionId": "ai-a",
+            "model": "fixture-a",
+            "ref": "role:aa8247ef-50ef-48ce-b5a3-d7eda693acdd:worker:0",
+            "status": "ready",
+            "message": ""
+          }
+        ],
+        "reviewer": [
+          {
+            "connectionId": "ai-c",
+            "model": "fixture-c",
+            "ref": "role:aa8247ef-50ef-48ce-b5a3-d7eda693acdd:reviewer:0",
+            "status": "verified",
+            "message": ""
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "at": "2026-10-24T07:48:01.769Z",
+        "type": "ready",
+        "message": "Review the specification and exact cloud scope. No cloud resource has been created."
+      },
+      {
+        "at": "2026-10-24T07:48:05.649Z",
+        "type": "step",
+        "message": "build"
+      },
+      {
+        "at": "2026-10-24T07:48:07.520Z",
+        "type": "step",
+        "message": "validate"
+      },
+      {
+        "at": "2026-10-24T07:48:07.841Z",
+        "type": "step",
+        "message": "database"
+      },
+      {
+        "at": "2026-10-24T07:48:07.852Z",
+        "type": "step",
+        "message": "schema"
+      },
+      {
+        "at": "2026-10-24T07:48:07.862Z",
+        "type": "step",
+        "message": "hosting"
+      },
+      {
+        "at": "2026-10-24T07:48:07.881Z",
+        "type": "step",
+        "message": "environment"
+      },
+      {
+        "at": "2026-10-24T07:48:07.892Z",
+        "type": "step",
+        "message": "deploy"
+      },
+      {
+        "at": "2026-10-24T07:48:07.927Z",
+        "type": "step",
+        "message": "auth"
+      },
+      {
+        "at": "2026-10-24T07:48:07.939Z",
+        "type": "step",
+        "message": "smoke"
+      },
+      {
+        "at": "2026-10-24T07:48:07.956Z",
+        "type": "step",
+        "message": "handoff"
+      },
+      {
+        "at": "2026-10-24T07:48:07.980Z",
+        "type": "delivered",
+        "message": "Delivery URL, QR and source ready. Business acceptance remains with the owner."
+      }
+    ],
+    "limits": [
+      "Web delivery pilot only. No automatic domain purchase, email/SMS billing or payment setup.",
+      "HTTP/source smoke checks are not full business-flow, device or security certification."
+    ]
+  },
+  "status": "pass"
+}

@@ -1,0 +1,95 @@
+{
+  "revision": "0.9.67",
+  "timestampUtc": "2026-10-24T05:28:07.206983+00:00",
+  "result": "SOURCE_QA_PASS_NATIVE_NOT_TESTED",
+  "sourceSyntax": {
+    "result": "pass",
+    "check": "npm run check (source syntax pass)"
+  },
+  "nodeTests": {
+    "total": 732,
+    "pass": 731,
+    "fail": 0,
+    "skip": 1,
+    "result": "pass"
+  },
+  "browserReception": {
+    "result": "pass",
+    "checks": 11,
+    "detail": [
+      "csp_source_intake",
+      "radar_csp_fix",
+      "idea_media_bridge",
+      "multi_role_persistence",
+      "connections_role_groups",
+      "voice_preview",
+      "reception_product_separation",
+      "project_isolation",
+      "actual_narrated_video",
+      "video_studio_controls",
+      "voice_endpoint_access"
+    ],
+    "limitations": "Browser in-memory UI with real localhost HTTP; cloud AI fixture, no Windows native"
+  },
+  "narratedVideo": {
+    "result": "pass",
+    "path": "evidence/recovery-r8/browser/narrated-illustrated-diagnostic.mp4",
+    "videoSizeBytes": 500508,
+    "durationSeconds": 11.65,
+    "streams": [
+      {
+        "type": "video",
+        "codec": "h264"
+      },
+      {
+        "type": "audio",
+        "codec": "aac"
+      }
+    ],
+    "voice": "eSpeak vi diagnostic via explicitly isolated Piper-compatible adapter",
+    "image": "source UI screenshot fixture, not real current-events image",
+    "engine": "FFmpeg selected explicitly (Concat not connected)"
+  },
+  "mediaE2E": {
+    "result": "pass",
+    "command": "npm run verify:media-e2e"
+  },
+  "quickEdit": {
+    "result": "pass",
+    "command": "npm run verify:quick-media"
+  },
+  "protected3D": {
+    "baselineArchive": "AI_Project_OS_v0.9.66_FREE_STACK_STABILIZED_FULL_SOURCE.zip",
+    "protectedPaths": 81,
+    "byteIdenticalCount": 81,
+    "modified": [],
+    "result": "pass"
+  },
+  "webgl": {
+    "result": "environment_blocked",
+    "host": "Linux container/headless Chromium",
+    "domFixturePass": 7,
+    "fallbackVisible": true,
+    "windowsGpuVerified": false
+  },
+  "externalAccounts": {
+    "status": "not_tested",
+    "notVerified": [
+      "FLUX GPU",
+      "ComfyUI full images",
+      "Piper Vietnamese neural voice",
+      "Native Windows speech",
+      "Concat native Windows",
+      "Live AI/cloud tokens",
+      "commercial user acceptance"
+    ]
+  },
+  "commercialReady": false,
+  "windowsLauncher": {
+    "binary": "AI-Project-OS.exe",
+    "origin": "retained from baseline 0.9.66",
+    "recompiledFor0.9.67": false
+  },
+  "githubUpdated": false,
+  "summary": "Source QA and browser fixture pass. Do not claim 100% native/commercial production readiness."
+}

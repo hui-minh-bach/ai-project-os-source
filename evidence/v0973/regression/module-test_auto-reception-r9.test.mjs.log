@@ -1,0 +1,13 @@
+✔ R9 one-click reception selects real local voice and Concat without additional form or paid authorization (1.481588ms)
+✔ R9 when Concat is not configured, uses explicit FFmpeg and labels its engine (0.428387ms)
+✔ R9 never silently chooses paid voice, captions-only or procedural image when no free provider exists (0.962523ms)
+✔ R9 article reception needs no video/audio dependency (0.24452ms)
+✔ R9 uploaded owned images suppress paid-image dependency while preserving default voice (0.795552ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 152.130914
