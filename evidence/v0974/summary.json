@@ -1,0 +1,46 @@
+{
+  "version": "0.9.74",
+  "regression": {
+    "modules": 133,
+    "tests": 783,
+    "pass": 783,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "browserChecks": 9,
+  "actualLocalGit": true,
+  "githubAuth": "Scoped in-memory HTTP Basic token, global helper disabled for clone; bounded noninteractive clone",
+  "githubUi": "Direct GitHub URL, wrong Vercel field rejected, persistent progress and exact new project selection/team copy",
+  "socialChannels": 17,
+  "socialApiAdapters": [
+    "Threads text, manual verified access token",
+    "X text, manual verified user token, explicit API cost opt-in",
+    "Zalo OA article, manual verified OA token, create/verify progression"
+  ],
+  "exportOnlyExtraChannels": [
+    "Instagram",
+    "Zalo personal",
+    "LinkedIn",
+    "Pinterest",
+    "Telegram",
+    "Discord",
+    "Bluesky",
+    "Mastodon",
+    "Reddit",
+    "Snapchat",
+    "WhatsApp Business"
+  ],
+  "uncertainWrites": "Durable no-replay; pending Zalo verifies existing operation only; exact approval binds account and credential version",
+  "verificationLimits": {
+    "modelResponses": "fixture",
+    "githubCliIdentity": "fixture",
+    "socialApis": "fixture",
+    "nativeWindows": "not_tested",
+    "ownerPrivateRepo": "not_tested",
+    "liveSocialAccount": "not_tested",
+    "newBrowserWebGL": "not_tested, protected source unchanged"
+  },
+  "commercialReady": false,
+  "screenshotsIncluded": false
+}

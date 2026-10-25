@@ -1,0 +1,11 @@
+✔ operator token lifecycle: hash-only storage, scoped verify, revoke (32.069472ms)
+✔ meeting feed renders recorded run steps with honest labels (7.084921ms)
+✔ R7 local receipt gate is not presented as social publication (0.218158ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 122.198074

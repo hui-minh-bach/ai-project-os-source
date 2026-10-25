@@ -1,0 +1,10 @@
+✔ real >2MB PNG survives image RPC, turn-only results and relative savedPath; capability checks do not infer text login (942.514401ms)
+✔ RPC errors retain safe typed reason; large non-image frames still rejected even in image mode (106.762813ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1269.039606

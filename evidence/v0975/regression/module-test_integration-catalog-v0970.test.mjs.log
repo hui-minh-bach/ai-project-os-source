@@ -1,0 +1,10 @@
+✔ all bundled instruction snapshots are readable with identities and hashes, without host credential claims (31.609072ms)
+✔ instruction references cannot silently become runtime-enabled skills (1.190071ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 118.005076

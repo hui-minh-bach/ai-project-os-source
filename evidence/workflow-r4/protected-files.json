@@ -1,0 +1,452 @@
+{
+  "baseline_archive": "AI_Project_OS_v0.9.61_SPACE_STUDIO_TEAM_R3_FULL_SOURCE.zip",
+  "baseline_archive_sha256": "592aae62c37ecf2ee086168dff1f4d754c028e475810a5c83ca4cafb92687451",
+  "baseline_files": 540,
+  "unchanged_baseline_files": 507,
+  "changed_baseline_files": 33,
+  "missing_baseline_files": [],
+  "changed_paths": [
+    ".project-state/contract.md",
+    ".project-state/state.json",
+    "AGENTS.md",
+    "README.md",
+    "RELEASE.json",
+    "package.json",
+    "public/app.js",
+    "public/tabs/council.js",
+    "public/tabs/idea.html",
+    "public/tabs/idea.js",
+    "public/tabs/publish.js",
+    "public/tabs/radar.js",
+    "public/tabs/team.js",
+    "src/lib/account-auth.mjs",
+    "src/lib/antigravity-account.mjs",
+    "src/lib/cli-account.mjs",
+    "src/lib/ingest.mjs",
+    "src/lib/model-bindings.mjs",
+    "src/lib/native-agent.mjs",
+    "src/lib/orchestrator.mjs",
+    "src/lib/projects.mjs",
+    "src/lib/providers.mjs",
+    "src/lib/space-fleet.mjs",
+    "src/lib/system-doctor.mjs",
+    "src/server.mjs",
+    "test/council-contract.test.mjs",
+    "test/customer-api.test.mjs",
+    "test/customer-doctor.test.mjs",
+    "test/idea-contract.test.mjs",
+    "test/launcher-session.test.mjs",
+    "test/model-routing.test.mjs",
+    "test/release-readiness.test.mjs",
+    "test/worker-c-launcher.test.mjs"
+  ],
+  "protected_file_count": 81,
+  "protected": {
+    "public/space-studio/live-motion.mjs": {
+      "baseline_sha256": "ae0b6b921c059f52a415bc19eae9bf7033505c884cc0a43f80f5f7f556a5640c",
+      "release_sha256": "ae0b6b921c059f52a415bc19eae9bf7033505c884cc0a43f80f5f7f556a5640c",
+      "equal": true
+    },
+    "public/space-studio/fleet-feed.mjs": {
+      "baseline_sha256": "35b91900a0604a0fdfc429991d17ca41ffa41df72b7cd0e300165b4965ecc72d",
+      "release_sha256": "35b91900a0604a0fdfc429991d17ca41ffa41df72b7cd0e300165b4965ecc72d",
+      "equal": true
+    },
+    "public/space-studio/navigation.mjs": {
+      "baseline_sha256": "2d86372a87e4477267ef10437c85038a0030c363b86376ece39dbeb6c92c32b3",
+      "release_sha256": "2d86372a87e4477267ef10437c85038a0030c363b86376ece39dbeb6c92c32b3",
+      "equal": true
+    },
+    "public/space-studio/scene.mjs": {
+      "baseline_sha256": "37832dcae5c4766c24c4f80b32347d780a82a8609836f313a5b5b613c7cd632c",
+      "release_sha256": "37832dcae5c4766c24c4f80b32347d780a82a8609836f313a5b5b613c7cd632c",
+      "equal": true
+    },
+    "public/space-studio/app-integration.mjs": {
+      "baseline_sha256": "f76fc026e0982134f97ccf63f0061c5a2abda687c0efd4b25ba22e54e1aecede",
+      "release_sha256": "f76fc026e0982134f97ccf63f0061c5a2abda687c0efd4b25ba22e54e1aecede",
+      "equal": true
+    },
+    "public/space-studio/fleet-contract.mjs": {
+      "baseline_sha256": "5debe1243727fa00fab64e9c0c5a9545f82e627c3e706c097b377da06ac1cd11",
+      "release_sha256": "5debe1243727fa00fab64e9c0c5a9545f82e627c3e706c097b377da06ac1cd11",
+      "equal": true
+    },
+    "public/space-studio/controller.mjs": {
+      "baseline_sha256": "ebcb4f127d64e2926297a5fafa72348b875fcbb6adffb536a23de4735d08f45f",
+      "release_sha256": "ebcb4f127d64e2926297a5fafa72348b875fcbb6adffb536a23de4735d08f45f",
+      "equal": true
+    },
+    "public/space-studio/design.mjs": {
+      "baseline_sha256": "4b761fa9cd422e69bc0b134ba44c901fcbb99d64249f64709937c26f97eb0e43",
+      "release_sha256": "4b761fa9cd422e69bc0b134ba44c901fcbb99d64249f64709937c26f97eb0e43",
+      "equal": true
+    },
+    "public/space-studio/viewer.mjs": {
+      "baseline_sha256": "cb67f4669eecb5841b95ee28447d45beda24398f828507d579e018ea5fb4a631",
+      "release_sha256": "cb67f4669eecb5841b95ee28447d45beda24398f828507d579e018ea5fb4a631",
+      "equal": true
+    },
+    "public/space-studio/viewer.css": {
+      "baseline_sha256": "1d973a7b2c4dd95044742b9c9b2ec853d20d78a322cf823b9e04bf74e8e5748a",
+      "release_sha256": "1d973a7b2c4dd95044742b9c9b2ec853d20d78a322cf823b9e04bf74e8e5748a",
+      "equal": true
+    },
+    "public/space-studio/fleet-scene.mjs": {
+      "baseline_sha256": "340a0c9dc8fd643f41db9310adc6b6e8a5ec8223142efe0123b6a582a493d9ed",
+      "release_sha256": "340a0c9dc8fd643f41db9310adc6b6e8a5ec8223142efe0123b6a582a493d9ed",
+      "equal": true
+    },
+    "public/space-studio/motion.mjs": {
+      "baseline_sha256": "55555dfbd20ceb387d60e1e7a989b1b52a3d459a09fe01883ac2d1c6740aa5ea",
+      "release_sha256": "55555dfbd20ceb387d60e1e7a989b1b52a3d459a09fe01883ac2d1c6740aa5ea",
+      "equal": true
+    },
+    "public/assets/idea-master-concept.png": {
+      "baseline_sha256": "16abbe46473de9baa334c7f0b04fbde24bb847bf76e42b9640425b29e122e39b",
+      "release_sha256": "16abbe46473de9baa334c7f0b04fbde24bb847bf76e42b9640425b29e122e39b",
+      "equal": true
+    },
+    "public/assets/tam19.glb": {
+      "baseline_sha256": "2e84217847ae15e035d53617d4bdd0be6e6d2121fadc0b666765b4a76659d663",
+      "release_sha256": "2e84217847ae15e035d53617d4bdd0be6e6d2121fadc0b666765b4a76659d663",
+      "equal": true
+    },
+    "public/assets/hero-emerald.webp": {
+      "baseline_sha256": "51af2e42b3f1d61503d16d07095493fe6fff8fed3781bfe7bd17d3090eda68ce",
+      "release_sha256": "51af2e42b3f1d61503d16d07095493fe6fff8fed3781bfe7bd17d3090eda68ce",
+      "equal": true
+    },
+    "public/assets/hero-aurora.webp": {
+      "baseline_sha256": "33dc937585eef507231df40f8e042f388573ce44443bbdd669d8120967747686",
+      "release_sha256": "33dc937585eef507231df40f8e042f388573ce44443bbdd669d8120967747686",
+      "equal": true
+    },
+    "public/assets/hero-ocean.webp": {
+      "baseline_sha256": "bb9f3915965dc9cc7193185a81b0f9b18baa2f6273974bbb902b8263a83747a0",
+      "release_sha256": "bb9f3915965dc9cc7193185a81b0f9b18baa2f6273974bbb902b8263a83747a0",
+      "equal": true
+    },
+    "public/assets/hero-amber.webp": {
+      "baseline_sha256": "02ac70806a044e690b4f41354ab017f500063145a94eda435d6794fb587d1fae",
+      "release_sha256": "02ac70806a044e690b4f41354ab017f500063145a94eda435d6794fb587d1fae",
+      "equal": true
+    },
+    "public/assets/office-backdrop.jpg": {
+      "baseline_sha256": "2fc8bba2b4575a114d62e37780d3b89e68b1ff32e81ffd3a337688ef1607704e",
+      "release_sha256": "2fc8bba2b4575a114d62e37780d3b89e68b1ff32e81ffd3a337688ef1607704e",
+      "equal": true
+    },
+    "public/assets/hero-arctic.webp": {
+      "baseline_sha256": "853511953e5dadf5c15d359861df662377bd0e9afe97d8a5f9eadec1e33b6a4a",
+      "release_sha256": "853511953e5dadf5c15d359861df662377bd0e9afe97d8a5f9eadec1e33b6a4a",
+      "equal": true
+    },
+    "public/assets/office-iso-backdrop.jpg": {
+      "baseline_sha256": "a7cd102dbb1a7409894b9aaabf8f2985329452700f89ee70246ef011ce875c89",
+      "release_sha256": "a7cd102dbb1a7409894b9aaabf8f2985329452700f89ee70246ef011ce875c89",
+      "equal": true
+    },
+    "public/assets/tam01.glb": {
+      "baseline_sha256": "41a40d3a404cc4635a37e18a1784095cbb95f9687b105519df213b581687d621",
+      "release_sha256": "41a40d3a404cc4635a37e18a1784095cbb95f9687b105519df213b581687d621",
+      "equal": true
+    },
+    "public/assets/office-room.glb": {
+      "baseline_sha256": "2a27aad857b8993895dffdc2748e13cd041ae49ed4f79717c4301d89b0f550db",
+      "release_sha256": "2a27aad857b8993895dffdc2748e13cd041ae49ed4f79717c4301d89b0f550db",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/desk-review.png": {
+      "baseline_sha256": "3e324000bb8ead25096c0ec4ad098a0c5ef9dfc0d24c09cefcbb2751531b4e06",
+      "release_sha256": "3e324000bb8ead25096c0ec4ad098a0c5ef9dfc0d24c09cefcbb2751531b4e06",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/desk-pm.png": {
+      "baseline_sha256": "90e15b38ebe157dabe23e17e62b1cb2d366f274a82c2e53d4e9ec0e019a5352a",
+      "release_sha256": "90e15b38ebe157dabe23e17e62b1cb2d366f274a82c2e53d4e9ec0e019a5352a",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/cage.png": {
+      "baseline_sha256": "0a0f7dfa5549746d65d6f2460d9a7e4ac08f6986371347eb3db7a6b7366f9c5d",
+      "release_sha256": "0a0f7dfa5549746d65d6f2460d9a7e4ac08f6986371347eb3db7a6b7366f9c5d",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/desk-boss.png": {
+      "baseline_sha256": "e7f7a8e31709b12b13f418c097dc868826d1e658b40b4a54fa8e5126e06f6773",
+      "release_sha256": "e7f7a8e31709b12b13f418c097dc868826d1e658b40b4a54fa8e5126e06f6773",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/desk-script.png": {
+      "baseline_sha256": "c5a71465bc30944d1b8cf9c0adc7706f33ffcf51306287f1592410b4ddce2208",
+      "release_sha256": "c5a71465bc30944d1b8cf9c0adc7706f33ffcf51306287f1592410b4ddce2208",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/desk-media.png": {
+      "baseline_sha256": "dbba451678ab397b71ffb7f68b01d153bb7d6e1cac57d590e694e99d942be078",
+      "release_sha256": "dbba451678ab397b71ffb7f68b01d153bb7d6e1cac57d590e694e99d942be078",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/desk-publish.png": {
+      "baseline_sha256": "e587022d54386435b1204914ac28836bcc0690b57e3fbe3ab1f2b9104be5709d",
+      "release_sha256": "e587022d54386435b1204914ac28836bcc0690b57e3fbe3ab1f2b9104be5709d",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/pod-2.png": {
+      "baseline_sha256": "33ea46961935bfa34bb746bba9e12f5ed5c33206b4158b758772a9a19a514982",
+      "release_sha256": "33ea46961935bfa34bb746bba9e12f5ed5c33206b4158b758772a9a19a514982",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/pod-0.png": {
+      "baseline_sha256": "42297a5efb91319047c1de3fab0a5b9a3de5293ff0fe5259878dfc7266972b7b",
+      "release_sha256": "42297a5efb91319047c1de3fab0a5b9a3de5293ff0fe5259878dfc7266972b7b",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/desk-image.png": {
+      "baseline_sha256": "5a0fc6705761ef6b49920acd8aaaeaeca5e6dbaa123bd580c36bb34a0c68b1a1",
+      "release_sha256": "5a0fc6705761ef6b49920acd8aaaeaeca5e6dbaa123bd580c36bb34a0c68b1a1",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/desk-news.png": {
+      "baseline_sha256": "06d153ea350545b3647eeefd8a5684e6fe6dbda71552200c5f31f208b054b0ea",
+      "release_sha256": "06d153ea350545b3647eeefd8a5684e6fe6dbda71552200c5f31f208b054b0ea",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/pod-3.png": {
+      "baseline_sha256": "95fd114b6f7d45a259774adb6d37a84b35f930ee323d6265205bd7720659345d",
+      "release_sha256": "95fd114b6f7d45a259774adb6d37a84b35f930ee323d6265205bd7720659345d",
+      "equal": true
+    },
+    "public/assets/office-iso-fg/pod-1.png": {
+      "baseline_sha256": "881a371be3e9465e1419f75433c46dd18007f9bb6dc748d69c37aeafc0ebad76",
+      "release_sha256": "881a371be3e9465e1419f75433c46dd18007f9bb6dc748d69c37aeafc0ebad76",
+      "equal": true
+    },
+    "public/assets/env/blue_floor_tiles_01_diff_512.jpg": {
+      "baseline_sha256": "8021b8017e9cca7d716161195a34a48eb40d8617a769cac5dc2d7a019bbfbc93",
+      "release_sha256": "8021b8017e9cca7d716161195a34a48eb40d8617a769cac5dc2d7a019bbfbc93",
+      "equal": true
+    },
+    "public/assets/env/blue_photo_studio_1k.hdr": {
+      "baseline_sha256": "65f086b4e9b64f4e2d01e3268a30fd982572be81d88c0477349e3a704032294f",
+      "release_sha256": "65f086b4e9b64f4e2d01e3268a30fd982572be81d88c0477349e3a704032294f",
+      "equal": true
+    },
+    "public/assets/bots/tam19-gemini-sit.png": {
+      "baseline_sha256": "605f8113246e319a7067d9e9ebf72ba6461d17d8aea9289dff040ea8849b5fcb",
+      "release_sha256": "605f8113246e319a7067d9e9ebf72ba6461d17d8aea9289dff040ea8849b5fcb",
+      "equal": true
+    },
+    "public/assets/bots/tam19-claude-idle.png": {
+      "baseline_sha256": "b5cc0c44fae7351f6f3dc3afc0afc185c6d2da4521d180196def5f9da70cc8b4",
+      "release_sha256": "b5cc0c44fae7351f6f3dc3afc0afc185c6d2da4521d180196def5f9da70cc8b4",
+      "equal": true
+    },
+    "public/assets/bots/tam19-default-idle.png": {
+      "baseline_sha256": "2603cbec6b2992be891762650cccb67089a685ec89ea124f64e9fe0db60506f9",
+      "release_sha256": "2603cbec6b2992be891762650cccb67089a685ec89ea124f64e9fe0db60506f9",
+      "equal": true
+    },
+    "public/assets/bots/tam19-chatgpt-idle.png": {
+      "baseline_sha256": "1d0f30e7fe817c027f26fa199e166dce536dabbb4fbfe1084695852d4b2d915f",
+      "release_sha256": "1d0f30e7fe817c027f26fa199e166dce536dabbb4fbfe1084695852d4b2d915f",
+      "equal": true
+    },
+    "public/assets/bots/tam19-antigravity-walk.png": {
+      "baseline_sha256": "94f6efc7b1e4c235f57634e9f4a7b822f0387c7e15f24ff3896126c21e1fabfd",
+      "release_sha256": "94f6efc7b1e4c235f57634e9f4a7b822f0387c7e15f24ff3896126c21e1fabfd",
+      "equal": true
+    },
+    "public/assets/bots/tam19-default-sit.png": {
+      "baseline_sha256": "8e4935324e4a5aff97654f9a378d3da27e64bca99f5ade3a7aaef224271a60f2",
+      "release_sha256": "8e4935324e4a5aff97654f9a378d3da27e64bca99f5ade3a7aaef224271a60f2",
+      "equal": true
+    },
+    "public/assets/bots/tam19-chatgpt-sit.png": {
+      "baseline_sha256": "3273c42dbfa6f509e178d691950c0c8282cb3b6f2e185dc875f12fcc81b1d399",
+      "release_sha256": "3273c42dbfa6f509e178d691950c0c8282cb3b6f2e185dc875f12fcc81b1d399",
+      "equal": true
+    },
+    "public/assets/bots/tam19-antigravity-sit.png": {
+      "baseline_sha256": "5194088e204f144cc3b813b8893cc2b6e8cd6d34c93872efb6328a0fbbb4abe2",
+      "release_sha256": "5194088e204f144cc3b813b8893cc2b6e8cd6d34c93872efb6328a0fbbb4abe2",
+      "equal": true
+    },
+    "public/assets/bots/tam19-claude-walk.png": {
+      "baseline_sha256": "b2a2f49d1338ff6bd3a6a8684f2edab4b19af89f0dc495854bfe1a6e0a9043d4",
+      "release_sha256": "b2a2f49d1338ff6bd3a6a8684f2edab4b19af89f0dc495854bfe1a6e0a9043d4",
+      "equal": true
+    },
+    "public/assets/bots/tam19-gemini-idle.png": {
+      "baseline_sha256": "fdc86f49ec878f11fd48d1e3dea0e5b5497525e4abbac213893210c3d5773c93",
+      "release_sha256": "fdc86f49ec878f11fd48d1e3dea0e5b5497525e4abbac213893210c3d5773c93",
+      "equal": true
+    },
+    "public/assets/bots/tam19-antigravity-idle.png": {
+      "baseline_sha256": "0c0bcc64866bb1a99e4fe48f4fb4e3bb086b5ba3fc888d06670ae9486777686f",
+      "release_sha256": "0c0bcc64866bb1a99e4fe48f4fb4e3bb086b5ba3fc888d06670ae9486777686f",
+      "equal": true
+    },
+    "public/assets/bots/tam19-default-walk.png": {
+      "baseline_sha256": "805e0fad8e3b122b7b5a34417dcb76d7e15ed98814396c7ce383cc33c401aacc",
+      "release_sha256": "805e0fad8e3b122b7b5a34417dcb76d7e15ed98814396c7ce383cc33c401aacc",
+      "equal": true
+    },
+    "public/assets/bots/tam19-chatgpt-walk.png": {
+      "baseline_sha256": "19d9e072404e836fb11dfac35045b564c4e4591a0cc0ebffd448fa1b36e7f0bb",
+      "release_sha256": "19d9e072404e836fb11dfac35045b564c4e4591a0cc0ebffd448fa1b36e7f0bb",
+      "equal": true
+    },
+    "public/assets/bots/tam19-claude-sit.png": {
+      "baseline_sha256": "e39bed7699dff55e3916073bbba211be55385747ec973ff2510cf2e6d22c0ba3",
+      "release_sha256": "e39bed7699dff55e3916073bbba211be55385747ec973ff2510cf2e6d22c0ba3",
+      "equal": true
+    },
+    "public/assets/bots/tam19-gemini-walk.png": {
+      "baseline_sha256": "6b715d29f45ea0c2e298235e2393f994570697356a4d9cebf5d816366d22a1b9",
+      "release_sha256": "6b715d29f45ea0c2e298235e2393f994570697356a4d9cebf5d816366d22a1b9",
+      "equal": true
+    },
+    "public/assets/chair-demo/chair-original-cutout.png": {
+      "baseline_sha256": "60eb47c638e4e2fe0ec5f58da64c36f4812388861a07d21a06deb3c04410d557",
+      "release_sha256": "60eb47c638e4e2fe0ec5f58da64c36f4812388861a07d21a06deb3c04410d557",
+      "equal": true
+    },
+    "public/assets/chair-demo/office-iso-no-chair.jpg": {
+      "baseline_sha256": "f69ed11040a424a25be576bd41a40c09733431428395dc742a453afa2044cac4",
+      "release_sha256": "f69ed11040a424a25be576bd41a40c09733431428395dc742a453afa2044cac4",
+      "equal": true
+    },
+    "public/assets/props/kenney/loungeSofa.glb": {
+      "baseline_sha256": "1886b811c0d3ad0d8525a4fd43adf4112c497c8e0ed906f06877ca3517f4c7dd",
+      "release_sha256": "1886b811c0d3ad0d8525a4fd43adf4112c497c8e0ed906f06877ca3517f4c7dd",
+      "equal": true
+    },
+    "public/assets/props/kenney/plantSmall1.glb": {
+      "baseline_sha256": "2b9c022feb47be857b2c4fdc29f36522766ba9b70c578c31d7c05d71b4377d15",
+      "release_sha256": "2b9c022feb47be857b2c4fdc29f36522766ba9b70c578c31d7c05d71b4377d15",
+      "equal": true
+    },
+    "public/assets/props/kenney/lampRoundFloor.glb": {
+      "baseline_sha256": "50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908",
+      "release_sha256": "50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908",
+      "equal": true
+    },
+    "public/assets/props/kenney/rugRound.glb": {
+      "baseline_sha256": "c4cdc8f51ed2dbfb853b147521ed40e995307392fd3b19045b2203ea50f376db",
+      "release_sha256": "c4cdc8f51ed2dbfb853b147521ed40e995307392fd3b19045b2203ea50f376db",
+      "equal": true
+    },
+    "public/assets/props/kenney/bookcaseOpen.glb": {
+      "baseline_sha256": "750702218d68c062b15dfef6ab06a4014d1cfa8bd05f02e57c53b7e13bec157c",
+      "release_sha256": "750702218d68c062b15dfef6ab06a4014d1cfa8bd05f02e57c53b7e13bec157c",
+      "equal": true
+    },
+    "public/assets/props/kenney/pottedPlant.glb": {
+      "baseline_sha256": "5b760eda2766f75fda36b2c5df652a1662f82981ef64cd8fa7fe7bcd386b3a15",
+      "release_sha256": "5b760eda2766f75fda36b2c5df652a1662f82981ef64cd8fa7fe7bcd386b3a15",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-gemini-sit.png": {
+      "baseline_sha256": "91b4191d2ced6406fd74fd89f795528d662f3d9813aaf6f94f163810c03f22c7",
+      "release_sha256": "91b4191d2ced6406fd74fd89f795528d662f3d9813aaf6f94f163810c03f22c7",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-claude-idle.png": {
+      "baseline_sha256": "81fa6ae4c8dcd2097c05fd6f8249640f5124242ab265306df83ea68655346d03",
+      "release_sha256": "81fa6ae4c8dcd2097c05fd6f8249640f5124242ab265306df83ea68655346d03",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-gemini-pod.png": {
+      "baseline_sha256": "ec11a91a791637da2bb2872dfd048e72618aafe6800280d7b2e0133612f41cca",
+      "release_sha256": "ec11a91a791637da2bb2872dfd048e72618aafe6800280d7b2e0133612f41cca",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-default-idle.png": {
+      "baseline_sha256": "e5460a406a1186ba225f694c618951eb1520f38b8fcf4a01995e5a8370e40879",
+      "release_sha256": "e5460a406a1186ba225f694c618951eb1520f38b8fcf4a01995e5a8370e40879",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-chatgpt-idle.png": {
+      "baseline_sha256": "655d4cb32ceeee48c13e16732b67461289c8bb58a9780371e4dd452bacaf5b82",
+      "release_sha256": "655d4cb32ceeee48c13e16732b67461289c8bb58a9780371e4dd452bacaf5b82",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-antigravity-pod.png": {
+      "baseline_sha256": "f4221996feb238d7fcdc25775971bbe59cb2f161f36e85381e183489c717d3e1",
+      "release_sha256": "f4221996feb238d7fcdc25775971bbe59cb2f161f36e85381e183489c717d3e1",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-claude-pod.png": {
+      "baseline_sha256": "2edfa38fbe033402d786515cd3115d3996b4d70c25d049e1686d65e90353bed2",
+      "release_sha256": "2edfa38fbe033402d786515cd3115d3996b4d70c25d049e1686d65e90353bed2",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-antigravity-walk.png": {
+      "baseline_sha256": "1848b5a1044360ffbfd996f9a3e8417e9ba47cdcff4e1505a34332c4b81eb8e0",
+      "release_sha256": "1848b5a1044360ffbfd996f9a3e8417e9ba47cdcff4e1505a34332c4b81eb8e0",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-default-pod.png": {
+      "baseline_sha256": "3df9682e169417802f8b274d3a724213ad0fa3e75ac12881553851ff37db1cd4",
+      "release_sha256": "3df9682e169417802f8b274d3a724213ad0fa3e75ac12881553851ff37db1cd4",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-chatgpt-pod.png": {
+      "baseline_sha256": "084aea055e46cc09aad80a668f58163e5557cbe591ed49b26f3e4fb80668b6ed",
+      "release_sha256": "084aea055e46cc09aad80a668f58163e5557cbe591ed49b26f3e4fb80668b6ed",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-default-sit.png": {
+      "baseline_sha256": "b242c818edf5f3284176744c5acdf53ed69a64d66983e355ecbe8e9bd2294db7",
+      "release_sha256": "b242c818edf5f3284176744c5acdf53ed69a64d66983e355ecbe8e9bd2294db7",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-chatgpt-sit.png": {
+      "baseline_sha256": "6c91bffd4985cfff96416c769a7835ad0d006795ee41cca6b60557be24a22b98",
+      "release_sha256": "6c91bffd4985cfff96416c769a7835ad0d006795ee41cca6b60557be24a22b98",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-antigravity-sit.png": {
+      "baseline_sha256": "c156dcc682438abdeb0eacc40d9fa6fa5e716c18bf6f9034e892420018325578",
+      "release_sha256": "c156dcc682438abdeb0eacc40d9fa6fa5e716c18bf6f9034e892420018325578",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-claude-walk.png": {
+      "baseline_sha256": "27eb47ee3e496655b99ee1ef6d06a58fa6d529e1d717563c2b4a1b2e3075d1e9",
+      "release_sha256": "27eb47ee3e496655b99ee1ef6d06a58fa6d529e1d717563c2b4a1b2e3075d1e9",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-gemini-idle.png": {
+      "baseline_sha256": "79b6e6e815451c9c81ec9e3b7419b5df8308636e03b10bec1049cd91adac15e2",
+      "release_sha256": "79b6e6e815451c9c81ec9e3b7419b5df8308636e03b10bec1049cd91adac15e2",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-antigravity-idle.png": {
+      "baseline_sha256": "9d1e60f1ce06bc734fb2931f45023d2f74a7b4b6f2b23de06604a09c19ca66df",
+      "release_sha256": "9d1e60f1ce06bc734fb2931f45023d2f74a7b4b6f2b23de06604a09c19ca66df",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-default-walk.png": {
+      "baseline_sha256": "ce5180c5fd891b433f7d069bfcd2a76a88477f0b115c52febfa13444e7b99c69",
+      "release_sha256": "ce5180c5fd891b433f7d069bfcd2a76a88477f0b115c52febfa13444e7b99c69",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-chatgpt-walk.png": {
+      "baseline_sha256": "5569bfe4233cf554b3c5052f5c0e932d45da7f35ccef326776b8e1b4246d700a",
+      "release_sha256": "5569bfe4233cf554b3c5052f5c0e932d45da7f35ccef326776b8e1b4246d700a",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-claude-sit.png": {
+      "baseline_sha256": "af1526a4580c8375e746f5bc1e42d57edebf1f2fd8986e237d0c65e219907c4b",
+      "release_sha256": "af1526a4580c8375e746f5bc1e42d57edebf1f2fd8986e237d0c65e219907c4b",
+      "equal": true
+    },
+    "public/assets/bots/iso/tam19-gemini-walk.png": {
+      "baseline_sha256": "37d9e6ad19c3c829767d2a115db0a6d9b3d3f773ad7878c7dd293610ee66f3eb",
+      "release_sha256": "37d9e6ad19c3c829767d2a115db0a6d9b3d3f773ad7878c7dd293610ee66f3eb",
+      "equal": true
+    }
+  },
+  "note": "Exact hashes prove unchanged geometry/assets/modules; not a new Windows GPU/render acceptance test."
+}

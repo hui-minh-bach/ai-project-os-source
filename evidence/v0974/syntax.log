@@ -1,0 +1,6 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> ai-project-os-local@0.9.74 check
+> node scripts/check-syntax.mjs
+
+{"checked":207,"failed":0,"scope":"syntax only; not execution or visual acceptance"}

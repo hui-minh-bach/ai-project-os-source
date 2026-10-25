@@ -1,0 +1,25 @@
+{
+  "version": "0.9.75",
+  "scope": "Documentation, contextual help and release version only; no new OAuth or cloud authority",
+  "syntaxFiles": 207,
+  "browserChecks": 5,
+  "guideGroups": [
+    "Cloud/website",
+    "AI accounts",
+    "API social",
+    "Manual export only",
+    "Troubleshooting"
+  ],
+  "priorRegression": "v0974 evidence retained as history",
+  "currentChecks": "Actual normal Chromium app; guide navigation without credentials; no live model/cloud/social calls and no WebGL",
+  "protectedScene": "83 files match .74 byte-for-byte",
+  "commercialReady": false,
+  "regression": {
+    "modules": 133,
+    "tests": 783,
+    "pass": 783,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0
+  }
+}

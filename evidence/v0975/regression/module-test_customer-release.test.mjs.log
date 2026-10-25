@@ -1,0 +1,12 @@
+✔ customer backup: encrypted, restores exact bytes, keeps previous live state for rollback (197.303918ms)
+✔ wrong password / tampered encrypted file cannot replace existing customer data (233.53592ms)
+✔ backup rejects symlink traversal and verifies download names (75.314944ms)
+✔ customer backup refuses too-short password (0.913425ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 596.032139

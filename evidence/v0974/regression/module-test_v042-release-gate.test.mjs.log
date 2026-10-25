@@ -1,0 +1,14 @@
+✔ baseline never tracks .env or private key files (38.882536ms)
+✔ security refuses a symlinked .gitignore (1.203253ms)
+✔ docker sandbox uses no-network, dropped capabilities and resource limits (4.720987ms)
+✔ provider rejects oversized HTTP responses before model output is accepted (199.473045ms)
+✔ four parallel workers preserve all task states and merge four independent branches (1154.454165ms)
+✔ GitHub publish refuses same repo name under a different owner (237.414868ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1737.864182

@@ -1,0 +1,32 @@
+✔ GitHub URL and owner/repo normalization rejects credentials, paths, options and lookalike hosts (1.214815ms)
+✔ import returns immediately, coalesces double click, persists progress and exact project ID (3.806531ms)
+✔ restart marks unfinished import interrupted; secrets in unknown process errors never surface (0.960331ms)
+Cloning into '/tmp/aios-gh-YTufI5/seed'...
+warning: You appear to have cloned an empty repository.
+done.
+To /tmp/aios-gh-YTufI5/remote/octo/demo.git
+ * [new branch]      main -> main
+Cloning into '/tmp/aios-gh-YTufI5/seed2'...
+warning: You appear to have cloned an empty repository.
+done.
+To /tmp/aios-gh-YTufI5/remote/octo/shop.git
+ * [new branch]      main -> main
+✔ GitHub loop: list repos -> import as project -> issue brief -> work -> PR push (347.097454ms)
+✔ Continue an in-progress repo: the app reads its guide, detects Vercel and builds the continuation list (138.628701ms)
+✔ GitHub repos are honestly unavailable without a linked account (0.353585ms)
+✔ private repo failure is noninteractive, bounded, leaves no empty project and keeps token out of URL/header on another host (27.408222ms)
+✔ 17 channels distinguish real adapter scope from manual export; validate limits without truncation (2.072091ms)
+✔ no request until exact content/account approval; X cost opt-in required (2.744627ms)
+✔ Threads creates and publishes container once, records only confirmed ID; durable duplicate click is read-only (4.874295ms)
+✔ X timeout after write is uncertain, never repeated even after restart (0.635551ms)
+✔ Zalo operation token is not a post ID; retry verifies same operation without recreating article (2.032521ms)
+✔ token/account change after preview invalidates approval; disconnect between steps blocks publication (1.130448ms)
+✔ identity verification requires actual provider account ID; safe errors never echo token/provider text (2.205612ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 722.517597

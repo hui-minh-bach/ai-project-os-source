@@ -1,0 +1,9 @@
+PASS local_session_and_origin_guard
+PASS founder_ui_real_request_handoff
+PASS accept_work_is_real_and_gated
+PASS approved_ui_work_dependency_review_merge
+PASS retry_button_reuses_message
+PASS pipeline_missing_input_422
+PASS news_intake_no_fabrication
+PASS navigation_smoke
+PASS vault_lock_blocks_model_calls

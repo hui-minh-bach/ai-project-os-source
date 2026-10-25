@@ -1,0 +1,11 @@
+✔ WinGet one-click uses only signed package-manager commands, no shell, never runs on other OS (1.469993ms)
+✔ Windows launcher checks per-user Google and winget locations after process PATH update (2.263668ms)
+✔ shell supports private prompt over stdin with no command-line secrets (34.847139ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 134.637315

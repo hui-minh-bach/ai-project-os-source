@@ -1,0 +1,15 @@
+✔ all four provider protocols capture real input/output/cache, concurrent accounts, missing usage and empty text before validation (796.572659ms)
+✔ retry success and duplicate completion count once; absent and malformed counters remain unknown (493.916608ms)
+✔ managed account profile lifecycle uses isolated stdio, real windows contract, cancel/logout/lock and launcher safety (697.102329ms)
+✔ stdio refuses server tools, bounds timeout, and never forwards provider error secrets (2033.475831ms)
+✔ account inference binds from the catalog without a prior probe (0.9.55) and reaches Founder/native Worker/Reviewer; token events dedupe and unsafe/failed/locked turns fail closed (1332.984242ms)
+✔ account catalogue removal and per-model verification age remain fail closed; metric coverage is explicit (174.466369ms)
+✔ stdio preserves Vietnamese and emoji split across bytes in response and notification lines (490.488258ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6119.83868

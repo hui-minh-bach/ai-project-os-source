@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "duplicateIds": 0,
+  "externalLinksNoOpener": true,
+  "newGuideSections": [
+    "guide-multiplatform",
+    "guide-multiplatform-title",
+    "guide-cloud",
+    "guide-ai",
+    "guide-social",
+    "guide-manual",
+    "guide-connection-errors"
+  ],
+  "scope": "HTML structure only; browser navigation separately verified"
+}

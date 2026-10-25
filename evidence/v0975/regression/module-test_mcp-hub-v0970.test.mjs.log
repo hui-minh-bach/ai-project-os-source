@@ -1,0 +1,14 @@
+✔ MCP legacy initializes, preserves session, discovers and calls only listed tool (44.85602ms)
+✔ MCP modern sends metadata and tool headers with real SSE response parsing (15.185131ms)
+✔ MCP refuses credential URLs, missing approval, duplicate dispatch and changed payload; persists receipt (240.64769ms)
+✔ MCP respects timeout and never treats tool isError as completed (31.643549ms)
+✔ MCP modern parameter headers preserve Vietnamese, whitespace, newline and sentinel text (11.758743ms)
+✔ MCP excludes invalid header annotations without losing a valid neighboring tool (0.786444ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 556.949501

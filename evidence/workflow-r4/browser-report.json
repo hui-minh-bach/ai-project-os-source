@@ -1,0 +1,72 @@
+{
+  "scope": "Linux Chromium in-memory UI harness using unchanged classic UI scripts/CSS and a session-backed HTTP bridge to the real app server. Browser policy blocks direct localhost navigation; no policy changed. 3D ES module excluded from this workflow-only harness. Local fixture AI only, not Windows or live provider validation.",
+  "checks": [
+    {
+      "name": "local_session_and_origin_guard",
+      "status": "pass",
+      "detail": "Uncredentialed API returns 401; cross-origin mutation returns 403."
+    },
+    {
+      "name": "founder_ui_real_request_handoff",
+      "status": "pass",
+      "detail": "Clicked Send in app; fixture A HTTP401, fixture B answered same request, served metadata and handoff event recorded."
+    },
+    {
+      "name": "accept_work_is_real_and_gated",
+      "status": "pass",
+      "detail": "Clicked accept-work; real HTTP Founder/Council inference ran, structured specification awaits explicit owner approval, no tasks prematurely executed."
+    },
+    {
+      "name": "approved_ui_work_dependency_review_merge",
+      "status": "pass",
+      "detail": "UI-confirmed specification, refreshed page with A marked unverified, Run-ready stayed enabled; T1 and dependent T2 completed automatically using B, independent C reviewed, real Git merge and generated HTML files inspected."
+    },
+    {
+      "name": "retry_button_reuses_message",
+      "status": "pass",
+      "detail": "All allowed providers failed honestly; Retry uses existing failed message ID, B handles it after role update, one user message plus one answer, no duplicated job."
+    },
+    {
+      "name": "pipeline_missing_input_422",
+      "status": "pass",
+      "detail": "Missing Radar card rejected with HTTP422 before creating a project or workflow."
+    },
+    {
+      "name": "news_intake_no_fabrication",
+      "status": "pass",
+      "detail": "Configured-source evidence absent: app returns a dated limitation without requesting unsupported CLI tools or any AI call, no invented current prices/news."
+    },
+    {
+      "name": "navigation_smoke",
+      "status": "pass",
+      "detail": {
+        "tabs": [
+          "map",
+          "connections",
+          "idea",
+          "studio",
+          "radar",
+          "skills",
+          "engines",
+          "publish",
+          "guide"
+        ]
+      }
+    },
+    {
+      "name": "vault_lock_blocks_model_calls",
+      "status": "pass",
+      "detail": "Vault locked; chat fails closed, dispatcher has no active request after completed work."
+    }
+  ],
+  "page_errors": [],
+  "external_browser_requests": [],
+  "fixture_http_calls": 15,
+  "provider_account_labels": [
+    "Fixture A",
+    "Fixture B",
+    "Fixture C",
+    "Fixture D"
+  ],
+  "success": true
+}

@@ -1,0 +1,13 @@
+✔ fleet: no runs — connected bots charge, unverified stays offline in the bay (1.076602ms)
+✔ fleet: a running run puts its project worker at the first desk (0.576178ms)
+✔ fleet: latest failure sends the bot to the cage and frees its desk for the next worker (0.317498ms)
+✔ fleet: a completed run after the failure releases the bot back to charging (0.203637ms)
+✔ fleet: failures older than 24h and runs of unbound projects are ignored; cap is 10 bots (0.265139ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.962815

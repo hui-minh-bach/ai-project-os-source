@@ -1,0 +1,12 @@
+✔ words are anchored to the GROUP speech span, never spread across silent windows (0.9.14 regression) (1.57771ms)
+✔ whisper anchors refine word times inside the group span (0.98792ms)
+✔ karaoke ASS sweeps word by word and fills sum to the spoken line window (0.366833ms)
+✔ karaoke is wired into dub, retheme, the director and the Studio UI (1.055381ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 91.20408

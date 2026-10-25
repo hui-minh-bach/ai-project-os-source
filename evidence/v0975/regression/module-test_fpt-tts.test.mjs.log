@@ -1,0 +1,10 @@
+✔ FPT synthesize: posts, waits for render, downloads, converts to WAV (155.590326ms)
+✔ FPT synthesize blocks honestly: no key, wrong language, foreign audio host (53.373916ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 285.787211

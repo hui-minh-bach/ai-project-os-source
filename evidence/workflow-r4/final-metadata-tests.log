@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: internal integration build fails closed until live commercial release gates have evidence
+ok 1 - internal integration build fails closed until live commercial release gates have evidence
+  ---
+  duration_ms: 69.698092
+  type: 'test'
+  ...
+# Subtest: even a fabricated self-signed attestations object cannot override unsigned EXE and missing license
+ok 2 - even a fabricated self-signed attestations object cannot override unsigned EXE and missing license
+  ---
+  duration_ms: 0.37848
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 154.77993

@@ -1,0 +1,16 @@
+✔ no cloud key blocks synthesis, but voice import is independent (1.803876ms)
+✔ HeyGen audio URL does not allow redirects to local hosts (0.348725ms)
+✔ HeyGen TTS adapter POSTs real endpoint and converts returned audio to PCM WAV using mock transport (167.508711ms)
+✔ media.voiceover produces a full MP4 using uploaded real voice, preserving all audio, approval required (854.618133ms)
+✔ provider timestamps become timecoded subtitles, omitting start/end sentinels (1.089471ms)
+✔ uploaded real narration can mix short background music and burn SRT, with stretched video (786.843275ms)
+✔ media.tts-video calls HeyGen once only after approval and outputs real speech, MP4, SRT via timestamps (1036.67532ms)
+✔ media.tts-video blocks missing API before any billable task is created (6.740173ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2993.488977

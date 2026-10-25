@@ -1,0 +1,15 @@
+✔ R7 one job per project, idempotent receipt and independent projects (4.537679ms)
+✔ R7 rejects reusing a receipt key for changed input (1.825131ms)
+✔ R7 validation failure is visible, redacted and never executes (0.926697ms)
+✔ R7 restart preserves interrupted receipt without replaying external effects (0.894148ms)
+✔ R7 damaged receipts fail closed, no silent reset (0.701167ms)
+✔ R7 closed worker refuses new tasks (1.295883ms)
+✔ R7 different action cannot silently share a running receipt (1.106578ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 100.994155

@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "version": "0.9.62",
+  "revision": "workflow-reliability-r4.0",
+  "scope": "Execution reliability; approved R3 visuals preserved",
+  "recorded_at_utc": "2026-10-23T04:16:37.970795+00:00",
+  "environment": {
+    "os": "Linux",
+    "node": "v22.16.0",
+    "browser": "Chromium with Playwright, in-memory workflow harness",
+    "transport": "session-backed HTTP bridge to real loopback app server",
+    "providers": "four deterministic local HTTP fixtures; no real vendor accounts or paid requests"
+  },
+  "syntax_check": {
+    "status": "pass",
+    "command": "npm run check",
+    "evidence": "release-regression.log"
+  },
+  "full_regression": {
+    "status": "pass",
+    "tests": 598,
+    "pass": 597,
+    "fail": 0,
+    "skip": 1,
+    "note": "One existing optional media test skipped; passing tests do not certify all real-provider configurations.",
+    "evidence": "release-regression.log"
+  },
+  "focused_routing_fleet": {
+    "status": "pass",
+    "pass": 44,
+    "fail": 0,
+    "evidence": "routing-tests.log"
+  },
+  "new_fault_injection_tests": {
+    "count": 30,
+    "files": [
+      "test/workflow-routing-r4.test.mjs",
+      "test/workflow-orchestrator-r4.test.mjs"
+    ]
+  },
+  "browser_http": {
+    "status": "pass",
+    "flows": 9,
+    "page_errors": 0,
+    "fixture_http_calls": 15,
+    "evidence": "browser-report.json",
+    "not_claimed": "No direct localhost browser navigation, Windows recording, WebGL validation or real provider intelligence evaluation."
+  },
+  "critical_observed_results": [
+    "A HTTP401 -> B answers the same founder request; A stays runtime-unverified.",
+    "The same project proceeds through analysis, Council specification and worker execution after repeated calls and a UI reload.",
+    "Owner approval retained; T1 and dependent T2 complete, actual B worker/C reviewer metadata, real Git merge and inspected HTML files.",
+    "Mid-task A writes once then fails; B sees host ledger and same worktree; no automatic duplicate write.",
+    "Failed founder retry uses the existing user message ID.",
+    "Missing Radar card returns 422 before creating a phantom project/run.",
+    "Configured RSS evidence absent -> explicit limitation, no fabricated current gold news and no AI inference.",
+    "Unauthenticated/cross-origin/Vault-locked calls fail closed.",
+    "Workflow retry preserves completed operation receipts; uncertain publishing cannot be replayed automatically."
+  ],
+  "room_preservation": {
+    "status": "pass",
+    "protected_files": 81,
+    "changed": 0,
+    "evidence": "protected-files.json"
+  },
+  "implementation_freeze": {
+    "status": "pass",
+    "files": 295,
+    "evidence": "tested-code-sha256.json"
+  },
+  "not_tested": [
+    "Real Windows installation and vendor CLIs",
+    "Customer AI accounts and live quota/API billing behavior",
+    "GPU/WebGL/FPS on the customer device",
+    "Actual social-platform publication",
+    "Signed installer and production commercialization"
+  ],
+  "known_boundaries": [
+    "Unknown/authentication-identity/policy/permission/specification changes may require owner correction rather than fallback.",
+    "Fallback calls are bounded; all eligible accounts failing ends with explicit error, not infinite retry.",
+    "Native text inference handoff is not automatic replay of external shell engines or uncertain side effects.",
+    "RSS evidence is configured-source retrieval, not unrestricted general Internet search.",
+    "The local app must remain running for its execution; checkpoints do not add background compute."
+  ],
+  "assessment": "R4 source implementation and isolated runtime acceptance passed; external Windows/live-account gates remain not_tested."
+}

@@ -1,0 +1,16 @@
+✔ release is pinned to Concat 0.2.7 and known GitHub SHA (0.849556ms)
+✔ Windows default location is detected without guessing arbitrary binaries (1.569408ms)
+✔ Concat config is preserved, backed up and remote is loopback-only (2.425134ms)
+✔ Malformed Concat preferences are never overwritten (1.279593ms)
+✔ Existing Concat can be configured/started offline without downloading or exposing the token (2.776472ms)
+✔ Will not modify running editor or launch on Linux (1.185211ms)
+✔ Bundled but corrupted installer is not trusted (1.040493ms)
+✔ Hash helper verifies exact bytes (0.825971ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 98.14165

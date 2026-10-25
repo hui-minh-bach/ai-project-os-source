@@ -1,0 +1,12 @@
+✔ connections show only real 5-hour/week provider limits and hide them while vault is locked (16.414913ms)
+✔ unsupported providers have no fabricated subscription quota even when token count is available (4.517338ms)
+✔ stale credential versions cannot reuse cached quota (0.975868ms)
+✔ logged-in but UNVERIFIED ChatGPT profiles fetch distinct quota data (no role/model verification gate) (11.766297ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.887692

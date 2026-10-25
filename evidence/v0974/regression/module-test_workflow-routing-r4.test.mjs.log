@@ -1,0 +1,30 @@
+✔ R4 HTTP 401 switches to different provider kind with its own catalog model (289.422707ms)
+✔ R4 HTTP 403 switches to different provider kind with its own catalog model (254.210595ms)
+✔ R4 HTTP 408 switches to different provider kind with its own catalog model (250.162058ms)
+✔ R4 HTTP 429 switches to different provider kind with its own catalog model (251.539997ms)
+✔ R4 HTTP 500 switches to different provider kind with its own catalog model (257.546677ms)
+✔ R4 HTTP 503 switches to different provider kind with its own catalog model (254.247783ms)
+✔ R4 connection reset/refusal, text-only mismatch and unknown failures are categorized conservatively (75.196281ms)
+✔ R4 provider timeout is aborted and B can answer without an indefinite wait (330.054914ms)
+✔ R4 empty and invalid JSON output hands off before host tools execute (261.269689ms)
+✔ R4 all candidates failing stops at the budget, preserves input and never reports completed (333.053171ms)
+✔ R4 cooling primary is skipped on subsequent requests; secondary receives same new prompt (282.452778ms)
+✔ R4 policy refusal cannot be evaded by changing provider (244.16051ms)
+✔ R4 explicit cancellation never hands off to another account (233.675794ms)
+✔ R4 disabling automatic failover calls only the selected account (241.013101ms)
+✔ R4 project-only routing cannot use an unrelated connected account (244.061815ms)
+✔ R4 a failed chat can be retried using the same message id without duplicating the logical job (184.668527ms)
+✔ R4 actual isolated Git task: A writes once, fails, B reads retained history and completes; independent C reviews (587.913844ms)
+✔ R4 dependency-wave batch starts T2 after T1 completes, without a second click (694.721987ms)
+✔ R4 true intake runs Founder and Council, then holds for user specification approval; after approval it executes tasks (504.756605ms)
+✔ R4 repeated project calls after primary HTTP401 preserve its catalog for routing, never claim it verified, and continue on B (259.603571ms)
+✔ R4 original provider HTTP401 cannot prevent later planning, worker and reviewer stages from using valid backups (616.67546ms)
+✔ R4 implicit reviewer failover excludes every model on the worker account; explicit original reviewer remains an owner choice (308.710229ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7070.166492

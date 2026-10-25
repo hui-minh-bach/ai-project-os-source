@@ -1,0 +1,16 @@
+✔ R2 lifecycle rejects missing mount function (0.986715ms)
+✔ R2 lifecycle joins concurrent opens and owns exactly one scene (0.308054ms)
+✔ R2 lifecycle disposes a GLB scene that resolves after navigation away (0.163276ms)
+✔ R2 lifecycle can reopen after cancellation without keeping the stale scene (0.195614ms)
+✔ R2 lifecycle shows an error and permits explicit retry (0.428194ms)
+✔ R2 lifecycle visibility is forwarded only to the mounted instance (0.72415ms)
+✔ R2 lifecycle synchronous renderer construction failure clears pending (0.211408ms)
+✔ R2 lifecycle concurrent GPU failure is not an infinite automatic retry (0.234252ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 82.977046

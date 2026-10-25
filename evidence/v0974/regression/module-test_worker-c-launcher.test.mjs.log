@@ -1,0 +1,12 @@
+✔ Worker C: launcher starts outside its installation working directory (248.082228ms)
+✔ Worker C: explicit occupied port refuses unsafe reuse (72.421924ms)
+✔ Worker C: default port collision falls back without trusting the foreign service (228.288794ms)
+✔ v0.8.5 launcher refuses to silently use a different port when v0.8.0 is still running (75.552658ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5647.348625

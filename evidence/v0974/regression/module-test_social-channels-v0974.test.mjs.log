@@ -1,0 +1,15 @@
+✔ 17 channels distinguish real adapter scope from manual export; validate limits without truncation (1.704827ms)
+✔ no request until exact content/account approval; X cost opt-in required (2.061324ms)
+✔ Threads creates and publishes container once, records only confirmed ID; durable duplicate click is read-only (3.907764ms)
+✔ X timeout after write is uncertain, never repeated even after restart (0.502887ms)
+✔ Zalo operation token is not a post ID; retry verifies same operation without recreating article (1.555482ms)
+✔ token/account change after preview invalidates approval; disconnect between steps blocks publication (3.979843ms)
+✔ identity verification requires actual provider account ID; safe errors never echo token/provider text (0.917162ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 97.495705
