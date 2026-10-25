@@ -1,0 +1,3 @@
+interface:
+  display_name: "Is Agentic"
+  short_description: "Check a website’s readiness for AI agents"

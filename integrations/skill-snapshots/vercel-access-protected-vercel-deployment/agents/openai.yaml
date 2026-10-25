@@ -1,0 +1,3 @@
+interface:
+  display_name: "Protected Deployments"
+  short_description: "Access protected Vercel deployments"

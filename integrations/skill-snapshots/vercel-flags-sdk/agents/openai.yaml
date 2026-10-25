@@ -1,0 +1,3 @@
+interface:
+  display_name: "Flags SDK"
+  short_description: "Add feature flags with the Flags SDK"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Custom Metrics"
+  short_description: "Emit and inspect custom Vercel metrics"
