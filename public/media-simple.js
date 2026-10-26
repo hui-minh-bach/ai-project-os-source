@@ -15,10 +15,10 @@
  q('mediaSimpleFile').onchange=async()=>{
    const file=q('mediaSimpleFile').files?.[0];if(!file)return;
    if(!state.project?.id){status('Chọn hoặc tạo dự án trước.','error');return;}
-   if(file.size>150*1024*1024||!/\\.(mp4|mov|mkv|webm|m4v)$/i.test(file.name)){status('Chỉ hỗ trợ MP4/MOV/MKV/WEBM/M4V, tối đa 150 MB.','error');return;}
+   if(file.size>150*1024*1024||!/\.(mp4|mov|mkv|webm|m4v)$/i.test(file.name)){status('Chỉ hỗ trợ MP4/MOV/MKV/WEBM/M4V, tối đa 150 MB.','error');return;}
    uploading=true;buttonState();clearResult();step(0);status('Đang tải video và kiểm tra dữ liệu…');
    try{
-     const response=await fetch('/api/integrations/media/upload',{method:'POST',headers:{'x-media-filename':encodeURIComponent('upload'+file.name.match(/\\.[^.]+$/)[0].toLowerCase())},body:file});
+     const response=await fetch('/api/integrations/media/upload',{method:'POST',headers:{'x-media-filename':encodeURIComponent('upload'+file.name.match(/\.[^.]+$/)[0].toLowerCase())},body:file});
      const uploaded=await response.json();if(!response.ok)throw new Error(uploaded.error||'Không nhập được tệp.');
      if(projectId&&projectId!==state.project.id)throw new Error('Bạn đã đổi dự án trong lúc tải video.');
      source=uploaded.source;projectId=state.project.id;mediaUI.source=source;mediaUI.sourceLabel=file.name;mediaUI.sourceProjectId=projectId;mediaSourceRefresh();mediaDirectorSourceRefresh();
@@ -95,16 +95,19 @@
        if(state.project?.id!==projectId||jobId!==task||resultArtifact?.id!==selected.id){error.textContent='Video/dự án đã thay đổi. Mở lại duyệt đăng.';return;}
        const button=document.getElementById('mediaFinalConfirm');button.disabled=true;
        try{
-         // Each platform requires its own approved media publish task; never assume successful post at queue time.
+         const bound=await apiCall('/api/integrations/media/publish-source',{projectId,artifactId:selected.id});
+         if(bound.projectId!==projectId||bound.artifactId!==selected.id||!bound.source)throw Error('Bản xác nhận MP4 không hợp lệ.');
          const tasks=[];
-         for(const k of checked){
-           const p={video:'',title,description:document.getElementById('mediaFinalDescription').value};
-           // Media API requires a workspace-relative, verified render path; artifact ID is not a path.
-           // No unsafe server-side path guessing from a browser artifact.
-           throw new Error('Video đã duyệt hiện là artifact an toàn. Cần liên kết artifact với đường dẫn xuất bản trên server trước khi đăng. Chưa gửi ra nền tảng nào.');
+         for(const kind of checked){
+           const settings={video:bound.source,title,description:document.getElementById('mediaFinalDescription').value};
+           if(kind==='youtube')settings.privacy='unlisted'; // safer than public; owner can change privacy on YouTube
+           const queued=await apiCall('/api/integrations/media/tasks',{projectId,operation:'media.publish-'+kind,params:settings});
+           tasks.push({id:queued.id,platform:kind});
+           await apiCall('/api/integrations/media/tasks/'+encodeURIComponent(queued.id)+'/approve',{});
          }
-         q('mediaSimplePublishState').textContent='Đã chuyển '+tasks.length+' tác vụ đăng lên hàng đợi.';
-       }catch(e){error.textContent=e.message;button.disabled=false;}
+         q('mediaSimplePublishState').textContent='Đã duyệt '+tasks.length+' nền tảng. Đang xử lý đăng trên tài khoản đã kết nối; chỉ có xác nhận từ nền tảng mới được tính là đã đăng.';
+         closeCustomerModal();await mediaRefreshJobs();
+       }catch(e){error.textContent='Không thể đăng: '+e.message+' Nếu một kênh đã được nhận, hãy kiểm tra hàng đợi trước khi bấm lại để tránh đăng trùng.';button.disabled=false;}
      };
    };
    void stage().catch(e=>status('Không mở được duyệt đăng: '+e.message,'error'));
