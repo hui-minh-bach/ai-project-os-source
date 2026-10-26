@@ -1,0 +1,63 @@
+{
+  "project": "Dai Viet 2099 — 5 robots V6",
+  "repository": "hui-minh-bach/ai-project-os-source",
+  "branch": "assets/dai-viet-2099-v6",
+  "asset_root": "public/assets/ai-office/dai-viet-2099/v6",
+  "base_version": "V5.2",
+  "version": "V6",
+  "expected_skeleton_bones_per_robot": 36,
+  "expected_animation_clips_per_robot": 43,
+  "files": [
+    {
+      "path": "models/TAM_10_Da_Nang_V6.glb",
+      "bytes": 8215512,
+      "sha256": "42199c9ccf5ada6d36fe9e900649e44210b71d707f188ac079e85e8c9ffe5cce"
+    },
+    {
+      "path": "models/TAM_11_Hoi_An_V6.glb",
+      "bytes": 8832232,
+      "sha256": "7ff71df7fd6db4ab9fc25ba22479543d248f6a4195fb94a303800fc1969b9922"
+    },
+    {
+      "path": "models/TAM_12_Quy_Nhon_V6.glb",
+      "bytes": 8127728,
+      "sha256": "46485b946aeefcfdef3d9b18f96d4afe24065c19737995f27945b2cde0522fe9"
+    },
+    {
+      "path": "models/TAM_13_Nha_Trang_V6.glb",
+      "bytes": 8630916,
+      "sha256": "4dc1159b15b84a8189f95bc9425f5b6bb73cfffaf59b3566940638a37cb52a17"
+    },
+    {
+      "path": "models/TAM_14_Da_Lat_V6.glb",
+      "bytes": 9191596,
+      "sha256": "686fe56153f229aa802b65fb67706fccc7aeaef0f51d95d2408af4dfce2944c2"
+    },
+    {
+      "path": "models_lod/TAM_10_Da_Nang_V6.glb",
+      "bytes": 2558964,
+      "sha256": "ba2ca05655c728f3bc7214fd7ba36647a3fdad85ba8244e31139078eabed19ec"
+    },
+    {
+      "path": "models_lod/TAM_11_Hoi_An_V6.glb",
+      "bytes": 2784236,
+      "sha256": "1518acaf24425788fa951a62b98818a92e965b3f9301d8748cd7494b10353aad"
+    },
+    {
+      "path": "models_lod/TAM_12_Quy_Nhon_V6.glb",
+      "bytes": 2547216,
+      "sha256": "ac1514047ac23d0f4586389d717abb665206dbb10f4ee8e30614dc79f597f28f"
+    },
+    {
+      "path": "models_lod/TAM_13_Nha_Trang_V6.glb",
+      "bytes": 2710220,
+      "sha256": "19cd87161758a99e959d897444041b4203f655e16d8115d949e853427724b47d"
+    },
+    {
+      "path": "models_lod/TAM_14_Da_Lat_V6.glb",
+      "bytes": 3030048,
+      "sha256": "812f03ced2cdb2e9d83f59d55eafb27ea0e67fa4464d04301ebbbdacadf1a894"
+    }
+  ],
+  "note": "Manifest only. GLB binaries must be uploaded through the provided Windows package; do not assume binaries have already been uploaded."
+}
