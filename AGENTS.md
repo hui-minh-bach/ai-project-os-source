@@ -60,3 +60,6 @@ Add observed temporal background recovery, UI/AI tool routing and upload-friendl
 
 ## v0.9.80 owner-authorized seven-step renewal
 Implement automatic opaque subtitle cover with actual optional Tesseract OCR, source SRT ingestion, faithful translation guards, new narration/captions and bounded honest dependencies. The owner authorizes auto-derived cover rectangles from real OCR, superseding manual-only region rule for cover (not logo reconstruction). Preserve 83 scene/assets and approval/source integrity guards. Repair partial writes and project ZIP/TXT download; draft snapshots must never imply reviewed production readiness.
+
+## v0.9.81 video cover correction
+Read START-HERE-V0981.md. Default OCR cleanup repairs only recognized words (local border interpolation), no full-width 26% dark band. The no-OCR bottom-band remains an explicitly selected fallback (8% initial). Old sealed checkpoints retain legacy behavior. Do not imply exact inpainting or guaranteed OCR coverage. Preserve all approved 3D assets and commercial gates.

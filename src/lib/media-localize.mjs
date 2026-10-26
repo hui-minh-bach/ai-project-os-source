@@ -28,7 +28,7 @@ export function validateLocalization(p){
   if(!['auto','regions','none'].includes(p.cleanupMode))throw fail('MEDIA_CLEANUP_REQUIRED','Chọn vùng chữ/logo cần xóa hoặc xác nhận video không cần xử lý.');
   if(p.captionsSource!==undefined&&(typeof p.captionsSource!=='string'||p.captionsSource.length>300||!p.captionsSource.toLowerCase().endsWith('.srt')))throw fail('MEDIA_CAPTIONS','Phụ đề nguồn phải là SRT đã nạp.');
   const autoCoverScope=p.autoCoverScope||'all';if(!['all','bottom'].includes(autoCoverScope))throw fail('MEDIA_COVER_INPUT','Chọn phạm vi che chữ.');
-  const autoCoverPct=p.autoCoverPct??26;if(!Number.isInteger(autoCoverPct)||autoCoverPct<12||autoCoverPct>40)throw fail('MEDIA_COVER_INPUT','Dải phụ đề phải từ 12–40% chiều cao.');
+  const autoCoverPct=p.autoCoverPct??8;if(!Number.isInteger(autoCoverPct)||autoCoverPct<6||autoCoverPct>40)throw fail('MEDIA_COVER_INPUT','Dải phụ đề thủ công phải từ 6–40% chiều cao.');
   const ocrLanguage=p.ocrLanguage||'eng';if(!/^[a-z_]{3,12}(?:\+[a-z_]{3,12}){0,3}$/.test(ocrLanguage))throw fail('MEDIA_OCR_LANGUAGE','Chọn ngôn ngữ chữ cũ.');
   return {fitVideo:p.fitVideo===true,coverSubtitles:p.cleanupMode==='auto'||p.coverSubtitles===true,glossary:validateGlossary(p.glossary),ocrLanguage,captionsSource:p.captionsSource||undefined,autoCoverScope,autoCoverPct,source:p.source||undefined,url:p.url||undefined,sourceLanguage:language,targetLanguage:'vi',
     ttsProvider:provider,voice:typeof p.voice==='string'?p.voice.slice(0,90):undefined,
@@ -140,5 +140,5 @@ export async function runLocalization({workspace,jobId,params,deps,onProgress=()
     cleanup:cleaned.method,cleanupReport:cleaned.report||null,voiceProvider:speech.provider,videoTimeline:speech.videoTimeline,sourceSeconds:source.seconds,outputSeconds:speech.outputSeconds,
     captions:{method:captions.method,segments:captions.segments},qa:result.qa,
     steps:state.steps.map(({key,label,state})=>({key,label,state})),
-    limits:'Phrase-level timing, not lip sync or measured word karaoke. Cleanup uses selected spatial interpolation or observed temporal background recovery, completed before external calls when temporal is selected. Template tracking needs one visual seed and stops on loss; Auto cover is opaque, not neural inpainting; OCR is sampled at 2 FPS and can miss brief/unreadable text. Installed language packs required. No scale/rotation recovery.'}};
+    limits:'Phrase-level timing, not lip sync or measured word karaoke. Cleanup uses selected spatial interpolation or observed temporal background recovery, completed before external calls when temporal is selected. Template tracking needs one visual seed and stops on loss; Auto cover uses OCR word-sized spatial interpolation or an explicitly selected opaque band; neither is neural inpainting; OCR is sampled at 2 FPS and can miss brief/unreadable text. Installed language packs required. No scale/rotation recovery.'}};
 }
