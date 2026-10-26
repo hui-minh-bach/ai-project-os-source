@@ -1,3 +1,4 @@
+import {splitUtf8} from './utf8-parts.mjs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -14,7 +15,16 @@ export function projectSourceZip(id){
  const p=getProject(id),gate=sourceReadiness(p);if(!gate.ready)throw Object.assign(new Error('Source chua hoan tat/review; khong ban giao nhu san pham da xong.'),{code:'PRODUCT_SOURCE_PENDING'});
  const source=collectSource(workspaceDir(id),{redact:redactVaultSecrets});
  if(!sourceReadiness(getProject(id)).ready)throw new Error('Cong viec da thay doi trong khi dong goi.');
- return {bytes:sourceZip(source.files),metadata:{name:'project-source.zip',sha256:source.hash},source:{hash:source.hash,files:source.count,bytes:source.bytes,tested:gate.tested}};
+ const bytes=sourceZip(source.files,{compress:true});return {bytes,metadata:{name:'project-source.zip',sha256:crypto.createHash('sha256').update(bytes).digest('hex'),disposition:'attachment'},source:{hash:source.hash,files:source.count,bytes:source.bytes,tested:gate.tested}};
+}
+/** Owner download of work in progress, explicitly distinct from reviewed delivery. */
+export function projectSourceSnapshot(id,{textOnly=false,textArchive=false}={}){
+ const p=getProject(id),source=collectSource(workspaceDir(id),{redact:redactVaultSecrets,skipPrivate:true,maxFiles:5000,maxBytes:120*1024*1024,maxFileBytes:32*1024*1024});
+ const status={projectId:id,projectName:p.name,kind:'draft-source-snapshot',productionReady:false,readiness:sourceReadiness(p),excludedPrivateFiles:source.excludedFiles,sourceHash:source.hash,files:source.files.map(({file,sha256,size})=>({file,sha256,size}))};
+ let bytes,name,type;
+ if(textOnly||textArchive){const chunks=['AI PROJECT OS — SOURCE FOR AI\n'+JSON.stringify(status,null,2)+'\n'];for(const f of source.files){const b=Buffer.from(f.data,'base64');let text;try{text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(b);if(text.includes('\0'))continue;}catch{continue;}chunks.push('\n===== FILE '+JSON.stringify({path:f.file,bytes:b.length,sha256:f.sha256})+' =====\n'+text+'\n===== END FILE =====\n');}bytes=Buffer.from(chunks.join(''));name='project-source-for-ai.txt';type='text/plain; charset=utf-8';if(textArchive){const textBytes=bytes,parts=splitUtf8(textBytes),index={version:1,sourceSha256:crypto.createHash('sha256').update(textBytes).digest('hex'),parts:parts.map((b,i)=>({name:'SOURCE_PART_'+String(i+1).padStart(3,'0')+'.txt',bytes:b.length,sha256:crypto.createHash('sha256').update(b).digest('hex')}))};bytes=sourceZip([...parts.map((b,i)=>({file:index.parts[i].name,data:b.toString('base64')})),{file:'READ-FIRST.txt',data:Buffer.from('PLAIN UTF-8 SOURCE FOR AI\nExtract this ZIP and attach SOURCE_PART_*.txt in order if your AI rejects ZIP. No encoded binary resources. Original text bytes concatenate exactly; see INDEX.txt. Binary resources remain in the normal source ZIP.\n').toString('base64')},{file:'INDEX.txt',data:Buffer.from(JSON.stringify(index,null,2)).toString('base64')}],{compress:true});name='project-source-ai-text.zip';type='application/zip';}}
+ else{if(source.files.some(f=>f.file.startsWith('__AIOS_EXPORT__/')))throw Object.assign(new Error('Reserved export directory __AIOS_EXPORT__ already exists.'),{code:'SOURCE_EXPORT_RESERVED'});const readme=Buffer.from('SOURCE SNAPSHOT — WORK IN PROGRESS\nNot a reviewed/tested/commercial delivery. No code is executed. Private files listed in manifest.json are excluded.\nIf an AI service rejects ZIP, download the separate source-for-ai.txt from the app. Binary resources require this ZIP.\n');bytes=sourceZip([...source.files,{file:'__AIOS_EXPORT__/manifest.json',data:Buffer.from(JSON.stringify(status,null,2)).toString('base64')},{file:'__AIOS_EXPORT__/READ-FIRST.txt',data:readme.toString('base64')}],{compress:true});name='project-source-snapshot.zip';type='application/zip';}
+ return {bytes,type,metadata:{name,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),disposition:'attachment'},source:status};
 }
 export function listProducts(id,{orchestrator,host,delivery}){
  const p=getProject(id),products=[],runs=orchestrator.listRuns().filter(r=>r.projectId===id),base='/api/projects/'+encodeURIComponent(id);
@@ -37,7 +47,7 @@ export function listProducts(id,{orchestrator,host,delivery}){
  const source=sourceReadiness(p);if(source.ready)products.push({id:'source-'+id,kind:'source',name:'project-source.zip',title:p.name,at:p.updatedAt,download:base+'/products/source.zip',tested:source.tested,state:source.tested?'reviewed-tested':'reviewed-test-missing'});
  let launch=null;try{launch=delivery.getForProject(id);}catch{}
  if(launch?.handoff){const b=base+'/launch/'+encodeURIComponent(launch.id)+'/artifact/';products.push({id:launch.id,kind:'website',name:'website-source.zip',title:p.name,at:launch.updatedAt,url:launch.handoff.url,download:b+'source.zip',qr:b+'qr.svg',state:launch.state,target:launch.handoff.target,sourceHash:launch.handoff.sourceHash});}
- return {projectId:id,products:products.reverse(),artifactError,source,at:new Date().toISOString()};
+ return {projectId:id,products:products.reverse(),artifactError,source,snapshot:{available:fs.readdirSync(workspaceDir(id)).some(n=>!n.startsWith('.')&&!['node_modules','dist','build','evidence','backups'].includes(n)),zip:base+'/products/source-snapshot.zip',text:base+'/products/source-for-ai.txt',textZip:base+'/products/source-ai.zip',status:'work-in-progress-not-reviewed'},at:new Date().toISOString()};
 }
 export function articleDocument(run){if(!run?.article)throw new Error('Bai viet chua duoc tao.');const a=run.article;return '# '+a.title+'\n\n'+a.body+'\n\n---\n\n'+(a.caption||'')+'\n\n'+(a.sourceUrl?'Nguồn tham khảo: '+a.sourceUrl+'\n\n':'')+(a.clientOrder?'Ghi chú: Các thông tin quảng cáo cần được khách hàng xác nhận trước khi đăng.\n':'')+(run.aiMode==='simulated'?'BAN MO PHONG - KHONG PHAI SAN PHAM AI THAT\n':'');}
 

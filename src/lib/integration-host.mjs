@@ -1,3 +1,6 @@
+import {buildLocalizedAss} from './media-caption-ass.mjs';
+import {captionChunks,subtitlePlainText} from './media-content.mjs';
+import {prepareAutoCover,ocrStatus} from './media-auto-cover.mjs';
 import { windowsSpeechStatus as installedWindowsStatus, windowsSpeechSynthesize as installedWindowsSynthesize } from './windows-speech.mjs';
 import { buildCaptionVideo } from './caption-video.mjs';
 /**
@@ -29,6 +32,10 @@ import { youtubeUpload, facebookUpload, tiktokUpload, youtubeStats, facebookStat
 import { createPublishRecords } from './publish-records.mjs';
 import { mediaPlannerStatus, mediaModelPlan, mediaReviewerPlan, translateSegmentsWithModel, writeRethemeScriptWithModel, splitScriptAcrossWindows, writeTextWithModel, buildDirectorModelCall, parseDirectorPlan, routeDirectorPlan, groupSpeechSegments } from './media-ai.mjs';
 import { EFFECT_IDS, buildEffectsGraph, buildEffectsAss } from './media-effects.mjs';
+import { downloadVideo, downloadKind, downloaderStatus } from './media-download.mjs';
+import { removeRegions, validateRegions } from './media-region.mjs';
+import { trackingStatus, prepareTrackingPlan } from './media-tracking.mjs';
+import { runLocalization, validateLocalization, localizationProgress } from './media-localize.mjs';
 import { generateImage, imageProviderStatus, prepareImagePool, IMAGE_PROVIDERS } from './image-gen.mjs';
 import { imageSceneOnce } from './image-scene-checkpoint.mjs';
 import { localWorkers } from './local-workers.mjs';
@@ -50,6 +57,9 @@ const mediaUtils=require('../../integrations/media-engine/src/utils.cjs');
 const {escapeFilterPath}=require('../../integrations/media-engine/src/renderer.cjs');
 const ALLOWED_OPERATIONS=Object.freeze({
   'media.analyze':'video_edit',
+  'media.download':'video_edit',
+  'media.localize':'video_edit',
+  'media.region-remove':'video_edit',
   'media.subtitle-edit':'video_edit',
   'media.edit-plan':'video_edit',
   'media.quick-edit':'video_edit',
@@ -107,7 +117,7 @@ function verifiedPlan(params,file){
 
 function unwrapJson(response){const content=String(response||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');return JSON.parse(content);}
 
-export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock=true,ttsFetch=globalThis.fetch,systemSpeech=null}={}){
+export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock=true,ttsFetch=globalThis.fetch,systemSpeech=null,mediaDownloader=downloadVideo,localizationServices=null}={}){
   const windowsSpeechStatus=(options={})=>systemSpeech?systemSpeech.status(options):installedWindowsStatus(options);
   const windowsSpeechSynthesize=input=>systemSpeech?systemSpeech.synthesize(input):installedWindowsSynthesize(input);
   const data=path.resolve(root)===PROJECT_ROOT ? DATA_DIR : path.join(root,'.data');
@@ -297,6 +307,19 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // are imported separately into its project, not one pre-flattened MP4.
       // The verified FFmpeg output remains independently available as fallback.
       const originalQuick=handlers.get('media.quick-edit');
+      handlers.set('media.download',async({jobId,url,rightsConfirmed})=>{
+        const made=await mediaDownloader({workspace:mediaWorkspace,url,rightsConfirmed,env});
+        await artifactPort.putFile({jobId,source:made.file,name:'downloaded-video.mp4'});
+        const {file,...receipt}=made;
+        await artifactPort.putJson({jobId,name:'download-source.json',data:receipt});
+        return {source:made.source};
+      });
+      handlers.set('media.region-remove',async({jobId,source,regions,rightsConfirmed})=>{
+        const made=await removeRegions({workspace:mediaWorkspace,source,regions,rightsConfirmed,jobId});
+        await artifactPort.putFile({jobId,source:made.file,name:'region-cleaned.mp4'});
+        await artifactPort.putJson({jobId,name:'region-removal-report.json',data:made.report});
+        return {file:made.file};
+      });
       handlers.set('media.quick-edit',async args=>{
         const payload=args||{};
         // A token alone is not proof the external editor is running. Reject
@@ -489,31 +512,42 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       // prosody instead of a cold start per window), tempo is capped at
       // 1.25x, every placed group gets soft in/out fades, and a very quiet
       // room-tone bed replaces the dead digital silence between groups.
-      async function assembleSpeechTrack({dir,segments,texts,provider,voice,language,totalSeconds,outName}){
-        const groups=groupSpeechSegments(segments.map((sg,i)=>({...sg,text:texts[i]})));
+      async function assembleSpeechTrack({dir,segments,texts,provider,voice,language,totalSeconds,outName,strict=false,grouped=true,captionChunksEnabled=false,fitVideo=false}){
+        const groups=grouped?groupSpeechSegments(segments.map((sg,i)=>({...sg,text:texts[i]}))):segments.map((sg,i)=>({...sg,indexes:[i]}));
         const segReports=new Array(segments.length);
-        const groupFiles=[],filters=[];
+        const groupFiles=[],filters=[],videoTimeline=[];let shift=0;
+        if(fitVideo&&groups[0]?.start>0)videoTimeline.push({sourceStart:0,sourceEnd:groups[0].start,outputStart:0,outputEnd:groups[0].start});
         for(let g=0;g<groups.length;g++){
           const grp=groups[g];
           const gWav=path.join(dir,`grp-${String(g+1).padStart(3,'0')}.wav`);
-          await provider.synthesize({text:grp.indexes.map(i=>texts[i]).join(' '),voice,rate:1,language,output:gWav});
+          const combined=grp.indexes.map(i=>texts[i]).join(' '),parts=captionChunksEnabled?captionChunks(combined):[combined],partInfo=[];
+          for(let n=0;n<parts.length;n++){const part=parts.length===1?gWav:path.join(dir,`grp-${g+1}-part-${n+1}.wav`);await provider.synthesize({text:parts[n],voice,rate:1,language,output:part});partInfo.push({text:parts[n],file:part,seconds:mediaUtils.duration(await mediaUtils.ffprobe(part,'ffprobe'))});}
+          if(parts.length>1)await mediaUtils.run('ffmpeg',['-v','error','-y',...partInfo.flatMap(p=>['-i',p.file]),'-filter_complex',partInfo.map((_,n)=>`[${n}:a]`).join('')+`concat=n=${partInfo.length}:v=0:a=1[a]`,'-map','[a]',gWav],{timeoutMs:120000});
           const dur=mediaUtils.duration(await mediaUtils.ffprobe(gWav,'ffprobe'));
           const nextStart=g+1<groups.length?groups[g+1].start:totalSeconds;
           const room=Math.max(grp.end-grp.start,nextStart-grp.start);
           let tempo=1;
           if(dur>room&&room>0)tempo=Math.min(dur/room,1.25);
           const placed=dur/tempo;
-          const overflow=placed>room+0.05;
+          const sourceWindowOverflow=placed>room+0.05,extension=fitVideo&&sourceWindowOverflow?placed-room+.04:0;
+          if(extension&&((room+extension)/room>3||totalSeconds+shift+extension>3600))throw err('MEDIA_DUB_TIMING','Lời Việt cần giãn hình quá mức. Chia đoạn nguồn hoặc kiểm tra bản dịch.');
+          const placedStart=grp.start+shift;
+          if(fitVideo)videoTimeline.push({sourceStart:grp.start,sourceEnd:nextStart,outputStart:placedStart,outputEnd:nextStart+shift+extension});
+          const overflow=sourceWindowOverflow&&!fitVideo;
+          if(strict&&overflow)throw err('MEDIA_DUB_TIMING',`Câu ${g+1} cần ${placed.toFixed(2)} giây nhưng chỉ có ${room.toFixed(2)} giây. Không cắt mất lời; rút ngắn bản dịch hoặc chọn giọng nhanh hơn rồi duyệt lại.`);
           groupFiles.push(gWav);
           const fadeOutStart=Math.max(0,placed-0.06);
-          filters.push(`[${g+1}:a]${tempo!==1?`atempo=${tempo.toFixed(3)},`:''}afade=t=in:st=0:d=0.03,afade=t=out:st=${fadeOutStart.toFixed(3)}:d=0.06,adelay=${Math.round(grp.start*1000)}:all=1[a${g}]`);
-          for(const i of grp.indexes)segReports[i]={index:i+1,start:segments[i].start,end:segments[i].end,sourceText:segments[i].text||'',text:texts[i],group:g+1,groupSize:grp.indexes.length,voiceSeconds:Number(dur.toFixed(3)),tempo:Number(tempo.toFixed(3)),overflow};
+          filters.push(`[${g+1}:a]${tempo!==1?`atempo=${tempo.toFixed(3)},`:''}afade=t=in:st=0:d=0.03,afade=t=out:st=${fadeOutStart.toFixed(3)}:d=0.06,adelay=${Math.round(placedStart*1000)}:all=1[a${g}]`);
+          let partOffset=placedStart;const captionParts=captionChunksEnabled?partInfo.map(p=>{const start=partOffset;partOffset+=p.seconds/tempo;return {start,end:partOffset,text:p.text};}):undefined;
+          for(const i of grp.indexes)segReports[i]={...(captionParts?{captionParts}:{}),index:i+1,start:segments[i].start,end:segments[i].end,sourceText:segments[i].text||'',text:texts[i],group:g+1,groupSize:grp.indexes.length,voiceSeconds:Number(dur.toFixed(3)),tempo:Number(tempo.toFixed(3)),overflow,sourceWindowOverflow,placedStart,videoExtendedBy:extension};
+          shift+=extension;
         }
+        const outputSeconds=totalSeconds+shift;
         const bedIndex=groupFiles.length+1;
         const mixFilter=filters.join(';')+`;[${bedIndex}:a]lowpass=f=500,volume=0.012[bed];[0:a]`+groupFiles.map((_,g)=>`[a${g}]`).join('')+`[bed]amix=inputs=${groupFiles.length+2}:duration=first:normalize=0[track]`;
         const out=path.join(dir,outName);
-        await mediaUtils.run('ffmpeg',['-v','error','-y','-f','lavfi','-t',totalSeconds.toFixed(3),'-i','anullsrc=r=44100:cl=stereo',...groupFiles.flatMap(f=>['-i',f]),'-f','lavfi','-t',totalSeconds.toFixed(3),'-i','anoisesrc=color=pink:r=44100:a=0.5','-filter_complex',mixFilter,'-map','[track]','-ac','2','-ar','44100',out],{timeoutMs:600000});
-        return {file:out,segReports,groupCount:groups.length};
+        await mediaUtils.run('ffmpeg',['-v','error','-y','-f','lavfi','-t',outputSeconds.toFixed(3),'-i','anullsrc=r=44100:cl=stereo',...groupFiles.flatMap(f=>['-i',f]),'-f','lavfi','-t',outputSeconds.toFixed(3),'-i','anoisesrc=color=pink:r=44100:a=0.5','-filter_complex',mixFilter,'-map','[track]','-ac','2','-ar','44100',out],{timeoutMs:600000});
+        return {file:out,segReports,groupCount:groups.length,outputSeconds,videoTimeline:fitVideo?videoTimeline:null};
       }
       // Karaoke captions ("chu chay theo loi"): word timings measured by
       // local Whisper on the FINAL speech track when available, otherwise a
@@ -543,7 +577,41 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
         await artifactPort.putFile({jobId,source:assPath,name:'captions-karaoke.ass'});
         return {captionsSource:path.relative(mediaWorkspace,assPath),captionStyle:'karaoke-'+preset,captionTiming:aligned.method,wordCount:aligned.wordCount};
       }
-      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='vi',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true,captionPreset='sweep',quality='high'})=>{
+      handlers.set('media.localize',async({jobId,...params})=>{
+        const ctx=taskContext.get(jobId);
+        const defaultServices={
+          download:input=>mediaDownloader({workspace:mediaWorkspace,...input,env}),
+          prepareAutoCover:input=>prepareAutoCover({workspace:mediaWorkspace,...input,env}),
+          readCaptions:async({source})=>{const file=checkFile(mediaWorkspace,source);if(fs.statSync(file).size>2_000_000)throw err('MEDIA_CAPTIONS','SRT vượt 2 MB.');return {segments:mediaSubtitles.parseSrt(fs.readFileSync(file,'utf8')).map(s=>({...s,text:subtitlePlainText(s.text)})),origin:'provided-source-srt'};},
+          probe:async file=>{const real=readRealMediaInfo(file);return {seconds:real.seconds,video:real.streams.some(s=>s.codec_type==='video'),audio:real.streams.some(s=>s.codec_type==='audio')};},
+          transcribe:async({source,language,dir})=>{
+            const sourceFile=checkFile(mediaWorkspace,source),sourceInfo=readRealMediaInfo(sourceFile);
+            const textSubtitle=sourceInfo.streams.find(s=>s.codec_type==='subtitle'&&['subrip','mov_text','ass','webvtt'].includes(s.codec_name));if(textSubtitle){const sub=path.join(dir,'embedded-source.srt');await mediaUtils.run('ffmpeg',['-v','error','-y','-i',sourceFile,'-map','0:'+textSubtitle.index,'-c:s','srt',sub],{timeoutMs:60000});return {segments:mediaSubtitles.parseSrt(fs.readFileSync(sub,'utf8')).map(s=>({...s,text:subtitlePlainText(s.text)})),origin:'embedded-subtitle-stream'};}
+            const audio=path.join(dir,'source-audio.wav');
+            await mediaUtils.run('ffmpeg',['-v','error','-y','-i',checkFile(mediaWorkspace,source),'-vn','-ac','1','-ar','16000',audio],{timeoutMs:300000});
+            const result=await transcribeLocal({audio,outputRoot:path.join(dir,'whisper'),language,env});
+            return {...result,origin:'whisper-local'};
+          },
+          translate:(segments,language,options)=>translateSegmentsWithModel(ctx.projectId,segments,language,options),
+          prepareCleanup:input=>prepareTrackingPlan({workspace:mediaWorkspace,...input}),
+          cleanup:input=>removeRegions({workspace:mediaWorkspace,...input,rightsConfirmed:true}),
+          voice:async({segments,texts,seconds,dir,provider,voice,fitVideo})=>{
+            const ttsEngine=ttsChoice(provider);
+            if(ttsEngine.provider==='piper-local'&&!/^vi[_-]/i.test(piperStatus(env).voice||''))throw err('BLOCKED_DUB_VOICE','Chọn model Piper tiếng Việt trước khi Việt hóa.');
+            const made=await assembleSpeechTrack({dir,segments,texts,provider:ttsEngine,voice,language:'vi',totalSeconds:seconds,outName:'vietnamese.wav',strict:true,grouped:false,captionChunksEnabled:true,fitVideo});
+            return {file:made.file,segments:made.segReports,provider:ttsEngine.provider,videoTimeline:made.videoTimeline,outputSeconds:made.outputSeconds};
+          },
+          captions:async({segments,screenSegments=[],width,height,dir})=>{const file=path.join(dir,'vietnamese.srt');fs.writeFileSync(file,mediaSubtitles.srt(segments));let renderFile=null;if(screenSegments.length){renderFile=path.join(dir,'vietnamese-full.ass');fs.writeFileSync(renderFile,buildLocalizedAss({segments,screenSegments,width,height}));}return {file,renderFile};},
+          render:({source,audio,captions,coverPlan,videoTimeline,dir})=>buildVoiceover({workspace:mediaWorkspace,jobDir:path.join(dir,'final'),videoSource:source,audioSource:audio,captionsSource:captions,alignment:'hold',hardsubCover:{mode:'off'},coverPlan,videoTimeline,qualityProfile:'high'})
+        };
+        const made=await runLocalization({workspace:mediaWorkspace,jobId,params,deps:{...defaultServices,...localizationServices},shouldStop:()=>['cancelled','paused'].includes(core.state.find(ctx.taskId)?.state),onProgress:p=>core.state.emit('media.localize.progress',{taskId:ctx.taskId,projectId:ctx.projectId,...p})});
+        await artifactPort.putFile({jobId,source:made.file,name:'vietnamese-final.mp4'});
+        await artifactPort.putFile({jobId,source:made.captions,name:'captions-vi.srt'});
+        if(made.styledCaptions)await artifactPort.putFile({jobId,source:made.styledCaptions,name:'captions-vi-full.ass'});
+        await artifactPort.putJson({jobId,name:'localization-report.json',data:made.report});
+        return made.report;
+      });
+      handlers.set('media.dub',async({jobId,source,captionsSource,sourceLanguage='auto',targetLanguage,translationSource='provider',translatedTexts,ttsProvider='local',voice,musicSource,musicVolume,hardsubCover='off',hardsubRegionPct=13,karaokeCaptions=true,captionPreset='sweep',quality='high'})=>{
         const ctx=taskContext.get(jobId);
         const dir=path.join(mediaWorkspace,'.dub-jobs',jobId);
         fs.mkdirSync(dir,{recursive:true,mode:0o700});
@@ -779,7 +847,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       handlers.set('media.publish-youtube',publishHandler('youtube',({connection,file,title,description,tags,privacyStatus})=>youtubeUpload({connection,file,title,description,tags,privacyStatus:privacyStatus||'unlisted'})));
       handlers.set('media.publish-facebook',publishHandler('facebook',({connection,file,title,description})=>facebookUpload({connection,file,title,description})));
       handlers.set('media.publish-tiktok',publishHandler('tiktok',({connection,file,title,privacyLevel})=>tiktokUpload({connection,file,title,privacyLevel:privacyLevel||'PUBLIC_TO_EVERYONE'})));
-      for(const [kind,allowed] of Object.entries({video_edit:['media.analyze','media.subtitle-edit','media.edit-plan','media.quick-edit','media.render','media.voiceover','media.tts-video','media.image','media.music','image.local','media.concat-effects','media.dub','media.retheme','media.effects'],story:['media.story','media.story-outline','media.caption-video'],publish:['media.publish-draft','media.publish-youtube','media.publish-facebook','media.publish-tiktok']})){
+      for(const [kind,allowed] of Object.entries({video_edit:['media.localize','media.analyze','media.download','media.region-remove','media.subtitle-edit','media.edit-plan','media.quick-edit','media.render','media.voiceover','media.tts-video','media.image','media.music','image.local','media.concat-effects','media.dub','media.retheme','media.effects'],story:['media.story','media.story-outline','media.caption-video'],publish:['media.publish-draft','media.publish-youtube','media.publish-facebook','media.publish-tiktok']})){
         core.queue.registerModule(kind,async({task,workspace})=>{
           const op=task.input?.operation;
           if(!allowed.includes(op))throw err('MEDIA_OPERATION','Loại tác vụ và công việc media không khớp hoặc chưa được phê duyệt.');
@@ -791,6 +859,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
             if(shaFileSync(inputFile)!==task.input.params.sourceSha256AtSubmit)
               throw err('MEDIA_PLAN_SOURCE','Video nguồn đã thay đổi sau khi lập tác vụ. Hãy dựng lại từ video gốc.');
           }
+          if(task.input?.params?.captionsSha256AtSubmit&&shaFileSync(checkFile(mediaWorkspace,task.input.params.captionsSource))!==task.input.params.captionsSha256AtSubmit)throw err('MEDIA_PLAN_SOURCE','SRT nguồn thay đổi sau khi giao việc. Tạo tác vụ mới để duyệt lại.');
           const jobId=task.id.replace(/-/g,'_');
           const ctx={projectId:task.projectId,taskId:task.id,ids:[],externalIds:[]};taskContext.set(jobId,ctx);
           try{
@@ -836,14 +905,49 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     }
     return out;
   }
+  function localizeStatus(projectId,{ttsProvider='local',url,sourceLanguage='auto',regions=[],cleanupMode,coverSubtitles,autoCoverScope='all',captionsSource,source,ocrLanguage='eng'}={}){
+    requireCore();
+    const overrides=localizationServices||{};
+    let voiceReady=false,voiceMessage='';
+    try{const choice=ttsChoice(ttsProvider);voiceReady=true;if(choice.provider==='piper-local'&&!/^vi[_-]/i.test(piperStatus(env).voice||'')){voiceReady=false;voiceMessage='Piper cần model tiếng Việt.';}}catch(e){voiceMessage=e.message;}
+    let embeddedCaptions=false;try{embeddedCaptions=!!source&&readRealMediaInfo(checkFile(mediaWorkspace,source)).streams.some(s=>s.codec_type==='subtitle'&&['subrip','mov_text','ass','webvtt'].includes(s.codec_name));}catch{}
+    let ai;try{ai=mediaPlannerStatus(projectId);}catch(e){ai={available:false,reason:e.message};}
+    const checks=[
+      {key:'ffmpeg',ready:!!binaryReady('ffmpeg')&&!!binaryReady('ffprobe'),message:'Cần FFmpeg và FFprobe trên máy.'},
+      {key:captionsSource||embeddedCaptions?'source-captions':'whisper',ready:!!captionsSource||embeddedCaptions||!!overrides.transcribe||(whisperStatus(env).ready&&(sourceLanguage==='en'||!/(?:^|[._-])en(?:[._-]|$)/i.test(path.basename(env.WHISPER_MODEL_PATH||'')))),message:'Cài Whisper local và model đa ngôn ngữ để nhận diện lời nói.'},
+      {key:'worker',ready:!!overrides.translate||ai.available,message:ai.reason||'Cần model Worker cho dự án.'},
+      {key:'voice',ready:!!overrides.voice||voiceReady,message:voiceMessage||'Chọn giọng Việt sẵn sàng.'}
+    ];
+    if((cleanupMode==='auto'||coverSubtitles===true)&&autoCoverScope==='all')checks.push({key:'ocr',ready:ocrStatus(env).ready&&ocrLanguage.split('+').every(l=>ocrStatus(env).languages.includes(l)),message:ocrStatus(env).hint+' Cần gói ngôn ngữ: '+ocrLanguage});
+    if(Array.isArray(regions)&&regions.some(r=>r?.tracking==='template'))checks.push({key:'tracking',ready:trackingStatus().ready,message:'Cần FFmpeg có find_rect để bám logo/chữ chuyển động.'});
+    if(url&&downloadKind(url)==='platform')checks.push({key:'downloader',ready:downloaderStatus(env).platformReady,message:'Cần yt-dlp để tải YouTube/TikTok công khai.'});
+    return {ready:checks.every(c=>c.ready),checks,translation:{provider:ai.provider||null,model:ai.model||null},limits:'Tự che phụ đề bằng nền đặc; OCR cần engine/ngôn ngữ thật, lấy mẫu 2 FPS và có thể bỏ sót chữ ngắn/mờ. SRT có sẵn được ưu tiên. Không inpainting/lip sync; cần xem lại bản dịch.'};
+  }
   function isMediaTask(t){return Boolean(t&&Object.hasOwn(ALLOWED_OPERATIONS,t.input?.operation)&&ALLOWED_OPERATIONS[t.input.operation]===t.kind);}
   function mediaTask(id){const t=requireCore().state.find(id);if(!isMediaTask(t))throw err('MEDIA_TASK_DENIED','Tác vụ này không thuộc Media Studio.');return t;}
-  function listTasks(projectId){requireCore();if(projectId&&!safeId(projectId))throw err('PROJECT_ID','Mã dự án không hợp lệ.');return core.state.data.tasks.filter(t=>isMediaTask(t)&&(!projectId||t.projectId===projectId)).map(t=>structuredClone(t));}
+  function listTasks(projectId){requireCore();if(projectId&&!safeId(projectId))throw err('PROJECT_ID','Mã dự án không hợp lệ.');return core.state.data.tasks.filter(t=>isMediaTask(t)&&(!projectId||t.projectId===projectId)).map(t=>{const out=structuredClone(t);if(t.input?.operation==='media.localize')out.localizeProgress=localizationProgress(mediaWorkspace,t.id.replace(/-/g,'_'));return out;});}
   function submit({projectId,operation,params={},reuseFromTaskId=null}){requireCore();if(!safeId(projectId))throw err('PROJECT_ID','Mã dự án không hợp lệ.');if(!Object.hasOwn(ALLOWED_OPERATIONS,operation))throw err('MEDIA_OPERATION','Tác vụ media chưa hỗ trợ hoặc đang bị khóa.');
     if(!params||typeof params!=='object'||Array.isArray(params)||JSON.stringify(params).length>100000)throw err('MEDIA_INPUT','Dữ liệu không hợp lệ hoặc quá lớn.');
     // Reuse only a failed approved story's own immutable inputs/media. The Core
     // still creates a NEW, explicitly approved task; generic replay guards stay intact.
     params=structuredClone(params);delete params._storyCacheId;
+    if(operation==='media.localize'){
+      params=validateLocalization(params);
+      if(params.captionsSource)params.captionsSha256AtSubmit=shaFileSync(checkFile(mediaWorkspace,params.captionsSource));
+      const ready=localizeStatus(projectId,params);
+      if(!ready.ready)throw err('MEDIA_LOCALIZE_SETUP',ready.checks.filter(c=>!c.ready).map(c=>c.message).join(' '));
+    }
+    if(operation==='media.download'){
+      if(params.rightsConfirmed!==true)throw err('MEDIA_RIGHTS','Xác nhận quyền tải video trước.');
+      const kind=downloadKind(params.url);
+      if(kind==='platform'&&!downloaderStatus(env).platformReady)throw err('MEDIA_DOWNLOADER_MISSING','Chưa cài yt-dlp. Xem hướng dẫn ngay dưới ô tải link.');
+      // Download tasks accept a URL, never a client-selected destination/path.
+      params={url:params.url,rightsConfirmed:true};
+    }
+    if(operation==='media.region-remove'){
+      if(!params.source||params.rightsConfirmed!==true)throw err('MEDIA_RIGHTS','Chọn video và xác nhận quyền chỉnh sửa trước.');
+      params={source:params.source,regions:validateRegions(params.regions),rightsConfirmed:true};
+    }
     if(reuseFromTaskId){
       const prior=mediaTask(reuseFromTaskId);
       if(operation!=='media.story'||prior.projectId!==projectId||prior.input?.operation!==operation||prior.input?.approved!==true||!['failed','blocked','interrupted'].includes(prior.state))throw err('MEDIA_RESUME_DENIED','Only the same approved failed story can resume its media.');
@@ -862,6 +966,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     if(typeof params.source==='string'&&params.source){
       const actualSource=checkFile(mediaWorkspace,params.source);
       params={...params,sourceSha256AtSubmit:shaFileSync(actualSource)};
+      if(operation==='media.localize'&&params.captionsSource)params.captionsSha256AtSubmit=shaFileSync(checkFile(mediaWorkspace,params.captionsSource));
     }
     if(operation==='media.render'){
       if(params.autoCaptions||params.concatProject||params.narrationText||params.narrationAudio||params.musicSource||params.captionsSource)
@@ -926,7 +1031,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
       if(!params.source)throw err('MEDIA_INPUT','Chọn video nguồn để lồng tiếng.');
       const langOk=v=>typeof v==='string'&&/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(v);
       if(!langOk(params.targetLanguage))throw err('MEDIA_INPUT','Cần ngôn ngữ đích hợp lệ, ví dụ en, vi, ja, ko.');
-      if(params.sourceLanguage!==undefined&&!langOk(params.sourceLanguage))throw err('MEDIA_INPUT','Ngôn ngữ nguồn không hợp lệ.');
+      if(params.sourceLanguage!==undefined&&params.sourceLanguage!=='auto'&&!langOk(params.sourceLanguage))throw err('MEDIA_INPUT','Ngôn ngữ nguồn không hợp lệ.');
       if(params.sourceLanguage&&params.sourceLanguage.split('-')[0]===params.targetLanguage.split('-')[0])throw err('MEDIA_INPUT','Ngôn ngữ đích phải khác ngôn ngữ nguồn.');
       if(params.translationSource!==undefined&&!['provider','supplied'].includes(params.translationSource))throw err('MEDIA_INPUT','Nguồn bản dịch không hợp lệ.');
       if(params.translationSource==='supplied'){
@@ -1050,7 +1155,7 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     catch(e){return {available:false,fallback:true,reason:'AI chưa trả lời được ('+(e.code||'lỗi')+'). Thử lại sau, hoặc tự chọn cách làm bằng các nút bên dưới.'};}
     let plan;try{plan=parseDirectorPlan(reply.text);}catch(e){return {available:false,fallback:true,reason:e.message+' Hãy thử mô tả rõ hơn, hoặc tự chọn cách làm bằng các nút bên dưới.'};}
     const routed=routeDirectorPlan(plan,{source,sourceLabel:'',whisperReady});
-    if(routed.params&&['media.dub','media.retheme'].includes(routed.operation)&&['fpt','heygen','kokoro'].includes(voiceProvider))routed.params.ttsProvider=voiceProvider;
+    if(routed.params&&['media.dub','media.retheme','media.localize'].includes(routed.operation)&&['fpt','heygen','kokoro'].includes(voiceProvider))routed.params.ttsProvider=voiceProvider;
     return {available:true,plan,routed:{operation:routed.operation,params:routed.params||null,needsInput:routed.needsInput||null},warnings:routed.warnings||[],model:{provider:selection.target?.provider||selection.provider||'model',name:selection.target?.model||selection.model||''},probe:probe?{seconds:Math.round(probe.seconds),hasAudio:!!hasAudioFlag,transcriptHeard:!!transcript}:null};
   }
   function demoSample(){requireCore();const source=path.resolve(root,'integrations/media-engine/artifacts/samples/source.mp4');
@@ -1065,9 +1170,21 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     const declared=Number(req.headers['content-length']||0);if(declared>limit)throw err('MEDIA_UPLOAD_LIMIT',imageUpload?'Ảnh tối đa 20 MB.':'Giới hạn nhập media là 150MB.');
     const uploadDir=path.join(mediaWorkspace,'uploads');fs.mkdirSync(uploadDir,{recursive:true,mode:0o700});
     const rel=`uploads/${crypto.randomUUID()}${ext}`;const dest=path.join(mediaWorkspace,rel);const fd=fs.openSync(dest,'wx',0o600);
-    let size=0;const digest=crypto.createHash('sha256');try{for await(const chunk of req){size+=chunk.length;if(size>limit)throw err('MEDIA_UPLOAD_LIMIT',imageUpload?'Ảnh vượt 20 MB.':'Vượt giới hạn 150MB.');fs.writeSync(fd,chunk);digest.update(chunk);}if(size===0)throw err('MEDIA_UPLOAD_EMPTY','Tệp tải lên rỗng.');}
+    let size=0;const digest=crypto.createHash('sha256');try{for await(const chunk of req){size+=chunk.length;if(size>limit)throw err('MEDIA_UPLOAD_LIMIT',imageUpload?'Ảnh vượt 20 MB.':'Vượt giới hạn 150MB.');mediaUtils.writeAllSync(fd,chunk);digest.update(chunk);}if(size===0)throw err('MEDIA_UPLOAD_EMPTY','Tệp tải lên rỗng.');fs.fsyncSync(fd);}
     catch(e){fs.closeSync(fd);fs.rmSync(dest,{force:true});throw e;}
-    fs.closeSync(fd);if(imageUpload){try{storyLogic.imageExtension(dest);}catch(e){fs.rmSync(dest,{force:true});throw e;}}return {source:rel,name,size,sha256:digest.digest('hex')};
+    fs.closeSync(fd);const expectedSha=digest.digest('hex');if(fs.statSync(dest).size!==size||mediaUtils.shaFile(dest)!==expectedSha){fs.rmSync(dest,{force:true});throw err('MEDIA_UPLOAD_INTEGRITY','Tệp ghi trên đĩa không khớp dữ liệu nhận. Hãy nhập lại.');}if(imageUpload){try{storyLogic.imageExtension(dest);}catch(e){fs.rmSync(dest,{force:true});throw e;}}return {source:rel,name,size,sha256:expectedSha};
+  }
+  async function trackRegionPreview({source,regions}){
+    requireCore();checkFile(mediaWorkspace,source);const normalized=validateRegions(regions);
+    if(!normalized.some(r=>r.tracking==='template'))throw err('MEDIA_TRACK_INPUT','Bật bám chuyển động và chọn mẫu tại một khung hình.');
+    const made=await prepareTrackingPlan({workspace:mediaWorkspace,source,regions:normalized,jobId:'preview_'+crypto.randomUUID().replace(/-/g,'_')});
+    const {geometry,frames,activeFrames,worstDifference,referenceTime}=made.plan;
+    return {source,geometry,frames,activeFrames,worstDifference,referenceTime,method:made.plan.method};
+  }
+  function sourcePreview(source){
+    requireCore();
+    if(typeof source!=='string'||!/^uploads\/[a-zA-Z0-9-]+\.(mp4|mov|webm|m4v)$/i.test(source))throw err('MEDIA_PATH','Chỉ xem video đã nhập.');
+    return {filePath:checkFile(mediaWorkspace,source),metadata:{name:path.basename(source)}};
   }
   let previewBusy=false;
   async function previewVoice({ttsProvider='local',voice,confirmPaidVoice=false}={}){
@@ -1109,5 +1226,5 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
   }
   function productionEvents(projectId){const ids=new Set(listTasks(projectId).flatMap(t=>[t.id,t.id.replace(/-/g,'_')]));return (core?.state.events.items||[]).filter(e=>e.type==='media.image.assignment'&&(e.payload?.projectId===projectId||ids.has(e.payload?.jobId))).slice(-100);}
   function stop(){if(timer){clearInterval(timer);timer=null;}if(core){core.close();core=null;}}
-  return {status,productionEvents,refreshProductionStatus,prepareProduction,previewVoice,voicePreviewArtifact,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,mediaTemplates:()=>MEDIA_TEMPLATES,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
+  return {trackRegionPreview,trackingStatus,localizeStatus,sourcePreview,downloaderStatus:()=>downloaderStatus(env),status,productionEvents,refreshProductionStatus,prepareProduction,previewVoice,voicePreviewArtifact,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,mediaTemplates:()=>MEDIA_TEMPLATES,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
 }

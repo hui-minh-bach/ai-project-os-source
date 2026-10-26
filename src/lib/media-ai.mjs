@@ -68,12 +68,12 @@ export async function mediaReviewerPlan(projectId,input){
  * The model returns texts only; timings are always copied deterministically
  * from the source segments by the caller, never invented by the model.
  */
-export async function translateSegmentsWithModel(projectId,segments,targetLanguage){
+export async function translateSegmentsWithModel(projectId,segments,targetLanguage,{glossary=[]}={}){
   const selection=mediaPlannerStatus(projectId,'worker');
   if(!selection.available)throw blocked(selection.reason);
-  const system='Bạn là dịch giả phụ đề. Dịch từng đoạn sang ngôn ngữ đích được yêu cầu, giữ văn phong tự nhiên và ngắn gọn để đọc thành tiếng khớp thời lượng đoạn gốc. Trả CHỈ một mảng JSON các chuỗi, đúng thứ tự và đúng số lượng đoạn đầu vào, không thêm giải thích hay markdown.';
+  const system='Bạn là dịch giả phụ đề, không phải người viết lại/chuyển chủ đề. Dịch ĐẦY ĐỦ từng đoạn, giữ nguyên ý, tên riêng, số liệu và trình tự; không thêm ý, không tóm tắt hay bỏ ý để ép ngắn. Giữ con số ở dạng chữ số, giữ nguyên NASA/GOLD/ICON/GPS khi xuất hiện. Tuân thủ glossary nếu có. Giữ văn phong tiếng Việt tự nhiên, ngắn gọn nhưng đủ nội dung; tránh dịch GPS navigation thành chuyến bay. Nếu đầu vào là chữ trên màn hình vẫn dịch đủ, không tự cho rằng đó là lời nói. Trả CHỈ một mảng JSON các chuỗi, đúng thứ tự và đúng số lượng đoạn đầu vào, không thêm giải thích hay markdown.';
   const served={};
-  const text=await ask(selection.target,{system,prompt:JSON.stringify({targetLanguage,segments:segments.map(s=>s.text)}),usageContext:{role:'worker',projectId},served});
+  const text=await ask(selection.target,{system,prompt:JSON.stringify({targetLanguage,glossary,segments:segments.map(s=>({text:s.text,durationSeconds:Number((s.end-s.start).toFixed(2))}))}),usageContext:{role:'worker',projectId},served});
   const raw=text.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
   let parsed;try{parsed=JSON.parse(raw)}catch{throw new Error('AI dịch không trả mảng JSON hợp lệ. Không thay bằng bản dịch giả.');}
   if(!Array.isArray(parsed)||parsed.length!==segments.length||parsed.some(t=>typeof t!=='string'||!t.trim()||t.length>1000))throw new Error('Bản dịch không khớp số đoạn nguồn hoặc có đoạn rỗng/quá dài. Đã chặn.');
@@ -151,7 +151,7 @@ export async function writeTextWithModel(projectId,{instructions,prompt,maxChars
  * The model only UNDERSTANDS and PROPOSES. Routing below is deterministic:
  * it maps the validated plan onto existing operations with validated params.
  * Nothing executes from here — the routed task still passes the approval gate. */
-export const DIRECTOR_INTENTS=['chinh-sua','phu-de','doi-chu-de','long-tieng','thay-giong','y-tuong','khong-ro'];
+export const DIRECTOR_INTENTS=['chinh-sua','phu-de','doi-chu-de','long-tieng','thay-giong','y-tuong','xoa-logo','khong-ro'];
 export function buildDirectorModelCall({hasSource=false,seconds=0,width=0,height=0,hasAudio=false,transcript='',wish='',whisperReady=false}={}){
   const instructions=[
     'Bạn là AI đạo diễn video của AI Project OS. Người dùng không biết kỹ thuật dựng phim.',
@@ -160,14 +160,15 @@ export function buildDirectorModelCall({hasSource=false,seconds=0,width=0,height
     '- "chinh-sua": dựng lại video (cắt gọn, đổi khung hình, hiệu ứng, nhạc, tiêu đề).',
     '- "phu-de": chủ yếu muốn thêm/sửa phụ đề theo lời nói trong video.',
     '- "doi-chu-de": giữ hình, thay toàn bộ nội dung lời sang một chủ đề khác.',
-    '- "long-tieng": dịch và lồng tiếng video sang ngôn ngữ khác.',
+    '- "long-tieng": dịch/lồng tiếng sang ngôn ngữ khác; nếu kèm xóa logo di chuyển, đặt logoMotion="moving" để dùng cùng luồng 7 bước.',
+    '- "xoa-logo": chỉ xóa chữ/logo. logoMotion là moving, fixed hoặc unknown. Nếu người dùng yêu cầu nền phức tạp, đặt backgroundMode="temporal"; công cụ lấy nền thật từ khung lân cận, cần mẫu di chuyển và có nền lộ ra, không phải neural inpainting. Không biết tọa độ từ lời nói/metadata; phải yêu cầu người dùng chọn một vùng mẫu trên khung hình. Không bịa vị trí/đường bám hoặc tuyên bố đã xóa. Bộ theo dõi cần mẫu rõ nét, kích thước ổn định; mất dấu thì dừng, không che vùng đoán.',
     '- "thay-giong": giữ nội dung, chỉ thay giọng đọc bằng một file giọng khác.',
     '- "y-tuong": chưa có video; người dùng nêu ý tưởng làm video mới.',
     '- "khong-ro": không đủ thông tin để hiểu ý.',
     'Nếu là "y-tuong": viết luôn kịch bản lời đọc (scriptDraft) theo phong cách video giải thích dễ hiểu: câu mở đầu gây tò mò, các ý chính rõ ràng, câu kết chốt lại; văn nói tự nhiên, tối đa 4000 ký tự.',
-    'Nếu là "doi-chu-de": ghi rõ chủ đề mới vào "topic". Nếu "long-tieng": đoán ngôn ngữ gốc của video (sourceLanguage: "vi" hoặc "en") và ngôn ngữ đích người dùng muốn (targetLanguage: "vi" hoặc "en").',
+    'Nếu là "doi-chu-de": ghi rõ chủ đề mới vào "topic". Nếu "long-tieng": ghi sourceLanguage="auto" nếu chưa có bằng chứng ngôn ngữ gốc; nếu có thì dùng mã như en, zh, ja, ko và ngôn ngữ đích người dùng muốn (targetLanguage: "vi" hoặc "en").',
     'Trả về DUY NHẤT một JSON object, không giải thích thêm, đúng mẫu:',
-    '{"intent":"...","summary":"một câu tiếng Việt: tôi hiểu bạn muốn...","steps":["bước 1","bước 2"],"prompt":"yêu cầu dựng đã viết lại rõ ràng (cho chinh-sua/phu-de)","autoCaptions":true/false,"title":"tiêu đề gợi ý hoặc rỗng","topic":"chủ đề mới hoặc rỗng","sourceLanguage":"vi|en","targetLanguage":"vi|en","scriptDraft":"kịch bản (chỉ cho y-tuong)"}'
+    '{"intent":"...","summary":"một câu tiếng Việt: tôi hiểu bạn muốn...","steps":["bước 1","bước 2"],"prompt":"yêu cầu dựng đã viết lại rõ ràng (cho chinh-sua/phu-de)","autoCaptions":true/false,"title":"tiêu đề gợi ý hoặc rỗng","topic":"chủ đề mới hoặc rỗng","sourceLanguage":"auto|en|zh|ja|ko|vi","targetLanguage":"vi|en","logoMotion":"moving|fixed|unknown","backgroundMode":"spatial|temporal","scriptDraft":"kịch bản (chỉ cho y-tuong)"}'
   ].join('\n');
   const facts=hasSource
     ?`Video đã nạp: dài ${Math.round(seconds)} giây, khung ${width}x${height}, ${hasAudio?'có tiếng':'không có tiếng'}. Whisper local: ${whisperReady?'sẵn sàng (nghe được lời nói)':'chưa sẵn sàng'}.\nBản nghe nội dung video (trích): ${transcript?transcript.slice(0,2800):'(không nghe được hoặc video không có lời nói)'}\nMong muốn của người dùng (để trống nghĩa là nhờ AI tự đề xuất cách làm hay nhất): ${wish||'(để trống)'}`
@@ -188,8 +189,10 @@ export function parseDirectorPlan(text){
     autoCaptions:j.autoCaptions===true,
     title:clean(j.title,95),
     topic:clean(j.topic,300),
-    sourceLanguage:['vi','en'].includes(j.sourceLanguage)?j.sourceLanguage:'vi',
+    sourceLanguage:typeof j.sourceLanguage==='string'&&/^(auto|[a-z]{2,3})$/.test(j.sourceLanguage)?j.sourceLanguage:'auto',
     targetLanguage:['vi','en'].includes(j.targetLanguage)?j.targetLanguage:'vi',
+    backgroundMode:j.backgroundMode==='temporal'?'temporal':'spatial',
+    logoMotion:['moving','fixed','unknown'].includes(j.logoMotion)?j.logoMotion:'unknown',
     scriptDraft:clean(j.scriptDraft,4000)
   };
 }
@@ -214,7 +217,12 @@ export function routeDirectorPlan(plan,{source='',sourceLabel='',whisperReady=fa
     }
     case 'long-tieng':{
       if(!source)return {operation:null,needsInput:'source',warnings};
-      return {operation:'media.dub',params:withSummary({source,sourceLanguage:plan.sourceLanguage||'vi',targetLanguage:plan.targetLanguage||'vi',translationSource:'model',ttsProvider:'local',hardsubCover:'blur',karaokeCaptions:true}),warnings};
+      if((plan.targetLanguage||'vi')==='vi')return {operation:'media.localize',params:withSummary({source,sourceLanguage:plan.sourceLanguage||'auto',targetLanguage:'vi',ttsProvider:'local',trackingRequested:plan.logoMotion==='moving'||plan.backgroundMode==='temporal',restorationRequested:plan.backgroundMode==='temporal'?'temporal':'spatial'}),needsInput:'localize-options',warnings:['Kiểm tra vùng chữ/logo và xác nhận quyền trong luồng Việt hóa 7 bước trước khi chạy.']};
+      return {operation:'media.dub',params:withSummary({source,sourceLanguage:plan.sourceLanguage||'auto',targetLanguage:plan.targetLanguage,translationSource:'provider',ttsProvider:'local',hardsubCover:'blur',karaokeCaptions:true}),warnings};
+    }
+    case 'xoa-logo':{
+      if(!source)return {operation:null,needsInput:'source',warnings:['Nạp video để chọn mẫu logo/chữ.']};
+      return {operation:'media.region-remove',params:{source,trackingRequested:plan.logoMotion==='moving'||plan.backgroundMode==='temporal',restorationRequested:plan.backgroundMode==='temporal'?'temporal':'spatial',needsVisualSeed:true},needsInput:'visual-seed',warnings:['Cần chọn vùng mẫu tại một khung hình; chưa có tọa độ/đường bám thật nên không tự chạy xóa.']};
     }
     case 'thay-giong':
       return {operation:null,needsInput:'voice-file',warnings:['Thay giọng cần một file giọng đọc (WAV/MP3) của bạn. Mở chế độ "Thay giọng thật" ở cột trái, nạp file giọng rồi tạo tác vụ.']};

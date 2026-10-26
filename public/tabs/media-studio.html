@@ -5,10 +5,12 @@
    <div class="mediaCapcutMain">
     <aside class="mediaRail">
 <div class="mediaModeBar" role="group" aria-label="Công việc Video Studio">
+    <button data-media-mode="localize" type="button">🇻🇳 Việt hóa video — 7 bước</button>
     <button data-media-mode="analyze" class="active" type="button">◉ Phân tích video</button>
     <button data-media-mode="edit-plan" type="button">✦ Kế hoạch dựng</button>
     <button data-media-mode="render" type="button">▶ Dựng video</button>
     <button data-media-mode="effects" type="button">✨ Hiệu ứng</button>
+    <button data-media-mode="region-remove" type="button">▧ Xóa vùng chữ / logo</button>
     <button data-media-mode="tts-video" type="button">AI Tạo giọng từ kịch bản</button>
     <button data-media-mode="voiceover" type="button">🎙 Thay giọng thật</button>
     <button data-media-mode="retheme" type="button">🔁 Đổi chủ đề &amp; giọng</button>
@@ -42,12 +44,65 @@
     <div class="mediaSideCol">
 
     <div class="mediaFieldset">
+      <div class="mediaInputPanel" data-media-panel="localize" hidden>
+        <h4>Video ngoại ngữ → MP4 tiếng Việt</h4>
+        <p class="mediaHint">Một tác vụ chạy đủ 7 bước: nhận video → nhận diện lời nói → AI dịch → xử lý vùng chữ/logo cũ → tạo giọng Việt → căn phụ đề từng câu → xuất MP4. Kết quả và tiến độ thật hiện ở hàng đợi.</p>
+        <label for="mediaLocalizeInput">Nguồn video</label><select id="mediaLocalizeInput"><option value="upload">Dùng video đã nạp ở Phân tích video</option><option value="url">Tải từ liên kết và chạy tiếp</option></select>
+        <label for="mediaLocalizeUrl">Liên kết (khi chọn tải từ liên kết)</label><input id="mediaLocalizeUrl" type="url" maxlength="2048" placeholder="https://… video MP4 hoặc YouTube/TikTok công khai">
+        <label for="mediaLocalizeLanguage">Ngôn ngữ gốc</label><select id="mediaLocalizeLanguage"><option value="auto">Tự nhận diện bằng Whisper</option><option value="en">Tiếng Anh</option><option value="zh">Tiếng Trung</option><option value="ja">Tiếng Nhật</option><option value="ko">Tiếng Hàn</option><option value="fr">Tiếng Pháp</option><option value="de">Tiếng Đức</option><option value="es">Tiếng Tây Ban Nha</option><option value="th">Tiếng Thái</option></select>
+        <label for="mediaLocalizeCleanup">Chữ / logo cũ</label><select id="mediaLocalizeCleanup"><option value="auto" selected>Tự che phụ đề/chữ cũ và giữ nội dung</option><option value="regions">Xóa vùng đã chọn — có thể bám chuyển động</option><option value="none">Tôi xác nhận video không cần xử lý chữ/logo cũ</option></select>
+        <label>Phạm vi tự che<select id="mediaLocalizeCoverScope"><option value="all" selected>Tìm chữ toàn khung bằng OCR + che phụ đề cuối khung</option><option value="bottom">Chỉ che dải cuối khung — không cần OCR</option></select></label>
+        <label>Độ cao dải phụ đề cũ<select id="mediaLocalizeCoverPct"><option value="18">18%</option><option value="26" selected>26%</option><option value="34">34%</option><option value="40">40%</option></select></label>
+        <label>Ngôn ngữ chữ cũ (cần gói OCR đã cài)<select id="mediaLocalizeOcrLanguage"><option value="eng">Tiếng Anh — eng</option><option value="chi_sim">Tiếng Trung — chi_sim</option><option value="chi_tra">Tiếng Trung phồn thể — chi_tra</option><option value="jpn">Tiếng Nhật — jpn</option><option value="kor">Tiếng Hàn — kor</option><option value="tha">Tiếng Thái — tha</option><option value="fra">Tiếng Pháp — fra</option><option value="deu">Tiếng Đức — deu</option><option value="spa">Tiếng Tây Ban Nha — spa</option><option value="vie">Tiếng Việt — vie</option></select></label>
+        <label class="checkboxLine"><input id="mediaLocalizeCoverWithRegions" type="checkbox" checked> Che thêm phụ đề cũ khi dùng vùng logo đã chọn.</label>
+        <p class="mediaHint">Che bằng nền đặc trước, rồi gắn chữ Việt lên trên; không phải phục hồi nền. OCR toàn khung tối đa 120 giây, lấy mẫu 2 khung/giây; chữ quá nhanh/mờ có thể bị bỏ sót. Dải cuối khung được che liên tục. Tự tìm chữ cần Tesseract; video dài có thể chọn chỉ che dải cuối khung.</p>
+        <details><summary>Phụ đề nguồn và thuật ngữ</summary><label>Nạp SRT có sẵn (không cần nhận giọng lại)<input id="mediaLocalizeSrtFile" type="file" accept=".srt"></label><button id="mediaLocalizeSrtUpload" type="button">Nạp SRT nguồn</button><button id="mediaLocalizeSrtClear" type="button" class="ghost">Bỏ SRT nguồn</button><p id="mediaLocalizeSrtStatus" class="mediaHint">Nếu video có luồng phụ đề văn bản, app ưu tiên đọc luồng đó; nếu không, nhận giọng bằng Whisper.</p><label>Thuật ngữ cần giữ — mỗi dòng: gốc = cách dịch<textarea id="mediaLocalizeGlossary" rows="3" maxlength="5000" placeholder="GOLD = GOLD&#10;GPS navigation = định vị GPS"></textarea></label><p>Các số liệu và thuật ngữ được kiểm tra trước khi tạo giọng. Kiểm tra tự động không chứng minh mọi câu dịch chính xác; cần xem lại nội dung.</p></details>
+        <button id="mediaLocalizeChooseRegion" type="button" class="ghost">Chọn vùng chữ / logo</button><p id="mediaLocalizeRegionInfo" class="mediaHint">Chế độ tự che không cần kéo vùng. Nếu cần xóa logo riêng, chọn vùng và bật bám chuyển động khi phù hợp.</p>
+        <label class="checkboxLine"><input id="mediaLocalizeFitVideo" type="checkbox" checked> Tự giãn đoạn hình khi lời Việt dài — giữ đủ nội dung, không cắt lời.</label>
+        <label for="mediaLocalizeVoice">Giọng tiếng Việt mới</label><select id="mediaLocalizeVoice"><option value="local">Piper tiếng Việt trên máy</option><option value="windows">Giọng Việt Windows</option><option value="fpt">FPT.AI — cần khóa và cho phép chi phí</option><option value="heygen">HeyGen — cần khóa/giọng Việt và cho phép chi phí</option></select>
+        <label for="mediaLocalizeVoiceId">Mã giọng (tùy chọn, để trống dùng cấu hình)</label><input id="mediaLocalizeVoiceId" maxlength="90" placeholder="Ví dụ: mã giọng FPT/HeyGen đã cấu hình">
+        <label class="checkboxLine"><input id="mediaLocalizePaidVoice" type="checkbox"> Cho phép dùng hạn mức/chi phí giọng FPT.AI hoặc HeyGen đã chọn.</label>
+        <label class="checkboxLine"><input id="mediaLocalizeRights" type="checkbox"> Tôi có quyền tải, dịch, thay giọng và xử lý chữ/logo của video này.</label>
+        <button id="mediaLocalizePreflight" type="button" class="ghost">Kiểm tra AI / Whisper / giọng / trình tải</button><div id="mediaLocalizeReadiness" class="mediaHint" role="status">Cần model Worker của dự án, Whisper đa ngôn ngữ, giọng Việt và FFmpeg. Tải YouTube/TikTok cần yt-dlp.</div>
+        <p class="mediaHint">Bấm Tạo tác vụ chờ duyệt bên dưới rồi phê duyệt một lần. Giữ hình, thay toàn bộ tiếng gốc, phụ đề khớp khoảng phát từng câu giọng đã đo; không lip sync. Khi bật tự giãn hình, đoạn hình được chạy chậm vừa đủ cho lời Việt (tối đa 3 lần), giữ mọi đoạn nguồn. Nếu vượt giới hạn, app dừng thay vì cắt lời.</p>
+      </div>
       <div class="mediaInputPanel" data-media-panel="analyze">
         <h4>1. Nạp video nguồn</h4><p class="mediaHint">File MP4/MOV/WEBM… tải lên máy đang chạy Local Worker. Giới hạn 150 MB cho một lần nhập.</p>
         <label for="mediaFile">Chọn video trên máy</label><input id="mediaFile" type="file" accept=".mp4,.mov,.mkv,.webm,.m4v,.mp3,.wav,.m4a,.txt">
         <div class="mediaInline"><button id="mediaUpload" class="ghost" type="button">Tải video vào workspace</button><button id="mediaDemo" class="ghost" type="button">Dùng clip mẫu thật</button></div>
         <p class="mediaHint" id="mediaSourceLabel">Chưa có video được nhập.</p>
+        <hr>
+        <label for="mediaDownloadUrl">Hoặc dán liên kết video</label>
+        <input id="mediaDownloadUrl" type="url" maxlength="2048" placeholder="https://… video MP4 hoặc YouTube / TikTok công khai">
+        <label class="checkboxLine"><input id="mediaDownloadRights" type="checkbox"> Tôi có quyền tải và sử dụng video này.</label>
+        <div class="mediaInline"><button id="mediaDownload" type="button">↓ Tải video từ liên kết</button><button id="mediaDownloaderCheck" type="button" class="ghost">Kiểm tra trình tải</button></div>
+        <p id="mediaDownloaderStatus" class="mediaHint" role="status">Link MP4 công khai: không cần yt-dlp. YouTube/TikTok: cần cài yt-dlp, có thể bị nền tảng từ chối.</p>
+        <details><summary>Cài trình tải YouTube / TikTok trên Windows</summary><p>Cài yt-dlp từ nguồn chính thức <a href="https://github.com/yt-dlp/yt-dlp/releases" target="_blank" rel="noopener noreferrer">yt-dlp releases</a>, đặt yt-dlp.exe vào PATH (hoặc đặt biến AIOS_YTDLP_PATH tới tệp đó), cài FFmpeg rồi khởi động lại app. Không nhận cookie hoặc tự đăng nhập. Tối đa 150 MB / 30 phút; mỗi lần chỉ tải một video.</p></details>
         <label class="checkboxLine"><input type="checkbox" id="mediaTranscribe"> Yêu cầu nhận diện giọng nói (cần STT provider thật)</label>
+      </div>
+      <div class="mediaInputPanel" data-media-panel="region-remove" hidden>
+        <h4>Xóa chữ / logo — cố định hoặc bám chuyển động</h4>
+        <p class="mediaHint">Nạp video rồi dừng tại khung hình có logo/chữ rõ nét và kéo chọn vùng mẫu. Bật bám chuyển động để tìm mẫu đó trên từng khung. Nếu mất dấu, app dừng và báo thời điểm cần kiểm tra; không đoán vị trí hay báo xóa xong. Chọn nội suy viền cho nền đơn giản hoặc lấy nền sạch từ khung lân cận cho nền nhiều chi tiết. Chưa có tự OCR hay phục hồi phần nền chưa từng lộ ra.</p>
+        <button id="mediaRegionLoad" type="button" class="ghost">Mở nguồn để chọn vùng</button>
+        <label class="checkboxLine"><input id="mediaRegionTrack" type="checkbox"> Bám theo logo/chữ di chuyển (một mẫu không đổi kích thước)</label>
+        <label>Nền phía sau logo<select id="mediaRegionRestoration"><option value="spatial">Nền đơn giản — nội suy viền</option><option value="temporal">Nền nhiều chi tiết — lấy nền sạch từ khung lân cận</option></select></label>
+        <p class="mediaHint">Phục hồi nền cần bật bám chuyển động, video tối đa 30 giây / 720p / 30 FPS. App căn dịch chuyển camera và kiểm tra hai khung nền sạch. Không tìm được nền phù hợp sẽ dừng trước nhận giọng/dịch; không chuyển ngầm sang làm mờ.</p>
+        <div class="mediaInline"><button id="mediaRegionSetReference" type="button" class="ghost">Dùng khung hiện tại làm mẫu</button><button id="mediaRegionTrackPreview" type="button">Theo dõi &amp; xem đường bám</button></div>
+        <p id="mediaRegionTrackStatus" class="mediaHint" role="status">Theo dõi tối đa 120 giây, 1080p, 60 FPS; không cần thêm Python/OpenCV. Chọn vùng đủ nét, có viền nền và một logo rõ ràng.</p>
+        <button id="mediaRegionUseForLocalize" type="button">Dùng vùng này cho Việt hóa 7 bước</button>
+        <div id="mediaRegionFrame" class="mediaRegionFrame"><video id="mediaRegionPlayer" preload="metadata" playsinline></video><div id="mediaRegionBox" class="mediaRegionBox" hidden></div></div>
+        <div class="mediaInline"><button id="mediaRegionPlay" type="button">Phát / dừng</button><label>Khung hình tại giây <input id="mediaRegionSeek" type="number" value="0" min="0" step="0.1"></label></div>
+        <div class="mediaOptionGrid">
+          <label>Trái (%)<input id="mediaRegionX" type="number" value="5" min="1" max="98" step="0.1"></label>
+          <label>Trên (%)<input id="mediaRegionY" type="number" value="75" min="1" max="98" step="0.1"></label>
+          <label>Rộng (%)<input id="mediaRegionW" type="number" value="80" min="1" max="98" step="0.1"></label>
+          <label>Cao (%)<input id="mediaRegionH" type="number" value="12" min="1" max="98" step="0.1"></label>
+          <label>Bắt đầu (giây)<input id="mediaRegionStart" type="number" value="0" min="0" step="0.1"></label>
+          <label>Kết thúc (để trống = hết)<input id="mediaRegionEnd" type="number" min="0" step="0.1"></label>
+        </div>
+        <p class="mediaHint">Khung mẫu cần cách mép ít nhất 1%. Mỗi tác vụ theo dõi một mẫu; API có thể kèm vùng cố định. Chưa hỗ trợ chữ đổi nội dung, logo bị che, phóng/thu hoặc xoay. Có thể thu hẹp khoảng bắt đầu/kết thúc rồi chọn lại mẫu khi mất dấu.</p>
+        <label class="checkboxLine"><input id="mediaRegionRights" type="checkbox"> Tôi có quyền chỉnh sửa và xóa chữ/logo trong video này.</label>
+        <p class="mediaHint">Bấm “Tạo tác vụ chờ duyệt” bên dưới, kiểm tra vùng rồi phê duyệt. Video gốc được giữ nguyên; kết quả MP4 và báo cáo sẽ xuất hiện trong Kho media.</p>
       </div>
       <div class="mediaInputPanel" data-media-panel="edit-plan" hidden>
         <h4>2. Mô tả video ông muốn</h4><p class="mediaHint">Nhập yêu cầu và bấm “Dựng MP4 theo mô tả” để chạy một tác vụ có đủ lựa chọn. “Chỉ lưu kế hoạch” chỉ tạo JSON, không dựng video và không dùng Whisper/Concat. Ví dụ: "Chuyển video dọc 9:16, cắt xuống 30 giây, thêm hiệu ứng mờ dần". Có thể dựng ngay mà không cần biết timeline JSON. Không tự sinh thêm cảnh hoặc lời nói.</p><p class="mediaHint" id="mediaPlannerState" role="status">Đang xác định AI lập kế hoạch…</p>

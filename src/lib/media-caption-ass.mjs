@@ -1,0 +1,9 @@
+const time=t=>{const n=Math.round(Math.max(0,t)*100);return `${Math.floor(n/360000)}:${String(Math.floor(n/6000)%60).padStart(2,'0')}:${String(Math.floor(n/100)%60).padStart(2,'0')}.${String(n%100).padStart(2,'0')}`;};
+const safe=s=>String(s).replace(/\\/g,'＼').replace(/\{/g,'｛').replace(/\}/g,'｝').replace(/\r?\n/g,'\\N');
+/** Separate tracks: measured spoken captions below, translated screen text above. */
+export function buildLocalizedAss({segments,screenSegments,width,height}){
+ if(!Number.isInteger(width)||!Number.isInteger(height)||width<16||height<16)throw new Error('Thiếu kích thước video để dựng phụ đề.');
+ const font=Math.max(16,Math.round(height*.038)),margin=Math.max(18,Math.round(height*.03));
+ const header=`[Script Info]\nScriptType: v4.00+\nPlayResX: ${width}\nPlayResY: ${height}\nWrapStyle: 0\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Speech,Arial,${font},&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,0,0,0,0,100,100,0,0,1,2,0,2,${margin},${margin},${margin},1\nStyle: Screen,Arial,${font},&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,3,2,0,8,${margin},${margin},${margin},1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n`;
+ const rows=[];for(const [style,layer,cues] of [['Speech',1,segments],['Screen',2,screenSegments]])for(const s of cues){if(!Number.isFinite(s.start)||!Number.isFinite(s.end)||s.start<0||s.end<=s.start||typeof s.text!=='string'||!s.text.trim())throw new Error('Mốc phụ đề Việt không hợp lệ.');rows.push(`Dialogue: ${layer},${time(s.start)},${time(s.end)},${style},,0,0,0,,${safe(s.text)}`);}return header+rows.join('\n')+'\n';
+}

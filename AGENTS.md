@@ -42,3 +42,21 @@ Remove redundant customer intake form, place project results and real public mod
 
 ## v0.9.74
 Repair GitHub import and extend explicit social publication/export only within contract. Do not change any scene/assets file. Never confuse drafts, operation tokens or fixture API receipts with real public posts. User approval binds exact draft, account ID and credential version; ambiguous writes must not replay. Preserve existing local worker and image fixes.
+
+
+## v0.9.77 seven-step localization
+Read START-HERE-V0977.md and .project-state/contract.md. media.localize is one explicitly approved task with persisted stage receipts. Preserve the 83 3D assets. Never replace missing ASR/model/voice or required cleanup with a successful placeholder. Fixed regions require owner selection or explicit no-cleanup confirmation; no OCR/tracking/inpainting claim. Phrase subtitles use measured TTS duration; overflow must block. Fixture translation and CLI compatibility wrappers in QA are not live provider or native Windows acceptance.
+
+
+## v0.9.78 motion cleanup
+Read START-HERE-V0978.md and docs/MEDIA_TRACKING_TOOL_CONTRACT.md. User authorizes real moving-logo tracking from an owner-selected visual seed. Native FFmpeg matching is not AI inpainting/OCR; never invent seed boxes/trajectories. Stop before paid providers when tracking fails; preserve 83 3D assets. Lost/ambiguous/edge/unsupported cases must fail honestly. QA fixtures and real local-engine output remain distinguished from live-provider/Windows acceptance.
+
+
+## v0.9.78 owner-approved tracking extension
+START-HERE-V0978.md and docs/MEDIA_TRACKING_TOOL_CONTRACT.md define the new moving-template capability, superseding the .77 fixed-only cleanup restriction for Media code only. Require a visual seed, honest native-filter availability, per-frame tracking evidence and failure on missing/uncertain/edge cases. No OCR/scale/rotation/neural-inpainting claim. Preserve 83 scene/assets. Check motion before paid providers in the seven-step task. Fixtures, real local engines and native Windows/live-account acceptance remain distinct.
+
+## v0.9.79 owner-authorized complex-background restoration
+Add observed temporal background recovery, UI/AI tool routing and upload-friendly plain source deliverable. No neural model is installed; do not claim neural inpainting or universal removal. Stop on insufficient clean donors and restore before ASR/paid providers. Preserve all 83 scene/assets and existing review gates.
+
+## v0.9.80 owner-authorized seven-step renewal
+Implement automatic opaque subtitle cover with actual optional Tesseract OCR, source SRT ingestion, faithful translation guards, new narration/captions and bounded honest dependencies. The owner authorizes auto-derived cover rectangles from real OCR, superseding manual-only region rule for cover (not logo reconstruction). Preserve 83 scene/assets and approval/source integrity guards. Repair partial writes and project ZIP/TXT download; draft snapshots must never imply reviewed production readiness.

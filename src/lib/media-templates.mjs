@@ -33,12 +33,12 @@ export const MEDIA_TEMPLATES = [
     hint: 'Dán câu chuyện vào panel Kể chuyện, chọn giọng, bấm Chạy.',
   },
   {
-    id: 'dub-film', name: 'Lồng tiếng phim', icon: '🎬',
-    desc: 'Phim nước ngoài thành tiếng Việt: dịch + lồng tiếng + karaoke quét vàng.',
-    needs: 'video', operation: 'media.dub',
-    params: { targetLanguage: 'vi', hardsubCover: 'blur', hardsubRegionPct: 18, karaokeCaptions: true, captionPreset: 'sweep' },
+    id: 'dub-film', name: 'Việt hóa video — 7 bước', icon: '🎬',
+    desc: 'Nhận video → nghe → AI dịch → xử lý vùng chữ/logo → giọng Việt → phụ đề → MP4.',
+    needs: 'video', operation: 'media.localize',
+    params: { sourceLanguage: 'auto', targetLanguage: 'vi', ttsProvider: 'local' },
     effects: [],
-    hint: 'Nạp phim, chọn ngôn ngữ đích, bấm Chạy — app tự nghe, dịch, đọc và đốt chữ.',
+    hint: 'Mở luồng 7 bước, kiểm tra vùng chữ/logo và giọng Việt rồi duyệt chạy một tác vụ.',
   },
   {
     id: 'karaoke-clip', name: 'Karaoke chữ chạy', icon: '🎤',
@@ -59,7 +59,7 @@ export function directorPlanForTemplate(template, { source = null } = {}) {
   if (!template) return null;
   return {
     available: true, fallback: false, viaTemplate: template.id,
-    intent: template.operation === 'media.dub' ? 'long-tieng' : template.operation === 'media.story' ? 'y-tuong' : template.operation === 'media.effects' ? 'chinh-sua' : 'doi-chu-de',
+    intent: ['media.dub','media.localize'].includes(template.operation) ? 'long-tieng' : template.operation === 'media.story' ? 'y-tuong' : template.operation === 'media.effects' ? 'chinh-sua' : 'doi-chu-de',
     summary: `Mẫu “${template.name}”: ${template.desc}`,
     operation: template.operation,
     params: { ...(source ? { source } : {}), ...structuredClone(template.params), ...(template.effects.length ? { effects: [...template.effects] } : {}) },

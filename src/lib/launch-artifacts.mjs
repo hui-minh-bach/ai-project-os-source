@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {deflateRawSync} from 'node:zlib';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const QRCode=require('../vendor/qrcode/index.js');
@@ -31,14 +32,15 @@ export function normalizeManifest(raw,{databaseAllowed=false}={}){
 const ignored=new Set(['.git','node_modules','.next','dist','build','coverage','.turbo','.cache','.data','backups','evidence','.project-state','.vercel']);
 const forbidden=/(^|\/)(?:\.env(?:\..*)?|\.npmrc|\.pypirc|\.ssh|\.aws|credentials[^/]*|vault[^/]*|service[-_]?account[^/]*)(?:\/|$)|\.(?:pem|p12|pfx|key|sqlite3?|db|dump|bak|log)$/i;
 const suspicious=/(?:-----BEGIN [A-Z ]*PRIVATE KEY-----|\bsb_secret_[A-Za-z0-9_-]{12,}|\bsbp_[A-Za-z0-9]{20,}|\bgh[pousr]_[A-Za-z0-9]{20,}|\bsk-(?:proj-)?[A-Za-z0-9_-]{24,}|\bAKIA[A-Z0-9]{16}\b)/;
-export function collectSource(root,{redact=x=>x,maxFiles=500,maxBytes=24*1024*1024}={}){
- const base=fs.realpathSync(root),files=[];let bytes=0;
+export function collectSource(root,{redact=x=>x,maxFiles=500,maxBytes=24*1024*1024,maxFileBytes=5*1024*1024,skipPrivate=false}={}){
+ const base=fs.realpathSync(root),files=[],excludedFiles=[];let bytes=0;
  function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name))){
   if(ignored.has(e.name))continue;const full=path.join(dir,e.name),rel=path.relative(base,full).replaceAll('\\','/');
   if(e.isSymbolicLink())throw launchError('LAUNCH_SOURCE_UNSAFE','Symlink not allowed in deployment: '+rel);
+  if(skipPrivate&&forbidden.test(rel)&&!/(^|\/)\.env\.example$/.test(rel)){excludedFiles.push(rel);continue;}
   if(forbidden.test(rel)&&!/(^|\/)\.env\.example$/.test(rel))throw launchError('LAUNCH_SOURCE_SECRET','Remove private file from deployable source: '+rel);
   if(e.isDirectory()){walk(full);continue;}if(!e.isFile())throw launchError('LAUNCH_SOURCE_UNSAFE','Non-regular source file.');
-  const size=fs.statSync(full).size;if(size>5*1024*1024||bytes+size>maxBytes||files.length>=maxFiles)throw launchError('LAUNCH_SOURCE_SIZE','Source exceeds pilot limit: 500 files, 24 MiB total, 5 MiB/file.');
+  const size=fs.statSync(full).size;if(size>maxFileBytes||bytes+size>maxBytes||files.length>=maxFiles)throw launchError('LAUNCH_SOURCE_SIZE',`Source exceeds limit: ${maxFiles} files, ${(maxBytes/1048576).toFixed(0)} MiB total, ${(maxFileBytes/1048576).toFixed(0)} MiB/file.`);
   const data=fs.readFileSync(full);if(data.length!==size)throw launchError('LAUNCH_SOURCE_CHANGED','Source changed while reading.');
   // Scan text, including encoded tokens which would otherwise bypass simple patterns.
   if(!data.subarray(0,4096).includes(0)){
@@ -47,7 +49,7 @@ export function collectSource(root,{redact=x=>x,maxFiles=500,maxBytes=24*1024*10
   }
   bytes+=data.length;files.push({file:rel,data:data.toString('base64'),encoding:'base64',sha256:digest(data),size:data.length});
  }}walk(base);if(!files.length)throw launchError('LAUNCH_SOURCE_EMPTY','No deployable source.');
- const hash=digest(JSON.stringify(files.map(({file,sha256,size})=>({file,sha256,size}))));return {hash,bytes,count:files.length,files};
+ const hash=digest(JSON.stringify(files.map(({file,sha256,size})=>({file,sha256,size}))));return {hash,bytes,count:files.length,files,excludedFiles};
 }
 export function manifestFromSource(source,opts){
  const f=source.files.find(f=>f.file==='aios.delivery.json');if(!f)throw launchError('LAUNCH_MANIFEST','Worker must produce aios.delivery.json before cloud delivery.');
@@ -76,11 +78,12 @@ export function schemaSql(manifest,runId){
 const CRC_TABLE=Array.from({length:256},(_,i)=>{let x=i;for(let k=0;k<8;k++)x=(x&1)?0xedb88320^(x>>>1):x>>>1;return x>>>0;});
 function crc32(data){let c=0xffffffff;for(const b of data)c=CRC_TABLE[(c^b)&255]^(c>>>8);return (c^0xffffffff)>>>0;}
 /** Standards-compliant ZIP (stored entries), dependency-free on Windows. */
-export function sourceZip(files){
+export function sourceZip(files,{compress=false}={}){
  const entries=[],central=[];let offset=0;
  for(const f of files){const name=Buffer.from(f.file),data=Buffer.from(f.data,'base64');if(name.length>4096||f.file.startsWith('/')||f.file.split('/').includes('..'))throw launchError('LAUNCH_ZIP','Invalid ZIP entry.');
-  const crc=crc32(data),h=Buffer.alloc(30);h.writeUInt32LE(0x04034b50);h.writeUInt16LE(20,4);h.writeUInt16LE(0x800,6);h.writeUInt32LE(crc,14);h.writeUInt32LE(data.length,18);h.writeUInt32LE(data.length,22);h.writeUInt16LE(name.length,26);entries.push(h,name,data);
-  const c=Buffer.alloc(46);c.writeUInt32LE(0x02014b50);c.writeUInt16LE(20,4);c.writeUInt16LE(20,6);c.writeUInt16LE(0x800,8);c.writeUInt32LE(crc,16);c.writeUInt32LE(data.length,20);c.writeUInt32LE(data.length,24);c.writeUInt16LE(name.length,28);c.writeUInt32LE(offset,42);central.push(c,name);offset+=h.length+name.length+data.length;
+  const compressed=compress?deflateRawSync(data,{level:6}):data,method=compress&&compressed.length<data.length?8:0,payload=method===8?compressed:data;
+  const crc=crc32(data),h=Buffer.alloc(30);h.writeUInt32LE(0x04034b50);h.writeUInt16LE(20,4);h.writeUInt16LE(0x800,6);h.writeUInt32LE(crc,14);h.writeUInt16LE(method,8);h.writeUInt32LE(payload.length,18);h.writeUInt32LE(data.length,22);h.writeUInt16LE(name.length,26);entries.push(h,name,payload);
+  const c=Buffer.alloc(46);c.writeUInt32LE(0x02014b50);c.writeUInt16LE(20,4);c.writeUInt16LE(20,6);c.writeUInt16LE(0x800,8);c.writeUInt32LE(crc,16);c.writeUInt16LE(method,10);c.writeUInt32LE(payload.length,20);c.writeUInt32LE(data.length,24);c.writeUInt16LE(name.length,28);c.writeUInt32LE(offset,42);central.push(c,name);offset+=h.length+name.length+payload.length;
  }
  const cd=Buffer.concat(central),end=Buffer.alloc(22);end.writeUInt32LE(0x06054b50);end.writeUInt16LE(files.length,8);end.writeUInt16LE(files.length,10);end.writeUInt32LE(cd.length,12);end.writeUInt32LE(offset,16);return Buffer.concat([...entries,cd,end]);
 }

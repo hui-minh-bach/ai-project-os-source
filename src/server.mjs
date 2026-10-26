@@ -7,7 +7,7 @@ import {scanNews,suggestNewsField,pageNewsCards} from './lib/radar-service.mjs';
 import {productionCapabilities,assertProductionReady} from './lib/production-preflight.mjs';
 import {createWorkCenter} from './lib/work-center.mjs';
 import {createWorkBackend} from './lib/work-center-backend.mjs';
-import {listProducts,projectSourceZip,articleDocument,customerDeliveryBundle} from './lib/product-service.mjs';
+import {listProducts,projectSourceZip,projectSourceSnapshot,articleDocument,customerDeliveryBundle} from './lib/product-service.mjs';
 import {sendArtifact} from './lib/range-response.mjs';
 import {currentSpecification} from './lib/council-spec.mjs';
 import {attachProductionRequest} from './lib/projects.mjs';
@@ -70,7 +70,7 @@ import {createMcpHub} from './lib/mcp-hub.mjs';
 
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const PUB=path.join(ROOT,'public');
-const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.75';
+const HOST='127.0.0.1', PORT=Number(process.env.AI_PROJECT_OS_PORT||4321), VERSION='0.9.80';
 if(!Number.isSafeInteger(PORT)||PORT<1024||PORT>65535)throw new Error('AI_PROJECT_OS_PORT phải nằm trong 1024..65535.');
 const localAccess=createLocalAccess({port:PORT,version:VERSION});
 let backingUp=false;
@@ -262,9 +262,10 @@ const server=http.createServer(async(req,res)=>{try{
     if(req.method==='GET')return send(res,200,{conversation:JSON.parse(redactVaultSecrets(JSON.stringify(buildProjectConversation({project:p,runs:orchestrator.listRuns(),events:integrations.productionEvents(p.id),calls:spaceActivitySnapshot(),jobs:workCenter.list(p.id),connections:listConnections()})))),projectId:p.id,settings:{sandboxMode:p.settings?.sandboxMode},job:workCenter.latest(p.id),jobs:workCenter.list(p.id),request:p.productionRequest||null,specification:currentSpecification(p),roles:projectModelRoles(p.id),tasks:(p.tasks||[]).map(t=>({id:t.id,title:t.title,status:t.status,error:t.error||'',role:t.role,worker:t.servedWorkerBinding||t.workerBinding||null,reviewer:t.servedReviewerBinding||t.reviewerBinding||null,test:t.latestTestReceipt?.status||null})),feed:buildRunFeed(orchestrator.listRuns().filter(r=>r.projectId===p.id),{limit:150}),runs:orchestrator.listRuns().filter(r=>r.projectId===p.id).slice(0,15).map(r=>({id:r.id,title:r.title,state:r.state,error:r.error,steps:r.steps.slice(-35),voiceMode:r.voiceMode,review:r.review?{approved:r.review.approved,feedback:r.review.feedback,provider:r.review.provider,model:r.review.model}:null}))});
     if(req.method==='POST'){const b=await readBody(req);return send(res,202,{job:await workCenter.start(p.id,b.action,b.input||{},b.key||null)});}
   }
-  const pp=u.pathname.match(/^\/api\/projects\/([a-f0-9-]{36})\/products(?:\/(source\.zip))?$/);
+  const pp=u.pathname.match(/^\/api\/projects\/([a-f0-9-]{36})\/products(?:\/(source\.zip|source-snapshot\.zip|source-for-ai\.txt|source-ai\.zip))?$/);
   if(pp&&req.method==='GET'){
     if(!vaultStatus().unlocked)return send(res,423,{error:'VAULT_LOCKED'});
+    if(pp[2]&&pp[2]!=='source.zip'){const artifact=projectSourceSnapshot(pp[1],{textOnly:pp[2]==='source-for-ai.txt',textArchive:pp[2]==='source-ai.zip'});return sendArtifact(req,res,artifact,artifact.type);}
     if(pp[2])return sendArtifact(req,res,projectSourceZip(pp[1]),'application/zip');
     return send(res,200,listProducts(pp[1],{host:integrations,orchestrator,delivery:deliveryLaunch}));
   }
@@ -507,6 +508,21 @@ const server=http.createServer(async(req,res)=>{try{
   }
   const mediaAction=u.pathname.match(/^\/api\/integrations\/media\/tasks\/([a-f0-9-]{36})\/(approve|pause|resume|cancel|retry)$/);
   if(mediaAction&&req.method==='POST')return send(res,200,integrations.action(mediaAction[1],mediaAction[2]));
+  if(req.method==='POST'&&u.pathname==='/api/integrations/media/regions/track'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Mở Vault để theo dõi video.'});
+    return send(res,200,await integrations.trackRegionPreview(await readBody(req)));
+  }
+  if(req.method==='POST'&&u.pathname==='/api/integrations/media/localize/preflight'){
+    const payload=await readBody(req);getProject(payload.projectId);
+    return send(res,200,integrations.localizeStatus(payload.projectId,{ttsProvider:payload.ttsProvider||'local',url:payload.url||undefined,sourceLanguage:payload.sourceLanguage||'auto',regions:payload.regions||[],source:payload.source,cleanupMode:payload.cleanupMode,coverSubtitles:payload.coverSubtitles,autoCoverScope:payload.autoCoverScope,ocrLanguage:payload.ocrLanguage,captionsSource:payload.captionsSource}));
+  }
+  if(req.method==='GET'&&u.pathname==='/api/integrations/media/downloader')return send(res,200,integrations.downloaderStatus());
+  if(['GET','HEAD'].includes(req.method)&&u.pathname==='/api/integrations/media/source'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Mở Vault để xem video nguồn.'});
+    const art=integrations.sourcePreview(u.searchParams.get('source')||'');
+    const type=path.extname(art.metadata.name).toLowerCase()==='.webm'?'video/webm':'video/mp4';
+    return sendArtifact(req,res,art,type);
+  }
   if(req.method==='POST'&&u.pathname==='/api/integrations/media/upload'){
     const filename=decodeURIComponent(String(req.headers['x-media-filename']||'upload.mp4'));
     return send(res,200,await integrations.importUpload(req,filename));

@@ -53,6 +53,7 @@
  }
  function renderProducts(data){
   const items=data?.products||[];let out='<h3>Kết quả dự án</h3><p class="muted">Chỉ tệp đã được lưu từ thao tác thật; chưa tạo xong sẽ không xuất hiện ở đây.</p>';
+  if(data?.snapshot?.available){out+='<div class="work-source-snapshot"><p>Mã nguồn đang làm — tải để lưu hoặc giao AI làm tiếp; chưa phải bản nghiệm thu.</p><a class="work-download" data-source-download download="project-source-snapshot.zip" href="'+html(data.snapshot.zip)+'">Tải source dự án (ZIP)</a> <a class="work-download" data-source-download download="project-source-for-ai.txt" href="'+html(data.snapshot.text)+'">Tải source cho AI (TXT)</a><details><summary>Dự án lớn: chia source cho AI</summary><a class="work-download" data-source-download download="project-source-ai-text.zip" href="'+html(data.snapshot.textZip)+'">Tải ZIP chỉ chứa các phần TXT nhỏ</a><p>Giải nén rồi đính kèm các SOURCE_PART theo thứ tự nếu nơi nhận không cho tải ZIP.</p></details><p class="muted">Nếu nơi tải lên không nhận ZIP, dùng TXT. ZIP giữ tài nguyên nhị phân; TXT giữ nội dung văn bản nguồn.</p></div>';}
   if(!items.length)out+='<div class="empty">Chưa có tệp hoàn thành. Khi bước sản xuất tạo được file, hệ thống tự hiển thị ở đây.</div>';
   for(const p of items){const link=String(p.download||'').startsWith('/api/')?p.download:null;
    out+='<article class="work-product work-inbox-file"><div class="work-file-meta"><strong>'+html(p.name||p.title||p.kind)+'</strong><span>'+html(({video:'Video',audio:'Giọng đọc',captions:'Phụ đề',image:'Ảnh minh họa',article:'Bài viết',source:'Mã nguồn',website:'Website',document:'Kịch bản',bundle:'Gói file giao khách'})[p.kind]||p.kind)+(p.bytes?' · '+(p.bytes/1048576).toFixed(2)+' MB':'')+' · '+html(iso(p.at))+'</span></div>';
@@ -63,13 +64,14 @@
    if(p.kind==='article')out+='<details><summary>Xem nội dung</summary><pre>'+html(p.body||'')+'</pre><pre>'+html(p.caption||'')+'</pre></details>';
    if(p.kind==='website'&&safeLink(p.url))out+='<a href="'+html(safeLink(p.url))+'" target="_blank" rel="noopener noreferrer">Mở website</a>';
    if(p.kind==='website'&&typeof p.qr==='string'&&p.qr.startsWith('/api/'))out+='<img class="work-qr" src="'+html(p.qr)+'" alt="Mã QR mở website đã bàn giao"><a class="work-download" href="'+html(p.qr)+'" download="website-qr.svg">Tải mã QR</a>';
-   if(link)out+='<a class="work-download" download="'+html(p.name||'')+'" href="'+html(link)+'">Tải file</a>';
+   if(link)out+='<a class="work-download" '+(p.kind==='source'?'data-source-download ':'')+'download="'+html(p.name||'')+'" href="'+html(link)+'">Tải file</a>';
    if(p.kind==='source')out+='<p class="muted">'+html(p.tested?'Source có biên bản kiểm thử; cần nghiệm thu trên môi trường đích.':'Source đã review nhưng chưa có kiểm thử đích.')+'</p>';
    out+='</article>';
   }
   if(data?.artifactError)out+='<p class="work-error">Không thể kiểm tra kho tệp: '+html(data.artifactError)+'</p>';
   products.innerHTML=out;
  }
+ products.addEventListener('click',async event=>{const a=event.target.closest('a[data-source-download]');if(!a)return;event.preventDefault();if(a.dataset.busy)return;a.dataset.busy='1';const label=a.textContent;a.textContent='Đang chuẩn bị tải…';try{const r=await fetch(a.href);if(!r.ok){let message='Không tải được source (HTTP '+r.status+').';try{message=(await r.json()).error||message;}catch{}throw new Error(message);}const bytes=await r.arrayBuffer(),expected=r.headers.get('x-artifact-sha256');if(expected&&window.crypto?.subtle){const actual=[...new Uint8Array(await window.crypto.subtle.digest('SHA-256',bytes))].map(x=>x.toString(16).padStart(2,'0')).join('');if(actual!==expected)throw new Error('Checksum tệp tải không khớp; chưa lưu tệp.');}const url=URL.createObjectURL(new Blob([bytes],{type:r.headers.get('content-type')||'application/octet-stream'})),download=document.createElement('a');download.href=url;download.download=a.download||'project-source.zip';document.body.append(download);download.click();download.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch(e){toast(e.message);}finally{delete a.dataset.busy;a.textContent=label;}});
  async function refresh(){
   if(polling||document.hidden||!document.querySelector('#page-idea.active'))return;
   const current=state.project?.id;if(!current){pid=null;render(null);renderProducts(null);return;}

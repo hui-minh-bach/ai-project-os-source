@@ -6,6 +6,7 @@ const {spawn} = require('node:child_process');
 const {promisify} = require('node:util');
 const sleep = promisify(setTimeout);
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
+function writeAllSync(fd,buffer,write=fs.writeSync){let offset=0;while(offset<buffer.length){const n=write(fd,buffer,offset,buffer.length-offset,null);if(!Number.isInteger(n)||n<=0||n>buffer.length-offset)throw Object.assign(new Error('Unable to write complete file'),{code:'SHORT_WRITE'});offset+=n;}return offset;}
 function shaFile(file){const hash=crypto.createHash('sha256'),fd=fs.openSync(file,'r'),buf=Buffer.alloc(1<<20);try{let n;while((n=fs.readSync(fd,buf,0,buf.length,null))>0)hash.update(buf.subarray(0,n));}finally{fs.closeSync(fd);}return hash.digest('hex');}
 function insist(ok, message, code='INVALID'){if(!ok){const e=new Error(message);e.code=code;throw e;}}
 function within(base, p, mustExist=true){
@@ -47,4 +48,4 @@ const finite=(n,defaultValue=0)=>Number.isFinite(+n)?+n:defaultValue;
 const duration=probe=>finite(probe.format?.duration);
 const hasAudio=probe=>probe.streams.some(s=>s.codec_type==='audio');
 const hasVideo=probe=>probe.streams.some(s=>s.codec_type==='video');
-module.exports={fs,path,sha,shaFile,insist,within,mkdir,atomic,jsonRead,jsonWrite,run,ffprobe,finite,duration,hasAudio,hasVideo,sleep};
+module.exports={fs,path,sha,shaFile,writeAllSync,insist,within,mkdir,atomic,jsonRead,jsonWrite,run,ffprobe,finite,duration,hasAudio,hasVideo,sleep};

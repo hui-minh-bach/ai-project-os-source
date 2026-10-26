@@ -63,3 +63,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .home-current-panel .primary{min-height:43px;white-space:normal;flex-shrink:0}
 #modal:not(.hidden) {z-index:9999}
 @media(max-width:580px){.home-current-panel .primary{width:100%}}
+
+/* Fixed-region video editor; dimensions follow the actual video frame. */
+.mediaRegionFrame{position:relative;width:100%;min-height:40px;background:#171717;touch-action:none;cursor:crosshair;overflow:hidden;border-radius:10px;margin:12px 0}
+.mediaRegionFrame video{display:block;width:100%;height:auto;max-width:100%}
+.mediaRegionBox{position:absolute;border:2px solid #f09a35;background:rgba(240,154,53,.15);pointer-events:none;box-sizing:border-box}

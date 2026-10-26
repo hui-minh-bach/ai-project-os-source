@@ -11,7 +11,7 @@ export function sendArtifact(req,res,{metadata,bytes,filePath},type='application
  let range;try{range=byteRange(req.headers.range,size);}catch{res.writeHead(416,{'content-range':`bytes */${size}`,'cache-control':'no-store','content-length':'0'});res.end();return;}
  const start=range?.start??0,end=range?.end??size-1;
  const name=String(metadata.name||'download').replace(/[^a-zA-Z0-9._-]/g,'_');
- res.writeHead(range?206:200,{'content-type':type,'content-length':Math.max(0,end-start+1),'accept-ranges':'bytes',...(range?{'content-range':`bytes ${start}-${end}/${size}`}:{}) ,'cache-control':'no-store','x-content-type-options':'nosniff','content-disposition':`inline; filename="${name}"`,...(metadata.sha256?{'x-artifact-sha256':metadata.sha256}:{})});
+ res.writeHead(range?206:200,{'content-type':type,'content-length':Math.max(0,end-start+1),'accept-ranges':'bytes',...(range?{'content-range':`bytes ${start}-${end}/${size}`}:{}) ,'cache-control':'no-store','x-content-type-options':'nosniff','content-disposition':`${metadata.disposition==='attachment'||/\.(?:zip|txt|srt|vtt)$/i.test(name)?'attachment':'inline'}; filename="${name}"`,...(metadata.sha256?{'x-artifact-sha256':metadata.sha256}:{})});
  if(req.method==='HEAD'){res.end();return;}
  if(filePath&&size)fs.createReadStream(filePath,{start,end}).on('error',()=>res.destroy()).pipe(res);else res.end(bytes?.subarray(start,end+1)||Buffer.alloc(0));
 }

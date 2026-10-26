@@ -1,3 +1,4 @@
+import {mapSourceTime,validateVideoTimeline} from './media-timing.mjs';
 /**
  * Real local dubbing: accepted on-disk video/audio, no simulated TTS.
  * Original video sound is REPLACED. Optional licensed music is mixed very quietly.
@@ -5,6 +6,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import {validateCoverPlan,automaticCoverFilters} from './media-auto-cover.mjs';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const common=require('../../integrations/media-engine/src/utils.cjs');
@@ -28,7 +30,7 @@ export function hardsubCoverSegments({mode='off',regionPct=13,width=0,height=0}=
   return {applied:true,pct,segments:[`[vbase]split=2[hsA][hsB]`,`[hsB]crop=${width}:${h}:0:${y},boxblur=luma_radius=24:luma_power=3:chroma_radius=12[hsBlur]`,`[hsA][hsBlur]overlay=0:${y}[vcover]`]};
 }
 
-export async function buildVoiceover({workspace,jobDir,videoSource,audioSource,captionsSource=null,musicSource=null,musicVolume=.12,alignment='hold',hardsubCover=null,qualityProfile='high',ffmpegBin='ffmpeg',ffprobeBin='ffprobe'}={}){
+export async function buildVoiceover({workspace,jobDir,videoSource,audioSource,captionsSource=null,musicSource=null,musicVolume=.12,alignment='hold',hardsubCover=null,coverPlan=null,videoTimeline=null,qualityProfile='high',ffmpegBin='ffmpeg',ffprobeBin='ffprobe'}={}){
   const QUALITY_PROFILES={'standard':{crf:21,preset:'veryfast'},'high':{crf:18,preset:'medium'},'max':{crf:15,preset:'slow'}};
   const qp=QUALITY_PROFILES[qualityProfile]||QUALITY_PROFILES.high;
   const video=within(workspace,videoSource),audio=within(workspace,audioSource);
@@ -72,15 +74,18 @@ export async function buildVoiceover({workspace,jobDir,videoSource,audioSource,c
   const vstream=(vp.streams||[]).find(st=>st.codec_type==='video')||{};
   const cover=hardsubCoverSegments({mode:hardsubCover?.mode||'off',regionPct:hardsubCover?.regionPct??13,width:vstream.width||0,height:vstream.height||0});
   let graph=`[0:v]${filters.join(',')}[vbase]`;
+  if(videoTimeline){validateVideoTimeline(videoTimeline,videoSeconds,audioSeconds);graph=`[0:v]split=${videoTimeline.length}`+videoTimeline.map((_,i)=>`[vt${i}]`).join('')+';'+videoTimeline.map((p,i)=>`[vt${i}]trim=start=${p.sourceStart.toFixed(6)}:end=${p.sourceEnd.toFixed(6)},setpts=${((p.outputEnd-p.outputStart)/(p.sourceEnd-p.sourceStart)).toFixed(8)}*(PTS-STARTPTS)[vpart${i}]`).join(';')+';'+videoTimeline.map((_,i)=>`[vpart${i}]`).join('')+`concat=n=${videoTimeline.length}:v=1:a=0,tpad=stop_mode=clone:stop_duration=1,fps=25,trim=duration=${audioSeconds.toFixed(3)},setpts=PTS-STARTPTS[vbase]`;}
   let cur='vbase';
+  if(coverPlan){validateCoverPlan(coverPlan,vstream.width,vstream.height,videoSeconds);if(coverPlan.sourceSha256!==common.shaFile(video))throw new Error('Nguồn không khớp kế hoạch che chữ.');graph+=`;[${cur}]${automaticCoverFilters(videoTimeline?{...coverPlan,rectangles:coverPlan.rectangles.map(r=>({...r,start:mapSourceTime(videoTimeline,r.start),end:mapSourceTime(videoTimeline,r.end)}))}:coverPlan).join(',')}[vauto]`;cur='vauto';}
   if(cover.applied){graph+=';'+cover.segments.join(';');cur='vcover';}
   if(capFile){graph+=`;[${cur}]subtitles=filename='${escapeFilterPath(capFile)}'[v]`;cur='v';}
   const inputs=['-i',video,'-i',audio];
   if(music)inputs.push('-stream_loop','-1','-i',music);
   const complex=graph+(music?`;[1:a]aresample=48000,volume=1[voice];[2:a]aresample=48000,volume=${Number(musicVolume).toFixed(3)}[music];[voice][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.97,loudnorm=I=-14:TP=-1.5:LRA=11[a]`:';[1:a]aresample=48000,loudnorm=I=-14:TP=-1.5:LRA=11[a]');
-  const args=['-hide_banner','-loglevel','error','-nostdin','-y',...inputs,'-filter_complex',complex,'-map',`[${cur}]`,'-map','[a]','-c:v','libx264','-preset',qp.preset,'-threads','2','-crf',String(qp.crf),'-pix_fmt','yuv420p','-c:a','aac','-ar','48000','-b:a','192k','-t',String(audioSeconds),'-movflags','+faststart',final];
+  const graphFile=coverPlan||videoTimeline?path.join(jobDir,'cover-filter.ffscript'):null;if(graphFile)fs.writeFileSync(graphFile,complex);
+  const args=['-hide_banner','-loglevel','error','-nostdin','-y',...inputs,...(graphFile?['-filter_complex_script',graphFile]:['-filter_complex',complex]),'-map',`[${cur}]`,'-map','[a]','-c:v','libx264','-preset',qp.preset,'-threads','2','-crf',String(qp.crf),'-pix_fmt','yuv420p','-c:a','aac','-ar','48000','-b:a','192k','-t',String(audioSeconds),'-movflags','+faststart',final];
   await run(ffmpegBin,args,{timeoutMs:Math.max(120000,audioSeconds*17000)});
   const qa=await quality.check({file:final,expectedDuration:audioSeconds,ffmpegBin,ffprobeBin,subtitleSegments:segments});
   insist(qa.passed,'Không nghiệm thu được video: '+qa.problems.join(','),'VOICEOVER_QA');
-  return {file:final,qa,voiceOrigin:'user-supplied-real-audio',subtitleSync:segments?'provided-timed-SRT':(capFile?'karaoke-ass':'none'),alignment:stretch?'stretch-video-to-narration':extension>0?'freeze-last-frame-to-preserve-full-voice':'trim-video-to-voice-length',videoSeconds,audioSeconds,musicMixed:Boolean(music),musicVolume:music?Number(musicVolume):0,captionPath:capFile,hardsubCover:{mode:hardsubCover?.mode||'off',regionPct:cover.pct||Math.min(40,Math.max(10,Number(hardsubCover?.regionPct)||22)),applied:cover.applied}};
+  return {file:final,qa,voiceOrigin:'user-supplied-real-audio',subtitleSync:segments?'provided-timed-SRT':(capFile?'karaoke-ass':'none'),alignment:videoTimeline?'segment-video-timing-preserving-all-frames':stretch?'stretch-video-to-narration':extension>0?'freeze-last-frame-to-preserve-full-voice':'trim-video-to-voice-length',videoSeconds,audioSeconds,musicMixed:Boolean(music),musicVolume:music?Number(musicVolume):0,captionPath:capFile,automaticCover:coverPlan?{method:coverPlan.method,scope:coverPlan.scope,regionPct:coverPlan.regionPct,ocrRectangles:coverPlan.rectangles.length}:null,hardsubCover:{mode:hardsubCover?.mode||'off',regionPct:cover.pct||Math.min(40,Math.max(10,Number(hardsubCover?.regionPct)||22)),applied:cover.applied}};
 }

@@ -1,6 +1,6 @@
 {
   "name": "ai-project-os-local",
-  "version": "0.9.75",
+  "version": "0.9.80",
   "private": true,
   "type": "module",
   "engines": {
