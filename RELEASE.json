@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.75",
-  "channel": "source-multiplatform-guide-qa",
+  "version": "0.9.80",
+  "channel": "source-seven-step-media-core-qa",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -265,7 +265,10 @@
     "image_account_transport": "bounded image RPC above 2MB, capability preflight and safe per-source reasons; live account entitlement not tested",
     "github_import": "noninteractive scoped credentials, bounded shallow clone, progress jobs, reload recovery, exact project selection and verified team copy",
     "social_extended": "17-channel catalog; manual verified tokens for Threads text/X text/Zalo OA articles, per-draft account/content approval, X cost opt-in, durable no-replay on uncertain writes; other extra channels text export only",
-    "multiplatform_guide": "in-app onboarding for cloud, AI, official social OAuth/manual tokens and export-only channels; help links from Connections/Publish; outdated mandatory manual cloud setup removed"
+    "multiplatform_guide": "in-app onboarding for cloud, AI, official social OAuth/manual tokens and export-only channels; help links from Connections/Publish; outdated mandatory manual cloud setup removed",
+    "media_seven_step_renewal": "source_core_integrated_v0980_local_tests_pass_36_of_36_windows_live_run_not_tested",
+    "video_overlay_tracking": "temporal_regions_with_non_crop_workflow_fixture_verified",
+    "media_zip_project_export": "source_core_integrated_runtimes_not_windows_verified"
   },
   "online_provider_apis": "separate user credentials and provider charges",
   "build": "AI-Project-OS-v0.9.65-Recovery-R8-2026-10-23",
