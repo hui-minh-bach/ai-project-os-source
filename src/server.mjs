@@ -502,6 +502,11 @@ const server=http.createServer(async(req,res)=>{try{
     const id=u.searchParams.get('projectId')||'';getProject(id);return send(res,200,integrations.listArtifacts(id));
   }
   if(req.method==='POST'&&u.pathname==='/api/integrations/media/demo')return send(res,200,integrations.demoSample());
+  if(req.method==='POST'&&u.pathname==='/api/integrations/media/publish-source'){
+    if(!vaultStatus().unlocked)return send(res,423,{error:'Mở Vault để chuẩn bị xuất bản.'});
+    const body=await readBody(req);getProject(body.projectId);
+    return send(res,200,integrations.publishVideoSource(body.projectId,body.artifactId));
+  }
   if(req.method==='POST'&&u.pathname==='/api/integrations/media/tasks'){
     const payload=await readBody(req);getProject(payload.projectId);
     return send(res,200,integrations.submit(payload));

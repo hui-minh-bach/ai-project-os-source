@@ -1181,6 +1181,28 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
     const {geometry,frames,activeFrames,worstDifference,referenceTime}=made.plan;
     return {source,geometry,frames,activeFrames,worstDifference,referenceTime,method:made.plan.method};
   }
+  // Bind the previewed, SHA-verified completed output to a workspace path.
+  // This is not permission to publish: queue approval and platform identity are separate.
+  function publishVideoSource(projectId,artifactId){
+    requireCore();
+    if(!safeId(projectId)||!/^[a-f0-9-]{36}$/.test(String(artifactId)))throw err('MEDIA_PUBLISH_SOURCE','Dự án hoặc sản phẩm không hợp lệ.');
+    const a=artifact(artifactId),meta=a.metadata,task=mediaTask(meta.taskId);
+    if(task.projectId!==projectId||task.state!=='completed'||task.input?.operation!=='media.localize'||meta.name!=='vietnamese-final.mp4')
+      throw err('MEDIA_PUBLISH_SOURCE','Chỉ được đăng thành phẩm Việt hóa đã hoàn thành của đúng dự án.');
+    const destRel='uploads/review-'+artifactId+'.mp4',dest=path.join(mediaWorkspace,destRel);
+    const expected=meta.sha256;
+    if(fs.existsSync(dest)){if(shaFileSync(checkFile(mediaWorkspace,destRel))!==expected)throw err('MEDIA_PUBLISH_SOURCE','Bản xuất đã thay đổi, không đăng.');}
+    else{
+      const buffer=Buffer.isBuffer(a.bytes)?a.bytes:null;
+      const src=a.filePath||null;
+      if(!buffer&&!src)throw err('MEDIA_PUBLISH_SOURCE','Không truy xuất được MP4 đã xác minh.');
+      fs.mkdirSync(path.dirname(dest),{recursive:true,mode:0o700});
+      try{if(src)fs.copyFileSync(src,dest,fs.constants.COPYFILE_EXCL);else fs.writeFileSync(dest,buffer,{flag:'wx',mode:0o600});}
+      catch(e){if(e.code!=='EEXIST')throw e;}
+      if(shaFileSync(dest)!==expected){fs.rmSync(dest,{force:true});throw err('MEDIA_PUBLISH_SOURCE','MP4 không khớp SHA-256 sau sao chép.');}
+    }
+    return {projectId,artifactId,source:destRel,sha256:expected};
+  }
   function sourcePreview(source){
     requireCore();
     if(typeof source!=='string'||!/^uploads\/[a-zA-Z0-9-]+\.(mp4|mov|webm|m4v)$/i.test(source))throw err('MEDIA_PATH','Chỉ xem video đã nhập.');
@@ -1226,5 +1248,5 @@ export function createIntegrationHost({root=PROJECT_ROOT, env=process.env, clock
   }
   function productionEvents(projectId){const ids=new Set(listTasks(projectId).flatMap(t=>[t.id,t.id.replace(/-/g,'_')]));return (core?.state.events.items||[]).filter(e=>e.type==='media.image.assignment'&&(e.payload?.projectId===projectId||ids.has(e.payload?.jobId))).slice(-100);}
   function stop(){if(timer){clearInterval(timer);timer=null;}if(core){core.close();core=null;}}
-  return {trackRegionPreview,trackingStatus,localizeStatus,sourcePreview,downloaderStatus:()=>downloaderStatus(env),status,productionEvents,refreshProductionStatus,prepareProduction,previewVoice,voicePreviewArtifact,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,mediaTemplates:()=>MEDIA_TEMPLATES,listTasks,listArtifacts,submit,action,artifact,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
+  return {trackRegionPreview,trackingStatus,localizeStatus,sourcePreview,downloaderStatus:()=>downloaderStatus(env),status,productionEvents,refreshProductionStatus,prepareProduction,previewVoice,voicePreviewArtifact,checkConcat,openInConcat,plannerStatus:mediaPlannerStatus,directorPlan,mediaTemplates:()=>MEDIA_TEMPLATES,listTasks,listArtifacts,submit,action,artifact,publishVideoSource,importUpload,demoSample,publishRecords,refreshPublishMetrics,listVoices:()=>tts.listVoices(),stop,get core(){return core;},mediaWorkspace};
 }

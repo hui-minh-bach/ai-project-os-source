@@ -1,4 +1,55 @@
-<section id="mediaStudio" class="panel mediaStudio" aria-label="Video và Story Studio">
+<section id="mediaStudio" class="panel mediaStudio mediaSimpleMode" aria-label="Video và Story Studio">
+  <!-- Default customer workflow. Expert controls remain available but collapsed. -->
+  <div id="mediaSimple" class="mediaSimple" aria-label="Làm video tự động">
+    <div class="mediaSimpleHead">
+      <div><span class="mediaSimpleEyebrow">VIDEO STUDIO · TỰ ĐỘNG</span>
+        <h2>Từ video gốc đến video sẵn sàng duyệt</h2>
+        <p>Tải video, chọn giọng Việt rồi giao AI xử lý. Hệ thống đọc nguồn, thay giọng và phụ đề, xử lý chữ cũ, tối ưu nhịp dựng và đưa kết quả đến đây để bạn xem trước.</p>
+      </div>
+      <button id="mediaSimpleAdvanced" class="ghost mediaSimpleAdvanced" type="button">Công cụ chuyên sâu</button>
+    </div>
+    <div class="mediaSimpleSteps" aria-label="Quy trình video">
+      <span data-simple-step="upload" class="current"><b>1</b> Tải video</span>
+      <span data-simple-step="analyze"><b>2</b> Phân tích</span>
+      <span data-simple-step="produce"><b>3</b> AI thực hiện</span>
+      <span data-simple-step="review"><b>4</b> Xem &amp; duyệt</span>
+    </div>
+    <div class="mediaSimpleLayout">
+      <section class="mediaSimpleControls" aria-label="Nguồn và giọng đọc">
+        <label class="mediaSimpleFile" for="mediaSimpleFile">
+          <span class="mediaSimpleFileIcon" aria-hidden="true">↑</span>
+          <strong>Chọn video để tải lên</strong>
+          <small>MP4, MOV, MKV, WEBM · tối đa 150 MB</small>
+          <input id="mediaSimpleFile" type="file" accept=".mp4,.mov,.mkv,.webm,.m4v,video/mp4,video/webm" aria-label="Chọn video nguồn">
+        </label>
+        <p id="mediaSimpleSource" class="mediaSimpleSource">Chưa chọn video.</p>
+        <label for="mediaSimpleVoice" class="mediaSimpleFieldLabel">Giọng đọc mới</label>
+        <select id="mediaSimpleVoice">
+          <option value="local">Giọng Việt Piper trên máy · miễn phí</option>
+          <option value="windows">Giọng Việt Windows · miễn phí</option>
+          <option value="fpt">Giọng Việt FPT.AI · có thể phát sinh phí</option>
+          <option value="heygen">HeyGen · có thể phát sinh phí</option>
+        </select>
+        <label class="mediaSimpleRights"><input id="mediaSimpleRights" type="checkbox"> Tôi có quyền chỉnh sửa, thay giọng và đăng video này.</label>
+        <button id="mediaSimpleGenerate" type="button" class="primary mediaSimpleGenerate" disabled>✨ Tạo video tự động</button>
+        <div id="mediaSimpleStatus" class="mediaSimpleStatus" role="status" aria-live="polite">Chọn video để bắt đầu. Phân tích nguồn sẽ chạy tự động.</div>
+        <p class="mediaSimpleNote">Nếu thiếu AI Worker, Whisper, OCR hoặc giọng đọc, ứng dụng báo rõ công cụ cần cài. Không xuất video câm hay che đen toàn khung để giả kết quả hoàn chỉnh.</p>
+      </section>
+      <section class="mediaSimpleResult" aria-label="Video thành phẩm">
+        <div class="mediaSimpleResultHead"><h3>Xem trước sản phẩm</h3><span id="mediaSimpleResultBadge">Chưa có kết quả</span></div>
+        <div class="mediaSimplePlayerBox"><video id="mediaSimplePlayer" controls playsinline preload="metadata" aria-label="Video nguồn hoặc thành phẩm"></video></div>
+        <p id="mediaSimpleOutputInfo" class="mediaSimpleOutputInfo">Video gốc và kết quả cuối được hiển thị tại đây, không cần tìm trong hàng đợi.</p>
+        <div class="mediaSimpleActions">
+          <a id="mediaSimpleDownload" class="ghost mediaSimpleDownload" hidden>Tải MP4 thành phẩm</a>
+          <button id="mediaSimplePublish" class="primary" type="button" disabled>Duyệt &amp; đăng đa nền tảng</button>
+        </div>
+        <p class="mediaSimpleNote">Chỉ đăng lên tài khoản đã liên kết sau khi bạn chọn nền tảng, xem lại video và duyệt. Video chưa có xác nhận của nền tảng không được báo là đã đăng.</p>
+        <div id="mediaSimplePublishState" class="mediaSimplePublishState" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+  </div>
+  <div id="mediaAdvancedReturn" class="mediaAdvancedReturn"><span>Chế độ kỹ thuật: hàng đợi, hiệu ứng, Concat và chỉnh chi tiết vẫn được giữ nguyên.</span><button id="mediaSimpleBack" type="button" class="ghost">← Về luồng đơn giản</button></div>
+
   <div class="mediaHeader"><div><h3>Video & Story Studio <span class="tag">V07–V10</span></h3><p>Dựng video kiểu CapCut: chọn công việc ở cột trái, xem trước ở giữa, chỉnh thông số ở cột phải, theo dõi các lớp ở dòng thời gian bên dưới. Bấm “Mở trong Concat” khi muốn chỉnh tay chi tiết.</p></div><div id="mediaStatusBar" class="mediaStatusBar" aria-live="polite"><span>Đang kiểm tra…</span></div></div>
   <div class="mediaWarning" id="mediaLimitations">Không cần HeyGen API: dùng giọng TTS/Whisper trong Concat hoặc nạp âm thanh thật; tự động sinh giọng bằng Piper local khi đã cài model. Đăng bài chưa mở.</div>
   <div class="mediaCapcut">

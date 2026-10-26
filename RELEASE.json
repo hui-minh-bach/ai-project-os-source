@@ -1,7 +1,7 @@
 {
   "product": "AI Project OS Local Worker",
-  "version": "0.9.81",
-  "channel": "source-video-precise-cover-qa",
+  "version": "0.9.82",
+  "channel": "source-simple-video-studio-review-required",
   "windows": {
     "architecture": "x64",
     "minimum": "Windows 10 64-bit",
@@ -269,7 +269,11 @@
     "media_seven_step_renewal": "source_core_integrated_v0980_local_tests_pass_36_of_36_windows_live_run_not_tested",
     "video_overlay_tracking": "temporal_regions_with_non_crop_workflow_fixture_verified",
     "media_zip_project_export": "source_core_integrated_runtimes_not_windows_verified",
-    "media_video_precise_cover_v0981": "Tesseract OCR word-sized FFmpeg interpolation; no default 26 percent bottom band; explicitly selected 8 percent fallback; Windows/live provider not tested"
+    "media_video_precise_cover_v0981": "Tesseract OCR word-sized FFmpeg interpolation; no default 26 percent bottom band; explicitly selected 8 percent fallback; Windows/live provider not tested",
+    "video_simple_mode": "source_implemented_not_runtime_verified",
+    "video_automatic_localization": "uses_existing_media.localize_7_step_engine_requires_verified_worker_whisper_ocr_voices_ffmpeg",
+    "video_publish_from_completed_artifact": "explicit_approval_verified_sha256_per_platform_not_live_tested",
+    "media_ai_cinematic_editing": "not_guaranteed_existing_localize_pipeline_is_translation_cleanup_voice_caption_and_export"
   },
   "online_provider_apis": "separate user credentials and provider charges",
   "build": "AI-Project-OS-v0.9.65-Recovery-R8-2026-10-23",

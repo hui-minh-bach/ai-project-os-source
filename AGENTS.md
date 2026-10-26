@@ -63,3 +63,6 @@ Implement automatic opaque subtitle cover with actual optional Tesseract OCR, so
 
 ## v0.9.81 video cover correction
 Read START-HERE-V0981.md. Default OCR cleanup repairs only recognized words (local border interpolation), no full-width 26% dark band. The no-OCR bottom-band remains an explicitly selected fallback (8% initial). Old sealed checkpoints retain legacy behavior. Do not imply exact inpainting or guaranteed OCR coverage. Preserve all approved 3D assets and commercial gates.
+
+## v0.9.82 Customer-first Video Studio (unverified review branch)
+The default Video Studio is one upload + voice selection + render + review/publish flow; all former editor controls remain available under Công cụ chuyên sâu. Never advertise cloud publishing without confirmed platform receipt; posting is explicitly approved by the owner. The new publish-source endpoint accepts only a completed media.localize artifact from the active project and rechecks its SHA-256. This change requires independent Node/Chromium/Windows QA before merging to main or claiming commercial readiness. The seven-step localization engine is reused; do not claim new cinematic AI scene planning or universal OCR/voice capabilities.
